@@ -1,6 +1,23 @@
-function drawCluster(svg, data, paddingLeft = 20, paddingRight = 20, paddingTop = 20, paddingBottom = 20) {
-  var parentWidth = svg.node().getBoundingClientRect().width;
-  var parentHeight = svg.node().getBoundingClientRect().height;
+function drawCluster(el, data, padding = {}) {
+
+  padding = {
+    left: padding.left !== undefined ? padding.left : 20,
+    right: padding.right !== undefined ? padding.right : 20,
+    top: padding.top !== undefined ? padding.top : 20,
+    bottom: padding.bottom !== undefined ? padding.bottom : 20
+  };
+
+  //Graph Container
+  var svgCluster = d3.select(el)
+      .append("div")
+      .attr("id", "graph")
+      .append("svg")
+      .attr("preserveAspectRatio", "xMinYMin meet")
+      .attr("viewBox", "0 0 800 400")
+      .classed("svg-content", true);
+
+  var parentWidth = svgCluster.node().getBoundingClientRect().width;
+  var parentHeight = svgCluster.node().getBoundingClientRect().height;
 
   var maxStart = d3.max(data, function (d) {
     return d.start;
@@ -12,16 +29,16 @@ function drawCluster(svg, data, paddingLeft = 20, paddingRight = 20, paddingTop 
   var xScale = d3
     .scaleLinear()
     .domain([0, maxStop])
-    .range([paddingLeft, parentWidth - paddingRight]);
+    .range([padding.left, parentWidth - padding.left]);
 
   var yScale = d3
     .scaleLinear()
     .domain([0, maxStart])
-    .range([parentHeight - paddingBottom, paddingTop]);
+    .range([parentHeight - padding.bottom, padding.top]);
 
-  var mainSvg = svg;
 
-  var marker = mainSvg
+
+  var marker = svgCluster
     .append("defs")
     .selectAll("marker")
     .data(data)
@@ -43,7 +60,7 @@ function drawCluster(svg, data, paddingLeft = 20, paddingRight = 20, paddingTop 
       return d.color;
     });
 
-  var line = mainSvg
+  var line = svgCluster
     .append("line")
     .attr("class", "baseline")
     .attr("x1", yScale(maxStop))
@@ -53,7 +70,7 @@ function drawCluster(svg, data, paddingLeft = 20, paddingRight = 20, paddingTop 
     .attr("stroke", "grey")
     .attr("stroke-width", 2);
 
-  var Genelines = mainSvg
+  var Genelines = svgCluster
     .selectAll("geneLine")
     .data(data)
     .enter()
@@ -79,7 +96,7 @@ function drawCluster(svg, data, paddingLeft = 20, paddingRight = 20, paddingTop 
       return "url(#" + d.name + ")";
     });
 
-  var label = mainSvg
+  var label = svgCluster
     .selectAll("text.label")
     .data(data)
     .enter()
@@ -100,14 +117,51 @@ function drawCluster(svg, data, paddingLeft = 20, paddingRight = 20, paddingTop 
     .attr("font-style", "italic")
     .attr("fill", "black");
 
-  var bbox = svg.node().getBBox();
-  svg.attr("viewBox", [bbox.x - paddingLeft, bbox.y - paddingTop, bbox.width   + paddingLeft + paddingRight, bbox.height + paddingTop + paddingBottom]);
+  var bbox = svgCluster.node().getBBox();
+  svgCluster.attr("viewBox", [bbox.x - padding.left, bbox.y - padding.top, bbox.width   + padding.left + padding.right, bbox.height + padding.top + padding.bottom]);
 
 }
 
-function drawLegend(svg, data, paddingLeft = 20, paddingRight = 20, paddingTop = 20, paddingBottom = 20, legendSize = 10, legendPadding = 5, align = "right", orientation = "horizontal") {
+function drawLegend(
+    el,
+    data,
+    padding = {},
+    legend = {},
+    text = {},
+    align = "right",
+    orientation = "horizontal",
+    backgroundColor = "#FFF"
+  ) {
 
-  var parentWidth = svg.node().getBoundingClientRect().width;
+  // Set default padding and legend sizes if not provided
+  padding = {
+    left: padding.left !== undefined ? padding.left : 20,
+    right: padding.right !== undefined ? padding.right : 20,
+    top: padding.top !== undefined ? padding.top : 20,
+    bottom: padding.bottom !== undefined ? padding.bottom : 20
+  };
+
+  legend = {
+    size: legend.size !== undefined ? legend.size : 10,
+    padding: legend.padding !== undefined ? legend.padding : 5
+  };
+
+  text = {
+    size: text.size !== undefined ? text.size : 10
+  };
+
+
+  //Legend Container
+  var svgLegend = d3.select(el)
+      .append("div")
+      .attr("id", "legend")
+      .append("svg")
+      .attr("preserveAspectRatio", "xMinYMin meet")
+      .style("background-color", backgroundColor)
+      .attr("viewBox", "0 0 800 300")
+      .classed("svg-content", true);
+
+  var parentWidth = svgLegend.node().getBoundingClientRect().width;
 
   // Extract unique classes
   var classes = Array.from(new Set(data.map(function (d) {
@@ -115,20 +169,20 @@ function drawLegend(svg, data, paddingLeft = 20, paddingRight = 20, paddingTop =
   })));
 
   // Create the legend
-  var legend = svg
+  var legendElements = svgLegend
     .selectAll(".legend")
     .data(classes)
     .enter()
     .append("g")
     .attr("class", "legend");
 
-  var currentX = paddingLeft, currentY = paddingTop;
-  legend.each(function(d, i) {
+  var currentX = padding.left, currentY = padding.top;
+  legendElements.each(function(d, i) {
     var textElement = this;
 
     var textSample = d3.select(this).append("text") // Create a sample text
-      .attr("x", currentX + legendSize + legendPadding)
-      .attr("y", currentY + legendSize / 2)
+      .attr("x", currentX + legend.size + legend.padding)
+      .attr("y", currentY + legend.size / 2)
       .attr("dy", ".35em")
       .style("text-anchor", "start")
       .text(d);
@@ -138,17 +192,17 @@ function drawLegend(svg, data, paddingLeft = 20, paddingRight = 20, paddingTop =
     textSample.remove(); // Remove sample text
 
     // Check if box + text will exceed the parentWidth
-    if (currentX + textLength + legendSize + 2 * legendPadding > parentWidth) {
+    if (currentX + textLength + legend.size + 2 * legend.padding > parentWidth) {
       // Wrap to next line
-      currentX = paddingLeft;
-      currentY += legendSize + legendPadding;
+      currentX = padding.left;
+      currentY += legend.size + legend.padding;
     }
 
     var rect = d3.select(this).append("rect")
       .attr("x", currentX)
       .attr("y", currentY)
-      .attr("width", legendSize)
-      .attr("height", legendSize)
+      .attr("width", legend.size)
+      .attr("height", legend.size)
       .style("stroke", "black")
       .style("stroke-width", 1)
       .style("fill", function (d) {
@@ -159,20 +213,20 @@ function drawLegend(svg, data, paddingLeft = 20, paddingRight = 20, paddingTop =
       });
 
     var text = d3.select(this).append("text") // Draw the text
-      .attr("x", currentX + legendSize + legendPadding)
-      .attr("y", currentY + legendSize / 2)
+      .attr("x", currentX + legend.size + legend.padding)
+      .attr("y", currentY + legend.size / 2)
       .attr("dy", ".35em")
       .style("text-anchor", "start")
       .text(d);
 
     // Move to the next item
     if (orientation === "horizontal") {
-      currentX += textLength + legendSize + 2 * legendPadding;
+      currentX += textLength + legend.size + 2 * legend.padding;
     } else {
-      currentY += legendSize + legendPadding;
+      currentY += legend.size + legend.padding;
     }
   });
 
-    var bbox = svg.node().getBBox();
-  svg.attr("viewBox", [bbox.x - paddingLeft, bbox.y - paddingTop, bbox.width   + paddingLeft + paddingRight, bbox.height + paddingTop + paddingBottom]);
+  var bbox = svgLegend.node().getBBox();
+  svgLegend.attr("viewBox", [bbox.x - padding.left, bbox.y - padding.top, bbox.width + padding.left + padding.right, bbox.height + padding.top + padding.bottom]);
 }

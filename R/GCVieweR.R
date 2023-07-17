@@ -34,37 +34,22 @@ addLegend <- function(
     text = list(size = 10),
     orientation = "horizontal",
     backgroundColor = "#FFF",
-    padding = list(top = "10px", bottom = "10px", left = "10px", right = "10px")
+    position = "top",
+    padding = list(top = 10, bottom = 10, left = 10, right = 10)
 ) {
-  # Check if inputs are lists, otherwise make them an empty lists
-  # Remove NA or NULL values from the lists
-  if (!is.null(padding) && is.list(padding)) {
-    padding <- padding[!sapply(padding, function(x) is.na(x) | is.null(x))]
-  } else {
-    padding <- list()
-  }
-
-  if (!is.null(legend) && is.list(legend)) {
-    legend <- legend[!sapply(legend, function(x) is.na(x) | is.null(x))]
-  } else {
-    legend <- list()
-  }
-
-  if (!is.null(text) && is.list(text)) {
-    text <- text[!sapply(text, function(x) is.na(x) | is.null(x))]
-  } else {
-    text <- list()
-  }
+  padding <- cleanList(padding)
+  legend <- cleanList(legend)
+  text <- cleanList(text)
 
   opts <- list(
     legend = legend,
     text = text,
     orientation = orientation,
+    position = position,
     padding = padding,
     backgroundColor = backgroundColor
   )
 
-  # Assuming GCVieweR can pass these options to the drawLegend JavaScript function
   GCVieweR$x$addLegend <- opts
   GCVieweR
 }

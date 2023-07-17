@@ -125,14 +125,15 @@ function drawCluster(el, data, padding = {}) {
 function drawLegend(
     el,
     data,
-    padding = {},
-    legend = {},
-    text = {},
-    align = "right",
-    orientation = "horizontal",
-    backgroundColor = "#FFF"
-  ) {
-
+    {
+      padding = {},
+      legend = {},
+      text = {},
+      align = "right",
+      orientation = "horizontal",
+      backgroundColor = "#FFF"
+    } = {}
+) {
   // Set default padding and legend sizes if not provided
   padding = {
     left: padding.left !== undefined ? padding.left : 20,
@@ -149,7 +150,6 @@ function drawLegend(
   text = {
     size: text.size !== undefined ? text.size : 10
   };
-
 
   //Legend Container
   var svgLegend = d3.select(el)
@@ -179,7 +179,7 @@ function drawLegend(
   var currentX = padding.left, currentY = padding.top;
   legendElements.each(function(d, i) {
     var textElement = this;
-
+  console.log(currentX)
     var textSample = d3.select(this).append("text") // Create a sample text
       .attr("x", currentX + legend.size + legend.padding)
       .attr("y", currentY + legend.size / 2)
@@ -223,7 +223,8 @@ function drawLegend(
     if (orientation === "horizontal") {
       currentX += textLength + legend.size + 2 * legend.padding;
     } else {
-      currentY += legend.size + legend.padding;
+      currentX = padding.left; // Reset X to the left padding
+      currentY += legend.size + legend.padding; // Increment Y to move items down
     }
   });
 

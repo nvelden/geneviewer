@@ -227,7 +227,7 @@ function drawLegend(
       currentY += legend.size + legend.padding; // Increment Y to move items down
     }
   });
-
+  // Adjust height to fit legend
   var bbox = svgLegend.node().getBBox();
-  svgLegend.attr("viewBox", [bbox.x - padding.left, bbox.y - padding.top, bbox.width + padding.left + padding.right, bbox.height + padding.top + padding.bottom]);
+  svgLegend.attr("viewBox", [bbox.x - padding.left, bbox.y - padding.top, parentWidth, bbox.height + padding.top + padding.bottom]);
 }

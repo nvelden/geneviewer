@@ -1,5 +1,23 @@
-function drawCluster(el, data, padding = {}) {
+function createSvgContainer(targetElement, customId = null) {
+  // Create SVG Container
+  var svgContainer = d3.select(targetElement)
+    .append("div")
+    .attr("id", customId != null ? customId : targetElement + "-svg-container")
+    .append("svg")
+    .attr("preserveAspectRatio", "xMinYMin meet")
+    .attr("viewBox", "0 0 800 400")
+    .classed("svg-content", true);
 
+  // Get Container Dimensions
+  var width = svgContainer.node().getBoundingClientRect().width;
+  var height = svgContainer.node().getBoundingClientRect().height;
+  return {svgContainer, width, height};
+
+}
+
+function drawCluster(svgContainer, width, height, data, padding = {}) {
+
+  // Default padding
   padding = {
     left: padding.left !== undefined ? padding.left : 20,
     right: padding.right !== undefined ? padding.right : 20,
@@ -7,46 +25,28 @@ function drawCluster(el, data, padding = {}) {
     bottom: padding.bottom !== undefined ? padding.bottom : 20
   };
 
-  //Graph Container
-  var svgCluster = d3.select(el)
-      .append("div")
-      .attr("id", "graph")
-      .append("svg")
-      .attr("preserveAspectRatio", "xMinYMin meet")
-      .attr("viewBox", "0 0 800 400")
-      .classed("svg-content", true);
+  // Data processing
+  var maxStart = d3.max(data, d => d.start);
+  var maxStop = d3.max(data, d => d.stop);
+  var minStart = d3.min(data, d => d.start);
+  var minStop = d3.min(data, d => d.stop);
 
-  var parentWidth = svgCluster.node().getBoundingClientRect().width;
-  var parentHeight = svgCluster.node().getBoundingClientRect().height;
+  // Scale Setup
+  var xScale = d3.scaleLinear()
+    .domain([minStop, maxStop])
+    .range([padding.left, width - padding.left]);
 
-  var maxStart = d3.max(data, function (d) {
-    return d.start;
-  });
-  var maxStop = d3.max(data, function (d) {
-    return d.stop;
-  });
+  var yScale = d3.scaleLinear()
+    .domain([minStart, maxStart])
+    .range([height - padding.bottom, padding.top]);
 
-  var xScale = d3
-    .scaleLinear()
-    .domain([0, maxStop])
-    .range([padding.left, parentWidth - padding.left]);
-
-  var yScale = d3
-    .scaleLinear()
-    .domain([0, maxStart])
-    .range([parentHeight - padding.bottom, padding.top]);
-
-
-
-  var marker = svgCluster
-    .append("defs")
+  // Marker Setup
+  var marker = svgContainer.append("defs")
     .selectAll("marker")
     .data(data)
     .enter()
     .append("marker")
-    .attr("id", function (d) {
-      return d.name;
-    })
+    .attr("id", d => d.name)
     .attr("viewBox", "0 -5 10 10")
     .attr("refX", 5)
     .attr("refY", 0)
@@ -56,12 +56,10 @@ function drawCluster(el, data, padding = {}) {
     .append("path")
     .attr("d", "M0,-5L10,0L0,5")
     .attr("class", "arrowHead")
-    .attr("fill", function (d) {
-      return d.color;
-    });
+    .attr("fill", d => d.color);
 
-  var line = svgCluster
-    .append("line")
+  // Draw baseline
+  var line = svgContainer.append("line")
     .attr("class", "baseline")
     .attr("x1", yScale(maxStop))
     .attr("y1", yScale(0))
@@ -70,56 +68,43 @@ function drawCluster(el, data, padding = {}) {
     .attr("stroke", "grey")
     .attr("stroke-width", 2);
 
-  var Genelines = svgCluster
-    .selectAll("geneLine")
+  // Draw Gene lines
+  var Genelines = svgContainer.selectAll("geneLine")
     .data(data)
     .enter()
     .append("line")
     .attr("class", "geneline")
-    .attr("x1", function (d) {
-      return xScale(d.start);
-    })
-    .attr("y1", function (d) {
-      return yScale(d.y);
-    })
-    .attr("x2", function (d) {
-      return xScale(d.stop);
-    })
-    .attr("y2", function (d) {
-      return yScale(d.y);
-    })
+    .attr("x1", d => xScale(d.start))
+    .attr("y1", d => yScale(0))
+    .attr("x2", d => xScale(d.stop))
+    .attr("y2", d => yScale(0))
     .attr("stroke-width", 2)
-    .attr("stroke", function (d) {
-      return d.color;
-    })
-    .attr("marker-end", function (d) {
-      return "url(#" + d.name + ")";
-    });
+    .attr("stroke", d => d.color)
+    .attr("marker-end", d => "url(#" + d.name + ")");
 
-  var label = svgCluster
-    .selectAll("text.label")
+  // Draw Labels
+  var label = svgContainer.selectAll("text.label")
     .data(data)
     .enter()
     .append("text")
     .attr("class", "label")
-    .attr("x", function (d) {
-      return xScale((d.start + d.stop) / 2);
-    })
-    .attr("y", function (d) {
-      return yScale(d.y);
-    })
+    .attr("x", d => xScale((d.start + d.stop) / 2))
+    .attr("y", d => yScale(0))
     .attr("dy", "-1em")
     .attr("text-anchor", "middle")
-    .text(function (d) {
-      return d.name;
-    })
+    .text(d => d.name)
     .attr("font-size", "1em")
     .attr("font-style", "italic")
     .attr("fill", "black");
 
-  var bbox = svgCluster.node().getBBox();
-  svgCluster.attr("viewBox", [bbox.x - padding.left, bbox.y - padding.top, bbox.width   + padding.left + padding.right, bbox.height + padding.top + padding.bottom]);
-
+  // Adjust viewBox
+  var bbox = svgContainer.node().getBBox();
+  svgContainer.attr("viewBox", [
+    bbox.x - padding.left,
+    bbox.y - padding.top,
+    bbox.width + padding.left + padding.right,
+    bbox.height + padding.top + padding.bottom
+  ]);
 }
 
 function drawLegend(
@@ -179,7 +164,7 @@ function drawLegend(
   var currentX = padding.left, currentY = padding.top;
   legendElements.each(function(d, i) {
     var textElement = this;
-  console.log(currentX)
+
     var textSample = d3.select(this).append("text") // Create a sample text
       .attr("x", currentX + legend.size + legend.padding)
       .attr("y", currentY + legend.size / 2)

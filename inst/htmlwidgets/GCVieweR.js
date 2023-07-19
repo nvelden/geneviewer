@@ -6,16 +6,20 @@ HTMLWidgets.widget({
   factory: function(el, width, height) {
 
     var data, addLegend;
-
     var draw = function() {
       // clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
 
       if(addLegend.position == "top") {
+
         drawLegend(el, data, addLegend);
-        drawCluster(el, data);
+        var { svgContainer, width, height } = createSvgContainer(el)
+        drawCluster(svgContainer, width, height, data);
+
       } else {
-        drawCluster(el, data);
+        var { svgContainer, width, height } = createSvgContainer(el)
+        drawCluster(svgContainer, width, height, data);
+
         drawLegend(el, data, addLegend);
       }
     };

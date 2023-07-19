@@ -15,14 +15,34 @@ function createSvgContainer(targetElement, customId = null) {
   return new SvgContainer(svgContainer);
 }
 
-SvgContainer.prototype.drawLabels = function (data, padding = {}) {
-  // Default padding
-  padding = {
-    left: padding.left !== undefined ? padding.left : 20,
-    right: padding.right !== undefined ? padding.right : 20,
-    top: padding.top !== undefined ? padding.top : 20,
-    bottom: padding.bottom !== undefined ? padding.bottom : 20,
+SvgContainer.prototype.drawLabels = function (data, options = {}) {
+  const defaultOptions = {
+    padding: {
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0
+    },
+    font: {
+      size: "1em",
+      style: "italic",
+      weight: "normal",
+      decoration: "none",
+      family: "sans-serif",
+      color: "black"
+    },
+    anchor: "end",
+    dy: "-1em",
+    rotate: 30  // Default rotation angle
   };
+
+  const {
+    padding,
+    font,
+    anchor,
+    dy,
+    rotate
+  } = { ...defaultOptions, ...options };
 
   // Data processing
   var maxStart = d3.max(data, (d) => d.start);
@@ -38,7 +58,7 @@ SvgContainer.prototype.drawLabels = function (data, padding = {}) {
   var xScale = d3
     .scaleLinear()
     .domain([minStop, maxStop])
-    .range([padding.left, width - padding.left]);
+    .range([padding.left, width - padding.right]);
 
   var yScale = d3
     .scaleLinear()
@@ -54,24 +74,31 @@ SvgContainer.prototype.drawLabels = function (data, padding = {}) {
     .attr("class", "label")
     .attr("x", (d) => xScale((d.start + d.stop) / 2))
     .attr("y", (d) => yScale(0))
-    .attr("dy", "-1em")
-    .attr("text-anchor", "middle")
+    .attr("dy", dy)
+    .attr("text-anchor", anchor)
     .text((d) => d.name)
-    .attr("font-size", "1em")
-    .attr("font-style", "italic")
-    .attr("fill", "black");
+    .attr("font-size", font.size)
+    .attr("font-style", font.style)
+    .attr("font-weight", font.weight)
+    .attr("text-decoration", font.decoration)
+    .attr("font-family", font.family)
+    .attr("fill", font.color)
+    .attr("transform", (d) => `rotate(${rotate},${xScale((d.start + d.stop) / 2)},${yScale(0)})`); // Rotate the labels
 
   return this;
 };
 
-SvgContainer.prototype.drawCluster = function (data, padding = {}) {
-  // Default padding
-  padding = {
-    left: padding.left !== undefined ? padding.left : 20,
-    right: padding.right !== undefined ? padding.right : 20,
-    top: padding.top !== undefined ? padding.top : 20,
-    bottom: padding.bottom !== undefined ? padding.bottom : 20,
+SvgContainer.prototype.drawCluster = function (data, options = {}) {
+  const defaultOptions = {
+    padding: {
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0
+    }
   };
+
+  const { padding } = { ...defaultOptions, ...options };
 
   // Data processing
   var maxStart = d3.max(data, (d) => d.start);
@@ -87,7 +114,7 @@ SvgContainer.prototype.drawCluster = function (data, padding = {}) {
   var xScale = d3
     .scaleLinear()
     .domain([minStop, maxStop])
-    .range([padding.left, width - padding.left]);
+    .range([padding.left, width - padding.right]);
 
   var yScale = d3
     .scaleLinear()
@@ -117,7 +144,7 @@ SvgContainer.prototype.drawCluster = function (data, padding = {}) {
   var line = this.svg
     .append("line")
     .attr("class", "baseline")
-    .attr("x1", yScale(maxStop))
+    .attr("x1", xScale(minStop))
     .attr("y1", yScale(0))
     .attr("x2", xScale(maxStart))
     .attr("y2", yScale(0))
@@ -125,40 +152,35 @@ SvgContainer.prototype.drawCluster = function (data, padding = {}) {
     .attr("stroke-width", 2);
 
   // Draw Gene lines
-  var Genelines = this.svg
-    .selectAll("geneLine")
+  var genelines = this.svg
+    .selectAll(".geneline")
     .data(data)
     .enter()
     .append("line")
     .attr("class", "geneline")
     .attr("x1", (d) => xScale(d.start))
-    .attr("y1", (d) => yScale(0))
+    .attr("y1", yScale(0))
     .attr("x2", (d) => xScale(d.stop))
-    .attr("y2", (d) => yScale(0))
+    .attr("y2", yScale(0))
     .attr("stroke-width", 2)
     .attr("stroke", (d) => d.color)
     .attr("marker-end", (d) => "url(#" + d.name + ")");
 
-  // Adjust viewBox
-  var bbox = this.svg.node().getBBox();
-  this.svg.attr("viewBox", [
-    bbox.x - padding.left,
-    bbox.y - padding.top,
-    bbox.width + padding.left + padding.right,
-    bbox.height + padding.top + padding.bottom,
-  ]);
-
   return this;
+
 };
 
-SvgContainer.prototype.adjustViewBox = function (padding = {}) {
-  // Default padding
-  padding = {
-    left: padding.left !== undefined ? padding.left : 20,
-    right: padding.right !== undefined ? padding.right : 20,
-    top: padding.top !== undefined ? padding.top : 20,
-    bottom: padding.bottom !== undefined ? padding.bottom : 20,
+SvgContainer.prototype.adjustViewBox = function (options = {}) {
+  const defaultOptions = {
+    padding: {
+      left: 10,
+      right: 10,
+      top: 10,
+      bottom: 10
+    }
   };
+
+  const { padding } = { ...defaultOptions, ...options };
 
   // Get Container Dimensions
   var width = this.svg.node().getBoundingClientRect().width;
@@ -177,20 +199,33 @@ SvgContainer.prototype.adjustViewBox = function (padding = {}) {
 };
 
 SvgContainer.prototype.drawLegend = function(data, options = {}) {
-
   const defaultOptions = {
     padding: {
-      left: 20,
-      right: 20,
-      top: 20,
-      bottom: 20
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0
     },
     legend: {
-      size: 10,
-      padding: 5
+      size: 8,
+      padding: 8,
+      color: "black",
+      stroke: "black",
+      strokeWidth: 1
     },
     text: {
-      size: 10
+      size: 8,
+      anchor: "start",
+      dy: ".35em",
+      fill: "black"
+    },
+    font: {
+      size: "1em",
+      style: "nornal",
+      weight: "normal",
+      decoration: "none",
+      family: "sans-serif",
+      color: "black"
     },
     align: "right",
     orientation: "horizontal",
@@ -201,6 +236,7 @@ SvgContainer.prototype.drawLegend = function(data, options = {}) {
     padding,
     legend,
     text,
+    font,
     align,
     orientation,
     backgroundColor
@@ -226,8 +262,14 @@ SvgContainer.prototype.drawLegend = function(data, options = {}) {
       .append("text")
       .attr("x", currentX + legend.size + legend.padding)
       .attr("y", currentY + legend.size / 2)
-      .attr("dy", ".35em")
-      .style("text-anchor", "start")
+      .attr("dy", text.dy)
+      .style("text-anchor", text.anchor)
+      .style("font-size", font.size)
+      .style("font-style", font.style)
+      .style("font-weight", font.weight)
+      .style("text-decoration", font.decoration)
+      .style("font-family", font.family)
+      .style("fill", font.color)
       .text(d);
 
     const textLength = textSample.node().getComputedTextLength();
@@ -244,19 +286,26 @@ SvgContainer.prototype.drawLegend = function(data, options = {}) {
       .attr("y", currentY)
       .attr("width", legend.size)
       .attr("height", legend.size)
-      .style("stroke", "black")
-      .style("stroke-width", 1)
+      .style("stroke", legend.stroke)
+      .style("stroke-width", legend.strokeWidth)
       .style("fill", (d) => {
         const match = data.find((item) => item.class === d);
         return match.color;
       });
 
-    const text = d3.select(textElement)
+    const textLabel = d3.select(textElement)
       .append("text")
       .attr("x", currentX + legend.size + legend.padding)
       .attr("y", currentY + legend.size / 2)
-      .attr("dy", ".35em")
-      .style("text-anchor", "start")
+      .attr("dy", text.dy)
+      .style("text-anchor", text.anchor)
+      .style("fill", text.fill)
+      .style("font-size", font.size)
+      .style("font-style", font.style)
+      .style("font-weight", font.weight)
+      .style("text-decoration", font.decoration)
+      .style("font-family", font.family)
+      .style("fill", font.color)
       .text(d);
 
     if (orientation === "horizontal") {

@@ -12,15 +12,28 @@ HTMLWidgets.widget({
 
       if(addLegend.position == "top") {
 
-        drawLegend(el, data, addLegend);
-        var { svgContainer, width, height } = createSvgContainer(el)
-        drawCluster(svgContainer, width, height, data);
+      var legend = createSvgContainer(el)
+           .drawLegend(data, options = {})
+           .adjustViewBox();
+
+        //Create gene cluster
+        var cluster = createSvgContainer(el)
+            .drawLabels(data)
+            .drawCluster(data)
+            .adjustViewBox();
 
       } else {
-        var { svgContainer, width, height } = createSvgContainer(el)
-        drawCluster(svgContainer, width, height, data);
 
-        drawLegend(el, data, addLegend);
+        //Create gene cluster
+        var cluster = createSvgContainer(el)
+            .drawLabels(data)
+            .drawCluster(data)
+            .adjustViewBox();
+
+        var legend = createSvgContainer(el)
+             .drawLegend(data, options = {})
+             .adjustViewBox();
+
       }
     };
 

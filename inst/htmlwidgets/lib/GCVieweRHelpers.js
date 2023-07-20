@@ -88,17 +88,27 @@ SvgContainer.prototype.drawLabels = function (data, options = {}) {
   return this;
 };
 
-SvgContainer.prototype.drawCluster = function (data, options = {}) {
+SvgContainer.prototype.drawCluster = function (data, options = {}, group = null) {
+
+  // Verify that the group exists in the data if it is defined
+  if (group && !data.some(d => group in d)) {
+    console.warn(`Group "${group}" does not exist in the data`);
+  }
+
   const defaultOptions = {
     padding: {
       left: 0,
       right: 0,
       top: 0,
       bottom: 0
+    },
+    cluster: {
+      colorScheme: null,
+      customColors: null
     }
   };
 
-  const { padding } = { ...defaultOptions, ...options };
+  const { padding, cluster } = { ...defaultOptions, ...options };
 
   // Data processing
   var maxStart = d3.max(data, (d) => d.start);
@@ -121,6 +131,16 @@ SvgContainer.prototype.drawCluster = function (data, options = {}) {
     .domain([minStart, maxStart])
     .range([height - padding.bottom, padding.top]);
 
+  // Color Scale Setup
+  let colorScale;
+  if (cluster.colorScheme) {
+    colorScale = d3.scaleOrdinal(d3[cluster.colorScheme]);
+  } else if (cluster.customColors && cluster.customColors.length > 0) {
+    colorScale = d3.scaleOrdinal().range(cluster.customColors);
+  } else {
+    colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+  }
+
   // Marker Setup
   var marker = this.svg
     .append("defs")
@@ -138,7 +158,7 @@ SvgContainer.prototype.drawCluster = function (data, options = {}) {
     .append("path")
     .attr("d", "M0,-5L10,0L0,5")
     .attr("class", "arrowHead")
-    .attr("fill", (d) => d.color);
+    .attr("fill", (d) => colorScale(d[group])); // Use grouping variable here
 
   // Draw baseline
   var line = this.svg
@@ -163,11 +183,13 @@ SvgContainer.prototype.drawCluster = function (data, options = {}) {
     .attr("x2", (d) => xScale(d.stop))
     .attr("y2", yScale(0))
     .attr("stroke-width", 2)
-    .attr("stroke", (d) => d.color)
-    .attr("marker-end", (d) => "url(#" + d.name + ")");
+    .attr("marker-end", (d) => "url(#" + d.name + ")")
+    .each(function (d) {
+      const groupColor = colorScale(d[group]); // Use grouping variable here
+      d3.select(this).attr("stroke", groupColor);
+    });
 
   return this;
-
 };
 
 SvgContainer.prototype.adjustViewBox = function (options = {}) {
@@ -198,7 +220,17 @@ SvgContainer.prototype.adjustViewBox = function (options = {}) {
   return this;
 };
 
-SvgContainer.prototype.drawLegend = function(data, options = {}) {
+SvgContainer.prototype.drawLegend = function(data, options = {}, group = null) {
+
+    if (!group) {
+    throw new Error("Group is not defined");
+  }
+
+  // Verify that the group exists in the data
+  if (!data.some(d => group in d)) {
+    throw new Error(`Group "${group}" does not exist in the data`);
+  }
+
   const defaultOptions = {
     padding: {
       left: 0,
@@ -211,7 +243,9 @@ SvgContainer.prototype.drawLegend = function(data, options = {}) {
       padding: 8,
       color: "black",
       stroke: "black",
-      strokeWidth: 1
+      strokeWidth: 1,
+      colorScheme: null,
+      customColors: null
     },
     text: {
       size: 8,
@@ -221,7 +255,7 @@ SvgContainer.prototype.drawLegend = function(data, options = {}) {
     },
     font: {
       size: "1em",
-      style: "nornal",
+      style: "normal",
       weight: "normal",
       decoration: "none",
       family: "sans-serif",
@@ -245,7 +279,20 @@ SvgContainer.prototype.drawLegend = function(data, options = {}) {
   const svgLegend = this.svg;
   const parentWidth = svgLegend.node().getBoundingClientRect().width;
 
-  const classes = Array.from(new Set(data.map((d) => d.class)));
+  const classes = Array.from(new Set(data.map((d) => d[group])));
+
+  let colorScale;
+  if (legend.colorScheme) {
+    colorScale = d3.scaleOrdinal(d3[legend.colorScheme])
+      .domain(classes);
+  } else if (legend.customColors && legend.customColors.length > 0) {
+    colorScale = d3.scaleOrdinal()
+      .domain(classes)
+      .range(legend.customColors);
+  } else {
+    colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+      .domain(classes);
+  }
 
   const legendElements = svgLegend.selectAll(".legend")
     .data(classes)
@@ -254,7 +301,7 @@ SvgContainer.prototype.drawLegend = function(data, options = {}) {
     .attr("class", "legend");
 
   let currentX = padding.left,
-      currentY = padding.top;
+    currentY = padding.top;
 
   legendElements.each((d, i, nodes) => {
     const textElement = nodes[i];
@@ -288,10 +335,7 @@ SvgContainer.prototype.drawLegend = function(data, options = {}) {
       .attr("height", legend.size)
       .style("stroke", legend.stroke)
       .style("stroke-width", legend.strokeWidth)
-      .style("fill", (d) => {
-        const match = data.find((item) => item.class === d);
-        return match.color;
-      });
+      .style("fill", colorScale(d));
 
     const textLabel = d3.select(textElement)
       .append("text")

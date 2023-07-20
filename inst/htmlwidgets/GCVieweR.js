@@ -13,17 +13,17 @@ HTMLWidgets.widget({
       d3.select(el).selectAll('*').remove();
 
       var groupedData = d3.flatGroup(data, (d) => d.cluster);
-      console.log(groupedData)
+
       if(addLegend.position == "top") {
 
       var legend = createSvgContainer(el)
-           .drawLegend(data, options = {})
+           .drawLegend(data, opts = {}, group = "class")
            .adjustViewBox();
 
       groupedData.forEach(function(item) {
       var cluster = createSvgContainer(el)
           .drawLabels(item[1])
-          .drawCluster(item[1])
+          .drawCluster(item[1], opts = {}, group = "class")
           .adjustViewBox();
       });
 
@@ -31,13 +31,15 @@ HTMLWidgets.widget({
       } else {
 
         //Create gene cluster
-        var cluster = createSvgContainer(el)
-            .drawLabels(data)
-            .drawCluster(data)
-            .adjustViewBox();
+      groupedData.forEach(function(item) {
+      var cluster = createSvgContainer(el)
+          .drawLabels(item[1])
+          .drawCluster(item[1], opts = {}, group = "class")
+          .adjustViewBox();
+      });
 
         var legend = createSvgContainer(el)
-             .drawLegend(data, options = {})
+             .drawLegend(data, opts = {}, group = "class")
              .adjustViewBox();
 
       }

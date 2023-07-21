@@ -28,7 +28,9 @@ HTMLWidgets.widget({
         var cluster = createSvgContainer("#" + divId)
           .drawGeneLabels(item[1])
           .drawCluster(item[1], {}, "class")
+          .adjustLabels("text.label")
           .adjustViewBox();
+
       });
 
       if (addLegend.position != "top") {

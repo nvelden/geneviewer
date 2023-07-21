@@ -54,9 +54,9 @@ SvgContainer.prototype.drawGeneLabels = function (data, options = {}) {
       family: "sans-serif",
       color: "black"
     },
-    anchor: "end",
+    anchor: "middle",
     dy: "-1em",
-    rotate: 30  // Default rotation angle
+    rotate: 0  // Default rotation angle
   };
 
   const {
@@ -106,14 +106,9 @@ SvgContainer.prototype.drawGeneLabels = function (data, options = {}) {
     .attr("text-decoration", font.decoration)
     .attr("font-family", font.family)
     .attr("fill", font.color)
-    .attr("transform", (d) => `rotate(${rotate},${xScale((d.start + d.stop) / 2)},${yScale(0)})`); // Rotate the labels
+    .attr("transform", (d) => `rotate(${rotate},${xScale((d.start + d.stop) / 2)},${yScale(0)})`);
 
   return this;
-};
-
-SvgContainer.prototype.drawClusterLabels = function (data, options = {}) {
-
-
 };
 
 SvgContainer.prototype.drawCluster = function (data, options = {}, group = null) {
@@ -391,11 +386,105 @@ SvgContainer.prototype.drawLegend = function(data, options = {}, group = null) {
   return this;
 };
 
+SvgContainer.prototype.adjustLabels = function(labelSelector) {
+    // Select all the labels based on the provided selector
+    var labels = this.svg.selectAll(labelSelector).nodes();
+
+    // Iterate over each label
+    for (var i = 0; i < labels.length - 1; i++) {
+        var label1 = labels[i].getBoundingClientRect();
+
+        // Compare it with all the labels that come after it
+        for (var j = i + 1; j < labels.length; j++) {
+            var label2 = labels[j].getBoundingClientRect();
+
+            // If the labels overlap
+            if (!(label1.right < label2.left ||
+                  label1.left > label2.right ||
+                  label1.bottom < label2.top ||
+                  label1.top > label2.bottom)) {
+
+                // Get the current x and y attributes of the labels
+                var x1 = parseFloat(d3.select(labels[i]).attr('x'));
+                var y1 = parseFloat(d3.select(labels[i]).attr('y'));
+                var x2 = parseFloat(d3.select(labels[j]).attr('x'));
+                var y2 = parseFloat(d3.select(labels[j]).attr('y'));
+
+                // Calculate the width of the labels and their center points
+                var width1 = labels[i].getBBox().width;
+                var centerX1 = x1 + width1 / 2;
+                var width2 = labels[j].getBBox().width;
+                var centerX2 = x2 + width2 / 2;
+
+                // Rotate both labels
+                d3.select(labels[i])
+                    .style("text-anchor", "start")
+                    .attr("dx", "1.8em")
+                    .attr("transform", `rotate(-65, ${centerX1}, ${y1})`);
+
+                d3.select(labels[j])
+                    .style("text-anchor", "start")
+                    .attr("dx", "1.8em")
+                    .attr("transform", `rotate(-65, ${centerX2}, ${y2})`);
+            }
+        }
+    }
+    return this;
+};
 
 
+/*
+function collide(alpha, labels, padding) {
+  var quadtree = d3.quadtree(labels, d => d.x, d => d.y);
+  return function(d) {
+    var rb = 2*d.radius + padding,
+        nx1 = d.x - rb,
+        nx2 = d.x + rb,
+        ny1 = d.y - rb,
+        ny2 = d.y + rb;
+    quadtree.visit(function(quad, x1, y1, x2, y2) {
+      if (quad.data && (quad.data !== d)) {
+        var x = d.x - quad.data.x,
+            y = d.y - quad.data.y,
+            l = Math.sqrt(x * x + y * y),
+            r = d.radius + quad.data.radius;
+        if (l < r) {
+          l = (l - r) / l * alpha;
+          d.x -= x *= l;
+          d.y -= y *= l;
+          quad.data.x += x;
+          quad.data.y += y;
+        }
+      }
+      return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+    });
+  };
+}
 
+SvgContainer.prototype.adjustLabels = function(labelSelector, padding = 10) {
+  var labels = this.svg.selectAll(labelSelector).nodes().map(function(d) {
+    var bbox = d.getBoundingClientRect();
+    return {
+      x: parseFloat(d.getAttribute('x')),
+      y: parseFloat(d.getAttribute('y')),
+      radius: bbox.width / 2,
+      element: d
+    };
+  });
 
+  var simulation = d3.forceSimulation(labels)
+    .velocityDecay(0.2)
+    .force("x", d3.forceX().strength(.0005))
+    .force("y", d3.forceY().strength(.0005))
+    .force("collide", collide(1, labels, padding)) // Pass the labels and padding to the collide function
+    .on("tick", function() {
+      labels.forEach(function(d) {
+        d.element.setAttribute('x', d.x);
+        d.element.setAttribute('y', d.y);
+      });
+    });
 
-
-
+  return this; // Return 'this' for chaining
+}
+*/
 

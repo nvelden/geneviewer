@@ -386,7 +386,17 @@ SvgContainer.prototype.drawLegend = function(data, options = {}, group = null) {
   return this;
 };
 
-SvgContainer.prototype.adjustLabels = function(labelSelector) {
+SvgContainer.prototype.adjustLabels = function(labelSelector, options = {}) {
+    // Default options
+    const defaultOptions = {
+        rotation: 65, // Rotation angle (in degrees)
+        dx: "-0.8em", // Horizontal adjustment
+        dy: "0.15em", // Vertical adjustment
+    };
+
+    // Merge default options with the provided options
+    const { rotation, dx, dy } = { ...defaultOptions, ...options };
+
     // Select all the labels based on the provided selector
     var labels = this.svg.selectAll(labelSelector).nodes();
 
@@ -418,14 +428,16 @@ SvgContainer.prototype.adjustLabels = function(labelSelector) {
 
                 // Rotate both labels
                 d3.select(labels[i])
-                    .style("text-anchor", "start")
-                    .attr("dx", "1.8em")
-                    .attr("transform", `rotate(-65, ${centerX1}, ${y1})`);
+                    .style("text-anchor", "end")
+                    .attr("dx", dx)
+                    .attr("dy", dy)
+                    .attr("transform", `rotate(${rotation}, ${centerX1}, ${y1})`);
 
                 d3.select(labels[j])
-                    .style("text-anchor", "start")
-                    .attr("dx", "1.8em")
-                    .attr("transform", `rotate(-65, ${centerX2}, ${y2})`);
+                    .style("text-anchor", "end")
+                    .attr("dx", dx)
+                    .attr("dy", dy)
+                    .attr("transform", `rotate(${rotation}, ${centerX2}, ${y2})`);
             }
         }
     }

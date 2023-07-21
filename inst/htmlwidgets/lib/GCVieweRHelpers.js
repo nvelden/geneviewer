@@ -1,21 +1,44 @@
+
+function getUniqueId(baseId) {
+  var i = 1;
+  while (document.getElementById(baseId + "-" + i)) {
+    i++;
+  }
+  return baseId + "-" + i;
+}
+
 function SvgContainer(svg) {
   this.svg = svg;
 }
 
-function createSvgContainer(targetElement, customId = null) {
-  // Create SVG Container
-  var svgContainer = d3
-    .select(targetElement)
+function DivContainer(div) {
+  this.div = div;
+}
+
+function createDivContainer(targetElement) {
+  var baseIdDiv = "div-container";
+
+  var div = d3.select(targetElement)
+    .attr("id", getUniqueId(baseIdDiv))
+    .classed("div-content", true);
+
+  return new DivContainer(div);
+}
+
+function createSvgContainer(targetElement) {
+  var baseIdSvg = "svg-container";
+
+  var svg = d3.select(targetElement)
     .append("svg")
-    .attr("id", customId != null ? customId : targetElement + "-svg-container")
+    .attr("id", getUniqueId(baseIdSvg))
     .attr("preserveAspectRatio", "xMinYMin meet")
     .attr("viewBox", "0 0 800 400")
     .classed("svg-content", true);
 
-  return new SvgContainer(svgContainer);
+  return new SvgContainer(svg);
 }
 
-SvgContainer.prototype.drawLabels = function (data, options = {}) {
+SvgContainer.prototype.drawGeneLabels = function (data, options = {}) {
   const defaultOptions = {
     padding: {
       left: 0,
@@ -86,6 +109,11 @@ SvgContainer.prototype.drawLabels = function (data, options = {}) {
     .attr("transform", (d) => `rotate(${rotate},${xScale((d.start + d.stop) / 2)},${yScale(0)})`); // Rotate the labels
 
   return this;
+};
+
+SvgContainer.prototype.drawClusterLabels = function (data, options = {}) {
+
+
 };
 
 SvgContainer.prototype.drawCluster = function (data, options = {}, group = null) {

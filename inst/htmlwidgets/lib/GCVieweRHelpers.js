@@ -420,24 +420,18 @@ SvgContainer.prototype.adjustLabels = function(labelSelector, options = {}) {
                 var x2 = parseFloat(d3.select(labels[j]).attr('x'));
                 var y2 = parseFloat(d3.select(labels[j]).attr('y'));
 
-                // Calculate the width of the labels and their center points
-                var width1 = labels[i].getBBox().width;
-                var centerX1 = x1 + width1 / 2;
-                var width2 = labels[j].getBBox().width;
-                var centerX2 = x2 + width2 / 2;
-
                 // Rotate both labels
                 d3.select(labels[i])
                     .style("text-anchor", "end")
                     .attr("dx", dx)
                     .attr("dy", dy)
-                    .attr("transform", `rotate(${rotation}, ${centerX1}, ${y1})`);
+                    .attr("transform", `rotate(${rotation}, ${x1}, ${y1})`);
 
                 d3.select(labels[j])
                     .style("text-anchor", "end")
                     .attr("dx", dx)
                     .attr("dy", dy)
-                    .attr("transform", `rotate(${rotation}, ${centerX2}, ${y2})`);
+                    .attr("transform", `rotate(${rotation}, ${x2}, ${y2})`);
             }
         }
     }

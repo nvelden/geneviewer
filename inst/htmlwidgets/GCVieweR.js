@@ -25,6 +25,9 @@ HTMLWidgets.widget({
           .attr("id", divId)
           .classed("div-content", true);
 
+        var Title = createTitleContainer("#" + divId)
+          .addTitle();
+
         var cluster = createSvgContainer("#" + divId)
           .drawGeneLabels(item[1])
           .drawCluster(item[1], {}, "class")
@@ -34,7 +37,7 @@ HTMLWidgets.widget({
       });
 
       if (addLegend.position != "top") {
-        var legend = createSvgContainer(el)
+        var legend = createLegendContainer(el)
           .drawLegend(data, opts = {}, group = "class")
           .adjustViewBox();
       }

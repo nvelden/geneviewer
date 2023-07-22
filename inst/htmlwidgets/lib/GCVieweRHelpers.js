@@ -1,11 +1,5 @@
 
-function getUniqueId(baseId) {
-  var i = 1;
-  while (document.getElementById(baseId + "-" + i)) {
-    i++;
-  }
-  return baseId + "-" + i;
-}
+
 
 function SvgContainer(svg) {
   this.svg = svg;
@@ -14,6 +8,129 @@ function SvgContainer(svg) {
 function DivContainer(div) {
   this.div = div;
 }
+
+//utils
+function getUniqueId(baseId) {
+  var i = 1;
+  while (document.getElementById(baseId + "-" + i)) {
+    i++;
+  }
+  return baseId + "-" + i;
+}
+
+// title
+
+function titleContainer(svg) {
+  this.svg = svg;
+}
+
+function createTitleContainer(targetElement, options = {}) {
+  var baseIdSvg = "title-container";
+
+  // Default options
+  const defaultOptions = {
+    attributes: {
+      fill: "black", // Fill color
+      backgroundColor: "transparent", // Background color
+      border: "0px solid #000" // SVG border
+    }
+  };
+
+  // Combine default and passed options
+  const { attributes } = { ...defaultOptions, ...options };
+
+  var svg = d3.select(targetElement)
+    .append("svg")
+    .attr("id", getUniqueId(baseIdSvg))
+    .attr("width", "100%")
+    .attr("fill", attributes.fill) // set fill color
+    .style("border", attributes.border) // set border
+    .style("background-color", attributes.backgroundColor) // set background color
+    .classed("svg-content legend", true);
+
+  return new titleContainer(svg);
+}
+
+titleContainer.prototype.addTitle = function(options = {}) {
+  const defaultOptions = {
+    text: 'Main Title',
+    textAlign: 'center', // left, center, right
+    padding: {
+      left: 5,
+      right: 5,
+      top: 5,
+      bottom: 5
+    },
+    textStyle: {
+      color: '#333',
+      fontStyle: 'normal',
+      fontWeight: 'normal',
+      fontFamily: 'sans-serif',
+      fontSize: 18
+    },
+    backgroundColor: 'transparent',
+    borderColor: '#ccc',
+    borderWidth: 0,
+  };
+
+  const { padding, textAlign, text, textStyle, backgroundColor, borderColor, borderWidth } = { ...defaultOptions, ...options };
+
+  // Calculate x and y coordinates based on alignment options
+  let x, textAnchor;
+  switch (textAlign) {
+    case 'left':
+      x = 0;
+      textAnchor = 'start';
+      break;
+    case 'center':
+      x = this.svg.node().getBoundingClientRect().width / 2;
+      textAnchor = 'middle';
+      break;
+    case 'right':
+      x = this.svg.node().getBoundingClientRect().width;
+      textAnchor = 'end';
+      break;
+    default:
+      x = 0;
+      textAnchor = 'start';
+  }
+
+  const g = this.svg.append('g')
+    .attr('transform', `translate(${padding.left}, ${padding.top})`);
+
+  const textElement = g.append('text')
+    .attr('x', x)
+    .style('text-anchor', textAnchor)
+    .style('dominant-baseline', 'hanging')
+    .style('font-size', `${textStyle.fontSize}px`)
+    .style('font-family', textStyle.fontFamily)
+    .style('font-weight', textStyle.fontWeight)
+    .style('fill', textStyle.color)
+    .text(text);
+
+  const bbox = textElement.node().getBBox();
+
+  // Draw the rectangle background after calculating text bbox
+  g.insert('rect', 'text') // Insert a rectangle before 'text' element
+    .attr('x', bbox.x - borderWidth / 2)
+    .attr('y', bbox.y - borderWidth / 2)
+    .attr('width', bbox.width + borderWidth)
+    .attr('height', bbox.height + borderWidth)
+    .style('fill', backgroundColor)
+    .style('stroke', borderColor)
+    .style('stroke-width', borderWidth);
+
+  this.svg.attr("height", bbox.height + padding.top + padding.bottom);
+
+  return this;
+};
+
+//title
+
+//cluster
+
+
+
 
 function createDivContainer(targetElement) {
   var baseIdDiv = "div-container";
@@ -47,7 +164,7 @@ SvgContainer.prototype.drawGeneLabels = function (data, options = {}) {
       bottom: 0
     },
     font: {
-      size: "1em",
+      size: "12px",
       style: "italic",
       weight: "normal",
       decoration: "none",
@@ -94,6 +211,7 @@ SvgContainer.prototype.drawGeneLabels = function (data, options = {}) {
     .data(data)
     .enter()
     .append("text")
+    .attr("id", (d) => getUniqueId(d.name))
     .attr("class", "label")
     .attr("x", (d) => xScale((d.start + d.stop) / 2))
     .attr("y", (d) => yScale(0))
@@ -243,9 +361,45 @@ SvgContainer.prototype.adjustViewBox = function (options = {}) {
   return this;
 };
 
+SvgContainer.prototype.addTitle = function(options = {}) {
+  const defaultOptions = {
+    padding: {
+      left: 10,
+      right: 10,
+      top: 10,
+      bottom: 10
+    },
+    title: {
+      text: 'Testtttt',
+      alignment: 'center', // options: 'left', 'center', 'right'
+      fontSize: '16px'
+    }
+  };
+
+  const { padding, title } = { ...defaultOptions, ...options };
+
+  // Set the dimensions of the SVG
+  this.svg.attr("height", "50px").attr("width", "100%")
+
+  // Now get the SVG dimensions
+  const width = this.svg.node().getBoundingClientRect().width;
+  const height = this.svg.node().getBoundingClientRect().height;
+  console.log(width)
+  // Add title
+  this.svg.append('text')
+    .attr('x', width / 4) // Center the text horizontally
+    .attr('y', padding.top)
+    .style('text-anchor', 'middle') // Align the text to the center
+    .style('dominant-baseline', 'hanging') // Ensure the text is inside the SVG
+    .style('font-size', title.fontSize)
+    .text(title.text);
+
+  return this;
+};
+
 SvgContainer.prototype.drawLegend = function(data, options = {}, group = null) {
 
-    if (!group) {
+  if (!group) {
     throw new Error("Group is not defined");
   }
 
@@ -262,8 +416,6 @@ SvgContainer.prototype.drawLegend = function(data, options = {}, group = null) {
       bottom: 0
     },
     legend: {
-      size: 8,
-      padding: 8,
       color: "black",
       stroke: "black",
       strokeWidth: 1,
@@ -271,13 +423,12 @@ SvgContainer.prototype.drawLegend = function(data, options = {}, group = null) {
       customColors: null
     },
     text: {
-      size: 8,
       anchor: "start",
       dy: ".35em",
       fill: "black"
     },
     font: {
-      size: "1em",
+      size: "12px",
       style: "normal",
       weight: "normal",
       decoration: "none",
@@ -286,7 +437,8 @@ SvgContainer.prototype.drawLegend = function(data, options = {}, group = null) {
     },
     align: "right",
     orientation: "horizontal",
-    backgroundColor: "#FFF"
+    backgroundColor: "#FFF",
+    width: "50%"
   };
 
   const {
@@ -296,10 +448,15 @@ SvgContainer.prototype.drawLegend = function(data, options = {}, group = null) {
     font,
     align,
     orientation,
-    backgroundColor
+    backgroundColor,
+    width
   } = { ...defaultOptions, ...options };
 
   const svgLegend = this.svg;
+
+  if(width !== null) {
+    svgLegend.attr('width', width); // Set the SVG width if the width option is defined
+  }
   const parentWidth = svgLegend.node().getBoundingClientRect().width;
 
   const classes = Array.from(new Set(data.map((d) => d[group])));
@@ -323,6 +480,8 @@ SvgContainer.prototype.drawLegend = function(data, options = {}, group = null) {
     .append("g")
     .attr("class", "legend");
 
+  const legendSize = parseFloat(font.size);
+  const legendPadding = legendSize / 2;
   let currentX = padding.left,
     currentY = padding.top;
 
@@ -330,8 +489,8 @@ SvgContainer.prototype.drawLegend = function(data, options = {}, group = null) {
     const textElement = nodes[i];
     const textSample = d3.select(textElement)
       .append("text")
-      .attr("x", currentX + legend.size + legend.padding)
-      .attr("y", currentY + legend.size / 2)
+      .attr("x", currentX + legendSize + legendPadding)
+      .attr("y", currentY + legendSize / 2)
       .attr("dy", text.dy)
       .style("text-anchor", text.anchor)
       .style("font-size", font.size)
@@ -345,25 +504,25 @@ SvgContainer.prototype.drawLegend = function(data, options = {}, group = null) {
     const textLength = textSample.node().getComputedTextLength();
     textSample.remove();
 
-    if (currentX + textLength + legend.size + 2 * legend.padding > parentWidth) {
+    if (currentX + textLength + legendSize + 2 * legendPadding > parentWidth) {
       currentX = padding.left;
-      currentY += legend.size + legend.padding;
+      currentY += legendSize + legendPadding;
     }
 
     const rect = d3.select(textElement)
       .append("rect")
       .attr("x", currentX)
       .attr("y", currentY)
-      .attr("width", legend.size)
-      .attr("height", legend.size)
+      .attr("width", legendSize)
+      .attr("height", legendSize)
       .style("stroke", legend.stroke)
       .style("stroke-width", legend.strokeWidth)
       .style("fill", colorScale(d));
 
     const textLabel = d3.select(textElement)
       .append("text")
-      .attr("x", currentX + legend.size + legend.padding)
-      .attr("y", currentY + legend.size / 2)
+      .attr("x", currentX + legendSize + legendPadding)
+      .attr("y", currentY + legendSize / 2)
       .attr("dy", text.dy)
       .style("text-anchor", text.anchor)
       .style("fill", text.fill)
@@ -376,10 +535,10 @@ SvgContainer.prototype.drawLegend = function(data, options = {}, group = null) {
       .text(d);
 
     if (orientation === "horizontal") {
-      currentX += textLength + legend.size + 2 * legend.padding;
+      currentX += textLength + legendSize + 2 * legendPadding;
     } else {
       currentX = padding.left;
-      currentY += legend.size + legend.padding;
+      currentY += legendSize + legendPadding;
     }
   });
 

@@ -9,4 +9,4 @@
     version: 1.0
     src: htmlwidgets
     script: ./lib/GCVieweRHelpers.js
-    stylesheet:
+    stylesheet: ./lib/styles.css

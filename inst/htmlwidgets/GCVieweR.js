@@ -11,36 +11,44 @@ HTMLWidgets.widget({
 
       var groupedData = d3.flatGroup(data, (d) => d.cluster);
 
-      if (addLegend.position == "top") {
-        var legend = createSvgContainer(el)
-          .drawLegend(data, opts = {}, group = "class")
-          .adjustViewBox();
-      }
+   //   if (addLegend.position == "top") {
+  //      var legend = createSvgContainer(el)
+  //        .drawLegend(data, opts = {}, group = "class")
+  //        .adjustViewBox();
+  //    }
 
       groupedData.forEach(function(item) {
+
         var divId = getUniqueId("div-container");
 
-        var clusterContainer = d3.select(el)
-          .append("div")
-          .attr("id", divId)
-          .classed("div-content", true);
+     //   var clusterContainer = d3.select(el)
+    //      .append("div")
+    //      .attr("id", divId)
+    //      .classed("div-content", true);
 
-        var Title = createTitleContainer("#" + divId)
-          .addTitle();
+        var cluster = createClusterContainer(el)
+            .addTitle("OphA gene transcription cluster")
+            .addClusterTitle("ophA gene cluster")
+            .addGeneData(item[1])
+            .drawGeneLine()
+            .drawGenes("class")
+            .drawGeneLabels("class")
+            .adjustLabels("text.label");
+      //    .drawCluster(item[1], {}, "class")
+      //    .adjustLabels("text.label")
+      //    .addTitleLeft("Hello")
+      //    .adjustViewBox();
 
-        var cluster = createSvgContainer("#" + divId)
-          .drawGeneLabels(item[1])
-          .drawCluster(item[1], {}, "class")
-          .adjustLabels("text.label")
-          .adjustViewBox();
+      //  var Title = createTitleContainer("#" + divId)
+      //    .addTitle();
 
       });
 
-      if (addLegend.position != "top") {
-        var legend = createLegendContainer(el)
-          .drawLegend(data, opts = {}, group = "class")
-          .adjustViewBox();
-      }
+  //    if (addLegend.position != "top") {
+  //      var legend = createLegendContainer(el)
+  //        .drawLegend(data, opts = {}, group = "class")
+  //        .adjustViewBox();
+  //    }
     };
 
     return {

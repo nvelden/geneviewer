@@ -99,9 +99,6 @@ function wrap(text, width, options = {}) {
   });
 }
 
-
-
-// Container
 function clusterContainer(svg, margin, width, height) {
   this.svg = svg;
   this.margin = margin;
@@ -114,10 +111,11 @@ function createClusterContainer(targetElement, options = {}) {
   const defaultOptions = {
     id: "svg-container",
     margin: { top: 50, right: 50, bottom: 50, left: 100 },
+    backgroundColor: "white",  // Default background color
   };
 
   // Merge default options and user-specified options
-  const { id, margin } = { ...defaultOptions, ...options };
+  const { id, margin, backgroundColor } = { ...defaultOptions, ...options };
 
   const width = targetElement.clientWidth;
   const height = targetElement.clientHeight;
@@ -127,13 +125,29 @@ function createClusterContainer(targetElement, options = {}) {
     .attr("id", getUniqueId(id))  // use user-specified id, or default
     .attr("preserveAspectRatio", "xMinYMin meet")
     .attr("viewBox", `0 0 ${width} ${height}`)
-    .classed("svg-content", true);
+    .classed("svg-content", true)
+    .style("background-color", backgroundColor);  // Set the background color
 
   return new clusterContainer(svg, margin, width, height);
 
 }
 
-clusterContainer.prototype.addGeneData = function (data) {
+clusterContainer.prototype.theme = function (themeName) {
+  // Make sure the theme exists
+  if (!themes.hasOwnProperty(themeName)) {
+    throw new Error(`Theme '${themeName}' does not exist.`);
+  }
+
+  // Retrieve the theme
+  const themeOptions = themes[themeName];
+
+  // Save the theme options to the instance for later use
+  this.themeOptions = themeOptions;
+
+  return this;
+};
+
+clusterContainer.prototype.geneData = function (data) {
 
   this.data = data.map(item => {
     var newItem = {...item};
@@ -150,40 +164,174 @@ clusterContainer.prototype.addGeneData = function (data) {
   return this;
 };
 
-clusterContainer.prototype.addTitle = function (title, options = {}) {
 
+
+clusterContainer.prototype.title = function (title, subtitle, options = {}) {
+  // defaultOptions
   const defaultOptions = {
-    x: 0,        // Default x coordinate
-    y: 0,        // Default y coordinate
+    x: 0,
+    y: 0,
     font: {
-      size: "12px",
+      size: "16px",
       style: "italic",
+      weight: "normal",
+      decoration: "underline",
+      family: "sans-serif",
+      color: "black"
+    },
+    subtitleFont: {
+      size: "14px",
+      style: "normal",
       weight: "normal",
       decoration: "none",
       family: "sans-serif",
       color: "black"
     },
+    position: "left", // Default position
+    padding: 10, // Default padding
   };
 
-  const { x, y, font } = { ...defaultOptions, ...options };
+  console.log(this.themeOptions)
+
+   // If theme options exist, use them as the default options
+  if (this.themeOptions && this.themeOptions.titleOptions) {
+    options = { ...this.themeOptions.titleOptions, ...options };
+  }
+
+  const { x, y, font, subtitleFont, position, padding } = { ...defaultOptions, ...options };
+
+  let xPos;
+  let textAnchor;
+
+  switch (position) {
+    case "left":
+      xPos = x + padding;
+      textAnchor = "start";
+      break;
+    case "right":
+      xPos = this.width - x - padding;
+      textAnchor = "end";
+      break;
+    default:
+      xPos = x + (this.width / 2);
+      textAnchor = "middle";
+  }
 
   // Add title
   this.svg.append("text")
-    .attr("x", x + (this.width / 2))
+    .attr("x", xPos)
     .attr("y", y + (this.margin.top / 2))
-    .attr("text-anchor", "middle")
-    .style("font-size", "16px")
-    .style("text-decoration", "underline")
+    .attr("text-anchor", textAnchor)
+    .style("font-size", font.size)
+    .style("font-style", font.style)
+    .style("font-weight", font.weight)
+    .style("text-decoration", font.decoration)
+    .style("font-family", font.family)
+    .style("fill", font.color)
     .text(title);
+
+  // Add subtitle if provided
+  if (subtitle) {
+    this.svg.append("text")
+      .attr("x", xPos)
+      .attr("y", y + (this.margin.top / 2) + 20) // Adding 20px for subtitle spacing, adjust as needed
+      .attr("text-anchor", textAnchor)
+      .style("font-size", subtitleFont.size)
+      .style("font-style", subtitleFont.style)
+      .style("font-weight", subtitleFont.weight)
+      .style("text-decoration", subtitleFont.decoration)
+      .style("font-family", subtitleFont.family)
+      .style("fill", subtitleFont.color)
+      .text(subtitle);
+  }
 
   return this;
 };
 
-clusterContainer.prototype.addClusterTitle = function(title, options = {}) {
+clusterContainer.prototype.footer = function (title, subtitle, options = {}) {
+  const defaultOptions = {
+    x: 0,
+    y: 0,
+    font: {
+      size: "16px",
+      style: "italic",
+      weight: "normal",
+      decoration: "underline",
+      family: "sans-serif",
+      color: "black"
+    },
+    subtitleFont: {
+      size: "14px",
+      style: "normal",
+      weight: "normal",
+      decoration: "none",
+      family: "sans-serif",
+      color: "black"
+    },
+    position: "left", // Default position
+    padding: 10, // Default padding
+  };
+
+  const { x, y, font, subtitleFont, position, padding } = { ...defaultOptions, ...options };
+
+  let xPos;
+  let textAnchor;
+
+  switch (position) {
+    case "left":
+      xPos = x + padding;
+      textAnchor = "start";
+      break;
+    case "right":
+      xPos = this.width - x - padding;
+      textAnchor = "end";
+      break;
+    default:
+      xPos = x + (this.width / 2);
+      textAnchor = "middle";
+  }
+
+  // Calculate y position for title and subtitle based on height of svg, margin, and given y offset
+  const yPosTitle = this.height - this.margin.bottom / 2 + y;
+  const yPosSubtitle = yPosTitle + 20;  // Add space between title and subtitle
+
+  // Add title
+  this.svg.append("text")
+    .attr("x", xPos)
+    .attr("y", yPosTitle)
+    .attr("text-anchor", textAnchor)
+    .style("font-size", font.size)
+    .style("font-style", font.style)
+    .style("font-weight", font.weight)
+    .style("text-decoration", font.decoration)
+    .style("font-family", font.family)
+    .style("fill", font.color)
+    .text(title);
+
+  // Add subtitle if provided
+  if (subtitle) {
+    this.svg.append("text")
+      .attr("x", xPos)
+      .attr("y", yPosSubtitle)
+      .attr("text-anchor", textAnchor)
+      .style("font-size", subtitleFont.size)
+      .style("font-style", subtitleFont.style)
+      .style("font-weight", subtitleFont.weight)
+      .style("text-decoration", subtitleFont.decoration)
+      .style("font-family", subtitleFont.family)
+      .style("fill", subtitleFont.color)
+      .text(subtitle);
+  }
+
+  return this;
+};
+
+clusterContainer.prototype.clusterLabel = function(title, options = {}) {
   // Default options
   const defaultOptions = {
     x: 0,
     y: 0,
+    side: 'left',  // New 'side' option
     font: {
       size: "12px",
       style: "italic",
@@ -198,17 +346,25 @@ clusterContainer.prototype.addClusterTitle = function(title, options = {}) {
   const {
     x,
     y,
+    side,
     font
   } = { ...defaultOptions, ...options };
 
   // calculate middle y position
   const middleY = this.height / 2 + y;  // Apply the y option
-  const titleWidth = this.margin.left - x;
+  const titleWidth = side === 'left' ? this.margin.left - x : this.margin.right - x;
+
+  let xPosition;
+  if (side === 'left') {
+    xPosition = this.margin.left / 2 + x;  // title is in the left margin
+  } else {  // 'right'
+    xPosition = this.width - this.margin.right / 2 - x;  // title is in the right margin
+  }
 
   let clusterTitle = this.svg.append("text")
-    .attr("x", this.margin.left / 2 + x)  // Apply the x option
+    .attr("x", xPosition)
     .attr("y", middleY)
-    .attr("text-anchor", "middle")
+    .attr("text-anchor", "middle")  // text is always centered
     .attr("dominant-baseline", "central")  // Vertically center text
     .style("font-size", font.size)
     .style("font-style", font.style)
@@ -218,14 +374,13 @@ clusterContainer.prototype.addClusterTitle = function(title, options = {}) {
     .style("fill", font.color)
     .text(title);
 
-
   // wrap the text
   wrap(clusterTitle, titleWidth, 0, 1.05, 1, true, true);
 
   return this;
 };
 
-clusterContainer.prototype.drawGeneLine = function (options = {}) {
+clusterContainer.prototype.sequence = function (options = {}) {
   const defaultOptions = {
     y: 50  // default y value
   };
@@ -269,7 +424,7 @@ clusterContainer.prototype.drawGeneLine = function (options = {}) {
   return this;
 };
 
-clusterContainer.prototype.drawGenes = function (group = null, options = {}) {
+clusterContainer.prototype.genes = function (group = null, options = {}) {
 
   // Verify that the data exists
   if (!this.data) {
@@ -321,24 +476,23 @@ clusterContainer.prototype.drawGenes = function (group = null, options = {}) {
     colorScale = d3.scaleOrdinal(d3.schemeCategory10);
   }
 
-  // Marker Setup
-  var marker = this.svg
-    .append("defs")
-    .selectAll("marker")
-    .data(this.data)
-    .enter()
-    .append("marker")
-    .attr("id", (d) => d.name)
-    .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 5)
-    .attr("refY", 0)
-    .attr("markerWidth", 6)
-    .attr("markerHeight", 6)
-    .attr("orient", "auto")
-    .append("path")
-    .attr("d", "M0,-5L10,0L0,5")
-    .attr("class", "arrowHead")
-    .attr("fill", (d) => colorScale(d[group])); // Use grouping variable here
+var marker = this.svg
+  .append("defs")
+  .selectAll("marker")
+  .data(this.data)
+  .enter()
+  .append("marker")
+  .attr("id", (d) => d.name)
+  .attr("orient", "auto")
+  .attr("markerWidth", 6)
+  .attr("markerHeight", 6)
+  .attr("refX", 0)
+  .attr("refY", 0)
+  .attr("viewBox", "0 -5 10 10")
+  .append("path")
+  .attr("d", "M0,-5L10,0L0,5")
+  .attr("class", "arrowHead")
+  .attr("fill", (d) => colorScale(d[group])); // Use grouping variable here
 
    // Create the group
   var g = this.svg.append("g")
@@ -365,7 +519,7 @@ clusterContainer.prototype.drawGenes = function (group = null, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.drawGeneLabels = function (options = {}) {
+clusterContainer.prototype.geneLabels = function (options = {}) {
 
   // Verify that the data exists
   if (!this.data) {

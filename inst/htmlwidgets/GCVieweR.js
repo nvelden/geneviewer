@@ -27,12 +27,14 @@ HTMLWidgets.widget({
     //      .classed("div-content", true);
 
         var cluster = createClusterContainer(el)
-            .addTitle("OphA gene transcription cluster")
-            .addClusterTitle("ophA gene cluster")
-            .addGeneData(item[1])
-            .drawGeneLine()
-            .drawGenes("class")
-            .drawGeneLabels("class")
+            //.theme("vintage")
+            .title("Transcription cluster", "OphA")
+            .footer("Description", "OphA")
+            .clusterLabel("ophA gene cluster")
+            .geneData(item[1])
+            .sequence()
+            .genes("class")
+            .geneLabels("class")
             .adjustLabels("text.label");
       //    .drawCluster(item[1], {}, "class")
       //    .adjustLabels("text.label")

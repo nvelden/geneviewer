@@ -11,7 +11,9 @@ function createDivContainer(targetElement) {
 
   return new DivContainer(div);
 }
-//utils
+
+//Utils
+
 function getUniqueId(baseId) {
   var i = 1;
   while (document.getElementById(baseId + "-" + i)) {
@@ -99,6 +101,36 @@ function wrap(text, width, options = {}) {
   });
 }
 
+function adjustViewBox(svg, options = {}) {
+  const defaultOptions = {
+    padding: {
+      left: 10,
+      right: 10,
+      top: 10,
+      bottom: 10
+    }
+  };
+
+  const { padding } = { ...defaultOptions, ...options };
+
+  // Get Container Dimensions
+  var width = svg.node().getBoundingClientRect().width;
+  var height = svg.node().getBoundingClientRect().height;
+
+  // Adjust viewBox
+  var bbox = svg.node().getBBox();
+  svg.attr("viewBox", [
+    bbox.x - padding.left,
+    bbox.y - padding.top,
+    bbox.width + padding.left + padding.right,
+    bbox.height + padding.top + padding.bottom,
+  ]);
+
+  return svg;
+};
+
+// CLuster
+
 function clusterContainer(svg, margin, width, height) {
   this.svg = svg;
   this.margin = margin;
@@ -111,25 +143,25 @@ function createClusterContainer(targetElement, options = {}) {
   const defaultOptions = {
     id: "svg-container",
     margin: { top: 50, right: 50, bottom: 50, left: 100 },
-    backgroundColor: "white",  // Default background color
+    backgroundColor: "white",
+    width: targetElement.clientWidth,
+    height: targetElement.clientHeight
   };
 
   // Merge default options and user-specified options
-  const { id, margin, backgroundColor } = { ...defaultOptions, ...options };
-
-  const width = targetElement.clientWidth;
-  const height = targetElement.clientHeight;
+  const { id, margin, backgroundColor, width, height } = { ...defaultOptions, ...options };
 
   var svg = d3.select(targetElement)
     .append("svg")
-    .attr("id", getUniqueId(id))  // use user-specified id, or default
+    .attr("id", getUniqueId(id))
+    .attr("width", "100%")
+    .attr("height", "100%")
     .attr("preserveAspectRatio", "xMinYMin meet")
     .attr("viewBox", `0 0 ${width} ${height}`)
     .classed("svg-content", true)
-    .style("background-color", backgroundColor);  // Set the background color
+    .style("background-color", backgroundColor);
 
   return new clusterContainer(svg, margin, width, height);
-
 }
 
 clusterContainer.prototype.theme = function (themeName) {
@@ -164,8 +196,6 @@ clusterContainer.prototype.geneData = function (data) {
   return this;
 };
 
-
-
 clusterContainer.prototype.title = function (title, subtitle, options = {}) {
   // defaultOptions
   const defaultOptions = {
@@ -187,11 +217,10 @@ clusterContainer.prototype.title = function (title, subtitle, options = {}) {
       family: "sans-serif",
       color: "black"
     },
-    position: "left", // Default position
+    position: "center", // Default position
     padding: 10, // Default padding
   };
 
-  console.log(this.themeOptions)
 
    // If theme options exist, use them as the default options
   if (this.themeOptions && this.themeOptions.titleOptions) {
@@ -645,6 +674,207 @@ clusterContainer.prototype.adjustLabels = function(labelSelector, options = {}) 
     }
     return this;
 };
+
+//legend
+
+function legendContainer(svg, margin, width, height) {
+  this.svg = svg;
+  this.margin = margin;
+  this.width = width;
+  this.height = height;
+}
+
+function createLegendContainer(targetElement, options = {}) {
+
+  const defaultOptions = {
+    id: "legend-container",
+    margin: { top: 0, right: 0, bottom: 0, left: 0 },
+    backgroundColor: "white",
+    width: targetElement.clientWidth,
+    height: targetElement.clientHeight
+  };
+
+  // Merge default options and user-specified options
+  const { id, margin, backgroundColor, width, height } = { ...defaultOptions, ...options };
+
+  var svg = d3.select(targetElement)
+    .append("svg")
+    .attr("id", getUniqueId(id))
+    .attr("preserveAspectRatio", "xMinYMin meet")
+    .classed("legend-content", true)
+    .style("background-color", backgroundColor);
+
+  return new legendContainer(svg, margin, width, height);
+}
+
+legendContainer.prototype.legendData = function (data, group = null) {
+
+  if (!group) {
+    throw new Error("Group is not defined");
+  }
+
+  // Verify that the group exists in the data
+  if (!data.some(d => group in d)) {
+    throw new Error(`Group "${group}" does not exist in the data`);
+  }
+
+  this.data = data;
+  this.group = group;
+
+  return this;
+};
+
+legendContainer.prototype.legend = function(options = {}) {
+
+  if (!this.group) {
+    throw new Error("Group is not defined");
+  }
+
+  // Verify that the group exists in the data
+  if (!this.data.some(d => this.group in d)) {
+    throw new Error(`Group "${this.group}" does not exist in the data`);
+  }
+
+  const defaultOptions = {
+    padding: {
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0
+    },
+    legend: {
+      color: "black",
+      stroke: "black",
+      strokeWidth: 1,
+      colorScheme: null,
+      customColors: null
+    },
+    text: {
+      anchor: "start",
+      dy: ".35em",
+      fill: "black"
+    },
+    font: {
+      size: "12px",
+      style: "normal",
+      weight: "normal",
+      decoration: "none",
+      family: "sans-serif",
+      color: "black"
+    },
+    align: "right",
+    orientation: "horizontal",
+    backgroundColor: "#FFF",
+    width: "100%"
+  };
+
+  const {
+    padding,
+    legend,
+    text,
+    font,
+    align,
+    orientation,
+    backgroundColor,
+    width
+  } = { ...defaultOptions, ...options };
+
+  const svgLegend = this.svg;
+
+  if(width !== null) {
+    svgLegend.attr('width', width); // Set the SVG width if the width option is defined
+  }
+  const parentWidth = svgLegend.node().getBoundingClientRect().width;
+
+  const classes = Array.from(new Set(this.data.map((d) => d[this.group])));
+
+  let colorScale;
+  if (legend.colorScheme) {
+    colorScale = d3.scaleOrdinal(d3[legend.colorScheme])
+      .domain(classes);
+  } else if (legend.customColors && legend.customColors.length > 0) {
+    colorScale = d3.scaleOrdinal()
+      .domain(classes)
+      .range(legend.customColors);
+  } else {
+    colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+      .domain(classes);
+  }
+
+  const legendElements = svgLegend.selectAll(".legend")
+    .data(classes)
+    .enter()
+    .append("g")
+    .attr("class", "legend");
+
+  const legendSize = parseFloat(font.size);
+  const legendPadding = legendSize / 2;
+  let currentX = padding.left,
+    currentY = padding.top;
+
+  legendElements.each((d, i, nodes) => {
+    const textElement = nodes[i];
+    const textSample = d3.select(textElement)
+      .append("text")
+      .attr("x", currentX + legendSize + legendPadding)
+      .attr("y", currentY + legendSize / 2)
+      .attr("dy", text.dy)
+      .style("text-anchor", text.anchor)
+      .style("font-size", font.size)
+      .style("font-style", font.style)
+      .style("font-weight", font.weight)
+      .style("text-decoration", font.decoration)
+      .style("font-family", font.family)
+      .style("fill", font.color)
+      .text(d);
+
+    const textLength = textSample.node().getComputedTextLength();
+    textSample.remove();
+
+    if (currentX + textLength + legendSize + 2 * legendPadding > parentWidth) {
+      currentX = padding.left;
+      currentY += legendSize + legendPadding;
+    }
+
+    const rect = d3.select(textElement)
+      .append("rect")
+      .attr("x", currentX)
+      .attr("y", currentY)
+      .attr("width", legendSize)
+      .attr("height", legendSize)
+      .style("stroke", legend.stroke)
+      .style("stroke-width", legend.strokeWidth)
+      .style("fill", colorScale(d));
+
+    const textLabel = d3.select(textElement)
+      .append("text")
+      .attr("x", currentX + legendSize + legendPadding)
+      .attr("y", currentY + legendSize / 2)
+      .attr("dy", text.dy)
+      .style("text-anchor", text.anchor)
+      .style("fill", text.fill)
+      .style("font-size", font.size)
+      .style("font-style", font.style)
+      .style("font-weight", font.weight)
+      .style("text-decoration", font.decoration)
+      .style("font-family", font.family)
+      .style("fill", font.color)
+      .text(d);
+
+    if (orientation === "horizontal") {
+      currentX += textLength + legendSize + 2 * legendPadding;
+    } else {
+      currentX = padding.left;
+      currentY += legendSize + legendPadding;
+    }
+  });
+
+
+  adjustViewBox(this.svg, { padding: { left: 20, right: 20, top: 20, bottom: 20 } });
+
+  return this;
+};
+
 
 
 /*

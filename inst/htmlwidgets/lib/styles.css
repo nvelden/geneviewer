@@ -1,14 +1,15 @@
-div, svg, g {
+div {
     border: 1px solid grey;
+    box-sizing: border;
 }
 
-#GCvieweR-graph-container {
+.GCVieweR-container {
   display: flex;
   flex-direction: column; /* or row, depending on the desired layout */
   align-content: stretch;
 }
 
-.svg-content {
+.GCVieweR-svg-content {
   flex: 1 1 auto; /* This makes the SVGs grow and shrink as needed */
   min-height: 0; /* This may be needed for correct sizing in some browsers */
 }

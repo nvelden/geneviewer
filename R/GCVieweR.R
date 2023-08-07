@@ -42,6 +42,7 @@ GCVieweR <- function(data, start = start, stop = stop, group = NULL, width = NUL
     package = 'GCVieweR',
     elementId = elementId
   )
+
 }
 
 #' @export

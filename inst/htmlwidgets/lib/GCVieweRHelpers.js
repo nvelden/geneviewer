@@ -158,7 +158,8 @@ function createClusterContainer(targetElement, options = {}) {
     .attr("height", "100%")
     .attr("preserveAspectRatio", "xMinYMin meet")
     .attr("viewBox", `0 0 ${width} ${height}`)
-    .classed("svg-content", true)
+    .classed("GCVieweR-svg-content", true)
+    .style("box-sizing", "border-box")
     .style("background-color", backgroundColor);
 
   return new clusterContainer(svg, margin, width, height);
@@ -515,7 +516,7 @@ var marker = this.svg
   .attr("orient", "auto")
   .attr("markerWidth", 6)
   .attr("markerHeight", 6)
-  .attr("refX", 0)
+  .attr("refX", 9)
   .attr("refY", 0)
   .attr("viewBox", "0 -5 10 10")
   .append("path")
@@ -544,6 +545,185 @@ var marker = this.svg
         const groupColor = colorScale(d[group]); // Use grouping variable here
         d3.select(this).attr("stroke", groupColor);
     });
+
+  return this;
+};
+
+clusterContainer.prototype.geneCoordinates = function (group = null, options = {}) {
+
+  const defaultOptions = {
+    axis: {
+      rotate: -45,
+      yPositionTop: 55,  // position for top axis
+      yPositionBottom: 40,  // position for bottom axis
+      tickValues: null,  // add an option to provide your own tick values
+      tickValueThreshold: 300
+    },
+    font: {
+      size: "10px",
+      style: "normal",
+      weight: "normal",
+      decoration: "none",
+      family: "sans-serif",
+      color: "black"
+    }
+  };
+  const { axis, font } = { ...defaultOptions, ...options };
+
+  // Data processing
+  var maxStart = d3.max(this.data, (d) => d.start);
+  var maxStop = d3.max(this.data, (d) => d.stop);
+  var minStart = d3.min(this.data, (d) => d.start);
+  var minStop = d3.min(this.data, (d) => d.stop);
+
+  var xScale = d3.scaleLinear()
+    .domain([minStart, maxStop])
+    .range([0, this.width - this.margin.left - this.margin.right]);
+
+  var yScale = d3.scaleLinear()
+    .domain([0, 100])
+    .range([this.height - this.margin.bottom - this.margin.top , 0]);
+
+  // Create the group
+  var g = this.svg.append("g")
+    .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+
+  // Get all start and stop values
+  var allTickValues = axis.tickValues || this.data.reduce((acc, d) => {
+    acc.push(d.start);
+    acc.push(d.stop);
+    return acc;
+  }, []);
+
+  // Sort the array in ascending order
+  allTickValues.sort((a, b) => a - b);
+
+var tickValuesTop = [];
+var tickValuesBottom = allTickValues.filter((value, index, array) => {
+    if (index === 0) return true; // Always include the first element
+    var diff = value - array[index - 1];
+    if (diff < axis.tickValueThreshold) {
+        tickValuesTop.push(value);
+        return false; // Exclude this value from the new array
+    }
+    return true; // Include this value in the new array
+});
+
+  // Add X-axis scale at the top
+var xAxisTop = g.append("g")
+  .attr("transform", "translate(0," + yScale(axis.yPositionTop) + ")")
+  .call(d3.axisTop(xScale).tickValues(tickValuesTop));
+
+// Add X-axis scale at the bottom
+var xAxisBottom = g.append("g")
+  .attr("transform", "translate(0," + yScale(axis.yPositionBottom) + ")")
+  .call(d3.axisBottom(xScale).tickValues(tickValuesBottom));
+
+// Hide axis line
+xAxisTop.select(".domain").attr("stroke", "none");
+xAxisBottom.select(".domain").attr("stroke", "none");
+
+xAxisTop.selectAll("text")
+  .attr("class", "coordinate")
+  .style("text-anchor", "end")  // Change to 'end'
+  .attr("dx", "-.8em")  // Change sign to '-'
+  .attr("dy", ".4em")  // Change sign to '+'
+  .attr("transform", "rotate(" + (-axis.rotate) + ")")  // Change sign to '-'
+  .style("font-size", font.size)
+  .style("font-style", font.style)
+  .style("font-weight", font.weight)
+  .style("text-decoration", font.decoration)
+  .style("font-family", font.family)
+  .style("color", font.color);
+
+xAxisBottom.selectAll("text")
+  .attr("class", "coordinate")
+  .style("text-anchor", "start")  // Change to 'start'
+  .attr("dx", ".8em")  // Change sign to '+'
+  .attr("dy", "-.15em")  // Change sign to '-'
+  .attr("transform", "rotate(" + (-axis.rotate) + ")")  // Change sign to '-'
+  .style("font-size", font.size)
+  .style("font-style", font.style)
+  .style("font-weight", font.weight)
+  .style("text-decoration", font.decoration)
+  .style("font-family", font.family)
+  .style("color", font.color);
+
+return this;
+};
+
+clusterContainer.prototype.scaleBar = function (group = null, options = {}) {
+  const defaultOptions = {
+    axis: {
+      yPosition: 0,  // position for the scale bar
+      title: "1 kb"  // title for the scale bar
+    },
+    font: {
+      size: "10px",
+      style: "normal",
+      weight: "normal",
+      decoration: "none",
+      family: "sans-serif",
+      color: "black"
+    },
+    scaleBarUnit: 1000 // The unit length of the scale bar
+  };
+  const { axis, font, scaleBarUnit } = { ...defaultOptions, ...options };
+
+  // Data processing
+  var maxStart = d3.max(this.data, (d) => d.start);
+  var maxStop = d3.max(this.data, (d) => d.stop);
+  var minStart = d3.min(this.data, (d) => d.start);
+  var minStop = d3.min(this.data, (d) => d.stop);
+
+  var xScale = d3.scaleLinear()
+    .domain([minStart, maxStop])
+    .range([0, this.width - this.margin.left - this.margin.right]);
+
+  var yScale = d3.scaleLinear()
+    .domain([0, 100])
+    .range([this.height - this.margin.bottom - this.margin.top , 0]);
+
+  // Calculate the length of the scale bar in pixels
+  var scaleBarLength = xScale(minStart + scaleBarUnit);
+
+  // Create the group
+  var g = this.svg.append("g")
+    .attr("transform", "translate(" + (this.width - this.margin.right - scaleBarLength - font.size.length - 5) + "," + (this.height - this.margin.bottom) + ")");
+
+  // Create the scale bar line
+  var line = g.append("line")
+    .attr("x1", font.size.length + 5)
+    .attr("x2", font.size.length + 5 + scaleBarLength) // Use the scale to convert the scale bar unit to pixels
+    .attr("y1", -axis.yPosition)
+    .attr("y2", -axis.yPosition)
+    .attr("stroke", "grey")
+    .attr("stroke-width", 1);
+
+  // Add the ticks
+  [font.size.length + 5, font.size.length + 5 + scaleBarLength].forEach(function(d) {
+    g.append("line")
+      .attr("x1", d)
+      .attr("x2", d)
+      .attr("y1", -axis.yPosition - 5)
+      .attr("y2", -axis.yPosition + 5)
+      .attr("stroke", "grey")
+      .attr("stroke-width", 1);
+  });
+
+  // Add the title
+  g.append("text")
+    .attr("x", font.size.length) // Position the title at the start of the scale bar
+    .attr("y", -axis.yPosition) // Align the title with the scale bar
+    .style("text-anchor", "end") // Anchor the text at the end
+    .style("dominant-baseline", "middle") // Vertically center the text
+    .style("font-size", font.size)
+    .style("font-style", font.style)
+    .style("font-weight", font.weight)
+    .style("text-decoration", font.decoration)
+    .style("font-family", font.family)
+    .style("fill", font.color)
+    .text(axis.title);
 
   return this;
 };
@@ -623,7 +803,7 @@ clusterContainer.prototype.geneLabels = function (options = {}) {
   return this;
 };
 
-clusterContainer.prototype.adjustLabels = function(labelSelector, options = {}) {
+clusterContainer.prototype.adjustGeneLabels = function(labelSelector, options = {}) {
     // Default options
     const defaultOptions = {
         rotation: 65, // Rotation angle (in degrees)
@@ -687,8 +867,8 @@ function legendContainer(svg, margin, width, height) {
 function createLegendContainer(targetElement, options = {}) {
 
   const defaultOptions = {
-    id: "legend-container",
-    margin: { top: 0, right: 0, bottom: 0, left: 0 },
+    id: "svg-legend-container",
+    margin: { top: 50, right: 50, bottom: 50, left: 50 },
     backgroundColor: "white",
     width: targetElement.clientWidth,
     height: targetElement.clientHeight
@@ -700,8 +880,11 @@ function createLegendContainer(targetElement, options = {}) {
   var svg = d3.select(targetElement)
     .append("svg")
     .attr("id", getUniqueId(id))
+    .attr("width", "100%")
+    .attr("height", "100%")
     .attr("preserveAspectRatio", "xMinYMin meet")
-    .classed("legend-content", true)
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .classed("GCVieweR-svg-content", true)
     .style("background-color", backgroundColor);
 
   return new legendContainer(svg, margin, width, height);
@@ -737,10 +920,10 @@ legendContainer.prototype.legend = function(options = {}) {
 
   const defaultOptions = {
     padding: {
-      left: 0,
-      right: 0,
-      top: 0,
-      bottom: 0
+      left: 10,
+      right: 10,
+      top: 10,
+      bottom: 10
     },
     legend: {
       color: "black",
@@ -789,6 +972,7 @@ legendContainer.prototype.legend = function(options = {}) {
   const classes = Array.from(new Set(this.data.map((d) => d[this.group])));
 
   let colorScale;
+
   if (legend.colorScheme) {
     colorScale = d3.scaleOrdinal(d3[legend.colorScheme])
       .domain(classes);
@@ -870,10 +1054,44 @@ legendContainer.prototype.legend = function(options = {}) {
   });
 
 
-  adjustViewBox(this.svg, { padding: { left: 20, right: 20, top: 20, bottom: 20 } });
+  //adjustViewBox(this.svg, { padding: { left: 20, right: 20, top: 20, bottom: 20 } });
 
   return this;
 };
+
+
+/*
+function legendContainer(svg, margin, width, height) {
+  this.svg = svg;
+  this.margin = margin;
+  this.width = width;
+  this.height = height;
+}
+
+function createLegendContainer(targetElement, options = {}) {
+
+  const defaultOptions = {
+    id: "legend-container",
+    margin: { top: 0, right: 0, bottom: 0, left: 0 },
+    backgroundColor: "white",
+    width: targetElement.clientWidth,
+    height: targetElement.clientHeight
+  };
+
+  // Merge default options and user-specified options
+  const { id, margin, backgroundColor, width, height } = { ...defaultOptions, ...options };
+
+  var svg = d3.select(targetElement)
+    .append("svg")
+    .attr("id", getUniqueId(id))
+    .attr("preserveAspectRatio", "xMinYMin meet")
+    .classed("legend-content", true)
+    .style("background-color", backgroundColor);
+
+  return new legendContainer(svg, margin, width, height);
+}
+*/
+
 
 
 

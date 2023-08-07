@@ -10,24 +10,31 @@ HTMLWidgets.widget({
 
       var groupedData = d3.flatGroup(data, (d) => d.cluster);
 
+      var legendHeight = 100;
+
       if (addLegend.position == "top") {
 
-        var graph = d3.select(el)
+      var legendContainer = d3.select(el)
         .append("div")
         .attr("id", "GCvieweR-legend-container")
+        .classed("GCVieweR-container", true);
 
-        var legend = createLegendContainer("#GCvieweR-legend-container")
-         .legendData(data, "class")
-         .legend();
+      var legend = createLegendContainer("#GCvieweR-legend-container", {width: width, height: legendHeight})
+       .legendData(data, "class")
+       .legend();
+
       }
 
       var graph = d3.select(el)
       .append("div")
       .attr("id", "GCvieweR-graph-container")
+      .classed("GCVieweR-container", true);
 
       groupedData.forEach(function(item) {
 
-        var cluster = createClusterContainer("#GCvieweR-graph-container", {width: width, height: height / groupedData.length})
+        var cluserHeight = Math.floor(el.clientHeight - legendHeight)
+
+        var cluster = createClusterContainer("#GCvieweR-graph-container", {width: width, height: cluserHeight / groupedData.length})
             //.theme("vintage")
             .title("Transcription cluster", "OphA")
             .footer("Description", "OphA")
@@ -35,28 +42,24 @@ HTMLWidgets.widget({
             .geneData(item[1])
             .sequence()
             .genes("class")
+            .geneCoordinates()
             .geneLabels("class")
-            .adjustLabels("text.label");
-      //    .drawCluster(item[1], {}, "class")
-      //    .adjustLabels("text.label")
-      //    .addTitleLeft("Hello")
-      //    .adjustViewBox();
-
-      //  var Title = createTitleContainer("#" + divId)
-      //    .addTitle();
-
+            .scaleBar()
+            .adjustGeneLabels("text.label");
       });
 
-    if (addLegend.position == "bottom") {
+      if (addLegend.position == "bottom") {
 
-        var graph = d3.select(el)
+      var graph = d3.select(el)
         .append("div")
         .attr("id", "GCvieweR-legend-container")
 
-        var legend = createLegendContainer("#GCvieweR-legend-container")
+      var legend = createLegendContainer("#GCvieweR-legend-container", {width: width, height: legendHeight})
          .legendData(data, "class")
          .legend();
+
       }
+
     };
 
     return {

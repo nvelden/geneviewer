@@ -11,7 +11,6 @@ HTMLWidgets.widget({
       var groupedData = d3.flatGroup(data, (d) => d.cluster);
 
       var legendHeight = 100;
-
       if (addLegend.position == "top") {
 
       var legendContainer = d3.select(el)
@@ -35,7 +34,7 @@ HTMLWidgets.widget({
         var cluserHeight = Math.floor(el.clientHeight - legendHeight)
 
         var cluster = createClusterContainer("#GCvieweR-graph-container", {width: width, height: cluserHeight / groupedData.length})
-            //.theme("vintage")
+            .theme("vintage")
             .title("Transcription cluster", "OphA")
             .footer("Description", "OphA")
             .clusterLabel("ophA gene cluster")

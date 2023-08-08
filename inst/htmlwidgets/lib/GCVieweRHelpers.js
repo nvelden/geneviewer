@@ -198,6 +198,11 @@ clusterContainer.prototype.geneData = function (data) {
 };
 
 clusterContainer.prototype.title = function (title, subtitle, options = {}) {
+
+if (!title && !subtitle) {
+    return this;
+  }
+
   // defaultOptions
   const defaultOptions = {
     x: 0,
@@ -279,6 +284,12 @@ clusterContainer.prototype.title = function (title, subtitle, options = {}) {
 };
 
 clusterContainer.prototype.footer = function (title, subtitle, options = {}) {
+
+if (!title && !subtitle) {
+    return this;
+  }
+
+
   const defaultOptions = {
     x: 0,
     y: 0,
@@ -357,6 +368,11 @@ clusterContainer.prototype.footer = function (title, subtitle, options = {}) {
 };
 
 clusterContainer.prototype.clusterLabel = function(title, options = {}) {
+
+  if (!title) {
+    return this;
+  }
+
   // Default options
   const defaultOptions = {
     x: 0,
@@ -410,17 +426,32 @@ clusterContainer.prototype.clusterLabel = function(title, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.sequence = function (options = {}) {
-  const defaultOptions = {
-    y: 50  // default y value
-  };
+clusterContainer.prototype.sequence = function (sequence = true, options = {}) {
 
-  const { y } = { ...defaultOptions, ...options };
+  if (!sequence) {
+    return this;
+  }
 
-  if (!this.data) {
+    if (!this.data) {
     console.error('No data has been added to this cluster container. Please use the addGeneData() function before attempting to draw a gene line.');
     return this;
   }
+
+ const defaultOptions = {
+    y: 50,  // default y value
+    stroke: {
+      color: "grey",
+      width: 1,
+      dashArray: null  // e.g., "5,5" for dashed line
+    }
+  };
+
+  // If theme options exist, use them as the default options
+  if (this.themeOptions && this.themeOptions.sequenceOptions) {
+    options = { ...this.themeOptions.sequenceOptions, ...options };
+  }
+
+  const { y, stroke } = { ...defaultOptions, ...options };
 
   // Data processing
   var maxStart = d3.max(this.data, (d) => d.start);
@@ -445,11 +476,12 @@ clusterContainer.prototype.sequence = function (options = {}) {
     .append("line")
     .attr("class", "baseline")
     .attr("x1", xScale(minStart))
-    .attr("y1", yScale(y))  // updated to use the y value
+    .attr("y1", yScale(y))
     .attr("x2", xScale(maxStop))
-    .attr("y2", yScale(y))  // updated to use the y value
-    .attr("stroke", "grey")
-    .attr("stroke-width", 1);
+    .attr("y2", yScale(y))
+    .attr("stroke", stroke.color)
+    .attr("stroke-width", stroke.width)
+    .attr("stroke-dasharray", stroke.dashArray);
 
   return this;
 };
@@ -468,19 +500,25 @@ clusterContainer.prototype.genes = function (group = null, options = {}) {
   }
 
   const defaultOptions = {
-    padding: {
-      left: 0,
-      right: 0,
-      top: 0,
-      bottom: 0
-    },
+    y: 50,  // default y value
     cluster: {
       colorScheme: null,
       customColors: null
-    }
+    },
+    marker: "arrowHead",
+    markerSize: 10,
+    strokeWidth: 2,
+    shadow: false,
+    border: 1,
+    opacity: 1
   };
 
-  const { padding, cluster } = { ...defaultOptions, ...options };
+  // If theme options exist, use them as the default options
+  if (this.themeOptions && this.themeOptions.genesOptions) {
+    options = { ...this.themeOptions.genesOptions, ...options };
+  }
+
+  const { y, cluster, marker, markerSize, strokeWidth, shadow, border, opacity } = { ...defaultOptions, ...options };
 
   // Data processing
   var maxStart = d3.max(this.data, (d) => d.start);
@@ -506,27 +544,14 @@ clusterContainer.prototype.genes = function (group = null, options = {}) {
     colorScale = d3.scaleOrdinal(d3.schemeCategory10);
   }
 
-var marker = this.svg
-  .append("defs")
-  .selectAll("marker")
-  .data(this.data)
-  .enter()
-  .append("marker")
-  .attr("id", (d) => d.name)
-  .attr("orient", "auto")
-  .attr("markerWidth", 6)
-  .attr("markerHeight", 6)
-  .attr("refX", 9)
-  .attr("refY", 0)
-  .attr("viewBox", "0 -5 10 10")
-  .append("path")
-  .attr("d", "M0,-5L10,0L0,5")
-  .attr("class", "arrowHead")
-  .attr("fill", (d) => colorScale(d[group])); // Use grouping variable here
+  // Call the createMarker function
+  createMarker(this.svg, this.data, colorScale, group, marker, markerSize);
 
-   // Create the group
+  // Create the group
   var g = this.svg.append("g")
     .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+
+  var markerAdjust = markerSize * strokeWidth
 
   // Draw Genes
   var gene = g
@@ -536,15 +561,29 @@ var marker = this.svg
     .append("line")
     .attr("class", "geneline")
     .attr("x1", (d) => d.direction === 'forward' ? xScale(d.start) : xScale(d.stop))
-    .attr("y1", yScale(50))
-    .attr("x2", (d) => d.direction === 'forward' ? xScale(d.stop) : xScale(d.start))
-    .attr("y2", yScale(50))
-    .attr("stroke-width", 2)
+    .attr("y1", yScale(y))
+    .attr("x2", (d) => d.direction === 'forward' ?
+    Math.max(xScale(d.start), (xScale(d.stop) - markerAdjust)) :
+    Math.min(xScale(d.stop)-1, (xScale(d.start) + markerAdjust)))
+    .attr("y2", yScale(y))
+    .attr("stroke-width", strokeWidth)
     .attr("marker-end", (d) => "url(#" + d.name + ")")
+    .attr("opacity", opacity)
     .each(function (d) {
         const groupColor = colorScale(d[group]); // Use grouping variable here
         d3.select(this).attr("stroke", groupColor);
     });
+
+  if (shadow) {
+    gene.attr("filter", "url(#dropshadow)");  // Assuming you have a dropshadow filter defined in your SVG
+  }
+
+  if (border) {
+    gene.style("stroke-linecap", "round")
+        .style("stroke-linejoin", "round")
+        .style("stroke-width", strokeWidth + 2)  // Increase the stroke width for the border effect
+        .style("stroke", "black");  // Border color
+  }
 
   return this;
 };

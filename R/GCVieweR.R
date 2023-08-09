@@ -6,7 +6,8 @@ magrittr::`%>%`
 #' @export
 #' @import htmlwidgets
 #' @export
-GCVieweR <- function(data, start = start, stop = stop, group = NULL, width = NULL, height = NULL, elementId = NULL){
+GCVieweR <- function(data, start = start, stop = stop, group = NULL,
+                     width = NULL, height = NULL, elementId = NULL){
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
@@ -48,27 +49,33 @@ GCVieweR <- function(data, start = start, stop = stop, group = NULL, width = NUL
 #' @export
 addLegend <- function(
     GCVieweR,
-    legend = list(size = 10, padding = 5),
-    text = list(size = 10),
-    orientation = "horizontal",
-    backgroundColor = "#FFF",
+    x,
     position = "top",
-    padding = list(top = 10, bottom = 10, left = 10, right = 10)
+    width = "100%",
+    height = "5%"
 ) {
-  padding <- cleanList(padding)
-  legend <- cleanList(legend)
-  text <- cleanList(text)
+
+  column_name <- rlang::enquo(x)
+  column_name_str <- rlang::quo_name(column_name)
+
+  # Check if column name exists
+  if (!is.null(column_name_str) && !(column_name_str %in% colnames(GCVieweR$x$data))) {
+    stop(paste("Column", column_name_str, "not found in data"))
+  }
+
+  legend_data <- GCVieweR$x$data[[column_name_str]]
 
   opts <- list(
-    legend = legend,
-    text = text,
-    orientation = orientation,
-    position = position,
-    padding = padding,
-    backgroundColor = backgroundColor
+    width = width,
+    height = height,
+    position = position
   )
 
-  GCVieweR$x$addLegend <- opts
+  GCVieweR$x$addLegend$data <- legend_data
+  GCVieweR$x$addLegend$position <- position
+  GCVieweR$x$addLegend$width <- width
+  GCVieweR$x$addLegend$height <- height
+
   GCVieweR
 }
 
@@ -92,6 +99,6 @@ addCluster <- function(
     backgroundColor = backgroundColor
   )
 
-  GCVieweR$x$addLegend <- opts
+  GCVieweR$x$addCluster <- opts
   GCVieweR
 }

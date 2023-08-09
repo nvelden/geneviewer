@@ -129,6 +129,33 @@ function adjustViewBox(svg, options = {}) {
   return svg;
 };
 
+function calculateLegendHeight(inputHeight, containerHeight) {
+    // If inputHeight is undefined or null, return 0
+    if (typeof inputHeight === "undefined" || inputHeight === null) {
+        return 0;
+    }
+
+    // Initialize legendHeight
+    var legendHeight;
+
+    // Check if the height is given as a percentage
+    if (inputHeight.includes("%")) {
+        var percentageValue = parseFloat(inputHeight);
+        var fraction = percentageValue / 100;
+        legendHeight = Math.round(fraction * containerHeight);
+    }
+    // Check if the height is given in pixels
+    else if (inputHeight.includes("px")) {
+        legendHeight = parseFloat(inputHeight);
+    }
+    // Assume it's a plain number otherwise
+    else {
+        legendHeight = parseFloat(inputHeight);
+    }
+
+    return legendHeight;
+}
+
 // CLuster
 
 function clusterContainer(svg, margin, width, height) {
@@ -929,33 +956,15 @@ function createLegendContainer(targetElement, options = {}) {
   return new legendContainer(svg, margin, width, height);
 }
 
-legendContainer.prototype.legendData = function (data, group = null) {
+legendContainer.prototype.legendData = function (data) {
 
-  if (!group) {
-    throw new Error("Group is not defined");
-  }
-
-  // Verify that the group exists in the data
-  if (!data.some(d => group in d)) {
-    throw new Error(`Group "${group}" does not exist in the data`);
-  }
-
-  this.data = data;
-  this.group = group;
+  this.data = [...new Set(data)];
 
   return this;
+
 };
 
 legendContainer.prototype.legend = function(options = {}) {
-
-  if (!this.group) {
-    throw new Error("Group is not defined");
-  }
-
-  // Verify that the group exists in the data
-  if (!this.data.some(d => this.group in d)) {
-    throw new Error(`Group "${this.group}" does not exist in the data`);
-  }
 
   const defaultOptions = {
     padding: {
@@ -1008,24 +1017,22 @@ legendContainer.prototype.legend = function(options = {}) {
   }
   const parentWidth = svgLegend.node().getBoundingClientRect().width;
 
-  const classes = Array.from(new Set(this.data.map((d) => d[this.group])));
-
   let colorScale;
 
   if (legend.colorScheme) {
     colorScale = d3.scaleOrdinal(d3[legend.colorScheme])
-      .domain(classes);
+      .domain(this.data);
   } else if (legend.customColors && legend.customColors.length > 0) {
     colorScale = d3.scaleOrdinal()
-      .domain(classes)
+      .domain(this.data)
       .range(legend.customColors);
   } else {
     colorScale = d3.scaleOrdinal(d3.schemeCategory10)
-      .domain(classes);
+      .domain(this.data);
   }
 
   const legendElements = svgLegend.selectAll(".legend")
-    .data(classes)
+    .data(this.data)
     .enter()
     .append("g")
     .attr("class", "legend");

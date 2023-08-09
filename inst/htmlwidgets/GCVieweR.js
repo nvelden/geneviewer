@@ -4,13 +4,14 @@ HTMLWidgets.widget({
 
   factory: function(el, width, height) {
     var data, addLegend;
-    var draw = function(width, height) {
+    var draw = function(width, height, backgroundColor) {
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
 
+      var legendHeight = calculateLegendHeight(addLegend.height, height)
       var groupedData = d3.flatGroup(data, (d) => d.cluster);
 
-      var legendHeight = 100;
+
       if (addLegend.position == "top") {
 
       var legendContainer = d3.select(el)
@@ -18,8 +19,8 @@ HTMLWidgets.widget({
         .attr("id", "GCvieweR-legend-container")
         .classed("GCVieweR-container", true);
 
-      var legend = createLegendContainer("#GCvieweR-legend-container", {width: width, height: legendHeight})
-       .legendData(data, "class")
+      var legend = createLegendContainer("#GCvieweR-legend-container", {width:  width, height: legendHeight})
+       .legendData(addLegend.data)
        .legend();
 
       }

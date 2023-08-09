@@ -32,9 +32,9 @@ const themes = {
     },
     genesOptions: {
       y: 50,
-      marker: "triangleArrow",
-      markerSize: 1.3,
-      strokeWidth: 20,
+      marker: "arrowHead",
+      markerSize: 10,
+      strokeWidth: 1,
       shadow: false,
       border: false,
       opacity: 1,
@@ -48,42 +48,30 @@ const themes = {
 
 
 function createMarker(svg, data, colorScale, group, name, size = 20) {
-    const markers = {
-        "arrowHead": {
-            orient: "auto",
-            markerUnits: "userSpaceOnUse",
-            markerWidth: size,
-            markerHeight: size,
-            refX: 0,
-            refY: 0,
-            viewBox: "0 -5 10 10",
-            pathD: "M0,-5L10,0L0,5",
-            pathClass: "arrowHead"
-        },
-        "doubleArrow": {
-            orient: "auto",
-            markerUnits: "userSpaceOnUse",
-            markerWidth: size,
-            markerHeight: size,
-            refX: 0,
-            refY: 0,
-            viewBox: "0 0 20 10",
-            pathD: "M0,0L10,5L0,10L5,5L0,0",
-            pathClass: "doubleArrow"
-        },
-        "triangleArrow": {
-            orient: "auto",
-            markerUnits: "userSpaceOnUse",
-            markerWidth: size,
-            markerHeight: size,
-            refX: 0,
-            refY: 3,
-            viewBox: "0 0 6 6",
-            pathD: "M0,0L6,3L0,6Z",
-            pathClass: "triangleArrow"
-        }
-    };
-
+const markers = {
+    "arrowHead": {
+        orient: "auto",
+        markerUnits: "strokeWidth",
+        markerWidth: size,
+        markerHeight: size,
+        refX: 1,
+        refY: 5,
+        viewBox: "0 0 10 10",
+        pathD: "M 0 0 L 8 5 L 0 10 Z",
+        pathClass: "triangleArrow"
+    },
+    "doubleArrow": {
+        orient: "auto",
+        markerUnits: "strokeWidth",
+        markerWidth: size,
+        markerHeight: size,
+        refX: 1,
+        refY: 5,
+        viewBox: "0 0 10 10",
+        pathD: "M 0 0 L 8 5 L 0 10 L 2.5 5 L 0 0",
+        pathClass: "doubleArrow"
+    }
+};
 
     const markerDefinition = markers[name];
     if (!markerDefinition) {

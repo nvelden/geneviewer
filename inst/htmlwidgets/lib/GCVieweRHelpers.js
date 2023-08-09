@@ -505,7 +505,7 @@ clusterContainer.prototype.genes = function (group = null, options = {}) {
       colorScheme: null,
       customColors: null
     },
-    marker: "arrowHead",
+    marker: "doubleArrow",
     markerSize: 10,
     strokeWidth: 2,
     shadow: false,
@@ -514,7 +514,7 @@ clusterContainer.prototype.genes = function (group = null, options = {}) {
   };
 
   // If theme options exist, use them as the default options
-  if (this.themeOptions && this.themeOptions.genesOptions) {
+  if (this.themeOptions && this.themeOptions.sequenceOptions) {
     options = { ...this.themeOptions.genesOptions, ...options };
   }
 
@@ -563,8 +563,8 @@ clusterContainer.prototype.genes = function (group = null, options = {}) {
     .attr("x1", (d) => d.direction === 'forward' ? xScale(d.start) : xScale(d.stop))
     .attr("y1", yScale(y))
     .attr("x2", (d) => d.direction === 'forward' ?
-    Math.max(xScale(d.start), (xScale(d.stop) - markerAdjust)) :
-    Math.min(xScale(d.stop)-1, (xScale(d.start) + markerAdjust)))
+    Math.max(xScale(d.start), (xScale(d.stop) + 5  - markerAdjust)) :
+    Math.min(xScale(d.stop) - 1, (xScale(d.start) - 5 + markerAdjust)))
     .attr("y2", yScale(y))
     .attr("stroke-width", strokeWidth)
     .attr("marker-end", (d) => "url(#" + d.name + ")")

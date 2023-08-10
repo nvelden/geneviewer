@@ -2,6 +2,7 @@
 
 export("%>%")
 export(GCVieweR)
-export(addLegend)
+export(GC_cluster)
+export(GC_legend)
 import(htmlwidgets)
 importFrom(magrittr,"%>%")

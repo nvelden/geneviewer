@@ -4,8 +4,6 @@ magrittr::`%>%`
 
 #' @import htmlwidgets
 #' @export
-#' @import htmlwidgets
-#' @export
 GCVieweR <- function(data, start = start, stop = stop, group = NULL,
                      width = NULL, height = NULL, elementId = NULL){
 
@@ -31,8 +29,8 @@ GCVieweR <- function(data, start = start, stop = stop, group = NULL,
   x$data$group <- if(!is.null(group_col)) rlang::eval_tidy(group_col, data = data) else NULL
 
   # Data from functions
-  x$addLegend <- list()
-  x$addCluster <- list()
+  x$GC_legend <- list()
+  x$GC_cluster <- list()
 
   # create the widget
   htmlwidgets::createWidget(
@@ -47,40 +45,45 @@ GCVieweR <- function(data, start = start, stop = stop, group = NULL,
 }
 
 #' @export
-addLegend <- function(
+GC_legend <- function(
     GCVieweR,
     x,
     position = "top",
-    width = "100%",
-    height = "5%"
+    orientation = "horizontal",
+    height = "5%",
+    xOffset = 10,
+    yOffset = 10,
+    margin = list(top = 0, right = 0, bottom = 0, left = 0),
+    backgroundColor = "#FFF",
+    options = list()
 ) {
 
-  column_name <- rlang::enquo(x)
-  column_name_str <- rlang::quo_name(column_name)
+  x_expr <- rlang::enexpr(x)
+  legend_data <- select_from_symbol(GCVieweR$x$data, x_expr)
 
-  # Check if column name exists
-  if (!is.null(column_name_str) && !(column_name_str %in% colnames(GCVieweR$x$data))) {
-    stop(paste("Column", column_name_str, "not found in data"))
-  }
-
-  legend_data <- GCVieweR$x$data[[column_name_str]]
-
+  # Define default options
   opts <- list(
-    width = width,
+    x = xOffset,
+    y = yOffset,
+    margin = margin,
     height = height,
-    position = position
+    position = position,
+    backgroundColor = backgroundColor,
+    orientation = orientation
   )
 
-  GCVieweR$x$addLegend$data <- legend_data
-  GCVieweR$x$addLegend$position <- position
-  GCVieweR$x$addLegend$width <- width
-  GCVieweR$x$addLegend$height <- height
+  # Merge user-specified options with defaults
+  opts <- modifyList(opts, options)
 
-  GCVieweR
+  # Update the GCVieweR object with legend data and options
+  GCVieweR$x$GC_legend$data <- legend_data
+  GCVieweR$x$GC_legend$options <- opts
+
+  return(GCVieweR)
 }
 
 #' @export
-addCluster <- function(
+GC_cluster <- function(
     GCVieweR,
     start = start,
     stop = stop,
@@ -99,6 +102,6 @@ addCluster <- function(
     backgroundColor = backgroundColor
   )
 
-  GCVieweR$x$addCluster <- opts
+  GCVieweR$x$GC_cluster <- opts
   GCVieweR
 }

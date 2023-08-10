@@ -934,14 +934,14 @@ function createLegendContainer(targetElement, options = {}) {
 
   const defaultOptions = {
     id: "svg-legend-container",
-    margin: { top: 50, right: 50, bottom: 50, left: 50 },
+    margin: { top: 0, right: 0, bottom: 0, left: 0 },
     backgroundColor: "white",
     width: targetElement.clientWidth,
     height: targetElement.clientHeight
   };
 
   // Merge default options and user-specified options
-  const { id, margin, backgroundColor, width, height } = { ...defaultOptions, ...options };
+  const { id, backgroundColor, width, height, margin } = { ...defaultOptions, ...options, margin: { ...defaultOptions.margin, ...options.margin } };
 
   var svg = d3.select(targetElement)
     .append("svg")
@@ -967,15 +967,11 @@ legendContainer.prototype.legendData = function (data) {
 legendContainer.prototype.legend = function(options = {}) {
 
   const defaultOptions = {
-    padding: {
-      left: 10,
-      right: 10,
-      top: 10,
-      bottom: 10
-    },
+    x: 10,
+    y: 10,
+    orientation: "horizontal",
     legend: {
-      color: "black",
-      stroke: "black",
+      stroke: "none",
       strokeWidth: 1,
       colorScheme: null,
       customColors: null
@@ -983,7 +979,6 @@ legendContainer.prototype.legend = function(options = {}) {
     text: {
       anchor: "start",
       dy: ".35em",
-      fill: "black"
     },
     font: {
       size: "12px",
@@ -992,33 +987,26 @@ legendContainer.prototype.legend = function(options = {}) {
       decoration: "none",
       family: "sans-serif",
       color: "black"
-    },
-    align: "right",
-    orientation: "horizontal",
-    backgroundColor: "#FFF",
-    width: "100%"
+    }
   };
 
   const {
-    padding,
+    x,
+    y,
     legend,
     text,
     font,
-    align,
-    orientation,
-    backgroundColor,
-    width
+    orientation
   } = { ...defaultOptions, ...options };
 
   const svgLegend = this.svg;
-
-  if(width !== null) {
-    svgLegend.attr('width', width); // Set the SVG width if the width option is defined
-  }
   const parentWidth = svgLegend.node().getBoundingClientRect().width;
 
-  let colorScale;
+  // Create the group taking into account the margins
+  var g = svgLegend.append("g")
+    .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
+  let colorScale;
   if (legend.colorScheme) {
     colorScale = d3.scaleOrdinal(d3[legend.colorScheme])
       .domain(this.data);
@@ -1031,7 +1019,7 @@ legendContainer.prototype.legend = function(options = {}) {
       .domain(this.data);
   }
 
-  const legendElements = svgLegend.selectAll(".legend")
+  const legendElements = g.selectAll(".legend")
     .data(this.data)
     .enter()
     .append("g")
@@ -1039,8 +1027,8 @@ legendContainer.prototype.legend = function(options = {}) {
 
   const legendSize = parseFloat(font.size);
   const legendPadding = legendSize / 2;
-  let currentX = padding.left,
-    currentY = padding.top;
+  let currentX = x;
+  let currentY = y;
 
   legendElements.each((d, i, nodes) => {
     const textElement = nodes[i];
@@ -1061,8 +1049,8 @@ legendContainer.prototype.legend = function(options = {}) {
     const textLength = textSample.node().getComputedTextLength();
     textSample.remove();
 
-    if (currentX + textLength + legendSize + 2 * legendPadding > parentWidth) {
-      currentX = padding.left;
+ if (currentX + textLength + legendSize + 2 * legendPadding > parentWidth - this.margin.left - this.margin.right) {
+      currentX = x;  // Reset to x since the group is already translated by the left margin
       currentY += legendSize + legendPadding;
     }
 
@@ -1094,13 +1082,10 @@ legendContainer.prototype.legend = function(options = {}) {
     if (orientation === "horizontal") {
       currentX += textLength + legendSize + 2 * legendPadding;
     } else {
-      currentX = padding.left;
+      currentX = x;
       currentY += legendSize + legendPadding;
     }
   });
-
-
-  //adjustViewBox(this.svg, { padding: { left: 20, right: 20, top: 20, bottom: 20 } });
 
   return this;
 };

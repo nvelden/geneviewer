@@ -30,6 +30,8 @@ GCVieweR <- function(data, start = start, stop = stop, group = NULL,
 
   # Data from functions
   x$GC_legend <- list()
+  x$GC_title <- list()
+  x$GC_genes <- list()
   x$GC_cluster <- list()
 
   # create the widget
@@ -42,6 +44,80 @@ GCVieweR <- function(data, start = start, stop = stop, group = NULL,
     elementId = elementId
   )
 
+}
+
+GC_genes <- function(
+    GCVieweR,
+    colour,
+    y = 50,
+    start = NULL,
+    stop = NULL,
+    colorScheme = NULL,
+    customColors = NULL,
+    marker = "doubleArrow",
+    markerSize = 10,
+    strokeWidth = 1,
+    opacity = 1,
+    options = list()
+) {
+
+  x_expr <- rlang::enexpr(colour)
+  colour_data <- select_from_symbol(GCVieweR$x$data, x_expr)
+
+  # Default options
+  defaultOptions <- list(
+    colour = colour_data,
+    y = y,
+    start = start,
+    stop = stop,
+    colorScheme = colorScheme,
+    customColors = customColors,
+    marker = marker,
+    markerSize = markerSize,
+    strokeWidth = strokeWidth,
+    opacity = opacity,
+    options = list()
+  )
+
+  # Merge user-specified options with defaults
+  opts <- modifyList(defaultOptions, options)
+
+  # Update the GCVieweR object with genes and options
+  GCVieweR$x$GC_genes$options <- opts
+
+  return(GCVieweR)
+}
+
+#' @export
+GC_title <- function(
+    GCVieweR,
+    title = NULL,
+    subtitle = NULL,
+    subtitleSpacing = subtitleSpacing,
+    position = "center",
+    xOffset = 0,
+    yOffset = 0,
+    options = list()
+) {
+
+  # Default options
+  defaultOptions <- list(
+    title = title,
+    subtitle = subtitle,
+    position = position,
+    subtitleSpacing = subtitleSpacing,
+    x = xOffset,
+    y = yOffset,
+    options = list()
+  )
+
+  # Merge user-specified options with defaults
+  opts <- modifyList(defaultOptions, options)
+
+  # Update the GCVieweR object with title and options
+  GCVieweR$x$GC_title$options <- opts
+
+  return(GCVieweR)
 }
 
 #' @export

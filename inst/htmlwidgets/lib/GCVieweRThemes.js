@@ -31,23 +31,21 @@ const themes = {
       }
     },
     genesOptions: {
-      y: 50,
-      marker: "arrowHead",
-      markerSize: 10,
-      strokeWidth: 1,
-      shadow: false,
-      border: false,
-      opacity: 1,
-      cluster: {
-        colorScheme: null,
-        customColors: null
-      }
+    y: 50,  // default y value
+    start: null,
+    stop: null,
+    colorScheme: null,
+    customColors: null,
+    marker: "arrowHead",
+    markerSize: 10,
+    strokeWidth: 1,
+    opacity: 1
     }
   },
 };
 
 
-function createMarker(svg, data, colorScale, group, name, size = 20) {
+function createMarker(svg, data, colorScale, colour, name, size = 20) {
 const markers = {
     "arrowHead": {
         orient: "auto",
@@ -94,5 +92,5 @@ const markers = {
        .append("path")
        .attr("d", markerDefinition.pathD)
        .attr("class", markerDefinition.pathClass)
-       .attr("fill", (d) => colorScale(d[group]));
+       .attr("fill", (d, i) => colorScale(colour[i]));
 }

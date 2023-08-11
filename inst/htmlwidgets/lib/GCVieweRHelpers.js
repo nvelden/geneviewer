@@ -224,21 +224,23 @@ clusterContainer.prototype.geneData = function (data) {
   return this;
 };
 
-clusterContainer.prototype.title = function (title, subtitle, options = {}) {
+clusterContainer.prototype.title = function(title, subtitle, options = {}) {
 
-if (!title && !subtitle) {
+  // Return early if neither title nor subtitle is provided
+  if (!title && !subtitle) {
     return this;
   }
 
-  // defaultOptions
+  // Default options for title and subtitle
   const defaultOptions = {
     x: 0,
     y: 0,
-    font: {
+    position: "center",
+    titleFont: {
       size: "16px",
-      style: "italic",
-      weight: "normal",
-      decoration: "underline",
+      style: "normal",
+      weight: "bold",
+      decoration: "normal",
       family: "sans-serif",
       color: "black"
     },
@@ -250,28 +252,35 @@ if (!title && !subtitle) {
       family: "sans-serif",
       color: "black"
     },
-    position: "center", // Default position
-    padding: 10, // Default padding
   };
 
-
-   // If theme options exist, use them as the default options
+  // Merge theme options if they exist
   if (this.themeOptions && this.themeOptions.titleOptions) {
     options = { ...this.themeOptions.titleOptions, ...options };
   }
 
-  const { x, y, font, subtitleFont, position, padding } = { ...defaultOptions, ...options };
+  // Merge default options with provided options, ensuring font properties are also merged
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options,
+    titleFont: { ...defaultOptions.titleFont, ...options.titleFont },
+    subtitleFont: { ...defaultOptions.subtitleFont, ...options.subtitleFont }
+  };
+
+  // Destructure the merged options
+  const { x, y, titleFont, subtitleFont, position } = mergedOptions;
 
   let xPos;
   let textAnchor;
 
+  // Determine text position and anchor based on the provided position
   switch (position) {
     case "left":
-      xPos = x + padding;
+      xPos = x;
       textAnchor = "start";
       break;
     case "right":
-      xPos = this.width - x - padding;
+      xPos = this.width - x;
       textAnchor = "end";
       break;
     default:
@@ -279,24 +288,24 @@ if (!title && !subtitle) {
       textAnchor = "middle";
   }
 
-  // Add title
+  // Add title to the SVG
   this.svg.append("text")
     .attr("x", xPos)
     .attr("y", y + (this.margin.top / 2))
     .attr("text-anchor", textAnchor)
-    .style("font-size", font.size)
-    .style("font-style", font.style)
-    .style("font-weight", font.weight)
-    .style("text-decoration", font.decoration)
-    .style("font-family", font.family)
-    .style("fill", font.color)
+    .style("font-size", titleFont.size)
+    .style("font-style", titleFont.style)
+    .style("font-weight", titleFont.weight)
+    .style("text-decoration", titleFont.decoration)
+    .style("font-family", titleFont.family)
+    .style("fill", titleFont.color)
     .text(title);
 
-  // Add subtitle if provided
+  // Add subtitle to the SVG if provided
   if (subtitle) {
     this.svg.append("text")
       .attr("x", xPos)
-      .attr("y", y + (this.margin.top / 2) + 20) // Adding 20px for subtitle spacing, adjust as needed
+      .attr("y", y + (this.margin.top / 2) + 20) // Adding 20px for subtitle spacing
       .attr("text-anchor", textAnchor)
       .style("font-size", subtitleFont.size)
       .style("font-style", subtitleFont.style)
@@ -513,7 +522,7 @@ clusterContainer.prototype.sequence = function (sequence = true, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.genes = function (group = null, options = {}) {
+clusterContainer.prototype.genes = function(colour = null, options = {}) {
 
   // Verify that the data exists
   if (!this.data) {
@@ -521,37 +530,33 @@ clusterContainer.prototype.genes = function (group = null, options = {}) {
     return this;
   }
 
-  // Verify that the group exists in the data if it is defined
-  if (group && !this.data.some(d => group in d)) {
-    console.warn(`Group "${group}" does not exist in the data`);
+  // Check if the colour array length matches the data length
+  if (colour && this.data.length !== colour.length) {
+    console.warn('Warning: The length of the colour array does not match the length of the data.');
   }
 
   const defaultOptions = {
     y: 50,  // default y value
-    cluster: {
-      colorScheme: null,
-      customColors: null
-    },
+    start: null,
+    stop: null,
+    colorScheme: null,
+    customColors: null,
     marker: "doubleArrow",
     markerSize: 10,
-    strokeWidth: 2,
-    shadow: false,
-    border: 1,
+    strokeWidth: 1,
     opacity: 1
   };
 
   // If theme options exist, use them as the default options
-  if (this.themeOptions && this.themeOptions.sequenceOptions) {
+  if (this.themeOptions && this.themeOptions.genesOptions) {
     options = { ...this.themeOptions.genesOptions, ...options };
   }
 
-  const { y, cluster, marker, markerSize, strokeWidth, shadow, border, opacity } = { ...defaultOptions, ...options };
+  const { y, colorScheme, customColors, marker, start, stop, markerSize, strokeWidth, opacity } = { ...defaultOptions, ...options };
 
   // Data processing
-  var maxStart = d3.max(this.data, (d) => d.start);
-  var maxStop = d3.max(this.data, (d) => d.stop);
-  var minStart = d3.min(this.data, (d) => d.start);
-  var minStop = d3.min(this.data, (d) => d.stop);
+  var maxStop = stop || d3.max(this.data, (d) => d.stop);
+  var minStart = start || d3.min(this.data, (d) => d.start);
 
   var xScale = d3.scaleLinear()
     .domain([minStart, maxStop])
@@ -563,22 +568,22 @@ clusterContainer.prototype.genes = function (group = null, options = {}) {
 
   // Color Scale Setup
   let colorScale;
-  if (cluster.colorScheme) {
-    colorScale = d3.scaleOrdinal(d3[cluster.colorScheme]);
-  } else if (cluster.customColors && cluster.customColors.length > 0) {
-    colorScale = d3.scaleOrdinal().range(cluster.customColors);
+  if (colorScheme) {
+    colorScale = d3.scaleOrdinal(d3[colorScheme]);
+  } else if (customColors && customColors.length > 0) {
+    colorScale = d3.scaleOrdinal().range(customColors);
   } else {
     colorScale = d3.scaleOrdinal(d3.schemeCategory10);
   }
 
   // Call the createMarker function
-  createMarker(this.svg, this.data, colorScale, group, marker, markerSize);
+  createMarker(this.svg, this.data, colorScale, colour, marker, markerSize);
 
   // Create the group
   var g = this.svg.append("g")
     .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-  var markerAdjust = markerSize * strokeWidth
+  var markerAdjust = markerSize * strokeWidth;
 
   // Draw Genes
   var gene = g
@@ -596,21 +601,10 @@ clusterContainer.prototype.genes = function (group = null, options = {}) {
     .attr("stroke-width", strokeWidth)
     .attr("marker-end", (d) => "url(#" + d.name + ")")
     .attr("opacity", opacity)
-    .each(function (d) {
-        const groupColor = colorScale(d[group]); // Use grouping variable here
+    .each(function (d, i) {
+        const groupColor = colorScale(colour[i]); // Use color from the colour array or default to colorScale
         d3.select(this).attr("stroke", groupColor);
     });
-
-  if (shadow) {
-    gene.attr("filter", "url(#dropshadow)");  // Assuming you have a dropshadow filter defined in your SVG
-  }
-
-  if (border) {
-    gene.style("stroke-linecap", "round")
-        .style("stroke-linejoin", "round")
-        .style("stroke-width", strokeWidth + 2)  // Increase the stroke width for the border effect
-        .style("stroke", "black");  // Border color
-  }
 
   return this;
 };

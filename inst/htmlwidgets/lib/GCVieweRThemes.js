@@ -45,7 +45,7 @@ const themes = {
 };
 
 
-function createMarker(svg, data, colorScale, colour, name, size = 20) {
+function createMarker(svg, data, colorScale, color, name, size = 20) {
 const markers = {
     "arrowHead": {
         orient: "auto",
@@ -92,5 +92,5 @@ const markers = {
        .append("path")
        .attr("d", markerDefinition.pathD)
        .attr("class", markerDefinition.pathClass)
-       .attr("fill", (d, i) => colorScale(colour[i]));
+       .attr("fill", (d, i) => colorScale(color[i]));
 }

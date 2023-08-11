@@ -522,7 +522,12 @@ clusterContainer.prototype.sequence = function (sequence = true, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.genes = function(colour = null, options = {}) {
+clusterContainer.prototype.genes = function(color = null, options = {}) {
+
+  // Return early if no colour provided
+  if (!color) {
+    return this;
+  }
 
   // Verify that the data exists
   if (!this.data) {
@@ -531,8 +536,8 @@ clusterContainer.prototype.genes = function(colour = null, options = {}) {
   }
 
   // Check if the colour array length matches the data length
-  if (colour && this.data.length !== colour.length) {
-    console.warn('Warning: The length of the colour array does not match the length of the data.');
+  if (color && this.data.length !== color.length) {
+    console.warn('Warning: The length of the color array does not match the length of the data.');
   }
 
   const defaultOptions = {
@@ -577,7 +582,7 @@ clusterContainer.prototype.genes = function(colour = null, options = {}) {
   }
 
   // Call the createMarker function
-  createMarker(this.svg, this.data, colorScale, colour, marker, markerSize);
+  createMarker(this.svg, this.data, colorScale, color, marker, markerSize);
 
   // Create the group
   var g = this.svg.append("g")
@@ -602,7 +607,7 @@ clusterContainer.prototype.genes = function(colour = null, options = {}) {
     .attr("marker-end", (d) => "url(#" + d.name + ")")
     .attr("opacity", opacity)
     .each(function (d, i) {
-        const groupColor = colorScale(colour[i]); // Use color from the colour array or default to colorScale
+        const groupColor = colorScale(color[i]); // Use color from the color array or default to colorScale
         d3.select(this).attr("stroke", groupColor);
     });
 

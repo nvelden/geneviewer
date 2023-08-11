@@ -38,7 +38,7 @@ HTMLWidgets.widget({
       groupedData.forEach(function(item) {
 
         var cluserHeight = Math.floor(el.clientHeight - legendHeight)
-        console.log(GC_title)
+
         var cluster = createClusterContainer("#GCvieweR-graph-container", {width: width, height: cluserHeight / groupedData.length})
             .theme("vintage")
             .title(GC_title?.options?.title, GC_title?.options?.subtitle, GC_title?.options)
@@ -46,7 +46,7 @@ HTMLWidgets.widget({
             .clusterLabel("ophA gene cluster")
             .geneData(item[1])
             .sequence()
-            .genes(colour = GC_genes?.options?.colour, GC_genes.options)
+            .genes(colour = GC_genes?.options?.color, GC_genes.options)
             .geneCoordinates()
             .geneLabels("class")
             .scaleBar()

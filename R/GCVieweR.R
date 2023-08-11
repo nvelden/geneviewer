@@ -46,9 +46,11 @@ GCVieweR <- function(data, start = start, stop = stop, group = NULL,
 
 }
 
+#' @export
 GC_genes <- function(
     GCVieweR,
-    colour,
+    color,
+    colour = NULL,
     y = 50,
     start = NULL,
     stop = NULL,
@@ -61,12 +63,22 @@ GC_genes <- function(
     options = list()
 ) {
 
-  x_expr <- rlang::enexpr(colour)
-  colour_data <- select_from_symbol(GCVieweR$x$data, x_expr)
+  # If 'colour' is provided, use it in place of 'color'
+  if (!is.null(colour)) {
+    color <- colour
+  }
+
+  x_expr <- rlang::enexpr(color)
+  color_data <- select_from_symbol(GCVieweR$x$data, x_expr)
+
+  # Check if lengths are not the same and return a warning
+  if (length(color_data) != nrow(GCVieweR$x$data)) {
+    warning("The length of the provided color vector does not match the length of the data.")
+  }
 
   # Default options
   defaultOptions <- list(
-    colour = colour_data,
+    color = color_data,
     y = y,
     start = start,
     stop = stop,
@@ -123,10 +135,11 @@ GC_title <- function(
 #' @export
 GC_legend <- function(
     GCVieweR,
-    x,
+    color,
+    colour = NULL,
     position = "top",
     orientation = "horizontal",
-    height = "5%",
+    height = "10%",
     xOffset = 10,
     yOffset = 10,
     margin = list(top = 0, right = 0, bottom = 0, left = 0),
@@ -134,11 +147,16 @@ GC_legend <- function(
     options = list()
 ) {
 
-  x_expr <- rlang::enexpr(x)
-  legend_data <- select_from_symbol(GCVieweR$x$data, x_expr)
+  # If 'colour' is provided, use it in place of 'color'
+  if (!is.null(colour)) {
+    color <- colour
+  }
+
+  color_expr <- rlang::enexpr(color)
+  legend_data <- select_from_symbol(GCVieweR$x$data, color_expr)
 
   # Define default options
-  opts <- list(
+  defaultOptions <- list(
     x = xOffset,
     y = yOffset,
     margin = margin,
@@ -149,7 +167,7 @@ GC_legend <- function(
   )
 
   # Merge user-specified options with defaults
-  opts <- modifyList(opts, options)
+  opts <- modifyList(defaultOptions, options)
 
   # Update the GCVieweR object with legend data and options
   GCVieweR$x$GC_legend$data <- legend_data

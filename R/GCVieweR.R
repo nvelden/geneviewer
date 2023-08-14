@@ -5,7 +5,7 @@ magrittr::`%>%`
 #' @import htmlwidgets
 #' @export
 GCVieweR <- function(data, start = start, stop = stop, group = NULL,
-                     width = NULL, height = NULL, elementId = NULL){
+                     width = "100%", height = NULL, elementId = NULL){
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
@@ -32,7 +32,11 @@ GCVieweR <- function(data, start = start, stop = stop, group = NULL,
   x$GC_legend <- list()
   x$GC_title <- list()
   x$GC_genes <- list()
+  x$GC_labels <- list()
   x$GC_cluster <- list()
+  x$GC_coordinates <- list()
+  x$GC_scaleBar <- list()
+  x$GC_footer <- list()
 
   # create the widget
   htmlwidgets::createWidget(
@@ -47,10 +51,141 @@ GCVieweR <- function(data, start = start, stop = stop, group = NULL,
 }
 
 #' @export
+GC_scaleBar <- function(
+    GCVieweR,
+    scaleBar = TRUE,
+    title = "1 kb",
+    scaleBarUnit = 1000,
+    options = list()
+) {
+
+  # Default options
+  defaultOptions <- list(
+    scaleBar = scaleBar,
+    title = title,
+    scaleBarUnit = scaleBarUnit
+  )
+
+  # Merge user-specified options with defaults
+  opts <- modifyList(defaultOptions, options)
+
+  # Update the GCVieweR object with scaleBar options
+  GCVieweR$x$GC_scaleBar$options <- opts
+
+  return(GCVieweR)
+}
+
+#' @export
+GC_footer <- function(
+    GCVieweR,
+    title = NULL,
+    subtitle = NULL,
+    position = "left",
+    xOffset = 10,
+    yOffset = 0,
+    spacing = 20,
+    options = list()
+) {
+
+  # Default font options
+  defaultOptions <- list(
+    title = title,
+    subtitle = subtitle,
+    position = position,
+    spacing = spacing,
+    x = xOffset,
+    y = yOffset
+  )
+
+  # Merge user-specified options with defaults
+  opts <- modifyList(defaultOptions, options)
+
+  # Update the GCVieweR object with labels and options
+  GCVieweR$x$GC_footer$options <- opts
+
+  return(GCVieweR)
+}
+
+
+#' @export
+GC_labels <- function(
+    GCVieweR,
+    label,
+    y = 50,
+    start = NULL,
+    stop = NULL,
+    font = list(
+      size = "12px",
+      style = "italic",
+      weight = "normal",
+      decoration = "none",
+      family = "sans-serif",
+      color = "black"
+    ),
+    anchor = "middle",
+    dy = "-1em",
+    dx = "0em",
+    x = 0,
+    rotate = 0,
+    options = list()
+) {
+
+  # Check if labels are provided
+  if (is.null(labels)) {
+    stop("Labels must be provided.")
+  }
+
+  label <- deparse(substitute(label))
+
+  # Default options
+  defaultOptions <- list(
+    label = label,
+    y = y,
+    start = start,
+    stop = stop,
+    font = font,
+    anchor = anchor,
+    dy = dy,
+    dx = dx,
+    x = x,
+    rotate = rotate,
+    options = list()
+  )
+
+  # Merge user-specified options with defaults
+  opts <- modifyList(defaultOptions, options)
+
+  # Update the GCVieweR object with labels and options
+  GCVieweR$x$GC_labels$options <- opts
+
+  return(GCVieweR)
+}
+
+#' @export
+GC_coordinates <- function(
+    GCVieweR,
+    coordinates = TRUE,
+    options = list()
+) {
+
+  # Default options
+  defaultOptions <- list(
+    coordinates = coordinates
+  )
+
+  # Merge user-specified options with defaults
+  opts <- modifyList(defaultOptions, options)
+
+  # Update the GCVieweR object with coordinates and options
+  GCVieweR$x$GC_coordinates$options <- opts
+
+  return(GCVieweR)
+}
+
+#' @export
 GC_genes <- function(
     GCVieweR,
     color,
-    colour = NULL,
     y = 50,
     start = NULL,
     stop = NULL,
@@ -63,22 +198,11 @@ GC_genes <- function(
     options = list()
 ) {
 
-  # If 'colour' is provided, use it in place of 'color'
-  if (!is.null(colour)) {
-    color <- colour
-  }
-
-  x_expr <- rlang::enexpr(color)
-  color_data <- select_from_symbol(GCVieweR$x$data, x_expr)
-
-  # Check if lengths are not the same and return a warning
-  if (length(color_data) != nrow(GCVieweR$x$data)) {
-    warning("The length of the provided color vector does not match the length of the data.")
-  }
+  color <- deparse(substitute(color))
 
   # Default options
   defaultOptions <- list(
-    color = color_data,
+    color = color,
     y = y,
     start = start,
     stop = stop,
@@ -105,9 +229,9 @@ GC_title <- function(
     GCVieweR,
     title = NULL,
     subtitle = NULL,
-    subtitleSpacing = subtitleSpacing,
+    spacing = 10,
     position = "center",
-    xOffset = 0,
+    xOffset = 10,
     yOffset = 0,
     options = list()
 ) {
@@ -117,7 +241,7 @@ GC_title <- function(
     title = title,
     subtitle = subtitle,
     position = position,
-    subtitleSpacing = subtitleSpacing,
+    spacing = spacing,
     x = xOffset,
     y = yOffset,
     options = list()
@@ -136,7 +260,6 @@ GC_title <- function(
 GC_legend <- function(
     GCVieweR,
     color,
-    colour = NULL,
     position = "top",
     orientation = "horizontal",
     height = "10%",
@@ -147,18 +270,13 @@ GC_legend <- function(
     options = list()
 ) {
 
-  # If 'colour' is provided, use it in place of 'color'
-  if (!is.null(colour)) {
-    color <- colour
-  }
-
-  color_expr <- rlang::enexpr(color)
-  legend_data <- select_from_symbol(GCVieweR$x$data, color_expr)
+  color <- deparse(substitute(color))
 
   # Define default options
   defaultOptions <- list(
     x = xOffset,
     y = yOffset,
+    color = color,
     margin = margin,
     height = height,
     position = position,
@@ -169,8 +287,6 @@ GC_legend <- function(
   # Merge user-specified options with defaults
   opts <- modifyList(defaultOptions, options)
 
-  # Update the GCVieweR object with legend data and options
-  GCVieweR$x$GC_legend$data <- legend_data
   GCVieweR$x$GC_legend$options <- opts
 
   return(GCVieweR)

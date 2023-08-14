@@ -236,6 +236,7 @@ clusterContainer.prototype.title = function(title, subtitle, options = {}) {
     x: 0,
     y: 0,
     position: "center",
+    spacing: 20, // Default spacing between title and subtitle
     titleFont: {
       size: "16px",
       style: "normal",
@@ -268,7 +269,7 @@ clusterContainer.prototype.title = function(title, subtitle, options = {}) {
   };
 
   // Destructure the merged options
-  const { x, y, titleFont, subtitleFont, position } = mergedOptions;
+  const { x, y, titleFont, subtitleFont, position, spacing } = mergedOptions;
 
   let xPos;
   let textAnchor;
@@ -305,7 +306,7 @@ clusterContainer.prototype.title = function(title, subtitle, options = {}) {
   if (subtitle) {
     this.svg.append("text")
       .attr("x", xPos)
-      .attr("y", y + (this.margin.top / 2) + 20) // Adding 20px for subtitle spacing
+      .attr("y", y + (this.margin.top / 2) + spacing) // Use the spacing option for subtitle spacing
       .attr("text-anchor", textAnchor)
       .style("font-size", subtitleFont.size)
       .style("font-style", subtitleFont.style)
@@ -319,21 +320,21 @@ clusterContainer.prototype.title = function(title, subtitle, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.footer = function (title, subtitle, options = {}) {
+clusterContainer.prototype.footer = function(title, subtitle, options = {}) {
 
-if (!title && !subtitle) {
+  if (!title && !subtitle) {
     return this;
   }
 
-
   const defaultOptions = {
-    x: 0,
+    x: 20,
     y: 0,
+    spacing: 15, // Default spacing between title and subtitle
     font: {
       size: "16px",
-      style: "italic",
-      weight: "normal",
-      decoration: "underline",
+      style: "normal",
+      weight: "bold",
+      decoration: "normal",
       family: "sans-serif",
       color: "black"
     },
@@ -345,22 +346,28 @@ if (!title && !subtitle) {
       family: "sans-serif",
       color: "black"
     },
-    position: "left", // Default position
-    padding: 10, // Default padding
+    position: "left" // Default position
   };
 
-  const { x, y, font, subtitleFont, position, padding } = { ...defaultOptions, ...options };
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options,
+    font: { ...defaultOptions.font, ...options.font },
+    subtitleFont: { ...defaultOptions.subtitleFont, ...options.subtitleFont }
+  };
+
+  const { x, y, font, subtitleFont, position, spacing } = mergedOptions;
 
   let xPos;
   let textAnchor;
 
   switch (position) {
     case "left":
-      xPos = x + padding;
+      xPos = x;
       textAnchor = "start";
       break;
     case "right":
-      xPos = this.width - x - padding;
+      xPos = this.width - x;
       textAnchor = "end";
       break;
     default:
@@ -370,7 +377,7 @@ if (!title && !subtitle) {
 
   // Calculate y position for title and subtitle based on height of svg, margin, and given y offset
   const yPosTitle = this.height - this.margin.bottom / 2 + y;
-  const yPosSubtitle = yPosTitle + 20;  // Add space between title and subtitle
+  const yPosSubtitle = yPosTitle + spacing;  // Use the spacing option for subtitle spacing
 
   // Add title
   this.svg.append("text")
@@ -424,13 +431,18 @@ clusterContainer.prototype.clusterLabel = function(title, options = {}) {
     },
   };
 
-  // Merge default options and user-specified options
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options,
+    font: { ...defaultOptions.font, ...options.font }
+  };
+
   const {
     x,
     y,
     side,
     font
-  } = { ...defaultOptions, ...options };
+  } = mergedOptions;
 
   // calculate middle y position
   const middleY = this.height / 2 + y;  // Apply the y option
@@ -482,12 +494,19 @@ clusterContainer.prototype.sequence = function (sequence = true, options = {}) {
     }
   };
 
-  // If theme options exist, use them as the default options
+ // If theme options exist, use them as the default options
   if (this.themeOptions && this.themeOptions.sequenceOptions) {
     options = { ...this.themeOptions.sequenceOptions, ...options };
   }
 
-  const { y, stroke } = { ...defaultOptions, ...options };
+  // Merge the default options with the provided options at a deeper level
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options,
+    stroke: { ...defaultOptions.stroke, ...options.stroke }
+  };
+
+  const { y, stroke } = mergedOptions;
 
   // Data processing
   var maxStart = d3.max(this.data, (d) => d.start);
@@ -522,7 +541,7 @@ clusterContainer.prototype.sequence = function (sequence = true, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.genes = function(color = null, options = {}) {
+clusterContainer.prototype.genes = function(color, options = {}) {
 
   // Return early if no colour provided
   if (!color) {
@@ -533,11 +552,6 @@ clusterContainer.prototype.genes = function(color = null, options = {}) {
   if (!this.data) {
     console.error('No data has been added to this cluster container. Please use the addGeneData() function before attempting to draw genes.');
     return this;
-  }
-
-  // Check if the colour array length matches the data length
-  if (color && this.data.length !== color.length) {
-    console.warn('Warning: The length of the color array does not match the length of the data.');
   }
 
   const defaultOptions = {
@@ -606,18 +620,24 @@ clusterContainer.prototype.genes = function(color = null, options = {}) {
     .attr("stroke-width", strokeWidth)
     .attr("marker-end", (d) => "url(#" + d.name + ")")
     .attr("opacity", opacity)
-    .each(function (d, i) {
-        const groupColor = colorScale(color[i]); // Use color from the color array or default to colorScale
+    .each(function (d) {
+        const groupColor = colorScale(d[color]); // Use color from the color array or default to colorScale
         d3.select(this).attr("stroke", groupColor);
     });
 
   return this;
 };
 
-clusterContainer.prototype.geneCoordinates = function (group = null, options = {}) {
+clusterContainer.prototype.coordinates = function (coordinates = true, options = {}) {
+
+  if (!coordinates) {
+    return this;
+  }
 
   const defaultOptions = {
     axis: {
+      start: null,
+      stop: null,
       rotate: -45,
       yPositionTop: 55,  // position for top axis
       yPositionBottom: 40,  // position for bottom axis
@@ -633,13 +653,19 @@ clusterContainer.prototype.geneCoordinates = function (group = null, options = {
       color: "black"
     }
   };
-  const { axis, font } = { ...defaultOptions, ...options };
+
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options,
+    axis: { ...defaultOptions.axis, ...options.axis },
+    font: { ...defaultOptions.font, ...options.font }
+  };
+
+  const { axis, font } = mergedOptions;
 
   // Data processing
-  var maxStart = d3.max(this.data, (d) => d.start);
-  var maxStop = d3.max(this.data, (d) => d.stop);
-  var minStart = d3.min(this.data, (d) => d.start);
-  var minStop = d3.min(this.data, (d) => d.stop);
+  var maxStop =  axis.stop || d3.max(this.data, (d) => d.stop);
+  var minStart = axis.start || d3.min(this.data, (d) => d.start);
 
   var xScale = d3.scaleLinear()
     .domain([minStart, maxStop])
@@ -717,11 +743,17 @@ xAxisBottom.selectAll("text")
 return this;
 };
 
-clusterContainer.prototype.scaleBar = function (group = null, options = {}) {
+clusterContainer.prototype.scaleBar = function (scaleBar = true, options = {}) {
+
+  if (!scaleBar) {
+    return this;
+  }
+
   const defaultOptions = {
+    title: "1 kb",
+    scaleBarUnit: 1000,
     axis: {
-      yPosition: 0,  // position for the scale bar
-      title: "1 kb"  // title for the scale bar
+      yPosition: 0
     },
     font: {
       size: "10px",
@@ -730,43 +762,46 @@ clusterContainer.prototype.scaleBar = function (group = null, options = {}) {
       decoration: "none",
       family: "sans-serif",
       color: "black"
-    },
-    scaleBarUnit: 1000 // The unit length of the scale bar
+    }
   };
-  const { axis, font, scaleBarUnit } = { ...defaultOptions, ...options };
+
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options,
+    axis: { ...defaultOptions.axis, ...options.axis },
+    font: { ...defaultOptions.font, ...options.font }
+  };
+
+  const { axis, font, title, scaleBarUnit } = mergedOptions;
 
   // Data processing
-  var maxStart = d3.max(this.data, (d) => d.start);
-  var maxStop = d3.max(this.data, (d) => d.stop);
-  var minStart = d3.min(this.data, (d) => d.start);
-  var minStop = d3.min(this.data, (d) => d.stop);
+  const [minStart, maxStop] = [
+    d3.min(this.data, d => d.start),
+    d3.max(this.data, d => d.stop)
+  ];
 
-  var xScale = d3.scaleLinear()
+  const xScale = d3.scaleLinear()
     .domain([minStart, maxStop])
     .range([0, this.width - this.margin.left - this.margin.right]);
 
-  var yScale = d3.scaleLinear()
-    .domain([0, 100])
-    .range([this.height - this.margin.bottom - this.margin.top , 0]);
-
   // Calculate the length of the scale bar in pixels
-  var scaleBarLength = xScale(minStart + scaleBarUnit);
+  const scaleBarLength = xScale(minStart + scaleBarUnit);
 
   // Create the group
-  var g = this.svg.append("g")
-    .attr("transform", "translate(" + (this.width - this.margin.right - scaleBarLength - font.size.length - 5) + "," + (this.height - this.margin.bottom) + ")");
+  const g = this.svg.append("g")
+    .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(font.size) - 5}, ${this.height - this.margin.bottom})`);
 
   // Create the scale bar line
-  var line = g.append("line")
-    .attr("x1", font.size.length + 5)
-    .attr("x2", font.size.length + 5 + scaleBarLength) // Use the scale to convert the scale bar unit to pixels
+  g.append("line")
+    .attr("x1", parseInt(font.size) + 5)
+    .attr("x2", parseInt(font.size) + 5 + scaleBarLength)
     .attr("y1", -axis.yPosition)
     .attr("y2", -axis.yPosition)
     .attr("stroke", "grey")
     .attr("stroke-width", 1);
 
   // Add the ticks
-  [font.size.length + 5, font.size.length + 5 + scaleBarLength].forEach(function(d) {
+  [parseInt(font.size) + 5, parseInt(font.size) + 5 + scaleBarLength].forEach(d => {
     g.append("line")
       .attr("x1", d)
       .attr("x2", d)
@@ -778,22 +813,27 @@ clusterContainer.prototype.scaleBar = function (group = null, options = {}) {
 
   // Add the title
   g.append("text")
-    .attr("x", font.size.length) // Position the title at the start of the scale bar
-    .attr("y", -axis.yPosition) // Align the title with the scale bar
-    .style("text-anchor", "end") // Anchor the text at the end
-    .style("dominant-baseline", "middle") // Vertically center the text
+    .attr("x", parseInt(font.size))
+    .attr("y", -axis.yPosition)
+    .style("text-anchor", "end")
+    .style("dominant-baseline", "middle")
     .style("font-size", font.size)
     .style("font-style", font.style)
     .style("font-weight", font.weight)
     .style("text-decoration", font.decoration)
     .style("font-family", font.family)
     .style("fill", font.color)
-    .text(axis.title);
+    .text(title);
 
   return this;
 };
 
-clusterContainer.prototype.geneLabels = function (options = {}) {
+clusterContainer.prototype.geneLabels = function (label, options = {}) {
+
+  // Return early if no label provided
+  if (!label) {
+    return this;
+  }
 
   // Verify that the data exists
   if (!this.data) {
@@ -813,24 +853,26 @@ clusterContainer.prototype.geneLabels = function (options = {}) {
     anchor: "middle",
     dy: "-1em",
     dx: "0em",
-    y: 50, // Default y value
-    rotate: 0  // Default rotation angle
+    x: 0,
+    y: 50,
+    rotate: 0,
+    start: null,
+    stop: null
   };
 
-  const {
-    font,
-    anchor,
-    dy,
-    dx,
-    y,
-    rotate
-  } = { ...defaultOptions, ...options };
+  // Merge default options with provided options, ensuring font properties are also merged
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options,
+    font: { ...defaultOptions.font, ...options.font }
+  };
+
+  // Destructure the merged options
+  const { font, anchor, dy, dx, x, y, rotate, start, stop } = mergedOptions;
 
   // Data processing
-  var maxStart = d3.max(this.data, (d) => d.start);
-  var maxStop = d3.max(this.data, (d) => d.stop);
-  var minStart = d3.min(this.data, (d) => d.start);
-  var minStop = d3.min(this.data, (d) => d.stop);
+  var maxStop = stop || d3.max(this.data, (d) => d.stop);
+  var minStart = start || d3.min(this.data, (d) => d.start);
 
   var xScale = d3.scaleLinear()
     .domain([minStart, maxStop])
@@ -849,9 +891,9 @@ clusterContainer.prototype.geneLabels = function (options = {}) {
     .data(this.data)
     .enter()
     .append("text")
-    .attr("id", (d) => getUniqueId(d.name))
+    .attr("id", (d) => getUniqueId(d[label])) // Use the label property from data
     .attr("class", "label")
-    .attr("x", (d) => xScale((d.start + d.stop) / 2))
+    .attr("x", (d) => xScale((d.start + d.stop) / 2) + x)
     .attr("y", () => yScale(y))
     .attr("dx", dx)
     .attr("dy", dy)
@@ -863,7 +905,7 @@ clusterContainer.prototype.geneLabels = function (options = {}) {
     .style("text-decoration", font.decoration)
     .style("font-family", font.family)
     .style("fill", font.color)
-    .text((d) => d.name);
+    .text((d) => d[label]); // Use the label property from data
 
   return this;
 };
@@ -963,7 +1005,12 @@ legendContainer.prototype.legendData = function (data) {
 
 };
 
-legendContainer.prototype.legend = function(options = {}) {
+legendContainer.prototype.legend = function(color, options = {}) {
+
+  // Return early if no colour provided
+  if (!color) {
+    return this;
+  }
 
   const defaultOptions = {
     x: 10,
@@ -989,6 +1036,14 @@ legendContainer.prototype.legend = function(options = {}) {
     }
   };
 
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options,
+    legend: { ...defaultOptions.legend, ...options.legend },
+    text: { ...defaultOptions.text, ...options.text },
+    font: { ...defaultOptions.font, ...options.font }
+  };
+
   const {
     x,
     y,
@@ -996,14 +1051,14 @@ legendContainer.prototype.legend = function(options = {}) {
     text,
     font,
     orientation
-  } = { ...defaultOptions, ...options };
+  } = mergedOptions;
 
   const svgLegend = this.svg;
-  const parentWidth = svgLegend.node().getBoundingClientRect().width;
+  const parentWidth = svgLegend.node().getBoundingClientRect().width
 
   // Create the group taking into account the margins
   var g = svgLegend.append("g")
-    .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+    .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
   let colorScale;
   if (legend.colorScheme) {
@@ -1018,73 +1073,59 @@ legendContainer.prototype.legend = function(options = {}) {
       .domain(this.data);
   }
 
-  const legendElements = g.selectAll(".legend")
-    .data(this.data)
-    .enter()
-    .append("g")
-    .attr("class", "legend");
-
   const legendSize = parseFloat(font.size);
   const legendPadding = legendSize / 2;
   let currentX = x;
   let currentY = y;
 
-  legendElements.each((d, i, nodes) => {
-    const textElement = nodes[i];
-    const textSample = d3.select(textElement)
-      .append("text")
-      .attr("x", currentX + legendSize + legendPadding)
-      .attr("y", currentY + legendSize / 2)
-      .attr("dy", text.dy)
-      .style("text-anchor", text.anchor)
-      .style("font-size", font.size)
-      .style("font-style", font.style)
-      .style("font-weight", font.weight)
-      .style("text-decoration", font.decoration)
-      .style("font-family", font.family)
-      .style("fill", font.color)
-      .text(d);
+ g.selectAll(".legend")
+    .data(this.data)
+    .enter()
+    .append("g")
+    .attr("class", "legend")
+    .each((d, i, nodes) => {
+      const textElement = nodes[i];
 
-    const textLength = textSample.node().getComputedTextLength();
-    textSample.remove();
+      const textLabel = d3.select(textElement)
+        .append("text")
+        .attr("dy", text.dy)
+        .style("text-anchor", text.anchor)
+        .style("font-size", font.size)
+        .style("font-style", font.style)
+        .style("font-weight", font.weight)
+        .style("text-decoration", font.decoration)
+        .style("font-family", font.family)
+        .style("fill", font.color)
+        .text(d[color]);
 
- if (currentX + textLength + legendSize + 2 * legendPadding > parentWidth - this.margin.left - this.margin.right) {
-      currentX = x;  // Reset to x since the group is already translated by the left margin
-      currentY += legendSize + legendPadding;
-    }
+      const textLength = textLabel.node().getComputedTextLength();
 
-    const rect = d3.select(textElement)
-      .append("rect")
-      .attr("x", currentX)
-      .attr("y", currentY)
-      .attr("width", legendSize)
-      .attr("height", legendSize)
-      .style("stroke", legend.stroke)
-      .style("stroke-width", legend.strokeWidth)
-      .style("fill", colorScale(d));
+      if (currentX + textLength + legendSize + 2 * legendPadding > parentWidth - this.margin.left - this.margin.right) {
+        currentX = x;
+        currentY += legendSize + legendPadding;
+      }
 
-    const textLabel = d3.select(textElement)
-      .append("text")
-      .attr("x", currentX + legendSize + legendPadding)
-      .attr("y", currentY + legendSize / 2)
-      .attr("dy", text.dy)
-      .style("text-anchor", text.anchor)
-      .style("fill", text.fill)
-      .style("font-size", font.size)
-      .style("font-style", font.style)
-      .style("font-weight", font.weight)
-      .style("text-decoration", font.decoration)
-      .style("font-family", font.family)
-      .style("fill", font.color)
-      .text(d);
+      textLabel
+        .attr("x", currentX + legendSize + legendPadding)
+        .attr("y", currentY + legendSize / 2);
 
-    if (orientation === "horizontal") {
-      currentX += textLength + legendSize + 2 * legendPadding;
-    } else {
-      currentX = x;
-      currentY += legendSize + legendPadding;
-    }
-  });
+      d3.select(textElement)
+        .append("rect")
+        .attr("x", currentX)
+        .attr("y", currentY)
+        .attr("width", legendSize)
+        .attr("height", legendSize)
+        .style("stroke", legend.stroke)
+        .style("stroke-width", legend.strokeWidth)
+        .style("fill", colorScale(d));
+
+      if (orientation === "horizontal") {
+        currentX += textLength + legendSize + 2 * legendPadding;
+      } else {
+        currentX = x;
+        currentY += legendSize + legendPadding;
+      }
+    });
 
   return this;
 };

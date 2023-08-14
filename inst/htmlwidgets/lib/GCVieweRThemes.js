@@ -92,5 +92,5 @@ const markers = {
        .append("path")
        .attr("d", markerDefinition.pathD)
        .attr("class", markerDefinition.pathClass)
-       .attr("fill", (d, i) => colorScale(color[i]));
+       .attr("fill", (d) => colorScale(d[color]));
 }

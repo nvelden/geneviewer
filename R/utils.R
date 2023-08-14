@@ -16,46 +16,31 @@ cleanList <- function(lst) {
   }
 }
 
-#' Extract Data from Symbol or Return Character Vector
+#' Extract Data from Symbol or Return Vector
 #'
 #' This function evaluates the provided expression. If the expression is a symbol,
 #' it treats the symbol as a column name and extracts the corresponding column from the provided data frame.
-#' If the expression is a call that evaluates to a character vector (e.g., `as.character(df$column)`),
-#' it returns the evaluated character vector.
+#' If the expression is a call that evaluates to a vector (e.g., `as.character(df$column)`),
+#' it returns the evaluated vector.
 #'
 #' @param data A data frame from which a column might be extracted.
-#' @param x An expression that could be a symbol representing a column name or a call that evaluates to a character vector.
+#' @param x An expression that could be a symbol representing a column name or a call that evaluates to a vector.
 #'
 #' @return A vector extracted from the data frame based on the column name represented by the symbol,
-#' or a character vector if the expression evaluates to one.
+#' or a vector if the expression evaluates to one.
 #'
 #' @examples
-#' df <- data.frame(gene = c("A", "B"), class = c("Oxygenase", "Unknown"))
-#' x_expr <- rlang::enexpr(class)
-#' select_from_symbol(df, x_expr)
-#' x_expr <- rlang::enexpr(as.character(df$class)
-#' select_from_symbol(x_expr, x_expr)
+#' df <- data.frame(a = 1:5, b = 6:10)
+#' select_column_or_return(df, a)
+#' select_column_or_return(df, as.character(df$class))
 #'
-#' @importFrom rlang is_symbol as_string enexpr
-#' @importFrom magrittr %>%
 #' @export
-select_from_symbol <- function(data, x) {
-
-  if(inherits(x, "call")) {
-    x_val <- eval(x)
-
-    if (is.character(x_val)) {
-      return(x_val)
-    }
-  } else if (rlang::is_symbol(x)) {
-    column_name <- rlang::as_string(x)
-
-    # Check if column name exists in the data
-    if (!is.null(column_name) && !(column_name %in% colnames(data))) {
-      stop(paste("Column", column_name, "not found in data"))
-    }
-
-    return(data[[column_name]])
+select_column_or_return <- function(data, x) {
+  x_nm <- deparse(substitute(x))
+  if(x_nm %in% names(data)) return(data[x_nm])
+  if(is.symbol(substitute(x)) & !exists(x_nm)) {
+    stop("x must be a symbol representing a column, or a vector.")
   }
-  stop("x must be a symbol representing a column or a character vector.")
+  if(is.vector(x)) return(x)
+  stop("x must be a symbol representing a column, or a vector.")
 }

@@ -3,7 +3,7 @@ HTMLWidgets.widget({
   type: 'output',
 
   factory: function(el, width, height) {
-    var data, GC_legend, GC_title, GC_genes;
+    var data, GC_legend, GC_title, GC_genes, GC_labels, GC_coordinates, GC_scaleBar, GC_footer;
     var draw = function(width, height, backgroundColor) {
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
@@ -25,8 +25,8 @@ HTMLWidgets.widget({
         backgroundColor: GC_legend.options.backgroundColor,
         margin: GC_legend.options.margin
       })
-       .legendData(GC_legend.data)
-       .legend(GC_legend.options);
+       .legendData(data)
+       .legend(GC_legend?.options?.color, GC_legend?.options);
 
       }
 
@@ -34,7 +34,9 @@ HTMLWidgets.widget({
       .append("div")
       .attr("id", "GCvieweR-graph-container")
       .classed("GCVieweR-container", true);
-      console.log(GC_genes.options)
+
+      console.log(GC_coordinates?.options?.coordinates)
+
       groupedData.forEach(function(item) {
 
         var cluserHeight = Math.floor(el.clientHeight - legendHeight)
@@ -42,23 +44,23 @@ HTMLWidgets.widget({
         var cluster = createClusterContainer("#GCvieweR-graph-container", {width: width, height: cluserHeight / groupedData.length})
             .theme("vintage")
             .title(GC_title?.options?.title, GC_title?.options?.subtitle, GC_title?.options)
-            .footer("Description", "OphA")
+            .footer(GC_footer?.options?.title, GC_footer?.options?.subtitle, GC_footer?.options)
             .clusterLabel("ophA gene cluster")
             .geneData(item[1])
             .sequence()
-            .genes(colour = GC_genes?.options?.color, GC_genes.options)
-            .geneCoordinates()
-            .geneLabels("class")
-            .scaleBar()
+            .genes(color = GC_genes?.options?.color, GC_genes.options)
+            .coordinates(GC_coordinates?.options?.coordinates ?? false, GC_coordinates?.options)
+            .geneLabels(GC_labels?.options?.label, GC_labels.options)
+            .scaleBar(GC_scaleBar?.options?.scaleBar ?? false, GC_scaleBar?.options)
             .adjustGeneLabels("text.label");
       });
 
       if (GC_legend?.options?.position == "bottom") {
 
-      var graph = d3.select(el)
+      var legendContainer = d3.select(el)
         .append("div")
         .attr("id", "GCvieweR-legend-container")
-
+        .classed("GCVieweR-container", true);
       var legend = createLegendContainer("#GCvieweR-legend-container",
       {
         width:  width,
@@ -66,8 +68,8 @@ HTMLWidgets.widget({
         backgroundColor: GC_legend.options.backgroundColor,
         margin: GC_legend.options.margin
       })
-       .legendData(GC_legend.data)
-       .legend(GC_legend.options);
+       .legendData(data)
+       .legend(GC_legend?.options?.color, GC_legend?.options);
 
       }
 
@@ -79,9 +81,12 @@ HTMLWidgets.widget({
         GC_legend = input.GC_legend
         GC_title = input.GC_title
         GC_genes = input.GC_genes
+        GC_labels = input.GC_labels
+        GC_coordinates = input.GC_coordinates
+        GC_scaleBar = input.GC_scaleBar
+        GC_footer = input.GC_footer
         draw(width, height);
       },
-
       resize: function(newWidth, newHeight) {
         draw(newWidth, newHeight);
       }

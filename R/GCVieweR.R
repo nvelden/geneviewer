@@ -37,6 +37,7 @@ GCVieweR <- function(data, start = start, stop = stop, group = NULL,
   x$GC_coordinates <- list()
   x$GC_scaleBar <- list()
   x$GC_footer <- list()
+  x$GC_clusterLabel <- list()
 
   # create the widget
   htmlwidgets::createWidget(
@@ -76,6 +77,35 @@ GC_scaleBar <- function(
 }
 
 #' @export
+GC_clusterLabel <- function(
+    GCVieweR,
+    title = NULL,
+    position = "left",
+    xOffset = 0,
+    yOffset = 0,
+    wrapLabel = TRUE,
+    options = list()
+) {
+
+  # Default font options
+  defaultOptions <- list(
+    title = title,
+    wrapLabel = wrapLabel,
+    position = position,
+    x = xOffset,
+    y = yOffset
+  )
+
+  # Merge user-specified font options with defaults
+  opts <- modifyList(defaultOptions, options)
+
+  # Update the GCVieweR object with labels and options
+  GCVieweR$x$GC_clusterLabel$options <- opts
+
+  return(GCVieweR)
+}
+
+#' @export
 GC_footer <- function(
     GCVieweR,
     title = NULL,
@@ -106,7 +136,6 @@ GC_footer <- function(
   return(GCVieweR)
 }
 
-
 #' @export
 GC_labels <- function(
     GCVieweR,
@@ -127,6 +156,7 @@ GC_labels <- function(
     dx = "0em",
     x = 0,
     rotate = 0,
+    adjustLabels = TRUE,
     options = list()
 ) {
 
@@ -148,6 +178,7 @@ GC_labels <- function(
     dy = dy,
     dx = dx,
     x = x,
+    adjustLabels = adjustLabels,
     rotate = rotate,
     options = list()
   )

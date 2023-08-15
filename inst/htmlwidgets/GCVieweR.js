@@ -3,7 +3,15 @@ HTMLWidgets.widget({
   type: 'output',
 
   factory: function(el, width, height) {
-    var data, GC_legend, GC_title, GC_genes, GC_labels, GC_coordinates, GC_scaleBar, GC_footer;
+    var data,
+        GC_legend,
+        GC_title,
+        GC_genes,
+        GC_labels,
+        GC_coordinates,
+        GC_scaleBar,
+        GC_footer,
+        GC_clusterLabel;
     var draw = function(width, height, backgroundColor) {
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
@@ -34,9 +42,7 @@ HTMLWidgets.widget({
       .append("div")
       .attr("id", "GCvieweR-graph-container")
       .classed("GCVieweR-container", true);
-
-      console.log(GC_coordinates?.options?.coordinates)
-
+      console.log(GC_clusterLabel)
       groupedData.forEach(function(item) {
 
         var cluserHeight = Math.floor(el.clientHeight - legendHeight)
@@ -45,14 +51,13 @@ HTMLWidgets.widget({
             .theme("vintage")
             .title(GC_title?.options?.title, GC_title?.options?.subtitle, GC_title?.options)
             .footer(GC_footer?.options?.title, GC_footer?.options?.subtitle, GC_footer?.options)
-            .clusterLabel("ophA gene cluster")
+            .clusterLabel(GC_clusterLabel?.options?.title, GC_clusterLabel?.options)
             .geneData(item[1])
             .sequence()
             .genes(color = GC_genes?.options?.color, GC_genes.options)
             .coordinates(GC_coordinates?.options?.coordinates ?? false, GC_coordinates?.options)
-            .geneLabels(GC_labels?.options?.label, GC_labels.options)
-            .scaleBar(GC_scaleBar?.options?.scaleBar ?? false, GC_scaleBar?.options)
-            .adjustGeneLabels("text.label");
+            .labels(GC_labels?.options?.label, GC_labels.options)
+            .scaleBar(GC_scaleBar?.options?.scaleBar ?? false, GC_scaleBar?.options);
       });
 
       if (GC_legend?.options?.position == "bottom") {
@@ -85,6 +90,7 @@ HTMLWidgets.widget({
         GC_coordinates = input.GC_coordinates
         GC_scaleBar = input.GC_scaleBar
         GC_footer = input.GC_footer
+        GC_clusterLabel = input.GC_clusterLabel
         draw(width, height);
       },
       resize: function(newWidth, newHeight) {

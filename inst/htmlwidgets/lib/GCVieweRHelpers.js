@@ -156,6 +156,58 @@ function calculateLegendHeight(inputHeight, containerHeight) {
     return legendHeight;
 }
 
+function adjustGeneLabels(clusterContainer, labelSelector, options = {}) {
+    // Default options
+    const defaultOptions = {
+        rotation: 65, // Rotation angle (in degrees)
+        dx: "-0.8em", // Horizontal adjustment
+        dy: "0.15em", // Vertical adjustment
+    };
+
+    // Merge default options with the provided options
+    const { rotation, dx, dy } = { ...defaultOptions, ...options };
+
+    // Select all the labels based on the provided selector
+    var labels = clusterContainer.svg.selectAll(".label").nodes();
+
+    // Iterate over each label
+    for (var i = 0; i < labels.length - 1; i++) {
+        var label1 = labels[i].getBoundingClientRect();
+
+        // Compare it with all the labels that come after it
+        for (var j = i + 1; j < labels.length; j++) {
+            var label2 = labels[j].getBoundingClientRect();
+
+            // If the labels overlap
+            if (!(label1.right < label2.left ||
+                  label1.left > label2.right ||
+                  label1.bottom < label2.top ||
+                  label1.top > label2.bottom)) {
+
+                // Get the current x and y attributes of the labels
+                var x1 = parseFloat(d3.select(labels[i]).attr('x'));
+                var y1 = parseFloat(d3.select(labels[i]).attr('y'));
+                var x2 = parseFloat(d3.select(labels[j]).attr('x'));
+                var y2 = parseFloat(d3.select(labels[j]).attr('y'));
+
+                // Rotate both labels
+                d3.select(labels[i])
+                    .style("text-anchor", "end")
+                    .attr("dx", dx)
+                    .attr("dy", dy)
+                    .attr("transform", `rotate(${rotation}, ${x1}, ${y1})`);
+
+                d3.select(labels[j])
+                    .style("text-anchor", "end")
+                    .attr("dx", dx)
+                    .attr("dy", dy)
+                    .attr("transform", `rotate(${rotation}, ${x2}, ${y2})`);
+            }
+        }
+    }
+    return clusterContainer;
+}
+
 // CLuster
 
 function clusterContainer(svg, margin, width, height) {
@@ -417,10 +469,12 @@ clusterContainer.prototype.clusterLabel = function(title, options = {}) {
   }
 
   // Default options
-  const defaultOptions = {
+const defaultOptions = {
     x: 0,
     y: 0,
-    side: 'left',  // New 'side' option
+    position: 'left',
+    wrapLabel: true,
+    wrapOptions: {},  // Added wrapOptions to store options for the wrap function
     font: {
       size: "12px",
       style: "italic",
@@ -434,22 +488,25 @@ clusterContainer.prototype.clusterLabel = function(title, options = {}) {
   const mergedOptions = {
     ...defaultOptions,
     ...options,
-    font: { ...defaultOptions.font, ...options.font }
+    font: { ...defaultOptions.font, ...options.font },
+    wrapOptions: { ...defaultOptions.wrapOptions, ...options.wrapOptions }
   };
 
   const {
     x,
     y,
-    side,
-    font
+    position,
+    font,
+    wrapLabel,
+    wrapOptions// Destructured wrapLabel option
   } = mergedOptions;
 
   // calculate middle y position
   const middleY = this.height / 2 + y;  // Apply the y option
-  const titleWidth = side === 'left' ? this.margin.left - x : this.margin.right - x;
+  const titleWidth = position === 'left' ? this.margin.left - x : this.margin.right - x;
 
   let xPosition;
-  if (side === 'left') {
+  if (position === 'left') {
     xPosition = this.margin.left / 2 + x;  // title is in the left margin
   } else {  // 'right'
     xPosition = this.width - this.margin.right / 2 - x;  // title is in the right margin
@@ -468,8 +525,10 @@ clusterContainer.prototype.clusterLabel = function(title, options = {}) {
     .style("fill", font.color)
     .text(title);
 
-  // wrap the text
-  wrap(clusterTitle, titleWidth, 0, 1.05, 1, true, true);
+  // If wrapLabel is true, wrap the text
+  if (wrapLabel) {
+    wrap(clusterTitle, titleWidth, wrapOptions);
+  }
 
   return this;
 };
@@ -828,7 +887,7 @@ clusterContainer.prototype.scaleBar = function (scaleBar = true, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.geneLabels = function (label, options = {}) {
+clusterContainer.prototype.labels = function (label, options = {}) {
 
   // Return early if no label provided
   if (!label) {
@@ -857,18 +916,25 @@ clusterContainer.prototype.geneLabels = function (label, options = {}) {
     y: 50,
     rotate: 0,
     start: null,
-    stop: null
+    stop: null,
+    adjustLabels: true,
+    labelAdjustmentOptions: {
+      rotation: 65,
+      dx: "-0.8em",
+      dy: "0.15em"
+    }
   };
 
-  // Merge default options with provided options, ensuring font properties are also merged
+ // Merge default options with provided options, ensuring font properties are also merged
   const mergedOptions = {
     ...defaultOptions,
     ...options,
-    font: { ...defaultOptions.font, ...options.font }
+    font: { ...defaultOptions.font, ...options.font },
+    labelAdjustmentOptions: { ...defaultOptions.labelAdjustmentOptions, ...options.labelAdjustmentOptions } // Merging label adjustment options
   };
 
   // Destructure the merged options
-  const { font, anchor, dy, dx, x, y, rotate, start, stop } = mergedOptions;
+  const { font, anchor, dy, dx, x, y, rotate, start, stop, adjustLabels, labelAdjustmentOptions } = mergedOptions;
 
   // Data processing
   var maxStop = stop || d3.max(this.data, (d) => d.stop);
@@ -907,59 +973,11 @@ clusterContainer.prototype.geneLabels = function (label, options = {}) {
     .style("fill", font.color)
     .text((d) => d[label]); // Use the label property from data
 
+  if (adjustLabels) {
+    adjustGeneLabels(this, "text.label", labelAdjustmentOptions);
+  }
+
   return this;
-};
-
-clusterContainer.prototype.adjustGeneLabels = function(labelSelector, options = {}) {
-    // Default options
-    const defaultOptions = {
-        rotation: 65, // Rotation angle (in degrees)
-        dx: "-0.8em", // Horizontal adjustment
-        dy: "0.15em", // Vertical adjustment
-    };
-
-    // Merge default options with the provided options
-    const { rotation, dx, dy } = { ...defaultOptions, ...options };
-
-    // Select all the labels based on the provided selector
-    var labels = this.svg.selectAll(".label").nodes();
-
-    // Iterate over each label
-    for (var i = 0; i < labels.length - 1; i++) {
-        var label1 = labels[i].getBoundingClientRect();
-
-        // Compare it with all the labels that come after it
-        for (var j = i + 1; j < labels.length; j++) {
-            var label2 = labels[j].getBoundingClientRect();
-
-            // If the labels overlap
-            if (!(label1.right < label2.left ||
-                  label1.left > label2.right ||
-                  label1.bottom < label2.top ||
-                  label1.top > label2.bottom)) {
-
-                // Get the current x and y attributes of the labels
-                var x1 = parseFloat(d3.select(labels[i]).attr('x'));
-                var y1 = parseFloat(d3.select(labels[i]).attr('y'));
-                var x2 = parseFloat(d3.select(labels[j]).attr('x'));
-                var y2 = parseFloat(d3.select(labels[j]).attr('y'));
-
-                // Rotate both labels
-                d3.select(labels[i])
-                    .style("text-anchor", "end")
-                    .attr("dx", dx)
-                    .attr("dy", dy)
-                    .attr("transform", `rotate(${rotation}, ${x1}, ${y1})`);
-
-                d3.select(labels[j])
-                    .style("text-anchor", "end")
-                    .attr("dx", dx)
-                    .attr("dy", dy)
-                    .attr("transform", `rotate(${rotation}, ${x2}, ${y2})`);
-            }
-        }
-    }
-    return this;
 };
 
 //legend

@@ -1,5 +1,5 @@
 const themes = {
-  vintage: {
+  preset: {
     titleOptions: {
       x: 0,
       y: 0,

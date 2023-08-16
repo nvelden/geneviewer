@@ -129,31 +129,31 @@ function adjustViewBox(svg, options = {}) {
   return svg;
 };
 
-function calculateLegendHeight(inputHeight, containerHeight) {
-    // If inputHeight is undefined or null, return 0
-    if (typeof inputHeight === "undefined" || inputHeight === null) {
+function computeSize(inputSize, containerSize) {
+    // If inputSize is undefined or null, return 0
+    if (typeof inputSize === "undefined" || inputSize === null) {
         return 0;
     }
 
-    // Initialize legendHeight
-    var legendHeight;
+    // Initialize resultSize
+    var resultSize;
 
-    // Check if the height is given as a percentage
-    if (inputHeight.includes("%")) {
-        var percentageValue = parseFloat(inputHeight);
+    // Check if the size is given as a percentage
+    if (inputSize.includes("%")) {
+        var percentageValue = parseFloat(inputSize);
         var fraction = percentageValue / 100;
-        legendHeight = Math.round(fraction * containerHeight);
+        resultSize = Math.round(fraction * containerSize);
     }
-    // Check if the height is given in pixels
-    else if (inputHeight.includes("px")) {
-        legendHeight = parseFloat(inputHeight);
+    // Check if the size is given in pixels
+    else if (inputSize.includes("px")) {
+        resultSize = parseFloat(inputSize);
     }
     // Assume it's a plain number otherwise
     else {
-        legendHeight = parseFloat(inputHeight);
+        resultSize = parseFloat(inputSize);
     }
 
-    return legendHeight;
+    return resultSize;
 }
 
 function adjustGeneLabels(clusterContainer, labelSelector, options = {}) {
@@ -221,7 +221,7 @@ function createClusterContainer(targetElement, options = {}) {
 
   const defaultOptions = {
     id: "svg-container",
-    margin: { top: 50, right: 50, bottom: 50, left: 100 },
+    margin: { top: "10%", right: "5%", bottom: "10%", left: "5%" },
     backgroundColor: "white",
     width: targetElement.clientWidth,
     height: targetElement.clientHeight
@@ -229,6 +229,11 @@ function createClusterContainer(targetElement, options = {}) {
 
   // Merge default options and user-specified options
   const { id, margin, backgroundColor, width, height } = { ...defaultOptions, ...options };
+
+  margin.top = computeSize(margin.top, height);
+  margin.right = computeSize(margin.right, width);
+  margin.bottom = computeSize(margin.bottom, height);
+  margin.left = computeSize(margin.left, width);
 
   var svg = d3.select(targetElement)
     .append("svg")
@@ -276,10 +281,14 @@ clusterContainer.prototype.geneData = function (data) {
   return this;
 };
 
-clusterContainer.prototype.title = function(title, subtitle, options = {}) {
+clusterContainer.prototype.title = function(title, subtitle, show = true, options = {}) {
 
   // Return early if neither title nor subtitle is provided
   if (!title && !subtitle) {
+    return this;
+  }
+
+  if (!show) {
     return this;
   }
 
@@ -462,9 +471,9 @@ clusterContainer.prototype.footer = function(title, subtitle, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.clusterLabel = function(title, options = {}) {
+clusterContainer.prototype.clusterLabel = function(title, show = true, options = {}) {
 
-  if (!title) {
+  if (!show) {
     return this;
   }
 
@@ -477,7 +486,7 @@ const defaultOptions = {
     wrapOptions: {},  // Added wrapOptions to store options for the wrap function
     font: {
       size: "12px",
-      style: "italic",
+      style: "normal",
       weight: "bold",
       decoration: "none",
       family: "sans-serif",
@@ -533,19 +542,21 @@ const defaultOptions = {
   return this;
 };
 
-clusterContainer.prototype.sequence = function (sequence = true, options = {}) {
+clusterContainer.prototype.sequence = function (show = true, options = {}) {
 
-  if (!sequence) {
+  if (!show) {
     return this;
   }
 
-    if (!this.data) {
+  if (!this.data) {
     console.error('No data has been added to this cluster container. Please use the addGeneData() function before attempting to draw a gene line.');
     return this;
   }
 
- const defaultOptions = {
+  const defaultOptions = {
     y: 50,  // default y value
+    start: null,
+    stop: null,
     stroke: {
       color: "grey",
       width: 1,
@@ -553,7 +564,7 @@ clusterContainer.prototype.sequence = function (sequence = true, options = {}) {
     }
   };
 
- // If theme options exist, use them as the default options
+  // If theme options exist, use them as the default options
   if (this.themeOptions && this.themeOptions.sequenceOptions) {
     options = { ...this.themeOptions.sequenceOptions, ...options };
   }
@@ -565,13 +576,11 @@ clusterContainer.prototype.sequence = function (sequence = true, options = {}) {
     stroke: { ...defaultOptions.stroke, ...options.stroke }
   };
 
-  const { y, stroke } = mergedOptions;
+  const { y, start, stop, stroke } = mergedOptions;
 
   // Data processing
-  var maxStart = d3.max(this.data, (d) => d.start);
-  var maxStop = d3.max(this.data, (d) => d.stop);
   var minStart = d3.min(this.data, (d) => d.start);
-  var minStop = d3.min(this.data, (d) => d.stop);
+  var maxStop = d3.max(this.data, (d) => d.stop);
 
   var xScale = d3.scaleLinear()
     .domain([minStart, maxStop])
@@ -589,9 +598,9 @@ clusterContainer.prototype.sequence = function (sequence = true, options = {}) {
   var line = g
     .append("line")
     .attr("class", "baseline")
-    .attr("x1", xScale(minStart))
+    .attr("x1", xScale(start || minStart))
     .attr("y1", yScale(y))
-    .attr("x2", xScale(maxStop))
+    .attr("x2", xScale(stop || maxStop))
     .attr("y2", yScale(y))
     .attr("stroke", stroke.color)
     .attr("stroke-width", stroke.width)
@@ -600,10 +609,9 @@ clusterContainer.prototype.sequence = function (sequence = true, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.genes = function(color, options = {}) {
+clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 
-  // Return early if no colour provided
-  if (!color) {
+  if (!show) {
     return this;
   }
 
@@ -655,7 +663,7 @@ clusterContainer.prototype.genes = function(color, options = {}) {
   }
 
   // Call the createMarker function
-  createMarker(this.svg, this.data, colorScale, color, marker, markerSize);
+  createMarker(this.svg, this.data, colorScale, group, marker, markerSize);
 
   // Create the group
   var g = this.svg.append("g")
@@ -680,16 +688,16 @@ clusterContainer.prototype.genes = function(color, options = {}) {
     .attr("marker-end", (d) => "url(#" + d.name + ")")
     .attr("opacity", opacity)
     .each(function (d) {
-        const groupColor = colorScale(d[color]); // Use color from the color array or default to colorScale
+        const groupColor = colorScale(d[group]); // Use color from the color array or default to colorScale
         d3.select(this).attr("stroke", groupColor);
     });
 
   return this;
 };
 
-clusterContainer.prototype.coordinates = function (coordinates = true, options = {}) {
+clusterContainer.prototype.coordinates = function (coordinates, show = true, options = {}) {
 
-  if (!coordinates) {
+  if (!show) {
     return this;
   }
 
@@ -699,7 +707,7 @@ clusterContainer.prototype.coordinates = function (coordinates = true, options =
       stop: null,
       rotate: -45,
       yPositionTop: 55,  // position for top axis
-      yPositionBottom: 40,  // position for bottom axis
+      yPositionBottom: 45,  // position for bottom axis
       tickValues: null,  // add an option to provide your own tick values
       tickValueThreshold: 300
     },
@@ -802,9 +810,9 @@ xAxisBottom.selectAll("text")
 return this;
 };
 
-clusterContainer.prototype.scaleBar = function (scaleBar = true, options = {}) {
+clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
 
-  if (!scaleBar) {
+  if (!show) {
     return this;
   }
 
@@ -980,8 +988,6 @@ clusterContainer.prototype.labels = function (label, options = {}) {
   return this;
 };
 
-//legend
-
 function legendContainer(svg, margin, width, height) {
   this.svg = svg;
   this.margin = margin;
@@ -1023,17 +1029,22 @@ legendContainer.prototype.legendData = function (data) {
 
 };
 
-legendContainer.prototype.legend = function(color, options = {}) {
+legendContainer.prototype.legend = function(group, show = true, options = {}) {
 
-  // Return early if no colour provided
-  if (!color) {
+  if (!show) {
     return this;
+  }
+
+  if (!this.data.some(d => group in d)) {
+    console.error(`Error: The group "${group}" does not exist in the data.`);
+    return;
   }
 
   const defaultOptions = {
     x: 10,
     y: 10,
     orientation: "horizontal",
+    adjustHeight: true,
     legend: {
       stroke: "none",
       strokeWidth: 1,
@@ -1072,23 +1083,27 @@ legendContainer.prototype.legend = function(color, options = {}) {
   } = mergedOptions;
 
   const svgLegend = this.svg;
-  const parentWidth = svgLegend.node().getBoundingClientRect().width
+  const parentWidth = svgLegend.node().getBoundingClientRect().width;
 
   // Create the group taking into account the margins
   var g = svgLegend.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
+  // Extract unique values from the group key
+  const uniqueGroups = [...new Set(this.data.map(d => d[group]))];
+
+  // Adjust colorScale to use uniqueGroups
   let colorScale;
   if (legend.colorScheme) {
     colorScale = d3.scaleOrdinal(d3[legend.colorScheme])
-      .domain(this.data);
+      .domain(uniqueGroups);
   } else if (legend.customColors && legend.customColors.length > 0) {
     colorScale = d3.scaleOrdinal()
-      .domain(this.data)
+      .domain(uniqueGroups)
       .range(legend.customColors);
   } else {
     colorScale = d3.scaleOrdinal(d3.schemeCategory10)
-      .domain(this.data);
+      .domain(uniqueGroups);
   }
 
   const legendSize = parseFloat(font.size);
@@ -1096,8 +1111,8 @@ legendContainer.prototype.legend = function(color, options = {}) {
   let currentX = x;
   let currentY = y;
 
- g.selectAll(".legend")
-    .data(this.data)
+  g.selectAll(".legend")
+    .data(uniqueGroups)
     .enter()
     .append("g")
     .attr("class", "legend")
@@ -1114,7 +1129,7 @@ legendContainer.prototype.legend = function(color, options = {}) {
         .style("text-decoration", font.decoration)
         .style("font-family", font.family)
         .style("fill", font.color)
-        .text(d[color]);
+        .text(d);
 
       const textLength = textLabel.node().getComputedTextLength();
 
@@ -1144,6 +1159,16 @@ legendContainer.prototype.legend = function(color, options = {}) {
         currentY += legendSize + legendPadding;
       }
     });
+
+  const adjustHeight = (this.height === 0) ? true : false;
+
+  // Adjust height
+  if (adjustHeight) {
+    var contentHeight = currentY + legendSize + legendPadding;
+    svgLegend.attr("height", contentHeight);
+    var viewBoxWidth = svgLegend.node().getBoundingClientRect().width;
+    svgLegend.attr("viewBox", `0 0 ${viewBoxWidth} ${contentHeight}`);
+  }
 
   return this;
 };

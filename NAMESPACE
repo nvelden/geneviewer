@@ -2,8 +2,9 @@
 
 export("%>%")
 export(GCVieweR)
-export(GC_cluster)
+export(GC_clusterLabel)
 export(GC_coordinates)
+export(GC_footer)
 export(GC_genes)
 export(GC_labels)
 export(GC_legend)

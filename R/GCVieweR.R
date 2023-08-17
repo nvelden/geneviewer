@@ -79,7 +79,7 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
   x$GC_footer <- list()
   x$GC_clusterLabel <- list()
   x$GC_sequence$options <- list(show = TRUE)
-  x$GC_grid <- list()
+  x$GC_grid <- list(left = "50px", right = "50px", top = 0, bottom = 0)
 
   # create the widget
   htmlwidgets::createWidget(
@@ -123,15 +123,20 @@ GC_sequence <- function(
 #' export
 GC_grid <- function(
     GCVieweR,
-    left = "10%",
-    right = "10%",
-    top = "10%",
-    bottom = "10%"){
+    left = NULL,
+    right = NULL,
+    top = NULL,
+    bottom = NULL) {
 
-  GCVieweR$x$GC_grid <- list(left = left, right = right, top = top, bottom = bottom)
+  margins <- list(left = left, right = right, top = top, bottom = bottom)
+
+  for (name in names(margins)) {
+    if (!is.null(margins[[name]])) {
+      GCVieweR$x$GC_grid[[name]] <- margins[[name]]
+    }
+  }
 
   return(GCVieweR)
-
 }
 
 #' @export
@@ -140,6 +145,7 @@ GC_scaleBar <- function(
     show = TRUE,
     title = "1 kb",
     scaleBarUnit = 1000,
+    yOffset = 50,
     options = list()
 ) {
 
@@ -147,6 +153,7 @@ GC_scaleBar <- function(
   defaultOptions <- list(
     show = show,
     title = title,
+    y = yOffset,
     scaleBarUnit = scaleBarUnit
   )
 
@@ -167,6 +174,7 @@ GC_clusterLabel <- function(
     position = "left",
     xOffset = 0,
     yOffset = 0,
+    width = "100px",
     wrapLabel = TRUE,
     options = list()
 ) {
@@ -180,6 +188,8 @@ GC_clusterLabel <- function(
     x = xOffset,
     y = yOffset
   )
+
+  GCVieweR$x$GC_grid$left <- width
 
   # Merge user-specified font options with defaults
   opts <- modifyList(defaultOptions, options)
@@ -196,9 +206,9 @@ GC_footer <- function(
     title = NULL,
     subtitle = NULL,
     position = "left",
-    xOffset = 10,
-    yOffset = 0,
-    spacing = 20,
+    xOffset = -10,
+    yOffset = 20,
+    spacing = 15,
     options = list()
 ) {
 
@@ -338,6 +348,7 @@ GC_title <- function(
     GCVieweR,
     title = NULL,
     show = TRUE,
+    height = "50px",
     subtitle = NULL,
     spacing = 10,
     position = "center",
@@ -345,6 +356,8 @@ GC_title <- function(
     yOffset = 0,
     options = list()
 ) {
+
+  GCVieweR$x$GC_grid$top <- height
 
   # Default options
   defaultOptions <- list(

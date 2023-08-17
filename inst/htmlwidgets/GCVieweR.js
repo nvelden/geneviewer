@@ -18,9 +18,20 @@ HTMLWidgets.widget({
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
 
+      // Compute margins
+      var margins = { top: 0, right: 0, bottom: 0, left: 0 }
+      if (Object.keys(GC_grid).length > 0) {
+          margins = {
+              top: computeSize(GC_grid.top || 0, height),
+              right: computeSize(GC_grid.right || 0, width),
+              bottom: computeSize(GC_grid.bottom || 0, height),
+              left: computeSize(GC_grid.left || 0, width)
+          };
+         }
+
       var legendHeight = (GC_legend?.options?.show === false) ? 0 : computeSize(GC_legend?.options?.height, height);
       var groupedData = d3.flatGroup(data, (d) => d.cluster);
-      console.log(GC_legend)
+
       if (GC_legend?.options?.group !== null && GC_legend?.options?.show) {
 
       var legendContainer = d3.select(el)
@@ -41,7 +52,7 @@ HTMLWidgets.widget({
        var legendElement = d3.select("#GCvieweR-legend-container").node();
        var legendDimensions = legendElement.getBoundingClientRect();
        legendHeight = legendDimensions.height;
-       console.log(legendHeight)
+
       }
 
       var graph = d3.select(el)
@@ -58,7 +69,7 @@ HTMLWidgets.widget({
             };
 
         if (Object.keys(GC_grid).length > 0) {
-          clusterOptions.margin = GC_grid;
+          clusterOptions.margin = margins;
         }
 
         var cluster = createClusterContainer("#GCvieweR-graph-container", clusterOptions )
@@ -82,6 +93,7 @@ HTMLWidgets.widget({
         .append("div")
         .attr("id", "GCvieweR-legend-container")
         .classed("GCVieweR-container", true);
+
       var legend = createLegendContainer("#GCvieweR-legend-container",
       {
         width:  width,
@@ -111,8 +123,8 @@ HTMLWidgets.widget({
         GC_grid = input.GC_grid
         draw(width, height);
       },
-      resize: function(newWidth, newHeight) {
-        draw(newWidth, newHeight);
+      resize: function(width, height) {
+        draw(width, height);
       }
     };
   }

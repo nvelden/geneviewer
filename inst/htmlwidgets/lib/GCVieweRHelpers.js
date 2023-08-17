@@ -130,9 +130,15 @@ function adjustViewBox(svg, options = {}) {
 };
 
 function computeSize(inputSize, containerSize) {
+
     // If inputSize is undefined or null, return 0
     if (typeof inputSize === "undefined" || inputSize === null) {
         return 0;
+    }
+
+    // If inputSize is a number, return it directly
+    if (typeof inputSize === "number") {
+        return inputSize;
     }
 
     // Initialize resultSize
@@ -217,25 +223,28 @@ function clusterContainer(svg, margin, width, height) {
   this.height = height;
 }
 
-function createClusterContainer(targetElement, options = {}) {
+function createClusterContainer(targetElementId, options = {}) {
 
   const defaultOptions = {
     id: "svg-container",
-    margin: { top: "10%", right: "5%", bottom: "10%", left: "5%" },
+    margin: { top: 0, right: "10%", bottom: 0, left: "10%" },
     backgroundColor: "white",
-    width: targetElement.clientWidth,
-    height: targetElement.clientHeight
+    width: null,
+    height: null
   };
 
   // Merge default options and user-specified options
-  const { id, margin, backgroundColor, width, height } = { ...defaultOptions, ...options };
+  const { id, margin: originalMargin, backgroundColor, width, height } = { ...defaultOptions, ...options };
 
-  margin.top = computeSize(margin.top, height);
-  margin.right = computeSize(margin.right, width);
-  margin.bottom = computeSize(margin.bottom, height);
-  margin.left = computeSize(margin.left, width);
+  // Compute margins without modifying the original margin object
+  const computedMargin = {
+    top: computeSize(originalMargin.top, height),
+    right: computeSize(originalMargin.right, width),
+    bottom: computeSize(originalMargin.bottom, height),
+    left: computeSize(originalMargin.left, width)
+  };
 
-  var svg = d3.select(targetElement)
+  var svg = d3.select(targetElementId)
     .append("svg")
     .attr("id", getUniqueId(id))
     .attr("width", "100%")
@@ -246,7 +255,7 @@ function createClusterContainer(targetElement, options = {}) {
     .style("box-sizing", "border-box")
     .style("background-color", backgroundColor);
 
-  return new clusterContainer(svg, margin, width, height);
+  return new clusterContainer(svg, computedMargin, width, height);
 }
 
 clusterContainer.prototype.theme = function (themeName) {
@@ -381,18 +390,25 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   return this;
 };
 
-clusterContainer.prototype.footer = function(title, subtitle, options = {}) {
+clusterContainer.prototype.footer = function(title, subtitle, show = true, options = {}) {
 
+  // Return early if neither title nor subtitle is provided
   if (!title && !subtitle) {
     return this;
   }
 
+  if (!show) {
+    return this;
+  }
+
+  // Default options for title and subtitle
   const defaultOptions = {
-    x: 20,
-    y: 0,
+    x: 10,
+    y: -20,
+    position: "left",
     spacing: 15, // Default spacing between title and subtitle
-    font: {
-      size: "16px",
+    titleFont: {
+      size: "14px",
       style: "normal",
       weight: "bold",
       decoration: "normal",
@@ -400,28 +416,35 @@ clusterContainer.prototype.footer = function(title, subtitle, options = {}) {
       color: "black"
     },
     subtitleFont: {
-      size: "14px",
+      size: "12px",
       style: "normal",
       weight: "normal",
       decoration: "none",
       family: "sans-serif",
       color: "black"
     },
-    position: "left" // Default position
   };
 
+  // Merge theme options if they exist
+  if (this.themeOptions && this.themeOptions.footerOptions) {
+    options = { ...this.themeOptions.footerOptions, ...options };
+  }
+
+  // Merge default options with provided options, ensuring font properties are also merged
   const mergedOptions = {
     ...defaultOptions,
     ...options,
-    font: { ...defaultOptions.font, ...options.font },
+    titleFont: { ...defaultOptions.titleFont, ...options.titleFont },
     subtitleFont: { ...defaultOptions.subtitleFont, ...options.subtitleFont }
   };
 
-  const { x, y, font, subtitleFont, position, spacing } = mergedOptions;
+  // Destructure the merged options
+  const { x, y, titleFont, subtitleFont, position, spacing } = mergedOptions;
 
   let xPos;
   let textAnchor;
 
+  // Determine text position and anchor based on the provided position
   switch (position) {
     case "left":
       xPos = x;
@@ -436,28 +459,27 @@ clusterContainer.prototype.footer = function(title, subtitle, options = {}) {
       textAnchor = "middle";
   }
 
-  // Calculate y position for title and subtitle based on height of svg, margin, and given y offset
-  const yPosTitle = this.height - this.margin.bottom / 2 + y;
-  const yPosSubtitle = yPosTitle + spacing;  // Use the spacing option for subtitle spacing
+  // Calculate the y position for the footer text within the bottom margin
+  const yPos = this.height - (this.margin.bottom / 2) + y;
 
-  // Add title
+  // Add title to the SVG
   this.svg.append("text")
     .attr("x", xPos)
-    .attr("y", yPosTitle)
+    .attr("y", yPos)
     .attr("text-anchor", textAnchor)
-    .style("font-size", font.size)
-    .style("font-style", font.style)
-    .style("font-weight", font.weight)
-    .style("text-decoration", font.decoration)
-    .style("font-family", font.family)
-    .style("fill", font.color)
+    .style("font-size", titleFont.size)
+    .style("font-style", titleFont.style)
+    .style("font-weight", titleFont.weight)
+    .style("text-decoration", titleFont.decoration)
+    .style("font-family", titleFont.family)
+    .style("fill", titleFont.color)
     .text(title);
 
-  // Add subtitle if provided
+  // Add subtitle to the SVG if provided
   if (subtitle) {
     this.svg.append("text")
       .attr("x", xPos)
-      .attr("y", yPosSubtitle)
+      .attr("y", yPos + spacing) // Use the spacing option for subtitle spacing
       .attr("text-anchor", textAnchor)
       .style("font-size", subtitleFont.size)
       .style("font-style", subtitleFont.style)
@@ -511,7 +533,8 @@ const defaultOptions = {
   } = mergedOptions;
 
   // calculate middle y position
-  const middleY = this.height / 2 + y;  // Apply the y option
+  const adjustedHeight = this.height - this.margin.top - this.margin.bottom;
+  const middleY = this.margin.top + adjustedHeight / 2 + y;
   const titleWidth = position === 'left' ? this.margin.left - x : this.margin.right - x;
 
   let xPosition;
@@ -819,9 +842,7 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
   const defaultOptions = {
     title: "1 kb",
     scaleBarUnit: 1000,
-    axis: {
-      yPosition: 0
-    },
+    y: 0,
     font: {
       size: "10px",
       style: "normal",
@@ -835,11 +856,10 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
   const mergedOptions = {
     ...defaultOptions,
     ...options,
-    axis: { ...defaultOptions.axis, ...options.axis },
     font: { ...defaultOptions.font, ...options.font }
   };
 
-  const { axis, font, title, scaleBarUnit } = mergedOptions;
+  const { y, font, title, scaleBarUnit } = mergedOptions;
 
   // Data processing
   const [minStart, maxStop] = [
@@ -856,14 +876,14 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
 
   // Create the group
   const g = this.svg.append("g")
-    .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(font.size) - 5}, ${this.height - this.margin.bottom})`);
+    .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(font.size) - 5}, ${this.height - this.margin.bottom - this.margin.top})`);
 
   // Create the scale bar line
   g.append("line")
     .attr("x1", parseInt(font.size) + 5)
     .attr("x2", parseInt(font.size) + 5 + scaleBarLength)
-    .attr("y1", -axis.yPosition)
-    .attr("y2", -axis.yPosition)
+    .attr("y1", -y)
+    .attr("y2", -y)
     .attr("stroke", "grey")
     .attr("stroke-width", 1);
 
@@ -872,8 +892,8 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
     g.append("line")
       .attr("x1", d)
       .attr("x2", d)
-      .attr("y1", -axis.yPosition - 5)
-      .attr("y2", -axis.yPosition + 5)
+      .attr("y1", -y - 5)
+      .attr("y2", -y + 5)
       .attr("stroke", "grey")
       .attr("stroke-width", 1);
   });
@@ -881,7 +901,7 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
   // Add the title
   g.append("text")
     .attr("x", parseInt(font.size))
-    .attr("y", -axis.yPosition)
+    .attr("y", -y)
     .style("text-anchor", "end")
     .style("dominant-baseline", "middle")
     .style("font-size", font.size)
@@ -995,20 +1015,25 @@ function legendContainer(svg, margin, width, height) {
   this.height = height;
 }
 
-function createLegendContainer(targetElement, options = {}) {
+function createLegendContainer(targetElementId, options = {}) {
 
   const defaultOptions = {
     id: "svg-legend-container",
     margin: { top: 0, right: 0, bottom: 0, left: 0 },
     backgroundColor: "white",
-    width: targetElement.clientWidth,
-    height: targetElement.clientHeight
+    width: null,
+    height: null
   };
 
-  // Merge default options and user-specified options
-  const { id, backgroundColor, width, height, margin } = { ...defaultOptions, ...options, margin: { ...defaultOptions.margin, ...options.margin } };
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options,
+    margin: { ...defaultOptions.margin, ...options.margin }
+  };
 
-  var svg = d3.select(targetElement)
+  const { id, backgroundColor, width, height, margin } = mergedOptions;
+
+  var svg = d3.select(targetElementId)
     .append("svg")
     .attr("id", getUniqueId(id))
     .attr("width", "100%")

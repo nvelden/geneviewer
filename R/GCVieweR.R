@@ -58,28 +58,46 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
     stop("group column not found in data")
   }
 
-  group <- if((group_char != "NULL")) group_char else NULL
+  x <- list()
+
+  x$data <- data
+  x$grid <- list(left = "50px", right = "50px", top = 0, bottom = 0)
+  x$legend <- list(group = group_char, show = TRUE, position = "top")
+
   cluster <- if((cluster_char != "NULL")) cluster_char else NULL
 
+  if(is.null(cluster)){
+    clusters <- "cluster"
+  } else {
+    if (!(cluster %in% colnames_data)) stop("cluster column not found in data")
+    clusters <- unique(data[[cluster]])
+  }
 
-  # create a list of settings and data to send to the HTML widget
-  x <- list()
-  x$data <- data
-  x$data$start <- data[[start_col]]
-  x$data$stop <- data[[stop_col]]
-  x$data$group <- if((group_char != "NULL")) data[[group_char]] else NULL
-  # Data from functions
-  x$GC_legend$options <- list(group = group, show = TRUE, position = "top")
-  x$GC_title <- list()
-  x$GC_genes$options <- list(group = group, show = TRUE)
-  x$GC_labels <- list()
-  x$GC_cluster <- list()
-  x$GC_coordinates$options <- list(show = TRUE)
-  x$GC_scaleBar <- list()
-  x$GC_footer <- list()
-  x$GC_clusterLabel <- list()
-  x$GC_sequence$options <- list(show = TRUE)
-  x$GC_grid <- list(left = "50px", right = "50px", top = 0, bottom = 0)
+  for(clust in clusters){
+
+    # Subset data for the current cluster
+    if(is.null(cluster)){
+      subset_data <- data
+    } else {
+      subset_data <- data[data[[cluster_char]] == clust, ]
+    }
+
+    # Data
+    x$series[[clust]]$clusterName <- clust
+    x$series[[clust]]$data <- subset_data
+    x$series[[clust]]$data$start <- subset_data[[start_col]]
+    x$series[[clust]]$data$stop <- subset_data[[stop_col]]
+    # Settings
+    x$series[[clust]]$title <- list()
+    x$series[[clust]]$genes <- list(group = group_char, show = TRUE)
+    x$series[[clust]]$labels <- list()
+    x$series[[clust]]$cluster <- list()
+    x$series[[clust]]$coordinates <- list(show = TRUE)
+    x$series[[clust]]$scaleBar <- list()
+    x$series[[clust]]$footer <- list()
+    x$series[[clust]]$clusterLabel <- list()
+    x$series[[clust]]$sequence <- list(show = TRUE)
+  }
 
   # create the widget
   htmlwidgets::createWidget(
@@ -132,7 +150,7 @@ GC_grid <- function(
 
   for (name in names(margins)) {
     if (!is.null(margins[[name]])) {
-      GCVieweR$x$GC_grid[[name]] <- margins[[name]]
+      GCVieweR$x$grid[[name]] <- margins[[name]]
     }
   }
 
@@ -347,9 +365,9 @@ GC_genes <- function(
 GC_title <- function(
     GCVieweR,
     title = NULL,
+    subtitle = NULL,
     show = TRUE,
     height = "50px",
-    subtitle = NULL,
     spacing = 10,
     position = "center",
     xOffset = 10,
@@ -357,25 +375,35 @@ GC_title <- function(
     options = list()
 ) {
 
-  GCVieweR$x$GC_grid$top <- height
+  GCVieweR$x$grid$top <- height
 
-  # Default options
-  defaultOptions <- list(
-    title = title,
-    show = show,
-    subtitle = subtitle,
-    position = position,
-    spacing = spacing,
-    x = xOffset,
-    y = yOffset,
-    options = list()
-  )
+  # Update the GCVieweR object with title and options for each cluster
+  clusters <- names(GCVieweR$x$series)
 
-  # Merge user-specified options with defaults
-  opts <- modifyList(defaultOptions, options)
+  for(i in seq_along(clusters)){
 
-  # Update the GCVieweR object with title and options
-  GCVieweR$x$GC_title$options <- opts
+    # Default options
+    defaultOptions <- list(
+      title = title[(i-1) %% length(title) + 1],
+      show = show[(i-1) %% length(show) + 1],
+      subtitle = subtitle[(i-1) %% length(subtitle) + 1],
+      position = position[(i-1) %% length(position) + 1],
+      spacing = spacing[(i-1) %% length(spacing) + 1],
+      x = xOffset[(i-1) %% length(xOffset) + 1],
+      y = yOffset[(i-1) %% length(yOffset) + 1]
+    )
+
+    # Recycle options for each cluster
+    recycledOptions <- lapply(options, function(opt) {
+      opt[(i-1) %% length(opt) + 1]
+    })
+
+    # Merge user-specified options with defaults
+    opts <- modifyList(defaultOptions, recycledOptions)
+
+    GCVieweR$x$series[[clusters[i]]]$title <- opts
+
+  }
 
   return(GCVieweR)
 }
@@ -383,7 +411,7 @@ GC_title <- function(
 #' @export
 GC_legend <- function(
     GCVieweR,
-    group,
+    group = NULL,
     show = TRUE,
     position = "top",
     orientation = "horizontal",
@@ -395,13 +423,26 @@ GC_legend <- function(
     options = list()
 ) {
 
-  group <- deparse(substitute(group))
+  group_eval <- rlang::enquo(group)
+  group_char <- rlang::quo_name(group_eval)
+
+  if (group_char == "NULL" && GCVieweR$x$legend$group == "NULL"){
+    stop("Please define a group")
+  }
+
+  if (!(group_char %in% names(GCVieweR$x$data))) {
+    stop("group column not found in data")
+  }
+
+  if(group_char == "NULL" && GCVieweR$x$legend$group != "NULL"){
+    group_char <- GCVieweR$x$legend$group
+  }
 
   # Define default options
   defaultOptions <- list(
     x = xOffset,
     y = yOffset,
-    group = group,
+    group = group_char,
     show = show,
     margin = margin,
     height = height,
@@ -413,7 +454,7 @@ GC_legend <- function(
   # Merge user-specified options with defaults
   opts <- modifyList(defaultOptions, options)
 
-  GCVieweR$x$GC_legend$options <- opts
+  GCVieweR$x$legend <- opts
 
   return(GCVieweR)
 }

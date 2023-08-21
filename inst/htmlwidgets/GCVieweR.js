@@ -4,50 +4,43 @@ HTMLWidgets.widget({
 
   factory: function(el, width, height) {
     var data,
-        GC_legend,
-        GC_title,
-        GC_genes,
-        GC_labels,
-        GC_coordinates,
-        GC_scaleBar,
-        GC_footer,
-        GC_clusterLabel,
-        GC_sequence,
-        GC_grid;
+        series,
+        gridOptions,
+        legendOptions;
     var draw = function(width, height, backgroundColor) {
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
 
       // Compute margins
       var margins = { top: 0, right: 0, bottom: 0, left: 0 }
-      if (Object.keys(GC_grid).length > 0) {
+      if (Object.keys(gridOptions).length > 0) {
           margins = {
-              top: computeSize(GC_grid.top || 0, height),
-              right: computeSize(GC_grid.right || 0, width),
-              bottom: computeSize(GC_grid.bottom || 0, height),
-              left: computeSize(GC_grid.left || 0, width)
+              top: computeSize(gridOptions.top || 0, height),
+              right: computeSize(gridOptions.right || 0, width),
+              bottom: computeSize(gridOptions.bottom || 0, height),
+              left: computeSize(gridOptions.left || 0, width)
           };
          }
 
-      var legendHeight = (GC_legend?.options?.show === false) ? 0 : computeSize(GC_legend?.options?.height, height);
-      var groupedData = d3.flatGroup(data, (d) => d.cluster);
+      var legendHeight = (legendOptions?.show === false) ? 0 : computeSize(legendOptions?.height, height);
+      //var groupedData = d3.flatGroup(data, (d) => d.cluster);
 
-      if (GC_legend?.options?.group !== null && GC_legend?.options?.show) {
+      if (legendOptions?.group !== null && legendOptions?.show) {
 
       var legendContainer = d3.select(el)
         .append("div")
         .attr("id", "GCvieweR-legend-container")
         .classed("GCVieweR-container", true);
 
-      var legend = createLegendContainer("#GCvieweR-legend-container",
+      var legendContainer = createLegendContainer("#GCvieweR-legend-container",
       {
         width:  width,
         height: legendHeight,
-        backgroundColor: GC_legend.options.backgroundColor,
-        margin: GC_legend.options.margin
+        backgroundColor: legendOptions.backgroundColor,
+        margin: legendOptions.margin
       })
        .legendData(data)
-       .legend(GC_legend?.options?.group ?? false, GC_legend?.options?.show ?? false, GC_legend?.options);
+       .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, legendOptions);
 
        var legendElement = d3.select("#GCvieweR-legend-container").node();
        var legendDimensions = legendElement.getBoundingClientRect();
@@ -60,32 +53,45 @@ HTMLWidgets.widget({
       .attr("id", "GCvieweR-graph-container")
       .classed("GCVieweR-container", true);
 
-      groupedData.forEach(function(item) {
+var clusters = Object.keys(series);
 
-        var cluserHeight = Math.floor(el.clientHeight - legendHeight)
-        var clusterOptions = {
-            width: width,
-            height: cluserHeight / groupedData.length
-            };
+clusters.forEach(function(clusterKey) {
 
-        if (Object.keys(GC_grid).length > 0) {
-          clusterOptions.margin = margins;
-        }
+    var cluster = series[clusterKey],
+        clusterData = HTMLWidgets.dataframeToD3(series[clusterKey].data),
+        titleOptions = cluster.title,
+        footerOptions = cluster.footer,
+        clusterLabelOptions = cluster.clusterLabel,
+        labelOptions = cluster.labels,
+        sequenceOptions = cluster.sequence,
+        geneOptions = cluster.genes,
+        coordinateOptions = clusterData.coordinates;
+        scaleBarOptions = cluster.scaleBar;
 
-        var cluster = createClusterContainer("#GCvieweR-graph-container", clusterOptions )
-            .theme("preset")
-            .title(GC_title?.options?.title, GC_title?.options?.subtitle, GC_title?.options?.show ?? false, GC_title?.options)
-            .footer(GC_footer?.options?.title, GC_footer?.options?.subtitle, GC_footer?.options)
-            .clusterLabel(GC_clusterLabel?.options?.title, GC_clusterLabel?.options?.show ?? false, GC_clusterLabel?.options)
-            .geneData(item[1])
-            .sequence(GC_sequence?.options?.show ?? false, GC_sequence?.options)
-            .genes(GC_genes?.options?.group, GC_genes?.options?.show ?? false, GC_genes.options)
-            .coordinates(GC_coordinates?.options?.show ?? false, GC_coordinates?.options)
-            .labels(GC_labels?.options?.label, GC_labels.options)
-            .scaleBar(GC_scaleBar?.options?.show ?? false, GC_scaleBar?.options);
-      });
+    var clusterHeight = Math.floor(el.clientHeight - legendHeight);
+    var clusterOptions = {
+        width: width,
+        height: clusterHeight / clusters.length
+    };
 
-      if (GC_legend?.options?.position == "bottom" && GC_legend?.options?.show && GC_legend?.options?.group !== null) {
+    if (Object.keys(gridOptions).length > 0) {
+        clusterOptions.margin = margins;
+    }
+
+    var cluster = createClusterContainer("#GCvieweR-graph-container", clusterOptions)
+        .theme("preset")
+        .title(titleOptions?.title, titleOptions?.subtitle, titleOptions?.show ?? false, titleOptions)
+        .footer(footerOptions?.title, footerOptions?.subtitle, footerOptions?.show ?? false, footerOptions)
+        .clusterLabel(clusterLabelOptions?.title, clusterLabelOptions?.show ?? false, clusterLabelOptions)
+        .geneData(clusterData)  // Access data using the cluster key
+        .sequence(sequenceOptions?.show ?? false, sequenceOptions)
+        .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)
+        .coordinates(coordinateOptions?.show ?? false, coordinateOptions)
+        .labels(labelOptions?.label, labelOptions)
+        .scaleBar(scaleBarOptions?.show ?? false, scaleBarOptions);
+});
+
+      if (legendOptions?.position == "bottom" && legendOptions?.show && legendOptions?.group !== null) {
 
       d3.select("#GCvieweR-legend-container").remove();
 
@@ -94,15 +100,15 @@ HTMLWidgets.widget({
         .attr("id", "GCvieweR-legend-container")
         .classed("GCVieweR-container", true);
 
-      var legend = createLegendContainer("#GCvieweR-legend-container",
+      var legendContainer = createLegendContainer("#GCvieweR-legend-container",
       {
         width:  width,
         height: legendHeight,
-        backgroundColor: GC_legend.options.backgroundColor,
-        margin: GC_legend.options.margin
+        backgroundColor: legendOptions.backgroundColor,
+        margin: legendOptions.margin
       })
        .legendData(data)
-       .legend(GC_legend?.options?.group ?? false, GC_legend?.options?.show ?? false, GC_legend?.options);
+       .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, legendOptions?.options);
 
       }
 
@@ -111,16 +117,9 @@ HTMLWidgets.widget({
     return {
       renderValue: function(input) {
         data = HTMLWidgets.dataframeToD3(input.data);
-        GC_legend = input.GC_legend
-        GC_title = input.GC_title
-        GC_genes = input.GC_genes
-        GC_labels = input.GC_labels
-        GC_coordinates = input.GC_coordinates
-        GC_scaleBar = input.GC_scaleBar
-        GC_footer = input.GC_footer
-        GC_clusterLabel = input.GC_clusterLabel
-        GC_sequence = input.GC_sequence
-        GC_grid = input.GC_grid
+        series = input.series;
+        gridOptions = input.grid;
+        legendOptions = input.legend;
         draw(width, height);
       },
       resize: function(width, height) {

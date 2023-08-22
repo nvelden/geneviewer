@@ -88,7 +88,7 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
 }
 
 #' @export
-GC_setOptions <- function(
+GC_item <- function(
     GCVieweR,
     setting = NULL,
     cluster = NULL,

@@ -955,19 +955,20 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
       rotation: 65,
       dx: "-0.8em",
       dy: "0.15em"
-    }
+    },
+    itemStyle: []
   };
 
- // Merge default options with provided options, ensuring font properties are also merged
+  // Merge default options with provided options
   const mergedOptions = {
     ...defaultOptions,
     ...options,
     font: { ...defaultOptions.font, ...options.font },
-    labelAdjustmentOptions: { ...defaultOptions.labelAdjustmentOptions, ...options.labelAdjustmentOptions } // Merging label adjustment options
+    labelAdjustmentOptions: { ...defaultOptions.labelAdjustmentOptions, ...options.labelAdjustmentOptions }
   };
 
   // Destructure the merged options
-  const { font, anchor, dy, dx, x, y, rotate, start, stop, adjustLabels, labelAdjustmentOptions } = mergedOptions;
+  const { font, anchor, dy, dx, x, y, rotate, start, stop, adjustLabels, labelAdjustmentOptions, itemStyle } = mergedOptions;
 
   // Data processing
   var maxStop = stop || d3.max(this.data, (d) => d.stop);
@@ -1004,7 +1005,17 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     .style("text-decoration", font.decoration)
     .style("font-family", font.family)
     .style("fill", font.color)
-    .text((d) => d[label]); // Use the label property from data
+    .text((d) => d[label])
+    .each(function(d, i) {
+      if (Array.isArray(itemStyle)) {
+        const style = itemStyle.find(s => s.index === i);
+        if (style) {
+          for (const [key, value] of Object.entries(style.styles)) {
+            d3.select(this).style(key, value);
+          }
+        }
+      }
+    });
 
   if (adjustLabels) {
     adjustGeneLabels(this, "text.label", labelAdjustmentOptions);

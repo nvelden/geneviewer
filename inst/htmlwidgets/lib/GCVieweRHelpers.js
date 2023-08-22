@@ -842,7 +842,9 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
   const defaultOptions = {
     title: "1 kb",
     scaleBarUnit: 1000,
-    y: 0,
+    x: 0, // default x offset
+    y: 10,
+    labelPosition: "left", // default label position
     font: {
       size: "10px",
       style: "normal",
@@ -859,7 +861,7 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
     font: { ...defaultOptions.font, ...options.font }
   };
 
-  const { y, font, title, scaleBarUnit } = mergedOptions;
+  const { x, y, font, title, scaleBarUnit, labelPosition } = mergedOptions;
 
   // Data processing
   const [minStart, maxStop] = [
@@ -874,9 +876,9 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
   // Calculate the length of the scale bar in pixels
   const scaleBarLength = xScale(minStart + scaleBarUnit);
 
-  // Create the group
+  // Create the group with the x offset applied
   const g = this.svg.append("g")
-    .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(font.size) - 5}, ${this.height - this.margin.bottom - this.margin.top})`);
+    .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(font.size) - 5 + x}, ${this.height - this.margin.bottom - this.margin.top})`);
 
   // Create the scale bar line
   g.append("line")
@@ -898,11 +900,15 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
       .attr("stroke-width", 1);
   });
 
+  // Determine the x position of the title based on the labelPosition
+  const titleX = labelPosition === "left" ? parseInt(font.size) : parseInt(font.size) + 5 + scaleBarLength;
+  const textAnchor = labelPosition === "left" ? "end" : "start";
+
   // Add the title
   g.append("text")
-    .attr("x", parseInt(font.size))
+    .attr("x", titleX)
     .attr("y", -y)
-    .style("text-anchor", "end")
+    .style("text-anchor", textAnchor)
     .style("dominant-baseline", "middle")
     .style("font-size", font.size)
     .style("font-style", font.style)
@@ -915,10 +921,9 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.labels = function (label, options = {}) {
+clusterContainer.prototype.labels = function (label, show = true, options = {}) {
 
-  // Return early if no label provided
-  if (!label) {
+  if (!show) {
     return this;
   }
 

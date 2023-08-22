@@ -2,33 +2,6 @@
 #' @export
 magrittr::`%>%`
 
-
-# check_columns_in_data <- function(data, group = NULL) {
-#
-#   group_eval <- enquo(group)
-#   group_char <- quo_name(group_eval)
-#
-#   # Check if the string names are present in the data's column names
-#   colnames_data <- colnames(data)
-#
-#   if (group_char != "NULL" && !(group_char %in% colnames_data)) {
-#     stop("group column not found in data")
-#   }
-#
-#   selection <- if((group_char != "NULL")) data[[group_char]] else NULL
-#
-#   return(selection)
-# }
-#
-#
-# data_example <- data.frame(value = 1:5)
-#
-# check_columns_in_data(data_example, value)
-# check_columns_in_data(data_example)
-# check_columns_in_data(data_example, x)
-
-
-
 #' @import htmlwidgets
 #' @export
 GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = NULL,
@@ -60,9 +33,11 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
 
   x <- list()
 
+  group <- if((group_char != "NULL")) group_char else NULL
+  show_legend <- if((group_char != "NULL")) TRUE else FALSE
+
   x$data <- data
-  x$grid <- list(left = "50px", right = "50px", top = 0, bottom = 0)
-  x$legend <- list(group = group_char, show = TRUE, position = "top")
+  x$legend <- list(group = group, show = show_legend, position = "top")
 
   cluster <- if((cluster_char != "NULL")) cluster_char else NULL
 
@@ -88,6 +63,7 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
     x$series[[clust]]$data$start <- subset_data[[start_col]]
     x$series[[clust]]$data$stop <- subset_data[[stop_col]]
     # Settings
+    x$series[[clust]]$grid <- list(left = "50px", right = "50px", top = 0, bottom = 0)
     x$series[[clust]]$title <- list()
     x$series[[clust]]$genes <- list(group = group_char, show = TRUE)
     x$series[[clust]]$labels <- list()
@@ -112,45 +88,101 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
 }
 
 #' @export
+GC_setOptions <- function(
+    GCVieweR,
+    setting = NULL,
+    cluster = NULL,
+    ...
+) {
+
+  # Capture ... arguments
+  dots <- list(...)
+
+  # Update the GCVieweR object with sequence options for each cluster
+  clusters <- names(GCVieweR$x$series)
+
+  # If cluster is NULL, update all clusters
+  if (is.null(cluster)) {
+    cluster <- clusters
+  } else if (is.numeric(cluster)) {
+    # If cluster is numeric, map the numbers to cluster names
+    if (any(cluster > length(clusters) | cluster < 1)) {
+      warning("Some cluster numbers provided are out of range. Please check the cluster numbers.")
+      return(GCVieweR)
+    }
+    cluster <- clusters[cluster]
+  } else if (!all(cluster %in% clusters)) {
+    warning("Some cluster names provided are not valid. Please check the cluster names.")
+    return(GCVieweR)
+  } else {
+    warning("The cluster argument has an incorrect format. Please provide valid cluster names or numbers.")
+    return(GCVieweR)
+  }
+
+  for(clust in cluster){
+
+    settings <- GCVieweR$x$series[[clust]][[setting]]
+    updated_settings <- modifyList(settings, dots)
+
+    # Set sequence options for each cluster
+    GCVieweR$x$series[[clust]][[setting]] <- updated_settings
+
+  }
+
+  return(GCVieweR)
+
+}
+
+
+#' @export
 GC_sequence <- function(
     GCVieweR,
     show = TRUE,
-    yOffset = 50,
-    start = NULL,
-    stop = NULL,
-    options = list()
+    option = NULL,
+    ...
 ) {
 
-  # Default options
-  defaultOptions <- list(
-    show = show,
-    y = yOffset,
-    start = start,
-    stop = stop
-  )
+  # Capture ... arguments
+  dots <- list(...)
 
-  # Merge user-specified options with defaults
-  opts <- modifyList(defaultOptions, options)
+  # Update the GCVieweR object with sequence options for each cluster
+  clusters <- names(GCVieweR$x$series)
 
-  # Update the GCVieweR object with scaleBar options
-  GCVieweR$x$GC_sequence$options <- opts
+  for(i in seq_along(clusters)){
+
+    # Default options
+    options <- list(
+      show = show[(i-1) %% length(show) + 1]
+    )
+
+    # Add ... arguments to options
+    for(name in names(dots)) {
+      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+    }
+
+    # Set sequence options for each cluster
+    GCVieweR$x$series[[clusters[i]]]$sequence <- options
+
+  }
 
   return(GCVieweR)
 }
 
 #' export
-GC_grid <- function(
-    GCVieweR,
-    left = NULL,
-    right = NULL,
-    top = NULL,
-    bottom = NULL) {
+GC_grid <- function(GCVieweR, left = NULL, right = NULL, top = NULL, bottom = NULL) {
 
+  # Initialize margins list
   margins <- list(left = left, right = right, top = top, bottom = bottom)
+  # Extract cluster names
+  clusters <- names(GCVieweR$x$series)
 
-  for (name in names(margins)) {
-    if (!is.null(margins[[name]])) {
-      GCVieweR$x$grid[[name]] <- margins[[name]]
+  for (i in seq_along(clusters)) {
+
+    # Loop over each margin and update the respective property in the 'grid' list
+    for (name in names(margins)) {
+      if (!is.null(margins[[name]])) {
+        GCVieweR$x$series[[clusters[i]]]$grid[[name]] <- margins[[name]]
+      }
     }
   }
 
@@ -161,25 +193,31 @@ GC_grid <- function(
 GC_scaleBar <- function(
     GCVieweR,
     show = TRUE,
-    title = "1 kb",
-    scaleBarUnit = 1000,
-    yOffset = 50,
-    options = list()
+    ...
 ) {
 
-  # Default options
-  defaultOptions <- list(
-    show = show,
-    title = title,
-    y = yOffset,
-    scaleBarUnit = scaleBarUnit
-  )
+  # Capture ... arguments
+  dots <- list(...)
 
-  # Merge user-specified options with defaults
-  opts <- modifyList(defaultOptions, options)
+  # Update the GCVieweR object with scaleBar options for each cluster
+  clusters <- names(GCVieweR$x$series)
 
-  # Update the GCVieweR object with scaleBar options
-  GCVieweR$x$GC_scaleBar$options <- opts
+  for(i in seq_along(clusters)){
+
+    # Default options
+    options <- list(
+      show = show[(i-1) %% length(show) + 1]
+    )
+
+    # Add ... arguments to options
+    for(name in names(dots)) {
+      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+    }
+
+    # Set scaleBar options for each cluster
+    GCVieweR$x$series[[clusters[i]]]$scaleBar <- options
+
+  }
 
   return(GCVieweR)
 }
@@ -189,31 +227,36 @@ GC_clusterLabel <- function(
     GCVieweR,
     title = NULL,
     show = TRUE,
-    position = "left",
-    xOffset = 0,
-    yOffset = 0,
     width = "100px",
-    wrapLabel = TRUE,
-    options = list()
+    ...
 ) {
 
-  # Default font options
-  defaultOptions <- list(
-    title = title,
-    show = show,
-    wrapLabel = wrapLabel,
-    position = position,
-    x = xOffset,
-    y = yOffset
-  )
+  # Capture ... arguments
+  dots <- list(...)
 
-  GCVieweR$x$GC_grid$left <- width
+  # Update the GCVieweR object with clusterLabel options for each cluster
+  clusters <- names(GCVieweR$x$series)
 
-  # Merge user-specified font options with defaults
-  opts <- modifyList(defaultOptions, options)
+  for(i in seq_along(clusters)){
 
-  # Update the GCVieweR object with labels and options
-  GCVieweR$x$GC_clusterLabel$options <- opts
+    # Default options
+    options <- list(
+      title = title[(i-1) %% length(title) + 1],
+      show = show[(i-1) %% length(show) + 1]
+    )
+
+    # Add ... arguments to options
+    for(name in names(dots)) {
+      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+    }
+
+    # Set clusterLabel options for each cluster
+    GCVieweR$x$series[[clusters[i]]]$clusterLabel <- options
+
+    # Set height for each cluster
+    GCVieweR$x$series[[clusters[i]]]$grid$left <- width[(i-1) %% length(width) + 1]
+
+  }
 
   return(GCVieweR)
 }
@@ -223,28 +266,34 @@ GC_footer <- function(
     GCVieweR,
     title = NULL,
     subtitle = NULL,
-    position = "left",
-    xOffset = -10,
-    yOffset = 20,
-    spacing = 15,
-    options = list()
+    show = TRUE,
+    ...
 ) {
 
-  # Default font options
-  defaultOptions <- list(
-    title = title,
-    subtitle = subtitle,
-    position = position,
-    spacing = spacing,
-    x = xOffset,
-    y = yOffset
-  )
+  # Capture ... arguments
+  dots <- list(...)
 
-  # Merge user-specified options with defaults
-  opts <- modifyList(defaultOptions, options)
+  # Update the GCVieweR object with footer options for each cluster
+  clusters <- names(GCVieweR$x$series)
 
-  # Update the GCVieweR object with labels and options
-  GCVieweR$x$GC_footer$options <- opts
+  for(i in seq_along(clusters)){
+
+    # Default options
+    options <- list(
+      title = title[(i-1) %% length(title) + 1],
+      subtitle = subtitle[(i-1) %% length(subtitle) + 1],
+      show = show[(i-1) %% length(show) + 1]
+    )
+
+    # Add ... arguments to options
+    for(name in names(dots)) {
+      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+    }
+
+    # Set footer options for each cluster
+    GCVieweR$x$series[[clusters[i]]]$footer <- options
+
+  }
 
   return(GCVieweR)
 }
@@ -253,66 +302,80 @@ GC_footer <- function(
 GC_labels <- function(
     GCVieweR,
     label,
-    y = 50,
-    start = NULL,
-    stop = NULL,
-    anchor = "middle",
-    dy = "-1em",
-    dx = "0em",
-    x = 0,
-    rotate = 0,
-    adjustLabels = TRUE,
-    options = list()
+    show = TRUE,
+    ...
 ) {
 
-  # Check if labels are provided
-  if (is.null(labels)) {
-    stop("Labels must be provided.")
+  label_eval <- rlang::enquo(label)
+  label_char <- rlang::quo_name(label_eval)
+
+  if (label_char == "NULL" && is.null(GCVieweR$x$legend$group)){
+    stop("Please define labels")
   }
 
-  label <- deparse(substitute(label))
+  if(label_char == "NULL" && !is.null(GCVieweR$x$legend$group)){
+    label_char <- GCVieweR$x$legend$group
+  }
 
-  # Default options
-  defaultOptions <- list(
-    label = label,
-    y = y,
-    start = start,
-    stop = stop,
-    anchor = anchor,
-    dy = dy,
-    dx = dx,
-    x = x,
-    adjustLabels = adjustLabels,
-    rotate = rotate,
-    options = list()
-  )
+  if (!(label_char %in% names(GCVieweR$x$data))) {
+    stop("label column not found in data")
+  }
 
-  # Merge user-specified options with defaults
-  opts <- modifyList(defaultOptions, options)
+  # Capture ... arguments
+  dots <- list(...)
 
-  # Update the GCVieweR object with labels and options
-  GCVieweR$x$GC_labels$options <- opts
+  # Update the GCVieweR object with labels options for each cluster
+  clusters <- names(GCVieweR$x$series)
+
+  for(i in seq_along(clusters)){
+
+    # Default options
+    options <- list(
+      label = label_char[(i-1) %% length(label_char) + 1],
+      show = show[(i-1) %% length(show) + 1]
+    )
+
+    # Add ... arguments to options
+    for(name in names(dots)) {
+      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+    }
+
+    # Set labels options for each cluster
+    GCVieweR$x$series[[clusters[i]]]$labels <- options
+
+  }
 
   return(GCVieweR)
 }
-
 #' @export
 GC_coordinates <- function(
     GCVieweR,
     show = TRUE,
-    options = list()
+    ...
 ) {
 
-  # Default options
-  defaultOptions <- list(
-    show = show
-  )
+  # Capture ... arguments
+  dots <- list(...)
 
-  # Merge user-specified options with defaults
-  opts <- modifyList(defaultOptions, options)
+  # Update the GCVieweR object with coordinates and options for each cluster
+  clusters <- names(GCVieweR$x$series)
 
-  # Update the GCVieweR object with coordinates and options
-  GCVieweR$x$GC_coordinates$options <- opts
+  for(i in seq_along(clusters)){
+
+    # Default options
+    options <- list(
+      show = show[(i-1) %% length(show) + 1]
+    )
+
+    # Add ... arguments to options
+    for(name in names(dots)) {
+      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+    }
+
+    # Set coordinates options for each cluster
+    GCVieweR$x$series[[clusters[i]]]$coordinates <- options
+
+  }
 
   return(GCVieweR)
 }
@@ -320,43 +383,48 @@ GC_coordinates <- function(
 #' @export
 GC_genes <- function(
     GCVieweR,
-    group,
+    group = NULL,
     show = TRUE,
-    y = 50,
-    start = NULL,
-    stop = NULL,
-    colorScheme = NULL,
-    customColors = NULL,
-    marker = "doubleArrow",
-    markerSize = 10,
-    strokeWidth = 1,
-    opacity = 1,
-    options = list()
+    ...
 ) {
 
-  group <- deparse(substitute(group))
+  group_eval <- rlang::enquo(group)
+  group_char <- rlang::quo_name(group_eval)
 
-  # Default options
-  defaultOptions <- list(
-    group = group,
-    show = show,
-    y = y,
-    start = start,
-    stop = stop,
-    colorScheme = colorScheme,
-    customColors = customColors,
-    marker = marker,
-    markerSize = markerSize,
-    strokeWidth = strokeWidth,
-    opacity = opacity,
-    options = list()
-  )
+  if (group_char == "NULL" && is.null(GCVieweR$x$legend$group)){
+    stop("Please define a group")
+  }
 
-  # Merge user-specified options with defaults
-  opts <- modifyList(defaultOptions, options)
+  if(group_char == "NULL" && !is.null(GCVieweR$x$legend$group)){
+    group_char <- GCVieweR$x$legend$group
+  }
 
-  # Update the GCVieweR object with genes and options
-  GCVieweR$x$GC_genes$options <- opts
+  if (!(group_char %in% names(GCVieweR$x$data))) {
+    stop("group column not found in data")
+  }
+
+  # Capture arguments
+  dots <- list(...)
+
+  # Update the GCVieweR object with genes options for each cluster
+  clusters <- names(GCVieweR$x$series)
+
+  for(i in seq_along(clusters)){
+
+    # Default options
+    options <- list(
+      group = group_char[(i-1) %% length(group_char) + 1],
+      show = show[(i-1) %% length(show) + 1]
+    )
+
+    # Add ... arguments to defaultOptions
+    for(name in names(dots)) {
+      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+    }
+
+    GCVieweR$x$series[[clusters[i]]]$genes <- options
+
+  }
 
   return(GCVieweR)
 }
@@ -364,18 +432,14 @@ GC_genes <- function(
 #' @export
 GC_title <- function(
     GCVieweR,
-    title = NULL,
-    subtitle = NULL,
+    title,
     show = TRUE,
     height = "50px",
-    spacing = 10,
-    position = "center",
-    xOffset = 10,
-    yOffset = 0,
-    options = list()
+    ...
 ) {
 
-  GCVieweR$x$grid$top <- height
+  # Capture ... arguments
+  dots <- list(...)
 
   # Update the GCVieweR object with title and options for each cluster
   clusters <- names(GCVieweR$x$series)
@@ -383,28 +447,23 @@ GC_title <- function(
   for(i in seq_along(clusters)){
 
     # Default options
-    defaultOptions <- list(
+    options <- list(
       title = title[(i-1) %% length(title) + 1],
-      show = show[(i-1) %% length(show) + 1],
-      subtitle = subtitle[(i-1) %% length(subtitle) + 1],
-      position = position[(i-1) %% length(position) + 1],
-      spacing = spacing[(i-1) %% length(spacing) + 1],
-      x = xOffset[(i-1) %% length(xOffset) + 1],
-      y = yOffset[(i-1) %% length(yOffset) + 1]
+      show = show
     )
 
-    # Recycle options for each cluster
-    recycledOptions <- lapply(options, function(opt) {
-      opt[(i-1) %% length(opt) + 1]
-    })
+    # Add arguments to options
+    for(name in names(dots)) {
+      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+    }
 
-    # Merge user-specified options with defaults
-    opts <- modifyList(defaultOptions, recycledOptions)
+    # Set height for each cluster
+    GCVieweR$x$series[[clusters[i]]]$grid$top <- height[(i-1) %% length(height) + 1]
 
-    GCVieweR$x$series[[clusters[i]]]$title <- opts
+    # Set title options for each cluster
+    GCVieweR$x$series[[clusters[i]]]$title <- options
 
   }
-
   return(GCVieweR)
 }
 
@@ -413,48 +472,41 @@ GC_legend <- function(
     GCVieweR,
     group = NULL,
     show = TRUE,
-    position = "top",
-    orientation = "horizontal",
-    height = NULL,
-    xOffset = 10,
-    yOffset = 10,
-    margin = list(top = 0, right = 0, bottom = 0, left = 0),
-    backgroundColor = "#FFF",
-    options = list()
+    ...
 ) {
 
   group_eval <- rlang::enquo(group)
   group_char <- rlang::quo_name(group_eval)
 
-  if (group_char == "NULL" && GCVieweR$x$legend$group == "NULL"){
+  if (group_char == "NULL" && is.null(GCVieweR$x$legend$group)){
     stop("Please define a group")
+  }
+
+  if(group_char == "NULL" && !is.null(GCVieweR$x$legend$group)){
+    group_char <- GCVieweR$x$legend$group
   }
 
   if (!(group_char %in% names(GCVieweR$x$data))) {
     stop("group column not found in data")
   }
 
-  if(group_char == "NULL" && GCVieweR$x$legend$group != "NULL"){
-    group_char <- GCVieweR$x$legend$group
-  }
+  clusters <- names(GCVieweR$x$series)
 
-  # Define default options
-  defaultOptions <- list(
-    x = xOffset,
-    y = yOffset,
+  # Capture arguments
+  dots <- list(...)
+
+  # Default options
+  options <- list(
     group = group_char,
-    show = show,
-    margin = margin,
-    height = height,
-    position = position,
-    backgroundColor = backgroundColor,
-    orientation = orientation
+    show = show
   )
 
-  # Merge user-specified options with defaults
-  opts <- modifyList(defaultOptions, options)
+  # Add ... arguments to defaultOptions
+  for(name in names(dots)) {
+    options[[name]] <- dots[[name]]
+  }
 
-  GCVieweR$x$legend <- opts
+  GCVieweR$x$legend <- options
 
   return(GCVieweR)
 }

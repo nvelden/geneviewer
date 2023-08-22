@@ -5,25 +5,13 @@ HTMLWidgets.widget({
   factory: function(el, width, height) {
     var data,
         series,
-        gridOptions,
         legendOptions;
+
     var draw = function(width, height, backgroundColor) {
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
 
-      // Compute margins
-      var margins = { top: 0, right: 0, bottom: 0, left: 0 }
-      if (Object.keys(gridOptions).length > 0) {
-          margins = {
-              top: computeSize(gridOptions.top || 0, height),
-              right: computeSize(gridOptions.right || 0, width),
-              bottom: computeSize(gridOptions.bottom || 0, height),
-              left: computeSize(gridOptions.left || 0, width)
-          };
-         }
-
       var legendHeight = (legendOptions?.show === false) ? 0 : computeSize(legendOptions?.height, height);
-      //var groupedData = d3.flatGroup(data, (d) => d.cluster);
 
       if (legendOptions?.group !== null && legendOptions?.show) {
 
@@ -57,6 +45,19 @@ var clusters = Object.keys(series);
 
 clusters.forEach(function(clusterKey) {
 
+  // Compute margins
+      var margins = { top: 0, right: 0, bottom: 0, left: 0 }
+      var grid = series[clusterKey].grid
+
+      if (Object.keys(grid).length > 0) {
+          margins = {
+              top: computeSize(grid.top || 0, height),
+              right: computeSize(grid.right || 0, width),
+              bottom: computeSize(grid.bottom || 0, height),
+              left: computeSize(grid.left || 0, width)
+          };
+         }
+
     var cluster = series[clusterKey],
         clusterData = HTMLWidgets.dataframeToD3(series[clusterKey].data),
         titleOptions = cluster.title,
@@ -74,7 +75,7 @@ clusters.forEach(function(clusterKey) {
         height: clusterHeight / clusters.length
     };
 
-    if (Object.keys(gridOptions).length > 0) {
+    if (Object.keys(grid).length > 0) {
         clusterOptions.margin = margins;
     }
 
@@ -87,7 +88,7 @@ clusters.forEach(function(clusterKey) {
         .sequence(sequenceOptions?.show ?? false, sequenceOptions)
         .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)
         .coordinates(coordinateOptions?.show ?? false, coordinateOptions)
-        .labels(labelOptions?.label, labelOptions)
+        .labels(labelOptions?.label, labelOptions?.show ?? false, labelOptions)
         .scaleBar(scaleBarOptions?.show ?? false, scaleBarOptions);
 });
 
@@ -118,7 +119,6 @@ clusters.forEach(function(clusterKey) {
       renderValue: function(input) {
         data = HTMLWidgets.dataframeToD3(input.data);
         series = input.series;
-        gridOptions = input.grid;
         legendOptions = input.legend;
         draw(width, height);
       },

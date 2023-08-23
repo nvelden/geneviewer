@@ -37,6 +37,7 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
   show_legend <- if((group_char != "NULL")) TRUE else FALSE
 
   x$data <- data
+  x$group <- group
   x$legend <- list(group = group, show = show_legend, position = "top")
 
   cluster <- if((cluster_char != "NULL")) cluster_char else NULL
@@ -62,9 +63,11 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
     x$series[[clust]]$data <- subset_data
     x$series[[clust]]$data$start <- subset_data[[start_col]]
     x$series[[clust]]$data$stop <- subset_data[[stop_col]]
+    x$series[[clust]]$data$cluster <- clust
     # Settings
     x$series[[clust]]$grid <- list(left = "50px", right = "50px", top = 0, bottom = 0)
     x$series[[clust]]$title <- list()
+    x$series[[clust]]$markers <- list(group = group_char, show = TRUE)
     x$series[[clust]]$genes <- list(group = group_char, show = TRUE)
     x$series[[clust]]$labels <- list()
     x$series[[clust]]$cluster <- list()
@@ -86,6 +89,8 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
   )
 
 }
+
+#GC_item("markers", 1, itemStyle = list(list(index = 1, styles = list(opacity = 0.1))))
 
 #' @export
 GC_item <- function(
@@ -132,7 +137,6 @@ GC_item <- function(
   return(GCVieweR)
 
 }
-
 
 #' @export
 GC_sequence <- function(
@@ -309,12 +313,12 @@ GC_labels <- function(
   label_eval <- rlang::enquo(label)
   label_char <- rlang::quo_name(label_eval)
 
-  if (label_char == "NULL" && is.null(GCVieweR$x$legend$group)){
+  if (label_char == "NULL" && is.null(GCVieweR$x$group)){
     stop("Please define labels")
   }
 
-  if(label_char == "NULL" && !is.null(GCVieweR$x$legend$group)){
-    label_char <- GCVieweR$x$legend$group
+  if(label_char == "NULL" && !is.null(GCVieweR$x$group)){
+    label_char <- GCVieweR$x$group
   }
 
   if (!(label_char %in% names(GCVieweR$x$data))) {
@@ -391,12 +395,12 @@ GC_genes <- function(
   group_eval <- rlang::enquo(group)
   group_char <- rlang::quo_name(group_eval)
 
-  if (group_char == "NULL" && is.null(GCVieweR$x$legend$group)){
+  if (group_char == "NULL" && is.null(GCVieweR$x$group)){
     stop("Please define a group")
   }
 
-  if(group_char == "NULL" && !is.null(GCVieweR$x$legend$group)){
-    group_char <- GCVieweR$x$legend$group
+  if(group_char == "NULL" && !is.null(GCVieweR$x$group)){
+    group_char <- GCVieweR$x$group
   }
 
   if (!(group_char %in% names(GCVieweR$x$data))) {
@@ -428,6 +432,56 @@ GC_genes <- function(
 
   return(GCVieweR)
 }
+
+#' @export
+GC_markers <- function(
+    GCVieweR,
+    group = NULL,
+    show = TRUE,
+    ...
+) {
+
+  group_eval <- rlang::enquo(group)
+  group_char <- rlang::quo_name(group_eval)
+
+  if (group_char == "NULL" && is.null(GCVieweR$x$group)){
+    stop("Please define a group")
+  }
+
+  if(group_char == "NULL" && !is.null(GCVieweR$x$group)){
+    group_char <- GCVieweR$x$group
+  }
+
+  if (!(group_char %in% names(GCVieweR$x$data))) {
+    stop("group column not found in data")
+  }
+
+  # Capture arguments
+  dots <- list(...)
+
+  # Update the GCVieweR object with markers options for each cluster
+  clusters <- names(GCVieweR$x$series)
+
+  for(i in seq_along(clusters)){
+
+    # Default options
+    options <- list(
+      group = group_char[(i-1) %% length(group_char) + 1],
+      show = show[(i-1) %% length(show) + 1]
+    )
+
+    # Add ... arguments to defaultOptions
+    for(name in names(dots)) {
+      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+    }
+
+    GCVieweR$x$series[[clusters[i]]]$markers <- options
+
+  }
+
+  return(GCVieweR)
+}
+
 
 #' @export
 GC_title <- function(
@@ -478,12 +532,12 @@ GC_legend <- function(
   group_eval <- rlang::enquo(group)
   group_char <- rlang::quo_name(group_eval)
 
-  if (group_char == "NULL" && is.null(GCVieweR$x$legend$group)){
+  if (group_char == "NULL" && is.null(GCVieweR$x$group)){
     stop("Please define a group")
   }
 
-  if(group_char == "NULL" && !is.null(GCVieweR$x$legend$group)){
-    group_char <- GCVieweR$x$legend$group
+  if(group_char == "NULL" && !is.null(GCVieweR$x$group)){
+    group_char <- GCVieweR$x$group
   }
 
   if (!(group_char %in% names(GCVieweR$x$data))) {

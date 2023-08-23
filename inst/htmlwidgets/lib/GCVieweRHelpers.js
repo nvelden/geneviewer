@@ -632,7 +632,7 @@ clusterContainer.prototype.sequence = function (show = true, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.genes = function(group, show = true, options = {}) {
+clusterContainer.prototype.markers = function(group, show = true, options = {}) {
 
   if (!show) {
     return this;
@@ -640,28 +640,40 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 
   // Verify that the data exists
   if (!this.data) {
-    console.error('No data has been added to this cluster container. Please use the addGeneData() function before attempting to draw genes.');
+    console.error('No data has been added to this cluster container. Please use the geneData() function before attempting to draw markers.');
     return this;
   }
 
-  const defaultOptions = {
+const defaultOptions = {
+    x: 0,   // default x offset value
     y: 50,  // default y value
     start: null,
     stop: null,
+    size: 10,
     colorScheme: null,
     customColors: null,
-    marker: "doubleArrow",
-    markerSize: 10,
-    strokeWidth: 1,
-    opacity: 1
+    marker: "arrow",
+    opacity: 1,
+    stroke: "none",  // default stroke color
+    strokeWidth: 1,  // default stroke width
+    itemStyle: [
+      {
+        index: 1,
+        opacity : 0
+      },
+      {
+        index: 0,
+        opacity : 0
+      }
+    ]
   };
 
   // If theme options exist, use them as the default options
   if (this.themeOptions && this.themeOptions.genesOptions) {
-    options = { ...this.themeOptions.genesOptions, ...options };
+    options = { ...this.themeOptions.markersOptions, ...options };
   }
 
-  const { y, colorScheme, customColors, marker, start, stop, markerSize, strokeWidth, opacity } = { ...defaultOptions, ...options };
+  const { x, y, start, stop, size, colorScheme, customColors, marker, opacity, stroke, strokeWidth, itemStyle } = { ...defaultOptions, ...options };
 
   // Data processing
   var maxStop = stop || d3.max(this.data, (d) => d.stop);
@@ -685,14 +697,103 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     colorScale = d3.scaleOrdinal(d3.schemeCategory10);
   }
 
-  // Call the createMarker function
-  createMarker(this.svg, this.data, colorScale, group, marker, markerSize);
+  // Create the group
+  var g = this.svg.append("g")
+    .attr("transform", "translate(" + (this.margin.left) + "," + this.margin.top + ")");  // Apply x offset here
+
+  var offset = size / 2; // half the size of the marker
+  var yPos = yScale(y);
+
+// Create triangles
+  g.selectAll(".marker")
+   .data(this.data)
+   .enter()
+   .append("path")
+   .attr("d", d => {
+    const xPos = d.direction === 'forward' ? xScale(d.stop ) - offset + x : xScale(d.start) + offset - x;
+    return getMarker(marker, xPos, yPos, size);
+   })
+   .attr("fill", (d) => colorScale(d[group]))
+   .attr("stroke", stroke)  // Apply stroke color
+   .attr("stroke-width", strokeWidth)
+   .attr("opacity", opacity)
+   .attr("transform", d => {
+       const xPos = d.direction === 'forward' ? xScale(d.stop ) - offset + x : xScale(d.start) + offset - x;
+       const rotation = d.direction === 'forward' ? 90 : -90;
+       return `rotate(${rotation}, ${xPos}, ${yPos})`;
+   })
+   .each(function (d, i) {
+      // Apply itemStyle based on the index
+      if (Array.isArray(options.itemStyle)) {
+        const style = options.itemStyle.find(s => s.index === i);
+        if (style) {
+          for (const [key, value] of Object.entries(style.styles)) {
+            d3.select(this).style(key, value);
+          }
+        }
+      }
+  });
+
+  return this;
+};
+
+clusterContainer.prototype.genes = function(group, show = true, options = {}) {
+
+  if (!show) {
+    return this;
+  }
+
+  // Verify that the data exists
+  if (!this.data) {
+    console.error('No data has been added to this cluster container. Please use the geneData() function before attempting to draw genes.');
+    return this;
+  }
+
+  const defaultOptions = {
+    x: -5,
+    y: 50,  // default y value
+    start: null,
+    stop: null,
+    colorScheme: null,
+    customColors: null,
+    marker: "doubleArrow",
+    strokeWidth: 3,
+    opacity: 1,
+    itemStyle: [{index: 1, styles: {opacity: 0.5}}]
+  };
+
+  // If theme options exist, use them as the default options
+  if (this.themeOptions && this.themeOptions.genesOptions) {
+    options = { ...this.themeOptions.genesOptions, ...options };
+  }
+
+  const { x, y, start, stop, colorScheme, customColors, marker, markerSize, strokeWidth, opacity } = { ...defaultOptions, ...options };
+
+  // Data processing
+  var maxStop = stop || d3.max(this.data, (d) => d.stop);
+  var minStart = start || d3.min(this.data, (d) => d.start);
+
+  var xScale = d3.scaleLinear()
+    .domain([minStart, maxStop])
+    .range([0, this.width - this.margin.left - this.margin.right]);
+
+  var yScale = d3.scaleLinear()
+    .domain([0, 100])
+    .range([this.height - this.margin.bottom - this.margin.top , 0]);
+
+  // Color Scale Setup
+  let colorScale;
+  if (colorScheme) {
+    colorScale = d3.scaleOrdinal(d3[colorScheme]);
+  } else if (customColors && customColors.length > 0) {
+    colorScale = d3.scaleOrdinal().range(customColors);
+  } else {
+    colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+  }
 
   // Create the group
   var g = this.svg.append("g")
     .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-
-  var markerAdjust = markerSize * strokeWidth;
 
   // Draw Genes
   var gene = g
@@ -704,15 +805,22 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     .attr("x1", (d) => d.direction === 'forward' ? xScale(d.start) : xScale(d.stop))
     .attr("y1", yScale(y))
     .attr("x2", (d) => d.direction === 'forward' ?
-    Math.max(xScale(d.start), (xScale(d.stop) + 5  - markerAdjust)) :
-    Math.min(xScale(d.stop) - 1, (xScale(d.start) - 5 + markerAdjust)))
+      Math.max(xScale(d.start), (xScale(d.stop) + x)) :
+      Math.min(xScale(d.stop), (xScale(d.start) - x)))
     .attr("y2", yScale(y))
     .attr("stroke-width", strokeWidth)
-    .attr("marker-end", (d) => "url(#" + d.name + ")")
     .attr("opacity", opacity)
-    .each(function (d) {
-        const groupColor = colorScale(d[group]); // Use color from the color array or default to colorScale
-        d3.select(this).attr("stroke", groupColor);
+    .attr("stroke", (d) => colorScale(d[group]))
+    .each(function (d, i) {
+        // Apply itemStyle based on the index
+        if (Array.isArray(options.itemStyle)) {
+          const style = options.itemStyle.find(s => s.index === i);
+          if (style) {
+            for (const [key, value] of Object.entries(style.styles)) {
+              d3.select(this).style(key, value);
+            }
+          }
+        }
     });
 
   return this;

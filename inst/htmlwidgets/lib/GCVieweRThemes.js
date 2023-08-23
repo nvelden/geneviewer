@@ -30,67 +30,14 @@ const themes = {
         dashArray: null
       }
     },
-    genesOptions: {
-    y: 50,  // default y value
-    start: null,
-    stop: null,
-    colorScheme: null,
-    customColors: null,
-    marker: "arrowHead",
-    markerSize: 10,
-    strokeWidth: 1,
-    opacity: 1
-    }
   },
 };
 
-
-function createMarker(svg, data, colorScale, color, name, size = 20) {
-const markers = {
-    "arrowHead": {
-        orient: "auto",
-        markerUnits: "strokeWidth",
-        markerWidth: size,
-        markerHeight: size,
-        refX: 1,
-        refY: 5,
-        viewBox: "0 0 10 10",
-        pathD: "M 0 0 L 8 5 L 0 10 Z",
-        pathClass: "triangleArrow"
-    },
-    "doubleArrow": {
-        orient: "auto",
-        markerUnits: "strokeWidth",
-        markerWidth: size,
-        markerHeight: size,
-        refX: 1,
-        refY: 5,
-        viewBox: "0 0 10 10",
-        pathD: "M 0 0 L 8 5 L 0 10 L 2.5 5 L 0 0",
-        pathClass: "doubleArrow"
+function getMarker(markerName, xPos, yPos, size) {
+    switch (markerName) {
+        case "arrow":
+            return `M ${xPos} ${yPos - size/2} L ${xPos + size/2} ${yPos + size/2} L ${xPos - size/2} ${yPos + size/2} Z`;
+        default:
+            return ""; // Default empty path
     }
-};
-
-    const markerDefinition = markers[name];
-    if (!markerDefinition) {
-        console.error(`Marker "${name}" not found.`);
-        return;
-    }
-
-    svg.append("defs")
-       .selectAll("marker")
-       .data(data)
-       .enter()
-       .append("marker")
-       .attr("id", (d) => d.name)
-       .attr("orient", markerDefinition.orient)
-       .attr("markerWidth", markerDefinition.markerWidth)
-       .attr("markerHeight", markerDefinition.markerHeight)
-       .attr("refX", markerDefinition.refX)
-       .attr("refY", markerDefinition.refY)
-       .attr("viewBox", markerDefinition.viewBox)
-       .append("path")
-       .attr("d", markerDefinition.pathD)
-       .attr("class", markerDefinition.pathClass)
-       .attr("fill", (d) => colorScale(d[color]));
 }

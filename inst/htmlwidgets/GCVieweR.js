@@ -66,6 +66,7 @@ clusters.forEach(function(clusterKey) {
         labelOptions = cluster.labels,
         sequenceOptions = cluster.sequence,
         geneOptions = cluster.genes,
+        markerOptions = cluster.markers
         coordinateOptions = clusterData.coordinates;
         scaleBarOptions = cluster.scaleBar;
 
@@ -86,6 +87,7 @@ clusters.forEach(function(clusterKey) {
         .clusterLabel(clusterLabelOptions?.title, clusterLabelOptions?.show ?? false, clusterLabelOptions)
         .geneData(clusterData)  // Access data using the cluster key
         .sequence(sequenceOptions?.show ?? false, sequenceOptions)
+        .markers(markerOptions?.group, markerOptions?.show ?? false, markerOptions)
         .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)
         .coordinates(coordinateOptions?.show ?? false, coordinateOptions)
         .labels(labelOptions?.label, labelOptions?.show ?? false, labelOptions)

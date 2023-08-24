@@ -214,6 +214,10 @@ function adjustGeneLabels(clusterContainer, labelSelector, options = {}) {
     return clusterContainer;
 }
 
+function camelToKebab(string) {
+    return string.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
+}
+
 // CLuster
 
 function clusterContainer(svg, margin, width, height) {
@@ -644,28 +648,16 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
     return this;
   }
 
-const defaultOptions = {
-    x: 0,   // default x offset value
-    y: 50,  // default y value
+  const defaultOptions = {
+    x: 0,
+    y: 50,
     start: null,
     stop: null,
     size: 10,
     colorScheme: null,
     customColors: null,
     marker: "arrow",
-    opacity: 1,
-    stroke: "none",  // default stroke color
-    strokeWidth: 1,  // default stroke width
-    itemStyle: [
-      {
-        index: 1,
-        opacity : 0
-      },
-      {
-        index: 0,
-        opacity : 0
-      }
-    ]
+    itemStyle: [] // {index: 1, strokeWidth : 10, stroke : "black"}
   };
 
   // If theme options exist, use them as the default options
@@ -673,7 +665,16 @@ const defaultOptions = {
     options = { ...this.themeOptions.markersOptions, ...options };
   }
 
-  const { x, y, start, stop, size, colorScheme, customColors, marker, opacity, stroke, strokeWidth, itemStyle } = { ...defaultOptions, ...options };
+  const combinedOptions = { ...defaultOptions, ...options };
+  const { x, y, start, stop, size, colorScheme, customColors, marker, itemStyle } = { ...defaultOptions, ...options };
+
+  // Extract additional options that are not in defaultOptions
+  const additionalOptions = Object.keys(combinedOptions).reduce((acc, key) => {
+  if (!(key in defaultOptions)) {
+    acc[key] = combinedOptions[key];
+  }
+  return acc;
+  }, {});
 
   // Data processing
   var maxStop = stop || d3.max(this.data, (d) => d.stop);
@@ -701,34 +702,49 @@ const defaultOptions = {
   var g = this.svg.append("g")
     .attr("transform", "translate(" + (this.margin.left) + "," + this.margin.top + ")");  // Apply x offset here
 
-  var offset = size / 2; // half the size of the marker
-  var yPos = yScale(y);
+  const getAttributesForIndex = (d, i) => {
+    const style = itemStyle.find(s => s.index === i) || {};
+    const currentX = style.x || x;
+    const currentY = style.y || y;
+    const currentSize = style.size || size;
+    const currentMarker = style.marker || marker;
 
-// Create triangles
+    const offset = currentSize / 2;
+    const yPos = yScale(currentY);
+    const xPos = d.direction === 'forward' ? xScale(d.stop) - offset + currentX : xScale(d.start) + offset - currentX;
+
+    return { xPos, yPos, currentSize, currentMarker };
+   };
+
+  // Create triangles
   g.selectAll(".marker")
    .data(this.data)
    .enter()
    .append("path")
-   .attr("d", d => {
-    const xPos = d.direction === 'forward' ? xScale(d.stop ) - offset + x : xScale(d.start) + offset - x;
-    return getMarker(marker, xPos, yPos, size);
-   })
+   .attr("d", (d, i) => {
+      const { xPos, yPos, currentSize, currentMarker } = getAttributesForIndex(d, i);
+      return getMarker(currentMarker, xPos, yPos, currentSize);
+    })
+    .attr("transform", (d, i) => {
+      const { xPos, yPos } = getAttributesForIndex(d, i);
+      const rotation = d.direction === 'forward' ? 90 : -90;
+      return `rotate(${rotation}, ${xPos}, ${yPos})`;
+    })
    .attr("fill", (d) => colorScale(d[group]))
-   .attr("stroke", stroke)  // Apply stroke color
-   .attr("stroke-width", strokeWidth)
-   .attr("opacity", opacity)
-   .attr("transform", d => {
-       const xPos = d.direction === 'forward' ? xScale(d.stop ) - offset + x : xScale(d.start) + offset - x;
-       const rotation = d.direction === 'forward' ? 90 : -90;
-       return `rotate(${rotation}, ${xPos}, ${yPos})`;
-   })
    .each(function (d, i) {
-      // Apply itemStyle based on the index
-      if (Array.isArray(options.itemStyle)) {
-        const style = options.itemStyle.find(s => s.index === i);
-        if (style) {
-          for (const [key, value] of Object.entries(style.styles)) {
-            d3.select(this).style(key, value);
+      const currentElement = d3.select(this);
+
+      // Set additional options as attributes
+      for (const [key, value] of Object.entries(additionalOptions)) {
+        currentElement.attr(camelToKebab(key), value);
+      }
+
+      // Override with itemStyle based on the index
+      const style = itemStyle.find(s => s.index === i);
+      if (style) {
+        for (const [key, value] of Object.entries(style)) {
+          if (key !== 'index') {
+            currentElement.style(camelToKebab(key), value);
           }
         }
       }
@@ -756,10 +772,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     stop: null,
     colorScheme: null,
     customColors: null,
-    marker: "doubleArrow",
-    strokeWidth: 3,
-    opacity: 1,
-    itemStyle: [{index: 1, styles: {opacity: 0.5}}]
+    itemStyle: [] //[{index: 1,opacity: 0.5}]
   };
 
   // If theme options exist, use them as the default options
@@ -767,7 +780,16 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     options = { ...this.themeOptions.genesOptions, ...options };
   }
 
-  const { x, y, start, stop, colorScheme, customColors, marker, markerSize, strokeWidth, opacity } = { ...defaultOptions, ...options };
+  const combinedOptions = { ...defaultOptions, ...options };
+  const { x, y, start, stop, colorScheme, customColors, itemStyle } = { ...defaultOptions, ...options };
+
+  // Extract additional options that are not in defaultOptions
+  const additionalOptions = Object.keys(combinedOptions).reduce((acc, key) => {
+    if (!(key in defaultOptions)) {
+      acc[key] = combinedOptions[key];
+    }
+    return acc;
+  }, {});
 
   // Data processing
   var maxStop = stop || d3.max(this.data, (d) => d.stop);
@@ -792,9 +814,21 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
   }
 
   // Create the group
-  var g = this.svg.append("g")
+  const g = this.svg.append("g")
     .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
+
+  const getAttributesForIndex = (d, i) => {
+    const style = itemStyle.find(s => s.index === i) || {};
+    const currentX = style.x || x;
+    const currentY = style.y || y;
+
+    const xPosStart = d.direction === 'forward' ? xScale(d.start) : xScale(d.stop);
+    const xPosEnd = d.direction === 'forward' ? Math.max(xScale(d.start), (xScale(d.stop) + currentX)) : Math.min(xScale(d.stop), (xScale(d.start) - currentX));
+    const yPos = yScale(currentY);
+
+    return { xPosStart, xPosEnd, yPos };
+  };
   // Draw Genes
   var gene = g
     .selectAll(".geneline")
@@ -802,26 +836,29 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     .enter()
     .append("line")
     .attr("class", "geneline")
-    .attr("x1", (d) => d.direction === 'forward' ? xScale(d.start) : xScale(d.stop))
-    .attr("y1", yScale(y))
-    .attr("x2", (d) => d.direction === 'forward' ?
-      Math.max(xScale(d.start), (xScale(d.stop) + x)) :
-      Math.min(xScale(d.stop), (xScale(d.start) - x)))
-    .attr("y2", yScale(y))
-    .attr("stroke-width", strokeWidth)
-    .attr("opacity", opacity)
+    .attr("x1", (d, i) => getAttributesForIndex(d, i).xPosStart)
+    .attr("y1", (d, i) => getAttributesForIndex(d, i).yPos)
+    .attr("x2", (d, i) => getAttributesForIndex(d, i).xPosEnd)
+    .attr("y2", (d, i) => getAttributesForIndex(d, i).yPos)
     .attr("stroke", (d) => colorScale(d[group]))
-    .each(function (d, i) {
-        // Apply itemStyle based on the index
-        if (Array.isArray(options.itemStyle)) {
-          const style = options.itemStyle.find(s => s.index === i);
-          if (style) {
-            for (const [key, value] of Object.entries(style.styles)) {
-              d3.select(this).style(key, value);
-            }
+   .each(function (d, i) {
+      const currentElement = d3.select(this);
+
+      // Set additional options as attributes
+      for (const [key, value] of Object.entries(additionalOptions)) {
+        currentElement.attr(camelToKebab(key), value);
+      }
+
+      // Override with itemStyle based on the index
+      const style = itemStyle.find(s => s.index === i);
+      if (style) {
+        for (const [key, value] of Object.entries(style)) {
+          if (key !== 'index') {
+            currentElement.style(camelToKebab(key), value);
           }
         }
-    });
+      }
+  });
 
   return this;
 };

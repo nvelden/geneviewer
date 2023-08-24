@@ -67,7 +67,7 @@ clusters.forEach(function(clusterKey) {
         sequenceOptions = cluster.sequence,
         geneOptions = cluster.genes,
         markerOptions = cluster.markers
-        coordinateOptions = clusterData.coordinates;
+        coordinateOptions = cluster.coordinates;
         scaleBarOptions = cluster.scaleBar;
 
     var clusterHeight = Math.floor(el.clientHeight - legendHeight);
@@ -79,6 +79,8 @@ clusters.forEach(function(clusterKey) {
     if (Object.keys(grid).length > 0) {
         clusterOptions.margin = margins;
     }
+
+    console.log(coordinateOptions)
 
     var cluster = createClusterContainer("#GCvieweR-graph-container", clusterOptions)
         .theme("preset")

@@ -911,14 +911,13 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.coordinates = function (coordinates, show = true, options = {}) {
+clusterContainer.prototype.coordinates = function (show = true, options = {}) {
 
   if (!show) {
     return this;
   }
-
+console.log(options)
   const defaultOptions = {
-    axis: {
       start: null,
       stop: null,
       rotate: -45,
@@ -926,29 +925,27 @@ clusterContainer.prototype.coordinates = function (coordinates, show = true, opt
       yPositionBottom: 45,  // position for bottom axis
       tickValues: null,  // add an option to provide your own tick values
       tickValueThreshold: 300
-    },
-    font: {
-      size: "10px",
-      style: "normal",
-      weight: "normal",
-      decoration: "none",
-      family: "sans-serif",
-      color: "black"
+  };
+
+  // If theme options exist, use them as the default options
+  if (this.themeOptions && this.themeOptions.coordinatesOptions) {
+    options = { ...this.themeOptions.coordinatesOptions, ...options };
+  }
+
+  const combinedOptions = { ...defaultOptions, ...options };
+  const { start, stop, rotate, yPositionTop, yPositionBottom, tickValues, tickValueThreshold } = { ...defaultOptions, ...options };
+
+  // Extract additional options that are not in defaultOptions
+  const additionalOptions = Object.keys(combinedOptions).reduce((acc, key) => {
+    if (!(key in defaultOptions)) {
+      acc[key] = combinedOptions[key];
     }
-  };
-
-  const mergedOptions = {
-    ...defaultOptions,
-    ...options,
-    axis: { ...defaultOptions.axis, ...options.axis },
-    font: { ...defaultOptions.font, ...options.font }
-  };
-
-  const { axis, font } = mergedOptions;
+    return acc;
+  }, {});
 
   // Data processing
-  var maxStop =  axis.stop || d3.max(this.data, (d) => d.stop);
-  var minStart = axis.start || d3.min(this.data, (d) => d.start);
+  var maxStop = stop || d3.max(this.data, (d) => d.stop);
+  var minStart = start || d3.min(this.data, (d) => d.start);
 
   var xScale = d3.scaleLinear()
     .domain([minStart, maxStop])
@@ -963,7 +960,7 @@ clusterContainer.prototype.coordinates = function (coordinates, show = true, opt
     .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
   // Get all start and stop values
-  var allTickValues = axis.tickValues || this.data.reduce((acc, d) => {
+  var allTickValues = tickValues || this.data.reduce((acc, d) => {
     acc.push(d.start);
     acc.push(d.stop);
     return acc;
@@ -972,60 +969,59 @@ clusterContainer.prototype.coordinates = function (coordinates, show = true, opt
   // Sort the array in ascending order
   allTickValues.sort((a, b) => a - b);
 
-var tickValuesTop = [];
-var tickValuesBottom = allTickValues.filter((value, index, array) => {
+  var tickValuesTop = [];
+  var tickValuesBottom = allTickValues.filter((value, index, array) => {
     if (index === 0) return true; // Always include the first element
     var diff = value - array[index - 1];
-    if (diff < axis.tickValueThreshold) {
+    if (diff < tickValueThreshold) {
         tickValuesTop.push(value);
         return false; // Exclude this value from the new array
     }
     return true; // Include this value in the new array
-});
+  });
 
   // Add X-axis scale at the top
-var xAxisTop = g.append("g")
-  .attr("transform", "translate(0," + yScale(axis.yPositionTop) + ")")
-  .call(d3.axisTop(xScale).tickValues(tickValuesTop));
+  var xAxisTop = g.append("g")
+    .attr("transform", "translate(0," + yScale(yPositionTop) + ")")
+    .call(d3.axisTop(xScale).tickValues(tickValuesTop));
 
-// Add X-axis scale at the bottom
-var xAxisBottom = g.append("g")
-  .attr("transform", "translate(0," + yScale(axis.yPositionBottom) + ")")
-  .call(d3.axisBottom(xScale).tickValues(tickValuesBottom));
+  // Add X-axis scale at the bottom
+  var xAxisBottom = g.append("g")
+    .attr("transform", "translate(0," + yScale(yPositionBottom) + ")")
+    .call(d3.axisBottom(xScale).tickValues(tickValuesBottom));
 
-// Hide axis line
-xAxisTop.select(".domain").attr("stroke", "none");
-xAxisBottom.select(".domain").attr("stroke", "none");
+  // Hide axis line
+  xAxisTop.select(".domain").attr("stroke", "none");
+  xAxisBottom.select(".domain").attr("stroke", "none");
 
-xAxisTop.selectAll("text")
-  .attr("class", "coordinate")
-  .style("text-anchor", "end")  // Change to 'end'
-  .attr("dx", "-.8em")  // Change sign to '-'
-  .attr("dy", ".4em")  // Change sign to '+'
-  .attr("transform", "rotate(" + (-axis.rotate) + ")")  // Change sign to '-'
-  .style("font-size", font.size)
-  .style("font-style", font.style)
-  .style("font-weight", font.weight)
-  .style("text-decoration", font.decoration)
-  .style("font-family", font.family)
-  .style("color", font.color);
+  xAxisTop.selectAll("text")
+    .attr("class", "coordinate")
+    .style("text-anchor", "end")
+    .attr("dx", "-.8em")
+    .attr("dy", ".4em")
+    .attr("transform", "rotate(" + (-rotate) + ")")
+    .each(function() {
+      const currentElement = d3.select(this);
+      for (const [key, value] of Object.entries(additionalOptions)) {
+        currentElement.style(camelToKebab(key), value);
+      }
+    });
 
-xAxisBottom.selectAll("text")
-  .attr("class", "coordinate")
-  .style("text-anchor", "start")  // Change to 'start'
-  .attr("dx", ".8em")  // Change sign to '+'
-  .attr("dy", "-.15em")  // Change sign to '-'
-  .attr("transform", "rotate(" + (-axis.rotate) + ")")  // Change sign to '-'
-  .style("font-size", font.size)
-  .style("font-style", font.style)
-  .style("font-weight", font.weight)
-  .style("text-decoration", font.decoration)
-  .style("font-family", font.family)
-  .style("color", font.color);
+  xAxisBottom.selectAll("text")
+    .attr("class", "coordinate")
+    .style("text-anchor", "start")
+    .attr("dx", ".8em")
+    .attr("dy", "-.15em")
+    .attr("transform", "rotate(" + (-rotate) + ")")
+    .each(function() {
+      const currentElement = d3.select(this);
+      for (const [key, value] of Object.entries(additionalOptions)) {
+        currentElement.style(camelToKebab(key), value);
+      }
+    });
 
-return this;
+  return this;
 };
-
 clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
 
   if (!show) {
@@ -1235,9 +1231,9 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
       const currentElement = d3.select(this);
       const attributes = getAttributesForIndex(d, i);
 
-      if (attributes.adjustLabels) {
+     if (attributes.adjustLabels) {
         adjustSpecificLabel(self, "text.label", currentElement.attr("id"), attributes.labelAdjustmentOptions);
-      }
+     }
 
       // Set additional options as attributes
       for (const [key, value] of Object.entries(additionalOptions)) {
@@ -1256,7 +1252,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
 
       // Adjust labels if needed
      if (attributes.labelAdjustmentOptions) {
-
+        console.log(attributes.labelAdjustmentOptions)
         const { rotation, dx, dy } = attributes.labelAdjustmentOptions;
         const x = parseFloat(currentElement.attr('x'));
         const y = parseFloat(currentElement.attr('y'));

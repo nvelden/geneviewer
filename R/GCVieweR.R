@@ -355,6 +355,7 @@ GC_labels <- function(
 GC_coordinates <- function(
     GCVieweR,
     show = TRUE,
+    tickValues = NULL,
     ...
 ) {
 
@@ -378,6 +379,9 @@ GC_coordinates <- function(
 
     # Set coordinates options for each cluster
     GCVieweR$x$series[[clusters[i]]]$coordinates <- options
+
+    # Add tickvalues for each cluster
+    GCVieweR$x$series[[clusters[i]]]$coordinates$tickValues <- tickValues
 
   }
 

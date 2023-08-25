@@ -22,6 +22,11 @@ function getUniqueId(baseId) {
   return baseId + "-" + i;
 }
 
+function sanitizeId(str) {
+  // Replace any character that is not a letter, number, underscore, or hyphen with an underscore
+  return str.replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
 function wrap(text, width, options = {}) {
   // Default options
   const defaultOptions = {
@@ -266,6 +271,35 @@ function camelToKebab(string) {
     return string.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
 }
 
+function extractAdditionalOptions(combinedOptions, defaultOptions) {
+  // Extract additional options that are not in defaultOptions
+  const additionalOptions = Object.keys(combinedOptions).reduce((acc, key) => {
+    if (!(key in defaultOptions)) {
+      acc[key] = combinedOptions[key];
+    }
+    return acc;
+  }, {});
+
+  return additionalOptions;
+}
+
+function setAttributesFromOptions(currentElement, additionalOptions) {
+  for (const [key, value] of Object.entries(additionalOptions)) {
+    currentElement.attr(camelToKebab(key), value);
+  }
+}
+
+function applyStyleToElement(currentElement, itemStyle, i) {
+  const style = itemStyle.find(s => s.index === i);
+  if (style) {
+    for (const [key, value] of Object.entries(style)) {
+      if (key !== 'index' && key !== 'labelAdjustmentOptions') {
+        currentElement.style(camelToKebab(key), value);
+      }
+    }
+  }
+}
+
 // CLuster
 
 function clusterContainer(svg, margin, width, height) {
@@ -455,25 +489,19 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
 
   // Default options for title and subtitle
   const defaultOptions = {
-    x: 10,
-    y: -20,
+    x: 6,
+    y: 0,
     position: "left",
-    spacing: 15, // Default spacing between title and subtitle
+    spacing: 12, // Default spacing between title and subtitle
     titleFont: {
-      size: "14px",
-      style: "normal",
-      weight: "bold",
-      decoration: "normal",
-      family: "sans-serif",
-      color: "black"
+      fontSize: "12px",
+      fontWeight: "bold",
+      fontFamily: "sans-serif"
     },
     subtitleFont: {
-      size: "12px",
-      style: "normal",
-      weight: "normal",
-      decoration: "none",
-      family: "sans-serif",
-      color: "black"
+      fontSize: "10px",
+      fontStyle: "normal",
+      fontFamily: "sans-serif"
     },
   };
 
@@ -482,16 +510,17 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
     options = { ...this.themeOptions.footerOptions, ...options };
   }
 
-  // Merge default options with provided options, ensuring font properties are also merged
-  const mergedOptions = {
+    const combinedOptions = {
     ...defaultOptions,
     ...options,
     titleFont: { ...defaultOptions.titleFont, ...options.titleFont },
     subtitleFont: { ...defaultOptions.subtitleFont, ...options.subtitleFont }
   };
+  const { x, y, titleFont, subtitleFont, position, spacing } = combinedOptions;
 
-  // Destructure the merged options
-  const { x, y, titleFont, subtitleFont, position, spacing } = mergedOptions;
+  // Extract additional options that are not in defaultOptions
+  const additionalOptionsTitleFont = extractAdditionalOptions(titleFont, defaultOptions.titleFont);
+  const additionalOptionsSubtitleFont = extractAdditionalOptions(subtitleFont, defaultOptions.subtitleFont);
 
   let xPos;
   let textAnchor;
@@ -511,35 +540,38 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
       textAnchor = "middle";
   }
 
-  // Calculate the y position for the footer text within the bottom margin
-  const yPos = this.height - (this.margin.bottom / 2) + y;
+  // Calculate y position for title and subtitle based on the SVG height and bottom margin
+  const titleYPos = this.height - this.margin.bottom + y;
+  const subtitleYPos = titleYPos + spacing;
 
   // Add title to the SVG
   this.svg.append("text")
     .attr("x", xPos)
-    .attr("y", yPos)
+    .attr("y", titleYPos)
     .attr("text-anchor", textAnchor)
-    .style("font-size", titleFont.size)
-    .style("font-style", titleFont.style)
-    .style("font-weight", titleFont.weight)
-    .style("text-decoration", titleFont.decoration)
-    .style("font-family", titleFont.family)
-    .style("fill", titleFont.color)
-    .text(title);
+    .style("font-size", titleFont.fontSize)
+    .style("font-weight", titleFont.fontWeight)
+    .style("font-family", titleFont.fontFamily)
+    .text(title)
+    .each(function() {
+      const currentElement = d3.select(this);
+      setAttributesFromOptions(currentElement, additionalOptionsTitleFont);
+    });
 
   // Add subtitle to the SVG if provided
   if (subtitle) {
     this.svg.append("text")
       .attr("x", xPos)
-      .attr("y", yPos + spacing) // Use the spacing option for subtitle spacing
+      .attr("y", subtitleYPos)
       .attr("text-anchor", textAnchor)
-      .style("font-size", subtitleFont.size)
-      .style("font-style", subtitleFont.style)
-      .style("font-weight", subtitleFont.weight)
-      .style("text-decoration", subtitleFont.decoration)
-      .style("font-family", subtitleFont.family)
-      .style("fill", subtitleFont.color)
-      .text(subtitle);
+      .style("font-size", subtitleFont.fontSize)
+      .style("font-style", subtitleFont.fontStyle)
+      .style("font-family", subtitleFont.fontFamily)
+      .text(subtitle)
+      .each(function() {
+        const currentElement = d3.select(this);
+        setAttributesFromOptions(currentElement, additionalOptionsSubtitleFont);
+      });
   }
 
   return this;
@@ -714,15 +746,10 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
   }
 
   const combinedOptions = { ...defaultOptions, ...options };
-  const { x, y, start, stop, size, colorScheme, customColors, marker, itemStyle } = { ...defaultOptions, ...options };
+  const { x, y, start, stop, size, colorScheme, customColors, marker, itemStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
-  const additionalOptions = Object.keys(combinedOptions).reduce((acc, key) => {
-  if (!(key in defaultOptions)) {
-    acc[key] = combinedOptions[key];
-  }
-  return acc;
-  }, {});
+  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
   // Data processing
   var maxStop = stop || d3.max(this.data, (d) => d.stop);
@@ -783,19 +810,10 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
       const currentElement = d3.select(this);
 
       // Set additional options as attributes
-      for (const [key, value] of Object.entries(additionalOptions)) {
-        currentElement.attr(camelToKebab(key), value);
-      }
+      setAttributesFromOptions(currentElement, additionalOptions);
 
       // Override with itemStyle based on the index
-      const style = itemStyle.find(s => s.index === i);
-      if (style) {
-        for (const [key, value] of Object.entries(style)) {
-          if (key !== 'index') {
-            currentElement.style(camelToKebab(key), value);
-          }
-        }
-      }
+      applyStyleToElement(currentElement, itemStyle, i);
   });
 
   return this;
@@ -832,12 +850,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
   const { x, y, start, stop, colorScheme, customColors, itemStyle } = { ...defaultOptions, ...options };
 
   // Extract additional options that are not in defaultOptions
-  const additionalOptions = Object.keys(combinedOptions).reduce((acc, key) => {
-    if (!(key in defaultOptions)) {
-      acc[key] = combinedOptions[key];
-    }
-    return acc;
-  }, {});
+  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
   // Data processing
   var maxStop = stop || d3.max(this.data, (d) => d.stop);
@@ -877,6 +890,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 
     return { xPosStart, xPosEnd, yPos };
   };
+
   // Draw Genes
   var gene = g
     .selectAll(".geneline")
@@ -884,6 +898,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     .enter()
     .append("line")
     .attr("class", "geneline")
+    .attr("id", (d, i) => `${sanitizeId(d.cluster)}-geneline-${i}`)
     .attr("x1", (d, i) => getAttributesForIndex(d, i).xPosStart)
     .attr("y1", (d, i) => getAttributesForIndex(d, i).yPos)
     .attr("x2", (d, i) => getAttributesForIndex(d, i).xPosEnd)
@@ -891,21 +906,10 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     .attr("stroke", (d) => colorScale(d[group]))
    .each(function (d, i) {
       const currentElement = d3.select(this);
-
       // Set additional options as attributes
-      for (const [key, value] of Object.entries(additionalOptions)) {
-        currentElement.attr(camelToKebab(key), value);
-      }
-
+      setAttributesFromOptions(currentElement, additionalOptions);
       // Override with itemStyle based on the index
-      const style = itemStyle.find(s => s.index === i);
-      if (style) {
-        for (const [key, value] of Object.entries(style)) {
-          if (key !== 'index') {
-            currentElement.style(camelToKebab(key), value);
-          }
-        }
-      }
+      applyStyleToElement(currentElement, itemStyle, i);
   });
 
   return this;
@@ -916,7 +920,7 @@ clusterContainer.prototype.coordinates = function (show = true, options = {}) {
   if (!show) {
     return this;
   }
-console.log(options)
+
   const defaultOptions = {
       start: null,
       stop: null,
@@ -933,15 +937,10 @@ console.log(options)
   }
 
   const combinedOptions = { ...defaultOptions, ...options };
-  const { start, stop, rotate, yPositionTop, yPositionBottom, tickValues, tickValueThreshold } = { ...defaultOptions, ...options };
+  const { start, stop, rotate, yPositionTop, yPositionBottom, tickValues, tickValueThreshold } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
-  const additionalOptions = Object.keys(combinedOptions).reduce((acc, key) => {
-    if (!(key in defaultOptions)) {
-      acc[key] = combinedOptions[key];
-    }
-    return acc;
-  }, {});
+  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
   // Data processing
   var maxStop = stop || d3.max(this.data, (d) => d.stop);
@@ -995,33 +994,33 @@ console.log(options)
   xAxisBottom.select(".domain").attr("stroke", "none");
 
   xAxisTop.selectAll("text")
+    .data(this.data)
     .attr("class", "coordinate")
+    .attr("id", (d, i) => `${sanitizeId(this.data[0].cluster)}-coordinate-top-${i}`)
     .style("text-anchor", "end")
     .attr("dx", "-.8em")
     .attr("dy", ".4em")
     .attr("transform", "rotate(" + (-rotate) + ")")
     .each(function() {
       const currentElement = d3.select(this);
-      for (const [key, value] of Object.entries(additionalOptions)) {
-        currentElement.style(camelToKebab(key), value);
-      }
+      setAttributesFromOptions(currentElement, additionalOptions);
     });
 
   xAxisBottom.selectAll("text")
     .attr("class", "coordinate")
+    .attr("id", (d, i) => `${sanitizeId(this.data[0].cluster)}-coordinate-bottom-${i}`)
     .style("text-anchor", "start")
     .attr("dx", ".8em")
     .attr("dy", "-.15em")
     .attr("transform", "rotate(" + (-rotate) + ")")
     .each(function() {
       const currentElement = d3.select(this);
-      for (const [key, value] of Object.entries(additionalOptions)) {
-        currentElement.style(camelToKebab(key), value);
-      }
+      setAttributesFromOptions(currentElement, additionalOptions);
     });
 
   return this;
 };
+
 clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
 
   if (!show) {
@@ -1152,12 +1151,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   const { x, y, start, stop, adjustLabels, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor} = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
-  const additionalOptions = Object.keys(combinedOptions).reduce((acc, key) => {
-    if (!(key in defaultOptions)) {
-      acc[key] = combinedOptions[key];
-    }
-    return acc;
-  }, {});
+  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
   // Data processing
   const maxStop = stop || d3.max(this.data, d => d.stop);
@@ -1203,13 +1197,13 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   };
 
   const self = this;
-
+  console.log(this.data)
   // Adding the Label
   g.selectAll("text.label")
     .data(this.data)
     .enter()
     .append("text")
-    .attr("id", d => getUniqueId(d[label]))
+    .attr("id", (d, i) => `${sanitizeId(d.cluster)}-label-${i}`)
     .attr("class", "label")
     .attr("x", (d, i) => getAttributesForIndex(d, i).xPos)
     .attr("y", (d, i) => getAttributesForIndex(d, i).yPos)
@@ -1234,21 +1228,10 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
      if (attributes.adjustLabels) {
         adjustSpecificLabel(self, "text.label", currentElement.attr("id"), attributes.labelAdjustmentOptions);
      }
-
       // Set additional options as attributes
-      for (const [key, value] of Object.entries(additionalOptions)) {
-        currentElement.attr(camelToKebab(key), value);
-      }
-
+      setAttributesFromOptions(currentElement, additionalOptions);
       // Override with itemStyle based on the index
-      const style = itemStyle.find(s => s.index === i);
-      if (style) {
-        for (const [key, value] of Object.entries(style)) {
-          if (key !== 'index' && key !== 'labelAdjustmentOptions') {
-            currentElement.style(camelToKebab(key), value);
-          }
-        }
-      }
+      applyStyleToElement(currentElement, itemStyle, i);
 
       // Adjust labels if needed
      if (attributes.labelAdjustmentOptions) {
@@ -1320,52 +1303,41 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
     return this;
   }
 
-  if (!this.data.some(d => group in d)) {
-    console.error(`Error: The group "${group}" does not exist in the data.`);
-    return;
-  }
-
   const defaultOptions = {
     x: 10,
     y: 10,
     orientation: "horizontal",
     adjustHeight: true,
+    labels: null, // Add labels option here
     legend: {
-      stroke: "none",
-      strokeWidth: 1,
       colorScheme: null,
       customColors: null
     },
-    text: {
-      anchor: "start",
+    legendText: {
+      textAnchor: "start",
       dy: ".35em",
-    },
-    font: {
-      size: "12px",
-      style: "normal",
-      weight: "normal",
-      decoration: "none",
-      family: "sans-serif",
-      color: "black"
+      fontSize: "12px",
+      fontFamily: "sans-serif"
     }
   };
 
-  const mergedOptions = {
+  // If theme options exist, use them as the default options
+  if (this.themeOptions && this.themeOptions.legendOptions) {
+    options = { ...this.themeOptions.legendOptions, ...options };
+  }
+
+  const combinedOptions = {
     ...defaultOptions,
     ...options,
     legend: { ...defaultOptions.legend, ...options.legend },
-    text: { ...defaultOptions.text, ...options.text },
-    font: { ...defaultOptions.font, ...options.font }
+    legendText: { ...defaultOptions.legendText, ...options.legendText }
   };
 
-  const {
-    x,
-    y,
-    legend,
-    text,
-    font,
-    orientation
-  } = mergedOptions;
+  const { x, y, orientation, adjustHeight, legend, legendText, labels } = combinedOptions;
+
+  // Extract additional options that are not in defaultOptions
+  const additionalOptionsLegend = extractAdditionalOptions(legend, defaultOptions.legend);
+  const additionalOptionsLegendText = extractAdditionalOptions(legendText, defaultOptions.legendText);
 
   const svgLegend = this.svg;
   const parentWidth = svgLegend.node().getBoundingClientRect().width;
@@ -1374,24 +1346,36 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
   var g = svgLegend.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
-  // Extract unique values from the group key
-  const uniqueGroups = [...new Set(this.data.map(d => d[group]))];
+  // Use labels if provided, otherwise extract unique values from the group key
+  const uniqueGroups = labels || [...new Set(this.data.map(d => d[group]))];
+
+  if (!uniqueGroups.length) {
+    console.error(`Error: No labels provided and the group "${group}" does not exist in the data.`);
+    return;
+  }
 
   // Adjust colorScale to use uniqueGroups
   let colorScale;
-  if (legend.colorScheme) {
-    colorScale = d3.scaleOrdinal(d3[legend.colorScheme])
-      .domain(uniqueGroups);
+    if (legend.colorScheme) {
+      if (!d3[legend.colorScheme]) {
+          console.warn(`Warning: The color scheme "${legend.colorScheme}" does not exist. Defaulting to black.`);
+          colorScale = d3.scaleOrdinal()
+              .domain(uniqueGroups)
+              .range(uniqueGroups.map(() => "black")); // Set all colors to black
+      } else {
+          colorScale = d3.scaleOrdinal(d3[legend.colorScheme])
+              .domain(uniqueGroups);
+      }
   } else if (legend.customColors && legend.customColors.length > 0) {
-    colorScale = d3.scaleOrdinal()
-      .domain(uniqueGroups)
-      .range(legend.customColors);
+      colorScale = d3.scaleOrdinal()
+          .domain(uniqueGroups)
+          .range(legend.customColors);
   } else {
-    colorScale = d3.scaleOrdinal(d3.schemeCategory10)
-      .domain(uniqueGroups);
+      colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+          .domain(uniqueGroups);
   }
 
-  const legendSize = parseFloat(font.size);
+  const legendSize = parseFloat(legendText.fontSize);
   const legendPadding = legendSize / 2;
   let currentX = x;
   let currentY = y;
@@ -1406,15 +1390,15 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
 
       const textLabel = d3.select(textElement)
         .append("text")
-        .attr("dy", text.dy)
-        .style("text-anchor", text.anchor)
-        .style("font-size", font.size)
-        .style("font-style", font.style)
-        .style("font-weight", font.weight)
-        .style("text-decoration", font.decoration)
-        .style("font-family", font.family)
-        .style("fill", font.color)
-        .text(d);
+        .attr("dy", legendText.dy)
+        .style("text-anchor", legendText.textAnchor)
+        .style("font-size", legendText.fontSize)
+        .style("font-family", legendText.fontFamily)
+        .text(d)
+        .each(function() {
+          const currentElement = d3.select(this);
+          setAttributesFromOptions(currentElement, additionalOptionsLegendText);
+        });
 
       const textLength = textLabel.node().getComputedTextLength();
 
@@ -1433,9 +1417,11 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
         .attr("y", currentY)
         .attr("width", legendSize)
         .attr("height", legendSize)
-        .style("stroke", legend.stroke)
-        .style("stroke-width", legend.strokeWidth)
-        .style("fill", colorScale(d));
+        .style("fill", colorScale(d))
+        .each(function() {
+          const currentElement = d3.select(this);
+          setAttributesFromOptions(currentElement, additionalOptionsLegend);
+        });
 
       if (orientation === "horizontal") {
         currentX += textLength + legendSize + 2 * legendPadding;
@@ -1445,10 +1431,8 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
       }
     });
 
-  const adjustHeight = (this.height === 0) ? true : false;
-
   // Adjust height
-  if (adjustHeight) {
+  if (adjustHeight && this.height === 0) {
     var contentHeight = currentY + legendSize + legendPadding;
     svgLegend.attr("height", contentHeight);
     var viewBoxWidth = svgLegend.node().getBoundingClientRect().width;

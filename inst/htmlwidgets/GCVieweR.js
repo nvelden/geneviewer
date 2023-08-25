@@ -80,8 +80,6 @@ clusters.forEach(function(clusterKey) {
         clusterOptions.margin = margins;
     }
 
-    console.log(coordinateOptions)
-
     var cluster = createClusterContainer("#GCvieweR-graph-container", clusterOptions)
         .theme("preset")
         .title(titleOptions?.title, titleOptions?.subtitle, titleOptions?.show ?? false, titleOptions)

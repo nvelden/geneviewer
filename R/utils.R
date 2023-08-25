@@ -44,3 +44,41 @@ select_column_or_return <- function(data, x) {
   if(is.vector(x)) return(x)
   stop("x must be a symbol representing a column, or a vector.")
 }
+
+#' Get clusters to update from GCVieweR Object
+#'
+#' This function retrieves the clusters to be updated from a GCVieweR object based on the provided cluster argument.
+#' The function checks if the cluster argument is valid and returns the corresponding clusters.
+#'
+#' @param GCVieweR An object containing the series of clusters.
+#' @param cluster A numeric vector or character vector specifying the clusters to be retrieved.
+#' If NULL (default), all clusters are returned.
+#'
+#' @return A character vector of cluster names.
+#'
+#'
+#' @export
+getUpdatedClusters <- function(GCVieweR, cluster) {
+
+  # Get the names of the clusters
+  clusters <- names(GCVieweR$x$series)
+
+  # If cluster is NULL, update all clusters
+  if (is.null(cluster)) {
+    cluster <- clusters
+  } else if (is.numeric(cluster)) {
+    # If cluster is numeric, map the numbers to cluster names
+    if (any(cluster > length(clusters) | cluster < 1)) {
+      warning("Some cluster numbers provided are out of range. Please check the cluster numbers.")
+      return(NULL)
+    }
+    cluster <- clusters[cluster]
+  } else if (!all(cluster %in% clusters)) {
+    warning("Some cluster names provided are not valid. Please check the cluster names.")
+    return(NULL)
+  }
+
+  return(cluster)
+}
+
+

@@ -300,6 +300,68 @@ function applyStyleToElement(currentElement, itemStyle, i) {
   }
 }
 
+function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
+  // Start with default options
+  let combinedOptions = { ...defaultOptions };
+
+  // Merge theme options over default options if they exist
+  if (this.themeOptions && this.themeOptions[themeOptionsKey]) {
+    const themeOpts = this.themeOptions[themeOptionsKey];
+    combinedOptions = {
+      ...combinedOptions,
+      ...themeOpts,
+      ...userOptions
+    };
+
+    // Merge nested properties like titleFont, subtitleFont, etc.
+    for (let key in defaultOptions) {
+      if (typeof defaultOptions[key] === 'object' && !Array.isArray(defaultOptions[key]) && defaultOptions[key] !== null) {
+        combinedOptions[key] = {
+          ...defaultOptions[key],
+          ...themeOpts[key],
+          ...userOptions[key]
+        };
+      }
+    }
+  } else {
+    combinedOptions = {
+      ...combinedOptions,
+      ...userOptions
+    };
+  }
+
+  return combinedOptions;
+}
+
+function getColorScale(colorScheme, customColors, uniqueGroups) {
+  let colorScale;
+
+  if (colorScheme) {
+    if (!d3[colorScheme]) {
+      console.warn(`Warning: The color scheme "${colorScheme}" does not exist. Defaulting to black.`);
+      colorScale = d3.scaleOrdinal()
+        .domain(uniqueGroups)
+        .range(uniqueGroups.map(() => "black")); // Set all colors to black
+    } else {
+      colorScale = d3.scaleOrdinal(d3[colorScheme])
+        .domain(uniqueGroups);
+    }
+  } else if (customColors && customColors.length > 0) {
+    colorScale = d3.scaleOrdinal()
+      .domain(uniqueGroups)
+      .range(customColors);
+  } else {
+    colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+      .domain(uniqueGroups);
+  }
+  // Check if uniqueGroups are more than the colors in the colorScale
+  if (uniqueGroups.length > colorScale.range().length) {
+    console.warn(`Warning: More unique groups than colors. Some colors will repeat.`);
+  }
+
+  return colorScale;
+}
+
 // CLuster
 
 function clusterContainer(svg, margin, width, height) {
@@ -399,7 +461,6 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
       weight: "bold",
       decoration: "normal",
       family: "sans-serif",
-      color: "black"
     },
     subtitleFont: {
       size: "14px",
@@ -407,25 +468,15 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
       weight: "normal",
       decoration: "none",
       family: "sans-serif",
-      color: "black"
     },
   };
 
-  // Merge theme options if they exist
-  if (this.themeOptions && this.themeOptions.titleOptions) {
-    options = { ...this.themeOptions.titleOptions, ...options };
-  }
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'titleOptions', options);
+  const { x, y, titleFont, subtitleFont, position, spacing } = combinedOptions;
 
-  // Merge default options with provided options, ensuring font properties are also merged
-  const mergedOptions = {
-    ...defaultOptions,
-    ...options,
-    titleFont: { ...defaultOptions.titleFont, ...options.titleFont },
-    subtitleFont: { ...defaultOptions.subtitleFont, ...options.subtitleFont }
-  };
-
-  // Destructure the merged options
-  const { x, y, titleFont, subtitleFont, position, spacing } = mergedOptions;
+  // Extract additional options that are not in defaultOptions
+  const additionalOptionsTitleFont = extractAdditionalOptions(titleFont, defaultOptions.titleFont);
+  const additionalOptionsSubtitleFont = extractAdditionalOptions(subtitleFont, defaultOptions.subtitleFont);
 
   let xPos;
   let textAnchor;
@@ -455,8 +506,11 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
     .style("font-weight", titleFont.weight)
     .style("text-decoration", titleFont.decoration)
     .style("font-family", titleFont.family)
-    .style("fill", titleFont.color)
-    .text(title);
+    .text(title)
+    .each(function() {
+      const currentElement = d3.select(this);
+      setAttributesFromOptions(currentElement, additionalOptionsTitleFont);
+    });
 
   // Add subtitle to the SVG if provided
   if (subtitle) {
@@ -466,11 +520,12 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
       .attr("text-anchor", textAnchor)
       .style("font-size", subtitleFont.size)
       .style("font-style", subtitleFont.style)
-      .style("font-weight", subtitleFont.weight)
-      .style("text-decoration", subtitleFont.decoration)
       .style("font-family", subtitleFont.family)
-      .style("fill", subtitleFont.color)
-      .text(subtitle);
+      .text(subtitle)
+      .each(function() {
+        const currentElement = d3.select(this);
+        setAttributesFromOptions(currentElement, additionalOptionsSubtitleFont);
+      });
   }
 
   return this;
@@ -505,17 +560,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
     },
   };
 
-  // Merge theme options if they exist
-  if (this.themeOptions && this.themeOptions.footerOptions) {
-    options = { ...this.themeOptions.footerOptions, ...options };
-  }
-
-    const combinedOptions = {
-    ...defaultOptions,
-    ...options,
-    titleFont: { ...defaultOptions.titleFont, ...options.titleFont },
-    subtitleFont: { ...defaultOptions.subtitleFont, ...options.subtitleFont }
-  };
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'footerOptions', options);
   const { x, y, titleFont, subtitleFont, position, spacing } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
@@ -584,37 +629,34 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
   }
 
   // Default options
-const defaultOptions = {
+  const defaultOptions = {
     x: 0,
     y: 0,
     position: 'left',
     wrapLabel: true,
-    wrapOptions: {},  // Added wrapOptions to store options for the wrap function
-    font: {
-      size: "12px",
-      style: "normal",
-      weight: "bold",
-      decoration: "none",
-      family: "sans-serif",
-      color: "black"
-    },
+    wrapOptions: {},
+    fontSize: "12px",
+    fontStyle: "normal",
+    fontWeight: "bold",
+    fontFamily: "sans-serif",
   };
 
-  const mergedOptions = {
-    ...defaultOptions,
-    ...options,
-    font: { ...defaultOptions.font, ...options.font },
-    wrapOptions: { ...defaultOptions.wrapOptions, ...options.wrapOptions }
-  };
-
+  // Merge the options using the generic function
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'clusterLabelOptions', options);
   const {
     x,
     y,
     position,
-    font,
+    fontSize,
+    fontStyle,
+    fontWeight,
+    fontFamily,
     wrapLabel,
-    wrapOptions// Destructured wrapLabel option
-  } = mergedOptions;
+    wrapOptions
+  } = combinedOptions;
+
+  // Extract additional options that are not in defaultOptions
+  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
   // calculate middle y position
   const adjustedHeight = this.height - this.margin.top - this.margin.bottom;
@@ -633,13 +675,15 @@ const defaultOptions = {
     .attr("y", middleY)
     .attr("text-anchor", "middle")  // text is always centered
     .attr("dominant-baseline", "central")  // Vertically center text
-    .style("font-size", font.size)
-    .style("font-style", font.style)
-    .style("font-weight", font.weight)
-    .style("text-decoration", font.decoration)
-    .style("font-family", font.family)
-    .style("fill", font.color)
-    .text(title);
+    .style("font-size", fontSize)
+    .style("font-style", fontStyle)
+    .style("font-weight", fontWeight)
+    .style("font-family", fontFamily)
+    .text(title)
+    .each(function() {
+      const currentElement = d3.select(this);
+      setAttributesFromOptions(currentElement, additionalOptions);
+    });
 
   // If wrapLabel is true, wrap the text
   if (wrapLabel) {
@@ -649,7 +693,7 @@ const defaultOptions = {
   return this;
 };
 
-clusterContainer.prototype.sequence = function (show = true, options = {}) {
+clusterContainer.prototype.sequence = function(show = true, options = {}) {
 
   if (!show) {
     return this;
@@ -664,26 +708,15 @@ clusterContainer.prototype.sequence = function (show = true, options = {}) {
     y: 50,  // default y value
     start: null,
     stop: null,
-    stroke: {
-      color: "grey",
-      width: 1,
-      dashArray: null  // e.g., "5,5" for dashed line
-    }
+    stroke: "grey",
+    strokeWidth: 1,
   };
 
-  // If theme options exist, use them as the default options
-  if (this.themeOptions && this.themeOptions.sequenceOptions) {
-    options = { ...this.themeOptions.sequenceOptions, ...options };
-  }
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'sequenceOptions', options);
+  const { y, start, stop, stroke, strokeWidth } = combinedOptions;
 
-  // Merge the default options with the provided options at a deeper level
-  const mergedOptions = {
-    ...defaultOptions,
-    ...options,
-    stroke: { ...defaultOptions.stroke, ...options.stroke }
-  };
-
-  const { y, start, stop, stroke } = mergedOptions;
+  // Extract additional options that are not in defaultOptions
+  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
   // Data processing
   var minStart = d3.min(this.data, (d) => d.start);
@@ -702,16 +735,18 @@ clusterContainer.prototype.sequence = function (show = true, options = {}) {
     .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
   // Draw baseline
-  var line = g
-    .append("line")
+  g.append("line")
     .attr("class", "baseline")
     .attr("x1", xScale(start || minStart))
     .attr("y1", yScale(y))
     .attr("x2", xScale(stop || maxStop))
     .attr("y2", yScale(y))
-    .attr("stroke", stroke.color)
-    .attr("stroke-width", stroke.width)
-    .attr("stroke-dasharray", stroke.dashArray);
+    .attr("stroke", stroke)
+    .attr("stroke-width", strokeWidth)
+    .each(function() {
+      const currentElement = d3.select(this);
+      setAttributesFromOptions(currentElement, additionalOptions);
+    });
 
   return this;
 };
@@ -740,12 +775,8 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
     itemStyle: [] // {index: 1, strokeWidth : 10, stroke : "black"}
   };
 
-  // If theme options exist, use them as the default options
-  if (this.themeOptions && this.themeOptions.genesOptions) {
-    options = { ...this.themeOptions.markersOptions, ...options };
-  }
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'markerOptions', options);
 
-  const combinedOptions = { ...defaultOptions, ...options };
   const { x, y, start, stop, size, colorScheme, customColors, marker, itemStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
@@ -764,14 +795,9 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
     .range([this.height - this.margin.bottom - this.margin.top , 0]);
 
   // Color Scale Setup
-  let colorScale;
-  if (colorScheme) {
-    colorScale = d3.scaleOrdinal(d3[colorScheme]);
-  } else if (customColors && customColors.length > 0) {
-    colorScale = d3.scaleOrdinal().range(customColors);
-  } else {
-    colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-  }
+  const uniqueGroups = [...new Set(this.data.map(d => d[group]))];
+  // Adjust colorScale to use uniqueGroups
+  const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
 
   // Create the group
   var g = this.svg.append("g")
@@ -865,14 +891,9 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     .range([this.height - this.margin.bottom - this.margin.top , 0]);
 
   // Color Scale Setup
-  let colorScale;
-  if (colorScheme) {
-    colorScale = d3.scaleOrdinal(d3[colorScheme]);
-  } else if (customColors && customColors.length > 0) {
-    colorScale = d3.scaleOrdinal().range(customColors);
-  } else {
-    colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-  }
+  const uniqueGroups = [...new Set(this.data.map(d => d[group]))];
+  // Adjust colorScale to use uniqueGroups
+  const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
 
   // Create the group
   const g = this.svg.append("g")
@@ -1355,25 +1376,7 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
   }
 
   // Adjust colorScale to use uniqueGroups
-  let colorScale;
-    if (legend.colorScheme) {
-      if (!d3[legend.colorScheme]) {
-          console.warn(`Warning: The color scheme "${legend.colorScheme}" does not exist. Defaulting to black.`);
-          colorScale = d3.scaleOrdinal()
-              .domain(uniqueGroups)
-              .range(uniqueGroups.map(() => "black")); // Set all colors to black
-      } else {
-          colorScale = d3.scaleOrdinal(d3[legend.colorScheme])
-              .domain(uniqueGroups);
-      }
-  } else if (legend.customColors && legend.customColors.length > 0) {
-      colorScale = d3.scaleOrdinal()
-          .domain(uniqueGroups)
-          .range(legend.customColors);
-  } else {
-      colorScale = d3.scaleOrdinal(d3.schemeCategory10)
-          .domain(uniqueGroups);
-  }
+  const colorScale = getColorScale(legend.colorScheme, legend.customColors, uniqueGroups);
 
   const legendSize = parseFloat(legendText.fontSize);
   const legendPadding = legendSize / 2;

@@ -1,6 +1,24 @@
 const themes = {
   preset: {
-  },
+    titleOptions: {
+      titleFont: {
+      fill: "green"
+      }
+    },
+    footerOptions: {
+      titleFont: {
+      fill: "green"
+      }
+    },
+    clusterLabelOptions: {
+      fill: "green"
+      },
+    sequenceOptions: {
+      stroke: "green"
+    },
+    markerOptions: {
+    }
+  }
 };
 
 function getMarker(markerName, xPos, yPos, size) {

@@ -300,9 +300,20 @@ function applyStyleToElement(currentElement, itemStyle, i) {
   }
 }
 
+function removeNullKeys(obj) {
+    const cleanObj = { ...obj };
+    for (let key in cleanObj) {
+      if (cleanObj[key] === null) {
+        delete cleanObj[key];
+      }
+    }
+    return cleanObj;
+}
+
 function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
   // Start with default options
   let combinedOptions = { ...defaultOptions };
+  userOptions = removeNullKeys(userOptions);
 
   // Merge theme options over default options if they exist
   if (this.themeOptions && this.themeOptions[themeOptionsKey]) {
@@ -345,6 +356,10 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
     } else {
       colorScale = d3.scaleOrdinal(d3[colorScheme])
         .domain(uniqueGroups);
+        // Check if uniqueGroups are more than the colors in the colorScale
+  if (uniqueGroups.length > colorScale.range().length) {
+    console.warn(`Warning: More unique groups than colors. Some colors will repeat.`);
+  }
     }
   } else if (customColors && customColors.length > 0) {
     colorScale = d3.scaleOrdinal()
@@ -353,10 +368,6 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
   } else {
     colorScale = d3.scaleOrdinal(d3.schemeCategory10)
       .domain(uniqueGroups);
-  }
-  // Check if uniqueGroups are more than the colors in the colorScale
-  if (uniqueGroups.length > colorScale.range().length) {
-    console.warn(`Warning: More unique groups than colors. Some colors will repeat.`);
   }
 
   return colorScale;
@@ -461,6 +472,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
       weight: "bold",
       decoration: "normal",
       family: "sans-serif",
+      cursor: "default"
     },
     subtitleFont: {
       size: "14px",
@@ -468,6 +480,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
       weight: "normal",
       decoration: "none",
       family: "sans-serif",
+      cursor: "default"
     },
   };
 
@@ -506,6 +519,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
     .style("font-weight", titleFont.weight)
     .style("text-decoration", titleFont.decoration)
     .style("font-family", titleFont.family)
+    .style("cursor", titleFont.cursor)
     .text(title)
     .each(function() {
       const currentElement = d3.select(this);
@@ -521,6 +535,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
       .style("font-size", subtitleFont.size)
       .style("font-style", subtitleFont.style)
       .style("font-family", subtitleFont.family)
+      .style("cursor", subtitleFont.cursor)
       .text(subtitle)
       .each(function() {
         const currentElement = d3.select(this);
@@ -551,12 +566,14 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
     titleFont: {
       fontSize: "12px",
       fontWeight: "bold",
-      fontFamily: "sans-serif"
+      fontFamily: "sans-serif",
+      cursor: "default"
     },
     subtitleFont: {
       fontSize: "10px",
       fontStyle: "normal",
-      fontFamily: "sans-serif"
+      fontFamily: "sans-serif",
+      cursor: "default"
     },
   };
 
@@ -597,6 +614,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
     .style("font-size", titleFont.fontSize)
     .style("font-weight", titleFont.fontWeight)
     .style("font-family", titleFont.fontFamily)
+    .style("cursor", titleFont.cursor)
     .text(title)
     .each(function() {
       const currentElement = d3.select(this);
@@ -612,6 +630,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
       .style("font-size", subtitleFont.fontSize)
       .style("font-style", subtitleFont.fontStyle)
       .style("font-family", subtitleFont.fontFamily)
+      .style("cursor", subtitleFont.cursor)
       .text(subtitle)
       .each(function() {
         const currentElement = d3.select(this);
@@ -639,6 +658,7 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
     fontStyle: "normal",
     fontWeight: "bold",
     fontFamily: "sans-serif",
+    cursor: "default"
   };
 
   // Merge the options using the generic function
@@ -651,6 +671,7 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
     fontStyle,
     fontWeight,
     fontFamily,
+    cursor,
     wrapLabel,
     wrapOptions
   } = combinedOptions;
@@ -679,6 +700,7 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
     .style("font-style", fontStyle)
     .style("font-weight", fontWeight)
     .style("font-family", fontFamily)
+    .style("cursor", cursor)
     .text(title)
     .each(function() {
       const currentElement = d3.select(this);
@@ -867,13 +889,9 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     itemStyle: [] //[{index: 1,opacity: 0.5}]
   };
 
-  // If theme options exist, use them as the default options
-  if (this.themeOptions && this.themeOptions.genesOptions) {
-    options = { ...this.themeOptions.genesOptions, ...options };
-  }
-
-  const combinedOptions = { ...defaultOptions, ...options };
-  const { x, y, start, stop, colorScheme, customColors, itemStyle } = { ...defaultOptions, ...options };
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'genesOptions', options);
+  console.log(combinedOptions)
+  const { x, y, start, stop, colorScheme, customColors, itemStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -949,7 +967,8 @@ clusterContainer.prototype.coordinates = function (show = true, options = {}) {
       yPositionTop: 55,  // position for top axis
       yPositionBottom: 45,  // position for bottom axis
       tickValues: null,  // add an option to provide your own tick values
-      tickValueThreshold: 300
+      tickValueThreshold: 300,
+      cursor: "default",
   };
 
   // If theme options exist, use them as the default options
@@ -958,7 +977,7 @@ clusterContainer.prototype.coordinates = function (show = true, options = {}) {
   }
 
   const combinedOptions = { ...defaultOptions, ...options };
-  const { start, stop, rotate, yPositionTop, yPositionBottom, tickValues, tickValueThreshold } = combinedOptions;
+  const { start, stop, rotate, yPositionTop, yPositionBottom, tickValues, tickValueThreshold, cursor } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -1022,6 +1041,7 @@ clusterContainer.prototype.coordinates = function (show = true, options = {}) {
     .attr("dx", "-.8em")
     .attr("dy", ".4em")
     .attr("transform", "rotate(" + (-rotate) + ")")
+    .style("cursor", cursor)
     .each(function() {
       const currentElement = d3.select(this);
       setAttributesFromOptions(currentElement, additionalOptions);
@@ -1034,6 +1054,7 @@ clusterContainer.prototype.coordinates = function (show = true, options = {}) {
     .attr("dx", ".8em")
     .attr("dy", "-.15em")
     .attr("transform", "rotate(" + (-rotate) + ")")
+    .style("cursor", cursor)
     .each(function() {
       const currentElement = d3.select(this);
       setAttributesFromOptions(currentElement, additionalOptions);
@@ -1054,23 +1075,16 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
     x: 0, // default x offset
     y: 10,
     labelPosition: "left", // default label position
-    font: {
-      size: "10px",
-      style: "normal",
-      weight: "normal",
-      decoration: "none",
-      family: "sans-serif",
-      color: "black"
-    }
+    fontSize: "10px",
+    fontFamily: "sans-serif",
+    cursor: "default"
   };
 
-  const mergedOptions = {
-    ...defaultOptions,
-    ...options,
-    font: { ...defaultOptions.font, ...options.font }
-  };
+  const combinedOptions = { ...defaultOptions, ...options };
+  const { title, scaleBarUnit, x, y, labelPosition, fontSize, fontFamily, cursor } = combinedOptions;
 
-  const { x, y, font, title, scaleBarUnit, labelPosition } = mergedOptions;
+  // Extract additional options that are not in defaultOptions
+  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
   // Data processing
   const [minStart, maxStop] = [
@@ -1087,19 +1101,19 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
 
   // Create the group with the x offset applied
   const g = this.svg.append("g")
-    .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(font.size) - 5 + x}, ${this.height - this.margin.bottom - this.margin.top})`);
+    .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(fontSize) - 5 + x}, ${this.height - this.margin.bottom - this.margin.top})`);
 
   // Create the scale bar line
   g.append("line")
-    .attr("x1", parseInt(font.size) + 5)
-    .attr("x2", parseInt(font.size) + 5 + scaleBarLength)
+    .attr("x1", parseInt(fontSize) + 5)
+    .attr("x2", parseInt(fontSize) + 5 + scaleBarLength)
     .attr("y1", -y)
     .attr("y2", -y)
     .attr("stroke", "grey")
     .attr("stroke-width", 1);
 
   // Add the ticks
-  [parseInt(font.size) + 5, parseInt(font.size) + 5 + scaleBarLength].forEach(d => {
+  [parseInt(fontSize) + 5, parseInt(fontSize) + 5 + scaleBarLength].forEach(d => {
     g.append("line")
       .attr("x1", d)
       .attr("x2", d)
@@ -1110,7 +1124,7 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
   });
 
   // Determine the x position of the title based on the labelPosition
-  const titleX = labelPosition === "left" ? parseInt(font.size) : parseInt(font.size) + 5 + scaleBarLength;
+  const titleX = labelPosition === "left" ? parseInt(fontSize) : parseInt(fontSize) + 5 + scaleBarLength;
   const textAnchor = labelPosition === "left" ? "end" : "start";
 
   // Add the title
@@ -1119,12 +1133,13 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
     .attr("y", -y)
     .style("text-anchor", textAnchor)
     .style("dominant-baseline", "middle")
-    .style("font-size", font.size)
-    .style("font-style", font.style)
-    .style("font-weight", font.weight)
-    .style("text-decoration", font.decoration)
-    .style("font-family", font.family)
-    .style("fill", font.color)
+    .style("font-size", fontSize)
+    .style("font-family", fontFamily)
+    .style("cursor", cursor)
+    .each(function() {
+      const currentElement = d3.select(this);
+      setAttributesFromOptions(currentElement, additionalOptions);
+    })
     .text(title);
 
   return this;
@@ -1155,6 +1170,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     fontStyle: "italic",
     fontFamily: "sans-serif",
     textAnchor: "middle",
+    cursor: "default",
     labelAdjustmentOptions: {
       rotation: 65,
       dx: "-0.8em",
@@ -1169,7 +1185,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   }
 
   const combinedOptions = { ...defaultOptions, ...options };
-  const { x, y, start, stop, adjustLabels, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor} = combinedOptions;
+  const { x, y, start, stop, adjustLabels, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor} = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -1240,6 +1256,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     .style("font-size", fontSize)
     .style("font-style", fontStyle)
     .style("font-family", fontFamily)
+    .style("cursor", cursor)
     .text(d => d[label])
     .each(function(d, i) {
 
@@ -1335,6 +1352,7 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
       customColors: null
     },
     legendText: {
+      cursor: "default",
       textAnchor: "start",
       dy: ".35em",
       fontSize: "12px",
@@ -1397,6 +1415,7 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
         .style("text-anchor", legendText.textAnchor)
         .style("font-size", legendText.fontSize)
         .style("font-family", legendText.fontFamily)
+        .style("cursor", legendText.cursor)
         .text(d)
         .each(function() {
           const currentElement = d3.select(this);

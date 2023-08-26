@@ -17,6 +17,9 @@ const themes = {
       stroke: "green"
     },
     markerOptions: {
+    },
+    genesOptions: {
+      customColors: ["green"]
     }
   }
 };

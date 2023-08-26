@@ -440,6 +440,8 @@ GC_genes <- function(
     GCVieweR,
     group = NULL,
     show = TRUE,
+    colorScheme = NULL,
+    customColors = NULL,
     cluster = NULL,
     ...
 ) {
@@ -470,7 +472,9 @@ GC_genes <- function(
     # Default options
     options <- list(
       group = group_char[(i-1) %% length(group_char) + 1],
-      show = show[(i-1) %% length(show) + 1]
+      show = show[(i-1) %% length(show) + 1],
+      colorScheme = colorScheme,
+      customColors = customColors
     )
 
     # Add ... arguments to defaultOptions
@@ -490,6 +494,8 @@ GC_markers <- function(
     GCVieweR,
     group = NULL,
     show = TRUE,
+    colorScheme = NULL,
+    customColors = NULL,
     cluster = NULL,
     ...
 ) {
@@ -520,7 +526,9 @@ GC_markers <- function(
     # Default options
     options <- list(
       group = group_char[(i-1) %% length(group_char) + 1],
-      show = show[(i-1) %% length(show) + 1]
+      show = show[(i-1) %% length(show) + 1],
+      colorScheme = colorScheme,
+      customColors = customColors
     )
 
     # Add ... arguments to defaultOptions
@@ -540,6 +548,8 @@ GC_legend <- function(
     GCVieweR,
     group = NULL,
     show = TRUE,
+    colorScheme = NULL,
+    customColors = NULL,
     labels = NULL,
     ...
 ) {
@@ -569,6 +579,8 @@ GC_legend <- function(
   options <- list(
     group = group_char,
     show = show,
+    colorScheme = colorScheme,
+    customColors = customColors,
     labels = labels
   )
 

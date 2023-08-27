@@ -5,7 +5,7 @@ magrittr::`%>%`
 #' @import htmlwidgets
 #' @export
 GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = NULL,
-                     width = "100%", height = NULL, elementId = NULL){
+                     width = "100%", height = "400px", elementId = NULL){
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
@@ -65,7 +65,7 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
     x$series[[clust]]$data$stop <- subset_data[[stop_col]]
     x$series[[clust]]$data$cluster <- clust
     # Settings
-    x$series[[clust]]$grid <- list(left = "50px", right = "50px", top = 0, bottom = 0)
+    x$series[[clust]]$grid <- list(margin = list(left = "50px", right = "50px", top = 0, bottom = 0), height = divide_dimension_value("100%", length(clusters)) , width = width)
     x$series[[clust]]$title <- list()
     x$series[[clust]]$markers <- list(group = group_char, show = TRUE)
     x$series[[clust]]$genes <- list(group = group_char, show = TRUE)
@@ -198,21 +198,32 @@ GC_sequence <- function(
   return(GCVieweR)
 }
 
-#' export
-GC_grid <- function(GCVieweR, left = NULL, right = NULL, top = NULL, bottom = NULL) {
+#' @export
+GC_grid <- function(
+    GCVieweR,
+    margin = NULL,
+    width = NULL,
+    height = NULL,
+    cluster = NULL
+) {
 
-  # Initialize margins list
-  margins <- list(left = left, right = right, top = top, bottom = bottom)
-  # Extract cluster names
-  clusters <- names(GCVieweR$x$series)
+  # Update the GCVieweR object with title and options for each cluster
+  clusters <- getUpdatedClusters(GCVieweR, cluster)
 
   for (i in seq_along(clusters)) {
+    cluster_name <- clusters[i]
 
-    # Loop over each margin and update the respective property in the 'grid' list
-    for (name in names(margins)) {
-      if (!is.null(margins[[name]])) {
-        GCVieweR$x$series[[clusters[i]]]$grid[[name]] <- margins[[name]]
-      }
+    # Update margins if provided
+    if (!is.null(margin)) {
+      GCVieweR$x$series[[cluster_name]]$grid$margin <- modifyList(GCVieweR$x$series[[cluster_name]]$grid$margin, margin)
+    }
+
+    # Update width and height if provided
+    if (!is.null(width)) {
+      GCVieweR$x$series[[cluster_name]]$grid$width <- width[(i-1) %% length(width) + 1]
+    }
+    if (!is.null(height)) {
+      GCVieweR$x$series[[cluster_name]]$grid$height <- height[(i-1) %% length(height) + 1]
     }
   }
 

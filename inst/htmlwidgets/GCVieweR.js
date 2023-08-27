@@ -42,19 +42,21 @@ HTMLWidgets.widget({
       .classed("GCVieweR-container", true);
 
 var clusters = Object.keys(series);
-
+console.log(series)
 clusters.forEach(function(clusterKey) {
 
-  // Compute margins
-      var margins = { top: 0, right: 0, bottom: 0, left: 0 }
-      var grid = series[clusterKey].grid
+      // Compute margins
+      var margin = { top: 0, right: 0, bottom: 0, left: 0 }
+      var clusterMargins = series[clusterKey]["grid"].margin
+      var clusterHeight = computeSize(series[clusterKey]["grid"].height, el.clientHeight - legendHeight)
+      var clusterWidth = computeSize(series[clusterKey]["grid"].width, width)
 
-      if (Object.keys(grid).length > 0) {
-          margins = {
-              top: computeSize(grid.top || 0, height),
-              right: computeSize(grid.right || 0, width),
-              bottom: computeSize(grid.bottom || 0, height),
-              left: computeSize(grid.left || 0, width)
+      if (Object.keys(clusterMargins).length > 0) {
+          margin = {
+              top: computeSize(clusterMargins.top || 0, height),
+              right: computeSize(clusterMargins.right || 0, width),
+              bottom: computeSize(clusterMargins.bottom || 0, height),
+              left: computeSize(clusterMargins.left || 0, width)
           };
          }
 
@@ -70,14 +72,14 @@ clusters.forEach(function(clusterKey) {
         coordinateOptions = cluster.coordinates;
         scaleBarOptions = cluster.scaleBar;
 
-    var clusterHeight = Math.floor(el.clientHeight - legendHeight);
+    //var clusterHeight = Math.floor(el.clientHeight - legendHeight);
     var clusterOptions = {
-        width: width,
-        height: clusterHeight / clusters.length
+        width: clusterWidth,
+        height: clusterHeight
     };
 
-    if (Object.keys(grid).length > 0) {
-        clusterOptions.margin = margins;
+    if (Object.keys(clusterMargins).length > 0) {
+        clusterOptions.margin = margin;
     }
 
     var cluster = createClusterContainer("#GCvieweR-graph-container", clusterOptions)

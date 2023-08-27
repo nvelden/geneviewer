@@ -890,7 +890,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'genesOptions', options);
-  console.log(combinedOptions)
+
   const { x, y, start, stop, colorScheme, customColors, itemStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions

@@ -218,12 +218,24 @@ GC_grid <- function(
       GCVieweR$x$series[[cluster_name]]$grid$margin <- modifyList(GCVieweR$x$series[[cluster_name]]$grid$margin, margin)
     }
 
-    # Update width and height if provided
+    # Update width if provided
     if (!is.null(width)) {
-      GCVieweR$x$series[[cluster_name]]$grid$width <- width[(i-1) %% length(width) + 1]
+      current_width <- width[(i-1) %% length(width) + 1]
+      # Convert numeric width to percentage string
+      if (is.numeric(current_width)) {
+        current_width <- paste0(current_width, "%")
+      }
+      GCVieweR$x$series[[cluster_name]]$grid$width <- current_width
     }
+
+    # Update height if provided
     if (!is.null(height)) {
-      GCVieweR$x$series[[cluster_name]]$grid$height <- height[(i-1) %% length(height) + 1]
+      current_height <- height[(i-1) %% length(height) + 1]
+      # Convert numeric height to percentage string
+      if (is.numeric(current_height)) {
+        current_height <- paste0(current_height, "%")
+      }
+      GCVieweR$x$series[[cluster_name]]$grid$height <- current_height
     }
   }
 

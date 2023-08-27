@@ -42,7 +42,7 @@ HTMLWidgets.widget({
       .classed("GCVieweR-container", true);
 
 var clusters = Object.keys(series);
-console.log(series)
+
 clusters.forEach(function(clusterKey) {
 
       // Compute margins

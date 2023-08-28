@@ -71,6 +71,7 @@ clusters.forEach(function(clusterKey) {
         markerOptions = cluster.markers
         coordinateOptions = cluster.coordinates;
         scaleBarOptions = cluster.scaleBar;
+        tooltipOptions = cluster.tooltip;
 
     //var clusterHeight = Math.floor(el.clientHeight - legendHeight);
     var clusterOptions = {
@@ -82,6 +83,8 @@ clusters.forEach(function(clusterKey) {
         clusterOptions.margin = margin;
     }
 
+    console.log(tooltipOptions)
+
     var cluster = createClusterContainer("#GCvieweR-graph-container", clusterOptions)
         .theme("preset")
         .title(titleOptions?.title, titleOptions?.subtitle, titleOptions?.show ?? false, titleOptions)
@@ -89,11 +92,12 @@ clusters.forEach(function(clusterKey) {
         .clusterLabel(clusterLabelOptions?.title, clusterLabelOptions?.show ?? false, clusterLabelOptions)
         .geneData(clusterData)  // Access data using the cluster key
         .sequence(sequenceOptions?.show ?? false, sequenceOptions)
-        .markers(markerOptions?.group, markerOptions?.show ?? false, markerOptions)
         .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)
+        .markers(markerOptions?.group, markerOptions?.show ?? false, markerOptions)
         .coordinates(coordinateOptions?.show ?? false, coordinateOptions)
         .labels(labelOptions?.label, labelOptions?.show ?? false, labelOptions)
-        .scaleBar(scaleBarOptions?.show ?? false, scaleBarOptions);
+        .scaleBar(scaleBarOptions?.show ?? false, scaleBarOptions)
+        .tooltip(tooltipOptions?.show ?? false, tooltipOptions);
 });
 
       if (legendOptions?.position == "bottom" && legendOptions?.show && legendOptions?.group !== null) {

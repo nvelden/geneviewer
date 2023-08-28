@@ -440,7 +440,6 @@ clusterContainer.prototype.geneData = function (data) {
     newItem.direction = "forward";
     if(newItem.start > newItem.stop) {
       newItem.direction = "reverse";
-      [newItem.start, newItem.stop] = [newItem.stop, newItem.start];
     }
 
     return newItem;
@@ -741,8 +740,8 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
   // Data processing
-  var minStart = d3.min(this.data, (d) => d.start);
-  var maxStop = d3.max(this.data, (d) => d.stop);
+  var minStart = d3.min(this.data, (d) => Math.min(d.start, d.stop));
+  var maxStop = d3.max(this.data, (d) => Math.max(d.start, d.stop));
 
   var xScale = d3.scaleLinear()
     .domain([minStart, maxStop])
@@ -786,7 +785,7 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
   }
 
   const defaultOptions = {
-    x: 0,
+    x: 1,
     y: 50,
     start: null,
     stop: null,
@@ -805,8 +804,8 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
   // Data processing
-  var maxStop = stop || d3.max(this.data, (d) => d.stop);
-  var minStart = start || d3.min(this.data, (d) => d.start);
+  var minStart = d3.min(this.data, (d) => Math.min(d.start, d.stop));
+  var maxStop = d3.max(this.data, (d) => Math.max(d.start, d.stop));
 
   var xScale = d3.scaleLinear()
     .domain([minStart, maxStop])
@@ -834,7 +833,7 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
 
     const offset = currentSize / 2;
     const yPos = yScale(currentY);
-    const xPos = d.direction === 'forward' ? xScale(d.stop) - offset + currentX : xScale(d.start) + offset - currentX;
+    const xPos = d.direction === 'forward' ? xScale(d.stop) - offset + currentX : xScale(d.stop) + offset - currentX;
 
     return { xPos, yPos, currentSize, currentMarker };
    };
@@ -854,6 +853,8 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
       return `rotate(${rotation}, ${xPos}, ${yPos})`;
     })
    .attr("fill", (d) => colorScale(d[group]))
+   .attr("class", "marker")
+   .attr("id", (d, i) => `${sanitizeId(d.cluster)}-marker-${i}`)
    .each(function (d, i) {
       const currentElement = d3.select(this);
 
@@ -863,6 +864,9 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
       // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
   });
+
+  //Make markers available to tooltip
+  this.markers = g.selectAll(".marker");
 
   return this;
 };
@@ -897,8 +901,8 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
   // Data processing
-  var maxStop = stop || d3.max(this.data, (d) => d.stop);
-  var minStart = start || d3.min(this.data, (d) => d.start);
+  var minStart = d3.min(this.data, (d) => Math.min(d.start, d.stop));
+  var maxStop = d3.max(this.data, (d) => Math.max(d.start, d.stop));
 
   var xScale = d3.scaleLinear()
     .domain([minStart, maxStop])
@@ -924,7 +928,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     const currentY = style.y || y;
 
     const xPosStart = d.direction === 'forward' ? xScale(d.start) : xScale(d.stop);
-    const xPosEnd = d.direction === 'forward' ? Math.max(xScale(d.start), (xScale(d.stop) + currentX)) : Math.min(xScale(d.stop), (xScale(d.start) - currentX));
+    const xPosEnd = d.direction === 'forward' ? Math.max(xScale(d.start), (xScale(d.stop) + currentX)) : Math.max(xScale(d.stop), (xScale(d.start) - currentX));
     const yPos = yScale(currentY);
 
     return { xPosStart, xPosEnd, yPos };
@@ -932,12 +936,12 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 
   // Draw Genes
   var gene = g
-    .selectAll(".geneline")
+    .selectAll(".gene")
     .data(this.data)
     .enter()
     .append("line")
-    .attr("class", "geneline")
-    .attr("id", (d, i) => `${sanitizeId(d.cluster)}-geneline-${i}`)
+    .attr("class", "gene")
+    .attr("id", (d, i) => `${sanitizeId(d.cluster)}-gene-${i}`)
     .attr("x1", (d, i) => getAttributesForIndex(d, i).xPosStart)
     .attr("y1", (d, i) => getAttributesForIndex(d, i).yPos)
     .attr("x2", (d, i) => getAttributesForIndex(d, i).xPosEnd)
@@ -950,6 +954,9 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
       // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
   });
+
+  //Make markers available to tooltip
+  this.genes = g.selectAll(".gene");
 
   return this;
 };
@@ -983,8 +990,8 @@ clusterContainer.prototype.coordinates = function (show = true, options = {}) {
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
   // Data processing
-  var maxStop = stop || d3.max(this.data, (d) => d.stop);
-  var minStart = start || d3.min(this.data, (d) => d.start);
+  var minStart = d3.min(this.data, (d) => Math.min(d.start, d.stop));
+  var maxStop = d3.max(this.data, (d) => Math.max(d.start, d.stop));
 
   var xScale = d3.scaleLinear()
     .domain([minStart, maxStop])
@@ -1088,8 +1095,8 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
 
   // Data processing
   const [minStart, maxStop] = [
-    d3.min(this.data, d => d.start),
-    d3.max(this.data, d => d.stop)
+    d3.min(this.data, d => Math.min(d.start, d.stop)),
+    d3.max(this.data, d => Math.max(d.start, d.stop))
   ];
 
   const xScale = d3.scaleLinear()
@@ -1191,8 +1198,8 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
   // Data processing
-  const maxStop = stop || d3.max(this.data, d => d.stop);
-  const minStart = start || d3.min(this.data, d => d.start);
+  var minStart = d3.min(this.data, (d) => Math.min(d.start, d.stop));
+  var maxStop = d3.max(this.data, (d) => Math.max(d.start, d.stop));
 
   const xScale = d3.scaleLinear()
     .domain([minStart, maxStop])
@@ -1234,7 +1241,6 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   };
 
   const self = this;
-  console.log(this.data)
   // Adding the Label
   g.selectAll("text.label")
     .data(this.data)
@@ -1286,7 +1292,150 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
 
     });
 
+  //Make markers available to tooltip
+  this.labels = g.selectAll(".label");
+
   return this;
+};
+
+clusterContainer.prototype.tooltip = function(show = true, options = {}) {
+    if (!show) {
+        return this;
+    }
+
+    const defaultOptions = {
+        triggers: ["markers", "genes", "labels"],
+        formatter: "Start: {start}<br>Stop: {stop}",
+        opacity: 0,
+        position: "absolute",
+        backgroundColor: "rgba(255, 255, 255, 0.9)",
+        padding: "8px",
+        borderRadius: "4px",
+        border: "1px solid rgba(0,0,0,0.1)",
+        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+        pointerEvents: "none",
+        fontFamily: "Arial, sans-serif",
+        fontSize: "12px",
+        zIndex: 1000,
+        color: "#333",
+        lineHeight: "1.5"
+    };
+
+    // If theme options exist, use them as the default options
+    if (this.themeOptions && this.themeOptions.tooltipOptions) {
+        options = { ...this.themeOptions.tooltipOptions, ...options };
+    }
+
+    const combinedOptions = { ...defaultOptions, ...options };
+
+    // Extract additional options that are not in defaultOptions
+   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
+
+    // Generate CSS for the tooltip and its pseudo-element
+// Generate CSS for the tooltip and its pseudo-element
+    const generateTooltipCSS = (opts, additionalOpts) => {
+        let additionalStyles = Object.entries(additionalOpts).map(([key, value]) => `${camelToKebab(key)}: ${value};`).join(' ');
+        return `
+            .cluster-tooltip {
+                ${additionalStyles}
+                opacity: ${opts.opacity};
+                position: ${opts.position};
+                background-color: ${opts.backgroundColor};
+                padding: ${opts.padding};
+                border-radius: ${opts.borderRadius};
+                border: ${opts.border};
+                box-shadow: ${opts.boxShadow};
+                pointer-events: ${opts.pointerEvents};
+                font-family: ${opts.fontFamily};
+                font-size: ${opts.fontSize};
+                z-index: ${opts.zIndex};
+                color: ${opts.color};
+                line-height: ${opts.lineHeight};
+            }
+            .cluster-tooltip::before {
+                content: "";
+                position: absolute;
+                top: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                border-width: 5px;
+                border-style: solid;
+                border-color: ${opts.backgroundColor} transparent transparent transparent;
+            }
+        `;
+    };
+
+    // Inject the generated CSS into the document
+    const styleTag = document.createElement("style");
+    styleTag.innerHTML = generateTooltipCSS(combinedOptions, additionalOptions);
+    document.head.appendChild(styleTag);
+
+    // Ensure triggers is an array
+    if (typeof combinedOptions.triggers === 'string') {
+        combinedOptions.triggers = [combinedOptions.triggers];
+    }
+
+    // Create the tooltip div if it doesn't exist
+    let tooltip = d3.select("body").select(".cluster-tooltip");
+    if (tooltip.empty()) {
+        tooltip = d3.select("body")
+            .append("div")
+            .attr("class", "cluster-tooltip")
+            .style("opacity", combinedOptions.opacity)
+            .style("position", combinedOptions.position)
+            .style("background-color", combinedOptions.backgroundColor)
+            .style("padding", combinedOptions.padding)
+            .style("border-radius", combinedOptions.borderRadius)
+            .style("border", combinedOptions.border)
+            .style("box-shadow", combinedOptions.boxShadow)
+            .style("pointer-events", combinedOptions.pointerEvents)
+            .style("font-family", combinedOptions.fontFamily)
+            .style("font-size", combinedOptions.fontSize)
+            .style("z-index", combinedOptions.zIndex)
+            .style("color", combinedOptions.color)
+            .style("line-height", combinedOptions.lineHeight);
+    }
+
+    // Function to generate tooltip content
+    const textAccessor = (d) => {
+        return combinedOptions.formatter.replace(/\{(\w+)\}/g, (match, p1) => {
+            return d[p1] || '';
+        });
+    };
+
+    combinedOptions.triggers.forEach(trigger => {
+        const selection = this[trigger];
+
+        // Mouseover event to show the tooltip
+        selection.on("mouseover", (event, d) => {
+            const dataPoint = this.data.find(item => item === d);
+            const x = event.pageX;
+            const y = event.pageY;
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", 1);
+            tooltip.html(textAccessor(dataPoint))
+                .style("left", (x - tooltip.node().offsetWidth / 2) + "px")
+                .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
+        });
+
+        // Mousemove event to reposition the tooltip as the mouse moves
+        selection.on("mousemove", (event, d) => {
+            const x = event.pageX;
+            const y = event.pageY;
+            tooltip.style("left", (x - tooltip.node().offsetWidth / 2) + "px")
+                .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
+        });
+
+        // Mouseout event to hide the tooltip
+        selection.on("mouseout", () => {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });
+    });
+
+    return this; // Return the instance for method chaining
 };
 
 function legendContainer(svg, margin, width, height) {

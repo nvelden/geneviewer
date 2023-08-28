@@ -2,24 +2,27 @@ const themes = {
   preset: {
     titleOptions: {
       titleFont: {
-      fill: "green"
+      //fill: "green"
       }
     },
     footerOptions: {
       titleFont: {
-      fill: "green"
+      //fill: "green"
       }
     },
     clusterLabelOptions: {
-      fill: "green"
+      //fill: "green"
       },
     sequenceOptions: {
-      stroke: "green"
+      //stroke: "green"
     },
     markerOptions: {
     },
     genesOptions: {
-      customColors: ["green"]
+      //customColors: ["green"]
+    },
+    tooltipOptions: {
+      //backgroundColor: "green"
     }
   }
 };

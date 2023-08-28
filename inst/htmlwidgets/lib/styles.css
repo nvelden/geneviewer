@@ -13,4 +13,3 @@ div, svg {
   flex: 1 1 auto; /* This makes the SVGs grow and shrink as needed */
   min-height: 0; /* This may be needed for correct sizing in some browsers */
 }
-

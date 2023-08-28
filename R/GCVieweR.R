@@ -76,6 +76,7 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
     x$series[[clust]]$footer <- list()
     x$series[[clust]]$clusterLabel <- list()
     x$series[[clust]]$sequence <- list(show = TRUE)
+    x$series[[clust]]$tooltip <- list(show = TRUE)
   }
 
   # create the widget
@@ -614,5 +615,40 @@ GC_legend <- function(
 
   GCVieweR$x$legend <- options
 
+  return(GCVieweR)
+}
+
+#' @export
+GC_tooltip <- function(
+    GCVieweR,
+    formatter = "Start: {start}<br>Stop: {stop}",
+    show = TRUE,
+    cluster = NULL,
+    ...
+) {
+
+  # Capture ... arguments
+  dots <- list(...)
+
+  # Update the GCVieweR object with title and options for each cluster
+  clusters <- getUpdatedClusters(GCVieweR, cluster)
+
+  for(i in seq_along(clusters)){
+
+    # Default options
+    options <- list(
+      formatter = formatter,
+      show = show
+    )
+
+    # Add arguments to options
+    for(name in names(dots)) {
+      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+    }
+
+    # Set title options for each cluster
+    GCVieweR$x$series[[clusters[i]]]$tooltip <- options
+
+  }
   return(GCVieweR)
 }

@@ -36,6 +36,9 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
   group <- if((group_char != "NULL")) group_char else NULL
   show_legend <- if((group_char != "NULL")) TRUE else FALSE
 
+  # Add rowID to data
+  data$rowID <- seq_len(nrow(data))
+
   x$data <- data
   x$group <- group
   x$legend <- list(group = group, show = show_legend, position = "top")

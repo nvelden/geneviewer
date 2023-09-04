@@ -13,3 +13,21 @@ div, svg {
   flex: 1 1 auto; /* This makes the SVGs grow and shrink as needed */
   min-height: 0; /* This may be needed for correct sizing in some browsers */
 }
+
+/* Common styles */
+.legend .legend-marker,
+.legend .legend-label {
+    transition: 0.3s ease-in-out;  /* Smooth transitions */
+}
+
+/* Hover styles: Gives a dim effect to the marker and text when hovered */
+.legend.hovered .legend-marker,
+.legend.hovered .legend-label {
+    opacity: 0.7;
+}
+
+/* Highlighted/Clicked styles: Gives a more dimmed effect to both marker and text when clicked */
+.legend.unselected .legend-marker,
+.legend.unselected .legend-label {
+    opacity: 0.5;
+}

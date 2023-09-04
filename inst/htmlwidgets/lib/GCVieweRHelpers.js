@@ -855,6 +855,7 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
    .attr("fill", (d) => colorScale(d[group]))
    .attr("class", "marker")
    .attr("id", (d, i) => `${sanitizeId(d.cluster)}-marker-${i}`)
+   .attr("rowID", (d, i) => `${d["rowID"]}`)
    .each(function (d, i) {
       const currentElement = d3.select(this);
 
@@ -884,7 +885,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
   }
 
   const defaultOptions = {
-    x: -5,
+    x: 5,
     y: 50,  // default y value
     start: null,
     stop: null,
@@ -927,8 +928,8 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     const currentX = style.x || x;
     const currentY = style.y || y;
 
-    const xPosStart = d.direction === 'forward' ? xScale(d.start) : xScale(d.stop);
-    const xPosEnd = d.direction === 'forward' ? Math.max(xScale(d.start), (xScale(d.stop) + currentX)) : Math.max(xScale(d.stop), (xScale(d.start) - currentX));
+    const xPosStart = d.direction === 'forward' ? xScale(d.start) : xScale(d.stop) + currentX;
+    const xPosEnd = d.direction === 'forward' ? (Math.max(xScale(d.start), xScale(d.stop)) - currentX) : Math.max(xScale(d.stop), xScale(d.start));
     const yPos = yScale(currentY);
 
     return { xPosStart, xPosEnd, yPos };
@@ -942,6 +943,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     .append("line")
     .attr("class", "gene")
     .attr("id", (d, i) => `${sanitizeId(d.cluster)}-gene-${i}`)
+    .attr("rowID", (d, i) => `${d["rowID"]}`)
     .attr("x1", (d, i) => getAttributesForIndex(d, i).xPosStart)
     .attr("y1", (d, i) => getAttributesForIndex(d, i).yPos)
     .attr("x2", (d, i) => getAttributesForIndex(d, i).xPosEnd)
@@ -1005,45 +1007,56 @@ clusterContainer.prototype.coordinates = function (show = true, options = {}) {
   var g = this.svg.append("g")
     .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-  // Get all start and stop values
+  // Get all start and stop values along with rowID
   var allTickValues = tickValues || this.data.reduce((acc, d) => {
-    acc.push(d.start);
-    acc.push(d.stop);
-    return acc;
-  }, []);
+        acc.push({value: d.start, rowID: d.rowID});
+        acc.push({value: d.stop, rowID: d.rowID});
+        return acc;
+    }, []);
 
   // Sort the array in ascending order
-  allTickValues.sort((a, b) => a - b);
+  allTickValues.sort((a, b) => a.value - b.value);
 
-  var tickValuesTop = [];
-  var tickValuesBottom = allTickValues.filter((value, index, array) => {
-    if (index === 0) return true; // Always include the first element
-    var diff = value - array[index - 1];
-    if (diff < tickValueThreshold) {
-        tickValuesTop.push(value);
-        return false; // Exclude this value from the new array
-    }
-    return true; // Include this value in the new array
+    var tickValuesTop = [];
+    var tickValuesBottom = allTickValues.filter((tickObj, index, array) => {
+        if (index === 0) return true; // Always include the first element
+        var diff = tickObj.value - array[index - 1].value;
+        if (diff < tickValueThreshold) {
+            tickValuesTop.push(tickObj);
+            return false; // Exclude this tickObj from the new array
+        }
+        return true; // Include this tickObj in the new array
   });
 
-  // Add X-axis scale at the top
-  var xAxisTop = g.append("g")
-    .attr("transform", "translate(0," + yScale(yPositionTop) + ")")
-    .call(d3.axisTop(xScale).tickValues(tickValuesTop));
 
-  // Add X-axis scale at the bottom
-  var xAxisBottom = g.append("g")
-    .attr("transform", "translate(0," + yScale(yPositionBottom) + ")")
-    .call(d3.axisBottom(xScale).tickValues(tickValuesBottom));
+    // Add X-axis scale at the top
+    var xAxisTop = g.append("g")
+       .attr("transform", "translate(0," + yScale(yPositionTop) + ")")
+        .call(d3.axisTop(xScale).tickValues(tickValuesTop.map(t => t.value)));
+
+    // Add X-axis scale at the bottom
+    var xAxisBottom = g.append("g")
+        .attr("transform", "translate(0," + yScale(yPositionBottom) + ")")
+        .call(d3.axisBottom(xScale).tickValues(tickValuesBottom.map(t => t.value)));
+
+    xAxisTop.selectAll(".tick")
+        .data(tickValuesTop)
+        .attr("rowID", d => d.rowID);
+
+    xAxisBottom.selectAll(".tick")
+       .data(tickValuesBottom)
+       .attr("rowID", d => d.rowID);
+
 
   // Hide axis line
   xAxisTop.select(".domain").attr("stroke", "none");
   xAxisBottom.select(".domain").attr("stroke", "none");
 
   xAxisTop.selectAll("text")
-    .data(this.data)
+    .data(tickValuesTop)
     .attr("class", "coordinate")
     .attr("id", (d, i) => `${sanitizeId(this.data[0].cluster)}-coordinate-top-${i}`)
+    .attr("rowID", d => d.rowID)
     .style("text-anchor", "end")
     .attr("dx", "-.8em")
     .attr("dy", ".4em")
@@ -1055,8 +1068,10 @@ clusterContainer.prototype.coordinates = function (show = true, options = {}) {
     });
 
   xAxisBottom.selectAll("text")
+    .data(tickValuesBottom)
     .attr("class", "coordinate")
     .attr("id", (d, i) => `${sanitizeId(this.data[0].cluster)}-coordinate-bottom-${i}`)
+    .attr("rowID", d => d.rowID)
     .style("text-anchor", "start")
     .attr("dx", ".8em")
     .attr("dy", "-.15em")
@@ -1247,6 +1262,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     .enter()
     .append("text")
     .attr("id", (d, i) => `${sanitizeId(d.cluster)}-label-${i}`)
+    .attr("rowID", (d, i) => `${d["rowID"]}`)
     .attr("class", "label")
     .attr("x", (d, i) => getAttributesForIndex(d, i).xPos)
     .attr("y", (d, i) => getAttributesForIndex(d, i).yPos)
@@ -1279,7 +1295,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
 
       // Adjust labels if needed
      if (attributes.labelAdjustmentOptions) {
-        console.log(attributes.labelAdjustmentOptions)
+
         const { rotation, dx, dy } = attributes.labelAdjustmentOptions;
         const x = parseFloat(currentElement.attr('x'));
         const y = parseFloat(currentElement.attr('y'));
@@ -1497,11 +1513,12 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
     adjustHeight: true,
     labels: null, // Add labels option here
     legend: {
+      cursor: "pointer",
       colorScheme: null,
       customColors: null
     },
     legendText: {
-      cursor: "default",
+      cursor: "pointer",
       textAnchor: "start",
       dy: ".35em",
       fontSize: "12px",
@@ -1509,7 +1526,6 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
     }
   };
 
-  // If theme options exist, use them as the default options
   if (this.themeOptions && this.themeOptions.legendOptions) {
     options = { ...this.themeOptions.legendOptions, ...options };
   }
@@ -1523,26 +1539,23 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
 
   const { x, y, orientation, adjustHeight, legend, legendText, labels } = combinedOptions;
 
-  // Extract additional options that are not in defaultOptions
   const additionalOptionsLegend = extractAdditionalOptions(legend, defaultOptions.legend);
   const additionalOptionsLegendText = extractAdditionalOptions(legendText, defaultOptions.legendText);
 
   const svgLegend = this.svg;
   const parentWidth = svgLegend.node().getBoundingClientRect().width;
 
-  // Create the group taking into account the margins
   var g = svgLegend.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
-  // Use labels if provided, otherwise extract unique values from the group key
   const uniqueGroups = labels || [...new Set(this.data.map(d => d[group]))];
+  console.log(uniqueGroups)
 
   if (!uniqueGroups.length) {
     console.error(`Error: No labels provided and the group "${group}" does not exist in the data.`);
     return;
   }
 
-  // Adjust colorScale to use uniqueGroups
   const colorScale = getColorScale(legend.colorScheme, legend.customColors, uniqueGroups);
 
   const legendSize = parseFloat(legendText.fontSize);
@@ -1556,10 +1569,12 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
     .append("g")
     .attr("class", "legend")
     .each((d, i, nodes) => {
-      const textElement = nodes[i];
+      const legendGroup = d3.select(nodes[i]);
 
-      const textLabel = d3.select(textElement)
+      const textLabel = legendGroup
         .append("text")
+        .attr("class", "legend-label")
+        .attr("id", (d, i) => `legend-label-${i}`)
         .attr("dy", legendText.dy)
         .style("text-anchor", legendText.textAnchor)
         .style("font-size", legendText.fontSize)
@@ -1582,8 +1597,11 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
         .attr("x", currentX + legendSize + legendPadding)
         .attr("y", currentY + legendSize / 2);
 
-      d3.select(textElement)
+      const rect = legendGroup
         .append("rect")
+        .attr("class", "legend-marker")
+        .attr("id", (d, i) => `legend-marker-${i}`)
+        .style("cursor", legend.cursor)
         .attr("x", currentX)
         .attr("y", currentY)
         .attr("width", legendSize)
@@ -1600,9 +1618,41 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
         currentX = x;
         currentY += legendSize + legendPadding;
       }
-    });
 
-  // Adjust height
+    })
+    .on("mouseover", (event, d) => {
+        const element = d3.select(event.currentTarget);
+        element.classed("hovered", true);
+    })
+    .on("mouseout", (event, d) => {
+        const element = d3.select(event.currentTarget);
+        element.classed("hovered", false);
+    })
+    .on("click", (event, d) => {
+        const element = d3.select(event.currentTarget);
+        // If it's currently highlighted, unhighlight it, else highlight it
+        if(element.classed("unselected")) {
+            element.classed("unselected", false);
+        } else {
+            element.classed("unselected", true);
+    }
+
+    const unselectedLegend = d3.selectAll(".unselected").data();
+    const unselectedRowIds = this.data
+      .filter(item => unselectedLegend.includes(item[group]))
+      .map(item => item.rowID);
+
+    // For all elements with a rowID attribute:
+    d3.selectAll('[rowID]').each(function() {
+        const currentRowID = +d3.select(this).attr("rowID"); // Convert string to number
+        if (unselectedRowIds.includes(currentRowID)) {
+            d3.select(this).style("display", "none"); // Hide it
+        } else {
+            d3.select(this).style("display", ""); // Show it
+        }
+    });
+});
+
   if (adjustHeight && this.height === 0) {
     var contentHeight = currentY + legendSize + legendPadding;
     svgLegend.attr("height", contentHeight);

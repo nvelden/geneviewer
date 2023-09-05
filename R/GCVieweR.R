@@ -253,6 +253,7 @@ GC_scale <- function(
     cluster = NULL,
     start = NULL,
     stop = NULL,
+    breaks = list(),
     ...
 ) {
 
@@ -270,7 +271,8 @@ GC_scale <- function(
     # Default options
     options <- list(
       start = start[(i-1) %% length(start) + 1],
-      stop = stop[(i-1) %% length(stop) + 1]
+      stop = stop[(i-1) %% length(stop) + 1],
+      breaks = breaks
     )
 
     # Set scaleBar options for each cluster

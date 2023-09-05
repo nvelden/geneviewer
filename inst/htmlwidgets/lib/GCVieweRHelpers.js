@@ -448,6 +448,52 @@ clusterContainer.prototype.geneData = function (data) {
   return this;
 };
 
+clusterContainer.prototype.scale = function(options = {}) {
+
+  // Verify that the data exists
+  if (!this.data) {
+    console.error('No data has been added to this cluster container.');
+    return this;
+  }
+
+  // Default options specific for scales
+  const defaultScaleOptions = {
+    start: null,
+    stop: null
+  };
+
+  // Merge provided options with the default ones
+  const combinedOptions = mergeOptions.call(this, defaultScaleOptions, 'scaleOptions', options);
+
+  // De-structure the combined options
+  const { start, stop } = combinedOptions;
+
+  // Filter data based on the provided start value, if provided
+  if (start !== null) {
+    this.data = this.data.filter(d => d.start >= start);
+  }
+
+  // Filter data based on the provided stop value, if provided
+  if (stop !== null) {
+    this.data = this.data.filter(d => d.stop <= stop);
+  }
+
+  // Use provided start and stop values if they exist, otherwise compute them from data
+  this.minStart = start !== null ? start : d3.min(this.data, (d) => Math.min(d.start, d.stop));
+  this.maxStop = stop !== null ? stop : d3.max(this.data, (d) => Math.max(d.start, d.stop));
+
+  // Define the scales based on the computed or provided values
+  this.xScale = d3.scaleLinear()
+    .domain([this.minStart, this.maxStop])
+    .range([0, this.width - this.margin.left - this.margin.right]);
+
+  this.yScale = d3.scaleLinear()
+    .domain([0, 100])
+    .range([this.height - this.margin.bottom - this.margin.top, 0]);
+
+  return this;
+};
+
 clusterContainer.prototype.title = function(title, subtitle, show = true, options = {}) {
 
   // Return early if neither title nor subtitle is provided
@@ -739,18 +785,6 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
-  // Data processing
-  var minStart = d3.min(this.data, (d) => Math.min(d.start, d.stop));
-  var maxStop = d3.max(this.data, (d) => Math.max(d.start, d.stop));
-
-  var xScale = d3.scaleLinear()
-    .domain([minStart, maxStop])
-    .range([0, this.width - this.margin.left - this.margin.right]);
-
-  var yScale = d3.scaleLinear()
-    .domain([0, 100])
-    .range([this.height - this.margin.bottom - this.margin.top , 0]);
-
   // Create the group
   var g = this.svg.append("g")
     .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
@@ -758,10 +792,10 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
   // Draw baseline
   g.append("line")
     .attr("class", "baseline")
-    .attr("x1", xScale(start || minStart))
-    .attr("y1", yScale(y))
-    .attr("x2", xScale(stop || maxStop))
-    .attr("y2", yScale(y))
+    .attr("x1", this.xScale(start || this.minStart))
+    .attr("y1", this.yScale(y))
+    .attr("x2", this.xScale(stop || this.maxStop))
+    .attr("y2", this.yScale(y))
     .attr("stroke", stroke)
     .attr("stroke-width", strokeWidth)
     .each(function() {
@@ -803,18 +837,6 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
-  // Data processing
-  var minStart = d3.min(this.data, (d) => Math.min(d.start, d.stop));
-  var maxStop = d3.max(this.data, (d) => Math.max(d.start, d.stop));
-
-  var xScale = d3.scaleLinear()
-    .domain([minStart, maxStop])
-    .range([0, this.width - this.margin.left - this.margin.right]);
-
-  var yScale = d3.scaleLinear()
-    .domain([0, 100])
-    .range([this.height - this.margin.bottom - this.margin.top , 0]);
-
   // Color Scale Setup
   const uniqueGroups = [...new Set(this.data.map(d => d[group]))];
   // Adjust colorScale to use uniqueGroups
@@ -832,8 +854,8 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
     const currentMarker = style.marker || marker;
 
     const offset = currentSize / 2;
-    const yPos = yScale(currentY);
-    const xPos = d.direction === 'forward' ? xScale(d.stop) - offset + currentX : xScale(d.stop) + offset - currentX;
+    const yPos = this.yScale(currentY);
+    const xPos = d.direction === 'forward' ? this.xScale(d.stop) - offset + currentX : this.xScale(d.stop) + offset - currentX;
 
     return { xPos, yPos, currentSize, currentMarker };
    };
@@ -873,7 +895,6 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
 };
 
 clusterContainer.prototype.genes = function(group, show = true, options = {}) {
-
   if (!show) {
     return this;
   }
@@ -886,32 +907,19 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 
   const defaultOptions = {
     x: 5,
-    y: 50,  // default y value
+    y: 50,
     start: null,
     stop: null,
     colorScheme: null,
     customColors: null,
-    itemStyle: [] //[{index: 1,opacity: 0.5}]
+    itemStyle: []
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'genesOptions', options);
-
   const { x, y, start, stop, colorScheme, customColors, itemStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
-
-  // Data processing
-  var minStart = d3.min(this.data, (d) => Math.min(d.start, d.stop));
-  var maxStop = d3.max(this.data, (d) => Math.max(d.start, d.stop));
-
-  var xScale = d3.scaleLinear()
-    .domain([minStart, maxStop])
-    .range([0, this.width - this.margin.left - this.margin.right]);
-
-  var yScale = d3.scaleLinear()
-    .domain([0, 100])
-    .range([this.height - this.margin.bottom - this.margin.top , 0]);
 
   // Color Scale Setup
   const uniqueGroups = [...new Set(this.data.map(d => d[group]))];
@@ -922,15 +930,14 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
   const g = this.svg.append("g")
     .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
     const currentX = style.x || x;
     const currentY = style.y || y;
 
-    const xPosStart = d.direction === 'forward' ? xScale(d.start) : xScale(d.stop) + currentX;
-    const xPosEnd = d.direction === 'forward' ? (Math.max(xScale(d.start), xScale(d.stop)) - currentX) : Math.max(xScale(d.stop), xScale(d.start));
-    const yPos = yScale(currentY);
+    const xPosStart = d.direction === 'forward' ? this.xScale(d.start) : this.xScale(d.stop) + currentX;
+    const xPosEnd = d.direction === 'forward' ? (Math.max(this.xScale(d.start), this.xScale(d.stop)) - currentX) : Math.max(this.xScale(d.stop), this.xScale(d.start));
+    const yPos = this.yScale(currentY);
 
     return { xPosStart, xPosEnd, yPos };
   };
@@ -949,13 +956,13 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     .attr("x2", (d, i) => getAttributesForIndex(d, i).xPosEnd)
     .attr("y2", (d, i) => getAttributesForIndex(d, i).yPos)
     .attr("stroke", (d) => colorScale(d[group]))
-   .each(function (d, i) {
+    .each(function (d, i) {
       const currentElement = d3.select(this);
       // Set additional options as attributes
       setAttributesFromOptions(currentElement, additionalOptions);
       // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
-  });
+    });
 
   //Make markers available to tooltip
   this.genes = g.selectAll(".gene");
@@ -991,18 +998,6 @@ clusterContainer.prototype.coordinates = function (show = true, options = {}) {
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
-  // Data processing
-  var minStart = d3.min(this.data, (d) => Math.min(d.start, d.stop));
-  var maxStop = d3.max(this.data, (d) => Math.max(d.start, d.stop));
-
-  var xScale = d3.scaleLinear()
-    .domain([minStart, maxStop])
-    .range([0, this.width - this.margin.left - this.margin.right]);
-
-  var yScale = d3.scaleLinear()
-    .domain([0, 100])
-    .range([this.height - this.margin.bottom - this.margin.top , 0]);
-
   // Create the group
   var g = this.svg.append("g")
     .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
@@ -1031,13 +1026,13 @@ clusterContainer.prototype.coordinates = function (show = true, options = {}) {
 
     // Add X-axis scale at the top
     var xAxisTop = g.append("g")
-       .attr("transform", "translate(0," + yScale(yPositionTop) + ")")
-        .call(d3.axisTop(xScale).tickValues(tickValuesTop.map(t => t.value)));
+       .attr("transform", "translate(0," + this.yScale(yPositionTop) + ")")
+        .call(d3.axisTop(this.xScale).tickValues(tickValuesTop.map(t => t.value)));
 
     // Add X-axis scale at the bottom
     var xAxisBottom = g.append("g")
-        .attr("transform", "translate(0," + yScale(yPositionBottom) + ")")
-        .call(d3.axisBottom(xScale).tickValues(tickValuesBottom.map(t => t.value)));
+        .attr("transform", "translate(0," + this.yScale(yPositionBottom) + ")")
+        .call(d3.axisBottom(this.xScale).tickValues(tickValuesBottom.map(t => t.value)));
 
     xAxisTop.selectAll(".tick")
         .data(tickValuesTop)
@@ -1108,18 +1103,8 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
-  // Data processing
-  const [minStart, maxStop] = [
-    d3.min(this.data, d => Math.min(d.start, d.stop)),
-    d3.max(this.data, d => Math.max(d.start, d.stop))
-  ];
-
-  const xScale = d3.scaleLinear()
-    .domain([minStart, maxStop])
-    .range([0, this.width - this.margin.left - this.margin.right]);
-
   // Calculate the length of the scale bar in pixels
-  const scaleBarLength = xScale(minStart + scaleBarUnit);
+  const scaleBarLength = this.xScale(scaleBarUnit) - this.xScale(0);
 
   // Create the group with the x offset applied
   const g = this.svg.append("g")
@@ -1127,8 +1112,8 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
 
   // Create the scale bar line
   g.append("line")
-    .attr("x1", parseInt(fontSize) + 5)
-    .attr("x2", parseInt(fontSize) + 5 + scaleBarLength)
+    .attr("x1", parseInt(fontSize) + 5 + scaleBarLength)
+    .attr("x2", parseInt(fontSize) + 5)
     .attr("y1", -y)
     .attr("y2", -y)
     .attr("stroke", "grey")
@@ -1212,18 +1197,6 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
-  // Data processing
-  var minStart = d3.min(this.data, (d) => Math.min(d.start, d.stop));
-  var maxStop = d3.max(this.data, (d) => Math.max(d.start, d.stop));
-
-  const xScale = d3.scaleLinear()
-    .domain([minStart, maxStop])
-    .range([0, this.width - this.margin.left - this.margin.right]);
-
-  const yScale = d3.scaleLinear()
-    .domain([0, 100])
-    .range([this.height - this.margin.top - this.margin.bottom, 0]);
-
   // Placeholder function for getUniqueId
   const getUniqueId = (label) => label; // Replace with your actual implementation
 
@@ -1241,8 +1214,8 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     const currentLabelAdjustmentOptions = style.labelAdjustmentOptions || undefined;
     const currentAdjustLabels = style.adjustLabels !== undefined ? style.adjustLabels : adjustLabels;
 
-    const xPos = xScale((d.start + d.stop) / 2) + currentX;
-    const yPos = yScale(currentY);
+    const xPos = this.xScale((d.start + d.stop) / 2) + currentX;
+    const yPos = this.yScale(currentY);
 
     return {
         xPos,
@@ -1347,8 +1320,8 @@ clusterContainer.prototype.tooltip = function(show = true, options = {}) {
     // Extract additional options that are not in defaultOptions
    const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
+
     // Generate CSS for the tooltip and its pseudo-element
-// Generate CSS for the tooltip and its pseudo-element
     const generateTooltipCSS = (opts, additionalOpts) => {
         let additionalStyles = Object.entries(additionalOpts).map(([key, value]) => `${camelToKebab(key)}: ${value};`).join(' ');
         return `
@@ -1420,36 +1393,46 @@ clusterContainer.prototype.tooltip = function(show = true, options = {}) {
     };
 
     combinedOptions.triggers.forEach(trigger => {
-        const selection = this[trigger];
 
-        // Mouseover event to show the tooltip
-        selection.on("mouseover", (event, d) => {
-            const dataPoint = this.data.find(item => item === d);
-            const x = event.pageX;
-            const y = event.pageY;
-            tooltip.transition()
-                .duration(200)
-                .style("opacity", 1);
-            tooltip.html(textAccessor(dataPoint))
-                .style("left", (x - tooltip.node().offsetWidth / 2) + "px")
-                .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
-        });
+    if (!this.hasOwnProperty(trigger)) {
+         return;
+    }
 
-        // Mousemove event to reposition the tooltip as the mouse moves
-        selection.on("mousemove", (event, d) => {
-            const x = event.pageX;
-            const y = event.pageY;
-            tooltip.style("left", (x - tooltip.node().offsetWidth / 2) + "px")
-                .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
-        });
+    const selection = this[trigger];
 
-        // Mouseout event to hide the tooltip
-        selection.on("mouseout", () => {
-            tooltip.transition()
-                .duration(500)
-                .style("opacity", 0);
-        });
+    // Check if the selection exists and is not empty
+    if (!selection || selection.empty()) {
+        return; // Skip this iteration of the loop
+    }
+
+    // Mouseover event to show the tooltip
+    selection.on("mouseover", (event, d) => {
+        const dataPoint = this.data.find(item => item === d);
+        const x = event.pageX;
+        const y = event.pageY;
+        tooltip.transition()
+            .duration(200)
+            .style("opacity", 1);
+        tooltip.html(textAccessor(dataPoint))
+            .style("left", (x - tooltip.node().offsetWidth / 2) + "px")
+            .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
     });
+
+    // Mousemove event to reposition the tooltip as the mouse moves
+    selection.on("mousemove", (event, d) => {
+        const x = event.pageX;
+        const y = event.pageY;
+        tooltip.style("left", (x - tooltip.node().offsetWidth / 2) + "px")
+            .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
+    });
+
+    // Mouseout event to hide the tooltip
+    selection.on("mouseout", () => {
+        tooltip.transition()
+            .duration(500)
+            .style("opacity", 0);
+    });
+});
 
     return this; // Return the instance for method chaining
 };
@@ -1549,7 +1532,7 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
   const uniqueGroups = labels || [...new Set(this.data.map(d => d[group]))];
-  console.log(uniqueGroups)
+
 
   if (!uniqueGroups.length) {
     console.error(`Error: No labels provided and the group "${group}" does not exist in the data.`);

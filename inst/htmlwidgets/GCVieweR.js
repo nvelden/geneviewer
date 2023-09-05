@@ -62,6 +62,7 @@ clusters.forEach(function(clusterKey) {
 
     var cluster = series[clusterKey],
         clusterData = HTMLWidgets.dataframeToD3(series[clusterKey].data),
+        scaleOptions = cluster.scale,
         titleOptions = cluster.title,
         footerOptions = cluster.footer,
         clusterLabelOptions = cluster.clusterLabel,
@@ -89,6 +90,7 @@ clusters.forEach(function(clusterKey) {
         .footer(footerOptions?.title, footerOptions?.subtitle, footerOptions?.show ?? false, footerOptions)
         .clusterLabel(clusterLabelOptions?.title, clusterLabelOptions?.show ?? false, clusterLabelOptions)
         .geneData(clusterData)  // Access data using the cluster key
+        .scale(scaleOptions)
         .sequence(sequenceOptions?.show ?? false, sequenceOptions)
         .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)
         .markers(markerOptions?.group, markerOptions?.show ?? false, markerOptions)

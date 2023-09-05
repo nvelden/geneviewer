@@ -68,6 +68,7 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
     x$series[[clust]]$data$stop <- subset_data[[stop_col]]
     x$series[[clust]]$data$cluster <- clust
     # Settings
+    x$series[[clust]]$scale <- list()
     x$series[[clust]]$grid <- list(margin = list(left = "50px", right = "50px", top = 0, bottom = 0), height = divide_dimension_value("100%", length(clusters)) , width = width)
     x$series[[clust]]$title <- list()
     x$series[[clust]]$markers <- list(group = group_char, show = TRUE)
@@ -245,6 +246,42 @@ GC_grid <- function(
 
   return(GCVieweR)
 }
+
+#' @export
+GC_scale <- function(
+    GCVieweR,
+    cluster = NULL,
+    start = NULL,
+    stop = NULL,
+    ...
+) {
+
+  # Capture ... arguments
+  dots <- list(...)
+
+  # Update the GCVieweR object with title and options for each cluster
+  clusters <- getUpdatedClusters(GCVieweR, cluster)
+
+  for(i in seq_along(clusters)){
+
+    # Default options
+    options <- list()
+
+    # Default options
+    options <- list(
+      start = start[(i-1) %% length(start) + 1],
+      stop = stop[(i-1) %% length(stop) + 1]
+    )
+
+    # Set scaleBar options for each cluster
+    GCVieweR$x$series[[clusters[i]]]$scale <- options
+
+  }
+
+  return(GCVieweR)
+}
+
+
 
 #' @export
 GC_scaleBar <- function(

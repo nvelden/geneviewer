@@ -48,7 +48,7 @@ clusters.forEach(function(clusterKey) {
       // Compute margins
       var margin = { top: 0, right: 0, bottom: 0, left: 0 }
       var clusterMargins = series[clusterKey]["grid"].margin
-      var clusterHeight = computeSize(series[clusterKey]["grid"].height, el.clientHeight - legendHeight)
+      var clusterHeight = computeSize(el.clientHeight - legendHeight,series[clusterKey]["grid"].height)
       var clusterWidth = computeSize(series[clusterKey]["grid"].width, width)
 
       if (Object.keys(clusterMargins).length > 0) {

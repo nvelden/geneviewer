@@ -4,37 +4,26 @@ magrittr::`%>%`
 
 #' @import htmlwidgets
 #' @export
-GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = NULL,
+GCVieweR <- function(data, start_col = "start", stop_col = "stop", cluster = NULL, group = NULL,
                      width = "100%", height = "400px", elementId = NULL){
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
 
-  # use deparse(substitute(...)) to capture the column names
-  start_col <- deparse(substitute(start))
-  stop_col <- deparse(substitute(stop))
-
-  cluster_eval <- rlang::enquo(cluster)
-  cluster_char <- rlang::quo_name(cluster_eval)
-
-  group_eval <- rlang::enquo(group)
-  group_char <- rlang::quo_name(group_eval)
-
   # Check if column names are in the data frame
   colnames_data <- colnames(data)
   if (!(start_col %in% colnames_data)) stop("start column not found in data")
   if (!(stop_col %in% colnames_data)) stop("stop column not found in data")
-  if (cluster_char != "NULL" && !(cluster_char %in% colnames_data)){
+  if (!is.null(cluster) && !(cluster %in% colnames_data)){
     stop("cluster column not found in data")
   }
-  if (group_char != "NULL" && !(group_char %in% colnames_data)) {
+  if (!is.null(group) && !(group %in% colnames_data)) {
     stop("group column not found in data")
   }
 
   x <- list()
 
-  group <- if((group_char != "NULL")) group_char else NULL
-  show_legend <- if((group_char != "NULL")) TRUE else FALSE
+  show_legend <- if(!is.null(group)) TRUE else FALSE
 
   # Add rowID to data
   data$rowID <- seq_len(nrow(data))
@@ -43,12 +32,9 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
   x$group <- group
   x$legend <- list(group = group, show = show_legend, position = "top")
 
-  cluster <- if((cluster_char != "NULL")) cluster_char else NULL
-
   if(is.null(cluster)){
     clusters <- "cluster"
   } else {
-    if (!(cluster %in% colnames_data)) stop("cluster column not found in data")
     clusters <- unique(data[[cluster]])
   }
 
@@ -58,7 +44,7 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
     if(is.null(cluster)){
       subset_data <- data
     } else {
-      subset_data <- data[data[[cluster_char]] == clust, ]
+      subset_data <- data[data[[cluster]] == clust, ]
     }
 
     # Data
@@ -69,10 +55,10 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
     x$series[[clust]]$data$cluster <- clust
     # Settings
     x$series[[clust]]$scale <- list()
-    x$series[[clust]]$grid <- list(margin = list(left = "50px", right = "50px", top = 0, bottom = 0), height = divide_dimension_value("100%", length(clusters)) , width = width)
+    x$series[[clust]]$grid <- list(margin = list(left = "50px", right = "50px", top = 0, bottom = 0), height = height, width = width)
     x$series[[clust]]$title <- list()
-    x$series[[clust]]$markers <- list(group = group_char, show = TRUE)
-    x$series[[clust]]$genes <- list(group = group_char, show = TRUE)
+    x$series[[clust]]$markers <- list(group = group, show = TRUE)
+    x$series[[clust]]$genes <- list(group = group, show = TRUE)
     x$series[[clust]]$labels <- list()
     x$series[[clust]]$cluster <- list()
     x$series[[clust]]$coordinates <- list(show = TRUE)
@@ -80,7 +66,7 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
     x$series[[clust]]$footer <- list()
     x$series[[clust]]$clusterLabel <- list()
     x$series[[clust]]$sequence <- list(show = TRUE)
-    x$series[[clust]]$tooltip <- list(show = TRUE)
+    x$series[[clust]]$tooltip <- list(show = TRUE, formatter ="<b>Start:</b> {start} <br><b>Stop:</b> {stop}")
   }
 
   # create the widget
@@ -94,7 +80,6 @@ GCVieweR <- function(data, start = start, stop = stop, cluster = NULL, group = N
   )
 
 }
-
 #GC_item("markers", 1, itemStyle = list(list(index = 1, styles = list(opacity = 0.1))))
 
 #' @export
@@ -416,24 +401,26 @@ GC_footer <- function(
 #' @export
 GC_labels <- function(
     GCVieweR,
-    label,
+    label = NULL,
     show = TRUE,
     cluster = NULL,
     ...
 ) {
 
-  label_eval <- rlang::enquo(label)
-  label_char <- rlang::quo_name(label_eval)
+  if (is.logical(label) && length(label) == 1) {
+    show <- label
+    label <- NULL
+  }
 
-  if (label_char == "NULL" && is.null(GCVieweR$x$group)){
+  if (is.null(label) && is.null(GCVieweR$x$group)){
     stop("Please define labels")
   }
 
-  if(label_char == "NULL" && !is.null(GCVieweR$x$group)){
-    label_char <- GCVieweR$x$group
+  if (is.null(label) && !is.null(GCVieweR$x$group)) {
+    label <- GCVieweR$x$group
   }
 
-  if (!(label_char %in% names(GCVieweR$x$data))) {
+  if (!(label %in% names(GCVieweR$x$data))) {
     stop("label column not found in data")
   }
 
@@ -447,7 +434,7 @@ GC_labels <- function(
 
     # Default options
     options <- list(
-      label = label_char[(i-1) %% length(label_char) + 1],
+      label = label[(i-1) %% length(label) + 1],
       show = show[(i-1) %% length(show) + 1]
     )
 
@@ -463,6 +450,7 @@ GC_labels <- function(
 
   return(GCVieweR)
 }
+
 #' @export
 GC_coordinates <- function(
     GCVieweR,
@@ -502,6 +490,7 @@ GC_coordinates <- function(
 }
 
 #' @export
+#' @export
 GC_genes <- function(
     GCVieweR,
     group = NULL,
@@ -512,18 +501,20 @@ GC_genes <- function(
     ...
 ) {
 
-  group_eval <- rlang::enquo(group)
-  group_char <- rlang::quo_name(group_eval)
+  if (is.logical(group) && length(group) == 1) {
+    show <- group
+    group <- NULL
+  }
 
-  if (group_char == "NULL" && is.null(GCVieweR$x$group)){
+  if (is.null(group) && is.null(GCVieweR$x$group)){
     stop("Please define a group")
   }
 
-  if(group_char == "NULL" && !is.null(GCVieweR$x$group)){
-    group_char <- GCVieweR$x$group
+  if (is.null(group) && !is.null(GCVieweR$x$group)){
+    group <- GCVieweR$x$group
   }
 
-  if (!(group_char %in% names(GCVieweR$x$data))) {
+  if (!(group %in% names(GCVieweR$x$data))) {
     stop("group column not found in data")
   }
 
@@ -537,7 +528,7 @@ GC_genes <- function(
 
     # Default options
     options <- list(
-      group = group_char[(i-1) %% length(group_char) + 1],
+      group = group[(i-1) %% length(group) + 1],
       show = show[(i-1) %% length(show) + 1],
       colorScheme = colorScheme,
       customColors = customColors
@@ -566,18 +557,20 @@ GC_markers <- function(
     ...
 ) {
 
-  group_eval <- rlang::enquo(group)
-  group_char <- rlang::quo_name(group_eval)
+  if (is.logical(group) && length(group) == 1) {
+    show <- group
+    group <- NULL
+  }
 
-  if (group_char == "NULL" && is.null(GCVieweR$x$group)){
+  if (is.null(group) && is.null(GCVieweR$x$group)){
     stop("Please define a group")
   }
 
-  if(group_char == "NULL" && !is.null(GCVieweR$x$group)){
-    group_char <- GCVieweR$x$group
+  if (is.null(group) && !is.null(GCVieweR$x$group)){
+    group <- GCVieweR$x$group
   }
 
-  if (!(group_char %in% names(GCVieweR$x$data))) {
+  if (!(group %in% names(GCVieweR$x$data))) {
     stop("group column not found in data")
   }
 
@@ -591,7 +584,7 @@ GC_markers <- function(
 
     # Default options
     options <- list(
-      group = group_char[(i-1) %% length(group_char) + 1],
+      group = group[(i-1) %% length(group) + 1],
       show = show[(i-1) %% length(show) + 1],
       colorScheme = colorScheme,
       customColors = customColors
@@ -620,18 +613,20 @@ GC_legend <- function(
     ...
 ) {
 
-  group_eval <- rlang::enquo(group)
-  group_char <- rlang::quo_name(group_eval)
+  if (is.logical(group) && length(group) == 1) {
+    show <- group
+    group <- NULL
+  }
 
-  if (group_char == "NULL" && is.null(GCVieweR$x$group) && is.null(labels)){
+  if (is.null(group) && is.null(GCVieweR$x$group) && is.null(labels)){
     stop("Please define a group")
   }
 
-  if(group_char == "NULL" && !is.null(GCVieweR$x$group)){
-    group_char <- GCVieweR$x$group
+  if (is.null(group) && !is.null(GCVieweR$x$group)){
+    group <- GCVieweR$x$group
   }
 
-  if (is.null(labels) && !(group_char %in% names(GCVieweR$x$data))) {
+  if (is.null(labels) && !(group %in% names(GCVieweR$x$data))) {
     stop("group column not found in data")
   }
 
@@ -643,7 +638,7 @@ GC_legend <- function(
 
   # Default options
   options <- list(
-    group = group_char,
+    group = group,
     show = show,
     colorScheme = colorScheme,
     customColors = customColors,
@@ -663,11 +658,15 @@ GC_legend <- function(
 #' @export
 GC_tooltip <- function(
     GCVieweR,
-    formatter = "Start: {start}<br>Stop: {stop}",
+    formatter = "<b>Start:</b> {start}<br><b>Stop:</b> {stop}",
     show = TRUE,
     cluster = NULL,
     ...
 ) {
+
+  if (is.logical(formatter) && length(formatter) == 1) {
+    show <- formatter
+  }
 
   # Capture ... arguments
   dots <- list(...)

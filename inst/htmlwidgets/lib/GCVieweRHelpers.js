@@ -930,16 +930,17 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
     y: 50,
     start: null,
     stop: null,
-    size: 10,
+    size: 15,
     colorScheme: null,
     customColors: null,
     marker: "arrow",
+    cursor: "default",
     itemStyle: [] // {index: 1, strokeWidth : 10, stroke : "black"}
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'markerOptions', options);
 
-  const { x, y, start, stop, size, colorScheme, customColors, marker, itemStyle } = combinedOptions;
+  const { x, y, start, stop, size, colorScheme, customColors, marker, cursor, itemStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -985,6 +986,7 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
    .attr("class", "marker")
    .attr("id", (d, i) => `${sanitizeId(d.cluster)}-marker-${i}`)
    .attr("rowID", (d, i) => `${d["rowID"]}`)
+   .style("cursor", cursor)
    .each(function (d, i) {
       const currentElement = d3.select(this);
 
@@ -993,8 +995,7 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
 
       // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
-  });
-
+  })
   //Make markers available to tooltip
   this.markers = g.selectAll(".marker");
 
@@ -1013,17 +1014,19 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
   }
 
   const defaultOptions = {
-    x: 5,
+    x: 10,
     y: 50,
     start: null,
     stop: null,
     colorScheme: null,
     customColors: null,
+    strokeWidth: 10,
+    cursor: "default",
     itemStyle: []
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'genesOptions', options);
-  const { x, y, start, stop, colorScheme, customColors, itemStyle } = combinedOptions;
+  const { x, y, start, stop, colorScheme, customColors, itemStyle, strokeWidth, cursor } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -1063,13 +1066,15 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     .attr("x2", (d, i) => getAttributesForIndex(d, i).xPosEnd)
     .attr("y2", (d, i) => getAttributesForIndex(d, i).yPos)
     .attr("stroke", (d) => colorScale(d[group]))
+    .style("stroke-width", strokeWidth)
+    .style("cursor", cursor)
     .each(function (d, i) {
       const currentElement = d3.select(this);
       // Set additional options as attributes
       setAttributesFromOptions(currentElement, additionalOptions);
       // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
-    });
+    })
 
   //Make markers available to tooltip
   this.genes = g.selectAll(".gene");
@@ -1392,7 +1397,7 @@ clusterContainer.prototype.tooltip = function(show = true, options = {}) {
 
     const defaultOptions = {
         triggers: ["markers", "genes", "labels"],
-        formatter: "Start: {start}<br>Stop: {stop}",
+        formatter: "<b>Start:</b> {start}<br><b>Stop: {stop}</b>",
         opacity: 0,
         position: "absolute",
         backgroundColor: "rgba(255, 255, 255, 0.9)",
@@ -1484,8 +1489,13 @@ clusterContainer.prototype.tooltip = function(show = true, options = {}) {
     }
 
     // Function to generate tooltip content
+    const d3Format = d3.format(",");
+
     const textAccessor = (d) => {
         return combinedOptions.formatter.replace(/\{(\w+)\}/g, (match, p1) => {
+            if (typeof d[p1] === 'number') {
+                return d3Format(d[p1]);
+            }
             return d[p1] || '';
         });
     };
@@ -1508,6 +1518,10 @@ clusterContainer.prototype.tooltip = function(show = true, options = {}) {
         const dataPoint = this.data.find(item => item === d);
         const x = event.pageX;
         const y = event.pageY;
+
+        const element = d3.select(event.currentTarget);
+        element.classed("hovered", true);
+
         tooltip.transition()
             .duration(200)
             .style("opacity", 1);
@@ -1520,12 +1534,17 @@ clusterContainer.prototype.tooltip = function(show = true, options = {}) {
     selection.on("mousemove", (event, d) => {
         const x = event.pageX;
         const y = event.pageY;
+
         tooltip.style("left", (x - tooltip.node().offsetWidth / 2) + "px")
             .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
     });
 
     // Mouseout event to hide the tooltip
     selection.on("mouseout", () => {
+
+        const element = d3.select(event.currentTarget);
+        element.classed("hovered", false);
+
         tooltip.transition()
             .duration(500)
             .style("opacity", 0);

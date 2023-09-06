@@ -14,15 +14,21 @@ div, svg {
   min-height: 0; /* This may be needed for correct sizing in some browsers */
 }
 
+.hovered {
+  cursor: pointer !important;
+}
+
 /* Common styles */
 .legend .legend-marker,
-.legend .legend-label {
+.legend .legend-label
+.label. {
     transition: 0.3s ease-in-out;  /* Smooth transitions */
 }
 
 /* Hover styles: Gives a dim effect to the marker and text when hovered */
 .legend.hovered .legend-marker,
-.legend.hovered .legend-label {
+.legend.hovered .legend-label,
+.label.hovered {
     opacity: 0.7;
 }
 

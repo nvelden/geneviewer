@@ -3,10 +3,6 @@ dependencies:
     version: 7.8.5
     src: htmlwidgets
     script: ./lib/D3-7.8.5/d3.min.js
-  - name: d3fc
-    version: 11.0.0
-    src: htmlwidgets
-    script: ./lib/d3fc.min.js
   - name: themes
     version: 1.0
     src: htmlwidgets

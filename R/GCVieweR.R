@@ -5,7 +5,7 @@ magrittr::`%>%`
 #' @import htmlwidgets
 #' @export
 GCVieweR <- function(data, start_col = "start", stop_col = "stop", cluster = NULL, group = NULL,
-                     width = "100%", height = "400px", elementId = NULL){
+                     width = "100%", height = "400px", elementId = NULL, scale_breaks = TRUE, scale_break_threshold = 20, scale_break_padding = 1){
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
@@ -45,16 +45,22 @@ GCVieweR <- function(data, start_col = "start", stop_col = "stop", cluster = NUL
       subset_data <- data
     } else {
       subset_data <- data[data[[cluster]] == clust, ]
+      subset_data$start <- subset_data[[start_col]]
+      subset_data$stop <- subset_data[[stop_col]]
+      subset_data <- subset_data[with(subset_data, order(pmax(start, stop), decreasing = TRUE)), ]
+      subset_data$cluster <- clust
     }
 
     # Data
     x$series[[clust]]$clusterName <- clust
     x$series[[clust]]$data <- subset_data
-    x$series[[clust]]$data$start <- subset_data[[start_col]]
-    x$series[[clust]]$data$stop <- subset_data[[stop_col]]
-    x$series[[clust]]$data$cluster <- clust
+
     # Settings
-    x$series[[clust]]$scale <- list()
+    if(scale_breaks) {
+      breaks_data <- get_scale_breaks(subset_data, threshold_percentage = scale_break_threshold, padding = scale_break_padding)
+      x$series[[clust]]$scale <- list(breaks = breaks_data)
+    }
+
     x$series[[clust]]$grid <- list(margin = list(left = "50px", right = "50px", top = 0, bottom = 0), height = height, width = width)
     x$series[[clust]]$title <- list()
     x$series[[clust]]$markers <- list(group = group, show = TRUE)

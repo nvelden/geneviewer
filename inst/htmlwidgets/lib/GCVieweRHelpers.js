@@ -223,12 +223,21 @@ function adjustSpecificLabel(clusterContainer, labelSelector, elementId, options
     // Default options
     const defaultOptions = {
         rotation: 65, // Rotation angle (in degrees)
+        shiftAmount: 15, // Amount to shift to the right
         dx: "-0.8em", // Horizontal adjustment
         dy: "0.15em", // Vertical adjustment
     };
 
+    const overlapPercentage = (rect1, rect2) => {
+        const x_overlap = Math.max(0, Math.min(rect1.right, rect2.right) - Math.max(rect1.left, rect2.left));
+        const y_overlap = Math.max(0, Math.min(rect1.bottom, rect2.bottom) - Math.max(rect1.top, rect2.top));
+        const overlapArea = x_overlap * y_overlap;
+        const rect1Area = (rect1.right - rect1.left) * (rect1.bottom - rect1.top);
+        return (overlapArea / rect1Area) * 100;
+    };
+
     // Merge default options with the provided options
-    const { rotation, dx, dy } = { ...defaultOptions, ...options };
+    const { rotation, dx, dy, shiftAmount } = { ...defaultOptions, ...options };
 
     // Select all the labels based on the provided selector
     var labels = clusterContainer.svg.selectAll(labelSelector).nodes();
@@ -243,20 +252,22 @@ function adjustSpecificLabel(clusterContainer, labelSelector, elementId, options
             var labelRect = labels[i].getBoundingClientRect();
 
             // If the specific label overlaps with another label
-            if (!(specificLabelRect.right < labelRect.left ||
-                  specificLabelRect.left > labelRect.right ||
-                  specificLabelRect.bottom < labelRect.top ||
-                  specificLabelRect.top > labelRect.bottom)) {
+            if (overlapPercentage(specificLabelRect, labelRect) > 0) {
+                const currentShiftAmount = (overlapPercentage(specificLabelRect, labelRect) > 80) ? shiftAmount : 0;
 
                 // Get the current x and y attributes of the specific label
                 var x = parseFloat(d3.select(specificLabel).attr('x'));
                 var y = parseFloat(d3.select(specificLabel).attr('y'));
 
-                // Rotate the specific label
+                // First shift the label
+                x += currentShiftAmount;
+
+                // Then, rotate the specific label
                 d3.select(specificLabel)
                     .style("text-anchor", "end")
                     .attr("dx", dx)
                     .attr("dy", dy)
+                    .attr("x", x)
                     .attr("transform", `rotate(${rotation}, ${x}, ${y})`);
 
                 // Break out of the loop once we've adjusted the specific label
@@ -1067,7 +1078,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 
     return { xPosStart, xPosEnd, yPos };
   };
-
+  console.log(this.data)
   // Draw Genes
   var gene = g
     .selectAll(".gene")

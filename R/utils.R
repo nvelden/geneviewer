@@ -201,6 +201,12 @@ get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
   non_coding_regions$start <- non_coding_regions$start + padding_val
   non_coding_regions$stop <- non_coding_regions$stop - padding_val
 
+  #convert df to list of lists
+  non_coding_regions <-
+  apply(non_coding_regions, 1, function(row) {
+    as.list(setNames(row, names(row)))
+  })
+
   return(non_coding_regions)
 }
 

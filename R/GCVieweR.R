@@ -47,8 +47,9 @@ GCVieweR <- function(data, start_col = "start", stop_col = "stop", cluster = NUL
       subset_data <- data[data[[cluster]] == clust, ]
       subset_data$start <- subset_data[[start_col]]
       subset_data$stop <- subset_data[[stop_col]]
-      subset_data <- subset_data[with(subset_data, order(pmax(start, stop), decreasing = TRUE)), ]
+      subset_data <- subset_data[with(subset_data, order(-pmax(start, stop), abs(stop - start))), ]
       subset_data$cluster <- clust
+
     }
 
     # Data
@@ -65,9 +66,9 @@ GCVieweR <- function(data, start_col = "start", stop_col = "stop", cluster = NUL
     x$series[[clust]]$title <- list()
     x$series[[clust]]$markers <- list(group = group, show = TRUE)
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
-    x$series[[clust]]$labels <- list()
+    x$series[[clust]]$labels <- list(group = group, show = TRUE)
     x$series[[clust]]$cluster <- list()
-    x$series[[clust]]$coordinates <- list(show = TRUE)
+    x$series[[clust]]$coordinates <- list(show = FALSE)
     x$series[[clust]]$scaleBar <- list()
     x$series[[clust]]$footer <- list()
     x$series[[clust]]$clusterLabel <- list()

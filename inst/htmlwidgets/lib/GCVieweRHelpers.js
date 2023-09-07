@@ -1078,7 +1078,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 
     return { xPosStart, xPosEnd, yPos };
   };
-  console.log(this.data)
+
   // Draw Genes
   var gene = g
     .selectAll(".gene")
@@ -1122,7 +1122,7 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
         yPositionTop: 55,
         yPositionBottom: 45,
         tickValues: null,
-        tickValueThreshold: 300,
+        overlapPercentage: 2, // Default percentage for overlap threshold
         cursor: "default",
     };
 
@@ -1131,7 +1131,7 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
     }
 
     const combinedOptions = { ...defaultOptions, ...options };
-    const { start, stop, rotate, yPositionTop, yPositionBottom, tickValues, tickValueThreshold, cursor } = combinedOptions;
+    const { start, stop, rotate, yPositionTop, yPositionBottom, tickValues, overlapPercentage, cursor } = combinedOptions;
     const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
     const g = this.svg.append("g")
@@ -1144,6 +1144,12 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
     }, []);
 
     allTickValues.sort((a, b) => a.value - b.value);
+
+    // Calculate the total range based on tick values
+    const minXValue = allTickValues[0].value;
+    const maxXValue = allTickValues[allTickValues.length - 1].value;
+    const totalXValueRange = maxXValue - minXValue;
+    const tickValueThreshold = totalXValueRange * (overlapPercentage / 100);
 
     let tickValuesTop = [];
     const tickValuesBottom = allTickValues.filter((tickObj, index, array) => {

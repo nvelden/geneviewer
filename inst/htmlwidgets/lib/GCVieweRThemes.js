@@ -27,10 +27,13 @@ const themes = {
   }
 };
 
-function getMarker(markerName, xPos, yPos, size) {
+function getMarker(markerName, xPos, yPos, size, height = null) {
+
+    height = height === null ? size : height;
+
     switch (markerName) {
         case "arrow":
-            return `M ${xPos} ${yPos - size/2} L ${xPos + size/2} ${yPos + size/2} L ${xPos - size/2} ${yPos + size/2} Z`;
+            return `M ${xPos} ${yPos - height/2} L ${xPos + size/2} ${yPos + height/2} L ${xPos - size/2} ${yPos + height/2} Z`;
         default:
             return ""; // Default empty path
     }

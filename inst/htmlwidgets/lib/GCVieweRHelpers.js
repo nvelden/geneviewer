@@ -887,6 +887,18 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
     const yTop = yBase - marker.markerHeight / 2;
     const yBottom = yBase + marker.markerHeight / 2;
 
+    if (xStart !== null && xEnd !== null) {
+
+   g.append("line")
+      .attr("class", "gap-line")
+      .attr("x1", xStart + 2.5)
+      .attr("y1", yTop)
+      .attr("x2", xEnd + marker.tiltAmount + (marker.gap / 2))
+      .attr("y2", yBottom)
+      .attr("stroke", "white")
+      .style("stroke-width", marker.gap);
+    }
+
     if (xStart !== null) {
       // Draw the tilted line before the gap
       g.append("line")
@@ -975,7 +987,11 @@ clusterContainer.prototype.markers = function(group, show = true, options = {}) 
    .append("path")
    .attr("d", (d, i) => {
       const { xPos, yPos, currentSize, currentMarker } = getAttributesForIndex(d, i);
-      return getMarker(currentMarker, xPos, yPos, currentSize);
+
+      const absoluteDifference = Math.abs(this.xScale(d.stop) - this.xScale(d.start));
+      const markerHeight = currentSize < absoluteDifference ? currentSize : absoluteDifference;
+
+      return getMarker(currentMarker, xPos, yPos, currentSize, markerHeight);
     })
     .attr("transform", (d, i) => {
       const { xPos, yPos } = getAttributesForIndex(d, i);
@@ -1337,7 +1353,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     .data(this.data)
     .enter()
     .append("text")
-    .attr("id", (d, i) => `${sanitizeId(d.cluster)}-label-${i}`)
+    .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-label-${i}`)
     .attr("rowID", (d, i) => `${d["rowID"]}`)
     .attr("class", "label")
     .attr("x", (d, i) => getAttributesForIndex(d, i).xPos)

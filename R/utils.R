@@ -118,3 +118,89 @@ divide_dimension_value <- function(value, divisor) {
     stop("Unsupported value format")
   }
 }
+
+#' Identify Non-Coding Regions Between Genes
+#'
+#' Given a set of gene positions, this function calculates and returns the non-coding
+#' regions, potentially with added padding. It also considers overlapping genes and ensures
+#' that the starting position is always less than the ending position for each gene.
+#'
+#' @param genes A data.frame containing the start and end positions of genes.
+#' The data.frame must contain columns named 'start' and 'stop'.
+#' @param threshold_percentage Numeric. A threshold value given as percentage. Only non-coding
+#' regions that are larger than this threshold (relative to the entire genomic region covered)
+#' will be returned.
+#' @param padding Numeric. A value given as percentage that will be added to the start
+#' and subtracted from the end of each non-coding region.
+#'
+#' @return A data.frame containing the start and stop positions of the identified non-coding regions.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 50, 90),
+#'   stop = c(40, 80, 120)
+#' )
+#' get_scale_breaks(genes_data, threshold_percentage = 5, padding = 2)
+#'
+#' @export
+get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
+
+  # Ensure genes is a data.frame
+  if (!is.data.frame(genes)) {
+    stop("Input must be a data.frame with 'start' and 'stop' columns.")
+  }
+
+  # Check if required columns exist
+  if (!all(c("start", "stop") %in% colnames(genes))) {
+    stop("The data.frame must contain 'start' and 'stop' columns.")
+  }
+
+  # Ensure start is always smaller than stop
+  swapped_indices <- genes$start > genes$stop
+  genes$stop[swapped_indices] <- genes$start[swapped_indices] + genes$stop[swapped_indices]
+  genes$start[swapped_indices] <- genes$stop[swapped_indices] - genes$start[swapped_indices]
+
+  # Calculate the entire region's length using min and max
+  entire_region_length <- max(genes$stop) - min(genes$start) + 1
+
+  # Calculate the minimum gap length based on threshold_percentage
+  min_gap_length <- entire_region_length * threshold_percentage / 100
+
+  # Sort by start
+  genes <- genes[order(genes$start), ]
+
+  # Merge overlapping regions
+  merged_regions <- list()
+  current_region <- genes[1,]
+
+  for(i in 2:nrow(genes)){
+    if(genes$start[i] <= current_region$stop){
+      current_region$stop <- max(current_region$stop, genes$stop[i])
+    } else {
+      merged_regions <- append(merged_regions, list(current_region))
+      current_region <- genes[i,]
+    }
+  }
+
+  merged_regions <- append(merged_regions, list(current_region))
+
+  # Extract non-coding regions
+  non_coding_regions <- data.frame(start=integer(), stop=integer())
+
+  for(i in 1:(length(merged_regions)-1)){
+    non_coding_start <- merged_regions[[i]]$stop + 1
+    non_coding_stop <- merged_regions[[i+1]]$start - 1
+    gap_length <- non_coding_stop - non_coding_start + 1
+
+    if (gap_length >= min_gap_length) {
+      non_coding_regions <- rbind(non_coding_regions, data.frame(start=non_coding_start, stop=non_coding_stop))
+    }
+  }
+
+  padding_val <- entire_region_length * padding / 100
+  non_coding_regions$start <- non_coding_regions$start + padding_val
+  non_coding_regions$stop <- non_coding_regions$stop - padding_val
+
+  return(non_coding_regions)
+}
+

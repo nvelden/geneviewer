@@ -35,7 +35,7 @@ GCVieweR <- function(data, start_col = "start", stop_col = "stop", cluster = NUL
   if(is.null(cluster)){
     clusters <- "cluster"
   } else {
-    clusters <- unique(data[[cluster]])
+    clusters <- unique(as.character(data[[cluster]]))
   }
 
   for(clust in clusters){
@@ -142,7 +142,7 @@ GC_title <- function(
     }
 
     # Set height for each cluster
-    GCVieweR$x$series[[clusters[i]]]$grid$top <- height[(i-1) %% length(height) + 1]
+    GCVieweR$x$series[[clusters[i]]]$grid$margin$top <- height[(i-1) %% length(height) + 1]
 
     # Set title options for each cluster
     GCVieweR$x$series[[clusters[i]]]$title <- options
@@ -336,8 +336,8 @@ GC_clusterLabel <- function(
     # Set clusterLabel options for each cluster
     GCVieweR$x$series[[clusters[i]]]$clusterLabel <- options
 
-    # Set height for each cluster
-    GCVieweR$x$series[[clusters[i]]]$grid$left <- width[(i-1) %% length(width) + 1]
+    # Set width for each cluster
+    GCVieweR$x$series[[clusters[i]]]$grid$margin$left <- width[(i-1) %% length(width) + 1]
 
   }
 

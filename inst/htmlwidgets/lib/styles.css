@@ -37,3 +37,7 @@ div, svg {
 .legend.unselected .legend-label {
     opacity: 0.5;
 }
+
+.gene.hovered {
+ filter: brightness(80%);
+}

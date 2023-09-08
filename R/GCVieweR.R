@@ -64,7 +64,6 @@ GCVieweR <- function(data, start_col = "start", stop_col = "stop", cluster = NUL
 
     x$series[[clust]]$grid <- list(margin = list(left = "50px", right = "50px", top = 0, bottom = 0), height = height, width = width)
     x$series[[clust]]$title <- list()
-    x$series[[clust]]$markers <- list(group = group, show = TRUE)
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
     x$series[[clust]]$labels <- list(group = group, show = TRUE)
     x$series[[clust]]$cluster <- list()
@@ -547,62 +546,6 @@ GC_genes <- function(
     }
 
     GCVieweR$x$series[[clusters[i]]]$genes <- options
-
-  }
-
-  return(GCVieweR)
-}
-
-#' @export
-GC_markers <- function(
-    GCVieweR,
-    group = NULL,
-    show = TRUE,
-    colorScheme = NULL,
-    customColors = NULL,
-    cluster = NULL,
-    ...
-) {
-
-  if (is.logical(group) && length(group) == 1) {
-    show <- group
-    group <- NULL
-  }
-
-  if (is.null(group) && is.null(GCVieweR$x$group)){
-    stop("Please define a group")
-  }
-
-  if (is.null(group) && !is.null(GCVieweR$x$group)){
-    group <- GCVieweR$x$group
-  }
-
-  if (!(group %in% names(GCVieweR$x$data))) {
-    stop("group column not found in data")
-  }
-
-  # Capture arguments
-  dots <- list(...)
-
-  # Update the GCVieweR object with title and options for each cluster
-  clusters <- getUpdatedClusters(GCVieweR, cluster)
-
-  for(i in seq_along(clusters)){
-
-    # Default options
-    options <- list(
-      group = group[(i-1) %% length(group) + 1],
-      show = show[(i-1) %% length(show) + 1],
-      colorScheme = colorScheme,
-      customColors = customColors
-    )
-
-    # Add ... arguments to defaultOptions
-    for(name in names(dots)) {
-      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
-    }
-
-    GCVieweR$x$series[[clusters[i]]]$markers <- options
 
   }
 

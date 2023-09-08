@@ -54,6 +54,7 @@ const themes = {
       customColors: null,
       marker: "arrow",
       cursor: "default",
+      stroke: "black",
       itemStyle: []
     },
     genesOptions: {
@@ -62,7 +63,7 @@ const themes = {
       start: null,
       stop: null,
       colorScheme: null,
-      strokeWidth: 10,
+      strokeWidth: 1,
       cursor: "default",
       itemStyle: []
     },

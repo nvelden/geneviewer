@@ -69,7 +69,6 @@ clusters.forEach(function(clusterKey) {
         labelOptions = cluster.labels,
         sequenceOptions = cluster.sequence,
         geneOptions = cluster.genes,
-        markerOptions = cluster.markers
         coordinateOptions = cluster.coordinates;
         scaleBarOptions = cluster.scaleBar;
         tooltipOptions = cluster.tooltip;
@@ -94,7 +93,6 @@ clusters.forEach(function(clusterKey) {
         .scale(scaleOptions)
         .sequence(sequenceOptions?.show ?? false, sequenceOptions)
         .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)
-        .markers(markerOptions?.group, markerOptions?.show ?? false, markerOptions)
         .coordinates(coordinateOptions?.show ?? false, coordinateOptions)
         .labels(labelOptions?.label, labelOptions?.show ?? false, labelOptions)
         .scaleBar(scaleBarOptions?.show ?? false, scaleBarOptions)

@@ -257,7 +257,7 @@ function adjustSpecificLabel(clusterContainer, labelSelector, elementId, options
 
                 // Get the current x and y attributes of the specific label
                 var x = parseFloat(d3.select(specificLabel).attr('x'));
-                var y = parseFloat(d3.select(specificLabel).attr('y'));
+                var y = parseFloat(d3.select(specificLabel).attr('y')) - 5;
 
                 // First shift the label
                 x += currentShiftAmount;
@@ -936,6 +936,7 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
   return this;
 };
 
+/*
 clusterContainer.prototype.markers = function(group, show = true, options = {}) {
 
   if (!show) {
@@ -1047,20 +1048,21 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
     stop: null,
     colorScheme: null,
     customColors: null,
-    strokeWidth: 10,
+    height: 10,
+    strokeWidth: 1,
+    stroke: 'black',
     cursor: "default",
     itemStyle: []
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'genesOptions', options);
-  const { x, y, start, stop, colorScheme, customColors, itemStyle, strokeWidth, cursor } = combinedOptions;
+  const { x, y, start, stop, colorScheme, customColors, itemStyle, height, strokeWidth, stroke, cursor } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
   // Color Scale Setup
   const uniqueGroups = [...new Set(this.data.map(d => d[group]))];
-  // Adjust colorScale to use uniqueGroups
   const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
 
   // Create the group
@@ -1074,40 +1076,40 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 
     const xPosStart = d.direction === 'forward' ? this.xScale(d.start) : this.xScale(d.stop) + currentX;
     const xPosEnd = d.direction === 'forward' ? (Math.max(this.xScale(d.start), this.xScale(d.stop)) - currentX) : Math.max(this.xScale(d.stop), this.xScale(d.start));
-    const yPos = this.yScale(currentY);
+    const rectWidth = xPosEnd - xPosStart;
+    const yPos = this.yScale(currentY) - height / 2;
 
-    return { xPosStart, xPosEnd, yPos };
+    return { xPosStart, yPos, rectWidth };
   };
 
-  // Draw Genes
-  var gene = g
-    .selectAll(".gene")
+  // Draw Genes as Rectangles
+  g.selectAll(".gene")
     .data(this.data)
     .enter()
-    .append("line")
+    .append("rect")
     .attr("class", "gene")
     .attr("id", (d, i) => `${sanitizeId(d.cluster)}-gene-${i}`)
     .attr("rowID", (d, i) => `${d["rowID"]}`)
-    .attr("x1", (d, i) => getAttributesForIndex(d, i).xPosStart)
-    .attr("y1", (d, i) => getAttributesForIndex(d, i).yPos)
-    .attr("x2", (d, i) => getAttributesForIndex(d, i).xPosEnd)
-    .attr("y2", (d, i) => getAttributesForIndex(d, i).yPos)
-    .attr("stroke", (d) => colorScale(d[group]))
-    .style("stroke-width", strokeWidth)
+    .attr("x", (d, i) => getAttributesForIndex(d, i).xPosStart)
+    .attr("y", (d, i) => getAttributesForIndex(d, i).yPos)
+    .attr("width", (d, i) => getAttributesForIndex(d, i).rectWidth)
+    .attr("height", height)
+    .attr("fill", (d) => colorScale(d[group]))
+    .attr("stroke", stroke)
+    .attr("stroke-width", strokeWidth)
     .style("cursor", cursor)
     .each(function (d, i) {
       const currentElement = d3.select(this);
-      // Set additional options as attributes
       setAttributesFromOptions(currentElement, additionalOptions);
-      // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
-    })
+    });
 
-  //Make markers available to tooltip
+  // Update the reference
   this.genes = g.selectAll(".gene");
 
   return this;
 };
+*/
 
 clusterContainer.prototype.coordinates = function(show = true, options = {}) {
 
@@ -1303,7 +1305,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   const defaultOptions = {
     x: 0,
     y: 50,
-    dy: "-1em",
+    dy: "-1.2em",
     dx: "0em",
     rotate: 0,
     start: null,
@@ -1794,4 +1796,100 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
   }
 
   return this;
+};
+
+clusterContainer.prototype.genes = function(group, show = true, options = {}) {
+
+    if (!show) {
+        return this;
+    }
+
+    if (!this.data) {
+        console.error('No data has been added to this cluster container. Please use the geneData() function before attempting to draw arrows.');
+        return this;
+    }
+
+const defaultOptions = {
+        x: 1,
+        y: 50,
+        colorScheme: null,
+        customColors: null,
+        cursor: "default",
+        itemStyle: [],
+        arrowheadWidth: 10,
+        arrowheadHeight: 10,
+        arrowHeight: 20
+    };
+
+    const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
+    const { x, y, colorScheme, customColors, cursor, itemStyle, arrowheadWidth, arrowheadHeight, arrowHeight } = combinedOptions;
+
+    // Extract additional options that aren't in defaultOptions
+    const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
+
+    const uniqueGroups = [...new Set(this.data.map(d => d[group]))];
+    const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
+
+    var g = this.svg.append("g")
+        .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+
+    const getAttributesForIndex = (d, i) => {
+        const style = itemStyle.find(s => s.index === i) || {};
+        const currentX = style.x || x;
+        const currentY = style.y || y;
+
+        const yPos = this.yScale(currentY);  // Adjusted for arrow size
+        const xPos = this.xScale(d.start); // Always use d.start for xPos
+
+        return { xPos, yPos };
+    };
+
+    g.selectAll(".gene")
+        .data(this.data)
+        .enter()
+        .append("path")
+        .attr("d", (d) => {
+            const geneLength = Math.abs(this.xScale(d.stop) - this.xScale(d.start));
+            const shaftLength = geneLength - arrowheadWidth;
+
+            const shaftTop = (arrowHeight - arrowheadHeight) / 2;
+            const shaftBottom = shaftTop + arrowheadHeight;
+
+            const shaftPath =
+            `M0 ${shaftTop}
+            L0 ${shaftBottom}
+            L${shaftLength}
+            ${shaftBottom}
+            L${shaftLength}
+            ${arrowHeight}
+            L${geneLength}
+            ${(arrowHeight / 2)}
+            L${shaftLength} 0
+            L${shaftLength} ${shaftTop} Z`;
+
+            return shaftPath;
+        })
+        .attr("transform", (d, i) => {
+            const { xPos, yPos } = getAttributesForIndex(d, i);
+            const rotation = d.direction === 'forward' ? 0 : 180;
+            return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (arrowHeight / 2)})`;
+        })
+        .attr("fill", (d) => colorScale(d[group]))
+        .attr("class", "gene")
+        .attr("id", (d, i) => `${sanitizeId(d.cluster)}-gene-${i}`)
+        .attr("rowID", (d, i) => `${d["rowID"]}`)
+        .style("cursor", cursor)
+        .each(function (d, i) {
+            const currentElement = d3.select(this);
+
+            // Set additional options as attributes
+            setAttributesFromOptions(currentElement, additionalOptions);
+
+            // Override with itemStyle based on the index
+            applyStyleToElement(currentElement, itemStyle, i);
+        });
+
+    // Update the reference
+    this.genes = g.selectAll(".gene");
+    return this;
 };

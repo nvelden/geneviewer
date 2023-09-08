@@ -443,10 +443,16 @@ clusterContainer.prototype.theme = function (themeName) {
   return this;
 };
 
-clusterContainer.prototype.geneData = function (data) {
+clusterContainer.prototype.geneData = function (data, clusterData) {
 
-  this.data = data.map(item => {
+  // Needed to set color
+  this.dataAll = data
+
+  this.data = clusterData.map(item => {
     var newItem = {...item};
+
+    // Convert cluster to string
+    newItem.cluster = String(newItem.cluster);
 
     newItem.direction = "forward";
     if(newItem.start > newItem.stop) {
@@ -1630,7 +1636,7 @@ function createLegendContainer(targetElementId, options = {}) {
 legendContainer.prototype.legendData = function (data) {
 
   this.data = [...new Set(data)];
-
+  console.log(this.data)
   return this;
 
 };
@@ -1812,6 +1818,8 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 const defaultOptions = {
         x: 1,
         y: 50,
+        stroke: "black",
+        strokeWidth: 1,
         colorScheme: null,
         customColors: null,
         cursor: "default",
@@ -1822,12 +1830,13 @@ const defaultOptions = {
     };
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
-    const { x, y, colorScheme, customColors, cursor, itemStyle, arrowheadWidth, arrowheadHeight, arrowHeight } = combinedOptions;
+    const { x, y, stroke, strokeWidth, colorScheme, customColors, cursor, itemStyle, arrowheadWidth, arrowheadHeight, arrowHeight } = combinedOptions;
 
     // Extract additional options that aren't in defaultOptions
     const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
-    const uniqueGroups = [...new Set(this.data.map(d => d[group]))];
+    const uniqueGroups = [...new Set(this.dataAll.map(d => d[group]))];
+
     const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
 
     var g = this.svg.append("g")
@@ -1878,6 +1887,8 @@ const defaultOptions = {
         .attr("class", "gene")
         .attr("id", (d, i) => `${sanitizeId(d.cluster)}-gene-${i}`)
         .attr("rowID", (d, i) => `${d["rowID"]}`)
+        .style("stroke-width", strokeWidth)
+        .style("stroke", stroke)
         .style("cursor", cursor)
         .each(function (d, i) {
             const currentElement = d3.select(this);

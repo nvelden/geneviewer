@@ -2,9 +2,37 @@
 #' @export
 magrittr::`%>%`
 
+#' Create a GC Chart Visualization
+#'
+#' Generates an interactive GC chart for genomic data.
+#'
+#' @param data Data frame with genomic data.
+#' @param start_col Start positions column. Default: "start".
+#' @param stop_col Stop positions column. Default: "stop".
+#' @param cluster Optional cluster column.
+#' @param group Column to determine gene groups. Used for Aesthetic mapping of genes to colors.
+#' @param width Chart width, e.g., "100%" or 500.
+#' @param height Chart height, e.g., "400px" or 300.
+#' @param elementId Optional widget ID.
+#' @param scale_breaks Use scale breaks? Default: TRUE.
+#' @param scale_break_threshold % of full range to determine inter-gene regions for scale breaks.
+#' @param scale_break_padding % of full range as padding on both sides of a scale break.
+#'
+#' @return GC chart widget.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 50, 90, 130, 170, 210),
+#'   stop = c(40, 80, 120, 160, 200, 240),
+#'   name = c('Gene1', 'Gene2', 'Gene3', 'Gene4', 'Gene5', 'Gene6'),
+#'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 1, 2, 2, 2)
+#' )
+#' GC_chart(genes_data, group = "group", cluster = "cluster") %>% GC_labels("name")
+#'
 #' @import htmlwidgets
 #' @export
-GCVieweR <- function(data, start_col = "start", stop_col = "stop", cluster = NULL, group = NULL,
+GC_chart <- function(data, start_col = "start", stop_col = "stop", cluster = NULL, group = NULL,
                      width = "100%", height = "400px", elementId = NULL, scale_breaks = TRUE, scale_break_threshold = 20, scale_break_padding = 1){
 
   # ensure that data is a data frame
@@ -45,12 +73,12 @@ GCVieweR <- function(data, start_col = "start", stop_col = "stop", cluster = NUL
       subset_data <- data
     } else {
       subset_data <- data[data[[cluster]] == clust, ]
-      subset_data$start <- subset_data[[start_col]]
-      subset_data$stop <- subset_data[[stop_col]]
-      subset_data <- subset_data[with(subset_data, order(-pmax(start, stop), abs(stop - start))), ]
-      subset_data$cluster <- clust
-
     }
+
+    subset_data$start <- subset_data[[start_col]]
+    subset_data$stop <- subset_data[[stop_col]]
+    subset_data <- subset_data[with(subset_data, order(-pmax(start, stop), abs(stop - start))), ]
+    subset_data$cluster <- clust
 
     # Data
     x$series[[clust]]$clusterName <- clust
@@ -86,11 +114,11 @@ GCVieweR <- function(data, start_col = "start", stop_col = "stop", cluster = NUL
   )
 
 }
-#GC_item("markers", 1, itemStyle = list(list(index = 1, styles = list(opacity = 0.1))))
+
 
 #' @export
 GC_item <- function(
-    GCVieweR,
+    GC_chart,
     setting = NULL,
     cluster = NULL,
     ...
@@ -99,26 +127,26 @@ GC_item <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GCVieweR object with sequence options for each cluster
-  clusters <- getUpdatedClusters(GCVieweR, cluster)
+  # Update the GC_chart object with sequence options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(clust in cluster){
 
-    settings <- GCVieweR$x$series[[clust]][[setting]]
+    settings <- GC_chart$x$series[[clust]][[setting]]
     updated_settings <- modifyList(settings, dots)
 
     # Set options for each cluster
-    GCVieweR$x$series[[clust]][[setting]] <- updated_settings
+    GC_chart$x$series[[clust]][[setting]] <- updated_settings
 
   }
 
-  return(GCVieweR)
+  return(GC_chart)
 
 }
 
 #' @export
 GC_title <- function(
-    GCVieweR,
+    GC_chart,
     title = NULL,
     subtitle = NULL,
     show = TRUE,
@@ -130,8 +158,8 @@ GC_title <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GCVieweR object with title and options for each cluster
-  clusters <- getUpdatedClusters(GCVieweR, cluster)
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(i in seq_along(clusters)){
 
@@ -148,18 +176,18 @@ GC_title <- function(
     }
 
     # Set height for each cluster
-    GCVieweR$x$series[[clusters[i]]]$grid$margin$top <- height[(i-1) %% length(height) + 1]
+    GC_chart$x$series[[clusters[i]]]$grid$margin$top <- height[(i-1) %% length(height) + 1]
 
     # Set title options for each cluster
-    GCVieweR$x$series[[clusters[i]]]$title <- options
+    GC_chart$x$series[[clusters[i]]]$title <- options
 
   }
-  return(GCVieweR)
+  return(GC_chart)
 }
 
 #' @export
 GC_sequence <- function(
-    GCVieweR,
+    GC_chart,
     show = TRUE,
     option = NULL,
     cluster = NULL,
@@ -169,10 +197,10 @@ GC_sequence <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  GC_item(GCVieweR, "sequence", cluster = cluster, dots)
+  GC_item(GC_chart, "sequence", cluster = cluster, dots)
 
-  # Update the GCVieweR object with title and options for each cluster
-  clusters <- getUpdatedClusters(GCVieweR, cluster)
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(i in seq_along(clusters)){
 
@@ -187,31 +215,31 @@ GC_sequence <- function(
     }
 
     # Set sequence options for each cluster
-    GCVieweR$x$series[[clusters[i]]]$sequence <- options
+    GC_chart$x$series[[clusters[i]]]$sequence <- options
 
   }
 
-  return(GCVieweR)
+  return(GC_chart)
 }
 
 #' @export
 GC_grid <- function(
-    GCVieweR,
+    GC_chart,
     margin = NULL,
     width = NULL,
     height = NULL,
     cluster = NULL
 ) {
 
-  # Update the GCVieweR object with title and options for each cluster
-  clusters <- getUpdatedClusters(GCVieweR, cluster)
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for (i in seq_along(clusters)) {
     cluster_name <- clusters[i]
 
     # Update margins if provided
     if (!is.null(margin)) {
-      GCVieweR$x$series[[cluster_name]]$grid$margin <- modifyList(GCVieweR$x$series[[cluster_name]]$grid$margin, margin)
+      GC_chart$x$series[[cluster_name]]$grid$margin <- modifyList(GC_chart$x$series[[cluster_name]]$grid$margin, margin)
     }
 
     # Update width if provided
@@ -221,7 +249,7 @@ GC_grid <- function(
       if (is.numeric(current_width)) {
         current_width <- paste0(current_width, "%")
       }
-      GCVieweR$x$series[[cluster_name]]$grid$width <- current_width
+      GC_chart$x$series[[cluster_name]]$grid$width <- current_width
     }
 
     # Update height if provided
@@ -231,16 +259,16 @@ GC_grid <- function(
       if (is.numeric(current_height)) {
         current_height <- paste0(current_height, "%")
       }
-      GCVieweR$x$series[[cluster_name]]$grid$height <- current_height
+      GC_chart$x$series[[cluster_name]]$grid$height <- current_height
     }
   }
 
-  return(GCVieweR)
+  return(GC_chart)
 }
 
 #' @export
 GC_scale <- function(
-    GCVieweR,
+    GC_chart,
     cluster = NULL,
     start = NULL,
     stop = NULL,
@@ -251,8 +279,8 @@ GC_scale <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GCVieweR object with title and options for each cluster
-  clusters <- getUpdatedClusters(GCVieweR, cluster)
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(i in seq_along(clusters)){
 
@@ -267,18 +295,18 @@ GC_scale <- function(
     )
 
     # Set scaleBar options for each cluster
-    GCVieweR$x$series[[clusters[i]]]$scale <- options
+    GC_chart$x$series[[clusters[i]]]$scale <- options
 
   }
 
-  return(GCVieweR)
+  return(GC_chart)
 }
 
 
 
 #' @export
 GC_scaleBar <- function(
-    GCVieweR,
+    GC_chart,
     show = TRUE,
     cluster = NULL,
     ...
@@ -287,8 +315,8 @@ GC_scaleBar <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GCVieweR object with title and options for each cluster
-  clusters <- getUpdatedClusters(GCVieweR, cluster)
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(i in seq_along(clusters)){
 
@@ -303,16 +331,16 @@ GC_scaleBar <- function(
     }
 
     # Set scaleBar options for each cluster
-    GCVieweR$x$series[[clusters[i]]]$scaleBar <- options
+    GC_chart$x$series[[clusters[i]]]$scaleBar <- options
 
   }
 
-  return(GCVieweR)
+  return(GC_chart)
 }
 
 #' @export
 GC_clusterLabel <- function(
-    GCVieweR,
+    GC_chart,
     title = NULL,
     show = TRUE,
     width = "100px",
@@ -323,8 +351,8 @@ GC_clusterLabel <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GCVieweR object with title and options for each cluster
-  clusters <- getUpdatedClusters(GCVieweR, cluster)
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(i in seq_along(clusters)){
 
@@ -340,19 +368,19 @@ GC_clusterLabel <- function(
     }
 
     # Set clusterLabel options for each cluster
-    GCVieweR$x$series[[clusters[i]]]$clusterLabel <- options
+    GC_chart$x$series[[clusters[i]]]$clusterLabel <- options
 
     # Set width for each cluster
-    GCVieweR$x$series[[clusters[i]]]$grid$margin$left <- width[(i-1) %% length(width) + 1]
+    GC_chart$x$series[[clusters[i]]]$grid$margin$left <- width[(i-1) %% length(width) + 1]
 
   }
 
-  return(GCVieweR)
+  return(GC_chart)
 }
 
 #' @export
 GC_footer <- function(
-    GCVieweR,
+    GC_chart,
     title = NULL,
     subtitle = NULL,
     height = NULL,
@@ -364,8 +392,8 @@ GC_footer <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GCVieweR object with title and options for each cluster
-  clusters <- getUpdatedClusters(GCVieweR, cluster)
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(i in seq_along(clusters)){
 
@@ -394,19 +422,19 @@ GC_footer <- function(
     }
 
     # Set footer options for each cluster
-    GCVieweR$x$series[[clusters[i]]]$footer <- options
+    GC_chart$x$series[[clusters[i]]]$footer <- options
 
     # Set height for each cluster
-    GCVieweR$x$series[[clusters[i]]]$grid$bottom <- currentHeight
+    GC_chart$x$series[[clusters[i]]]$grid$bottom <- currentHeight
 
   }
 
-  return(GCVieweR)
+  return(GC_chart)
 }
 
 #' @export
 GC_labels <- function(
-    GCVieweR,
+    GC_chart,
     label = NULL,
     show = TRUE,
     cluster = NULL,
@@ -418,23 +446,23 @@ GC_labels <- function(
     label <- NULL
   }
 
-  if (is.null(label) && is.null(GCVieweR$x$group)){
+  if (is.null(label) && is.null(GC_chart$x$group)){
     stop("Please define labels")
   }
 
-  if (is.null(label) && !is.null(GCVieweR$x$group)) {
-    label <- GCVieweR$x$group
+  if (is.null(label) && !is.null(GC_chart$x$group)) {
+    label <- GC_chart$x$group
   }
 
-  if (!(label %in% names(GCVieweR$x$data))) {
+  if (!(label %in% names(GC_chart$x$data))) {
     stop("label column not found in data")
   }
 
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GCVieweR object with title and options for each cluster
-  clusters <- getUpdatedClusters(GCVieweR, cluster)
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(i in seq_along(clusters)){
 
@@ -450,16 +478,16 @@ GC_labels <- function(
     }
 
     # Set labels options for each cluster
-    GCVieweR$x$series[[clusters[i]]]$labels <- options
+    GC_chart$x$series[[clusters[i]]]$labels <- options
 
   }
 
-  return(GCVieweR)
+  return(GC_chart)
 }
 
 #' @export
 GC_coordinates <- function(
-    GCVieweR,
+    GC_chart,
     show = TRUE,
     tickValues = NULL,
     cluster = NULL,
@@ -469,8 +497,8 @@ GC_coordinates <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GCVieweR object with title and options for each cluster
-  clusters <- getUpdatedClusters(GCVieweR, cluster)
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(i in seq_along(clusters)){
 
@@ -485,20 +513,19 @@ GC_coordinates <- function(
     }
 
     # Set coordinates options for each cluster
-    GCVieweR$x$series[[clusters[i]]]$coordinates <- options
+    GC_chart$x$series[[clusters[i]]]$coordinates <- options
 
     # Add tickvalues for each cluster
-    GCVieweR$x$series[[clusters[i]]]$coordinates$tickValues <- tickValues
+    GC_chart$x$series[[clusters[i]]]$coordinates$tickValues <- tickValues
 
   }
 
-  return(GCVieweR)
+  return(GC_chart)
 }
 
 #' @export
-#' @export
 GC_genes <- function(
-    GCVieweR,
+    GC_chart,
     group = NULL,
     show = TRUE,
     colorScheme = NULL,
@@ -512,23 +539,23 @@ GC_genes <- function(
     group <- NULL
   }
 
-  if (is.null(group) && is.null(GCVieweR$x$group)){
+  if (is.null(group) && is.null(GC_chart$x$group)){
     stop("Please define a group")
   }
 
-  if (is.null(group) && !is.null(GCVieweR$x$group)){
-    group <- GCVieweR$x$group
+  if (is.null(group) && !is.null(GC_chart$x$group)){
+    group <- GC_chart$x$group
   }
 
-  if (!(group %in% names(GCVieweR$x$data))) {
+  if (!(group %in% names(GC_chart$x$data))) {
     stop("group column not found in data")
   }
 
   # Capture arguments
   dots <- list(...)
 
-  # Update the GCVieweR object with title and options for each cluster
-  clusters <- getUpdatedClusters(GCVieweR, cluster)
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(i in seq_along(clusters)){
 
@@ -545,16 +572,16 @@ GC_genes <- function(
       options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
     }
 
-    GCVieweR$x$series[[clusters[i]]]$genes <- options
+    GC_chart$x$series[[clusters[i]]]$genes <- options
 
   }
 
-  return(GCVieweR)
+  return(GC_chart)
 }
 
 #' @export
 GC_legend <- function(
-    GCVieweR,
+    GC_chart,
     group = NULL,
     show = TRUE,
     colorScheme = NULL,
@@ -568,20 +595,20 @@ GC_legend <- function(
     group <- NULL
   }
 
-  if (is.null(group) && is.null(GCVieweR$x$group) && is.null(labels)){
+  if (is.null(group) && is.null(GC_chart$x$group) && is.null(labels)){
     stop("Please define a group")
   }
 
-  if (is.null(group) && !is.null(GCVieweR$x$group)){
-    group <- GCVieweR$x$group
+  if (is.null(group) && !is.null(GC_chart$x$group)){
+    group <- GC_chart$x$group
   }
 
-  if (is.null(labels) && !(group %in% names(GCVieweR$x$data))) {
+  if (is.null(labels) && !(group %in% names(GC_chart$x$data))) {
     stop("group column not found in data")
   }
 
   # Get the names of the clusters
-  clusters <- names(GCVieweR$x$series)
+  clusters <- names(GC_chart$x$series)
 
   # Capture arguments
   dots <- list(...)
@@ -600,14 +627,14 @@ GC_legend <- function(
     options[[name]] <- dots[[name]]
   }
 
-  GCVieweR$x$legend <- options
+  GC_chart$x$legend <- options
 
-  return(GCVieweR)
+  return(GC_chart)
 }
 
 #' @export
 GC_tooltip <- function(
-    GCVieweR,
+    GC_chart,
     formatter = "<b>Start:</b> {start}<br><b>Stop:</b> {stop}",
     show = TRUE,
     cluster = NULL,
@@ -621,8 +648,8 @@ GC_tooltip <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GCVieweR object with title and options for each cluster
-  clusters <- getUpdatedClusters(GCVieweR, cluster)
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(i in seq_along(clusters)){
 
@@ -638,8 +665,8 @@ GC_tooltip <- function(
     }
 
     # Set title options for each cluster
-    GCVieweR$x$series[[clusters[i]]]$tooltip <- options
+    GC_chart$x$series[[clusters[i]]]$tooltip <- options
 
   }
-  return(GCVieweR)
+  return(GC_chart)
 }

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>/404.html</loc>
+  </url>
+  <url>
+    <loc>/authors.html</loc>
+  </url>
+  <url>
+    <loc>/index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/cleanList.html</loc>
+  </url>
+  <url>
+    <loc>/reference/divide_dimension_value.html</loc>
+  </url>
+  <url>
+    <loc>/reference/getUpdatedClusters.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_scale_breaks.html</loc>
+  </url>
+  <url>
+    <loc>/reference/hello.html</loc>
+  </url>
+  <url>
+    <loc>/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reexports.html</loc>
+  </url>
+  <url>
+    <loc>/reference/select_column_or_return.html</loc>
+  </url>
+</urlset>

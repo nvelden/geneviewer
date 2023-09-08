@@ -89,7 +89,7 @@ clusters.forEach(function(clusterKey) {
         .title(titleOptions?.title, titleOptions?.subtitle, titleOptions?.show ?? false, titleOptions)
         .footer(footerOptions?.title, footerOptions?.subtitle, footerOptions?.show ?? false, footerOptions)
         .clusterLabel(clusterLabelOptions?.title, clusterLabelOptions?.show ?? false, clusterLabelOptions)
-        .geneData(clusterData)  // Access data using the cluster key
+        .geneData(data, clusterData)  // Access data using the cluster key
         .scale(scaleOptions)
         .sequence(sequenceOptions?.show ?? false, sequenceOptions)
         .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)

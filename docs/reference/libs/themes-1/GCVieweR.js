@@ -7,6 +7,8 @@ HTMLWidgets.widget({
         series,
         legendOptions;
 
+    var widgetId = el.id.split('-')[1];
+
     var draw = function(width, height, backgroundColor) {
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
@@ -17,10 +19,10 @@ HTMLWidgets.widget({
 
       var legendContainer = d3.select(el)
         .append("div")
-        .attr("id", "GCvieweR-legend-container")
+        .attr("id", `GCvieweR-legend-container-${widgetId}`)
         .classed("GCVieweR-container", true);
 
-      var legendContainer = createLegendContainer("#GCvieweR-legend-container",
+      var legendContainer = createLegendContainer(`#GCvieweR-legend-container-${widgetId}`,
       {
         width:  width,
         height: legendHeight,
@@ -30,7 +32,7 @@ HTMLWidgets.widget({
        .legendData(data)
        .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, legendOptions);
 
-       var legendElement = d3.select("#GCvieweR-legend-container").node();
+       var legendElement = d3.select(`#GCvieweR-legend-container-${widgetId}`).node();
        var legendDimensions = legendElement.getBoundingClientRect();
        legendHeight = legendDimensions.height;
 
@@ -38,7 +40,7 @@ HTMLWidgets.widget({
 
       var graph = d3.select(el)
       .append("div")
-      .attr("id", "GCvieweR-graph-container")
+      .attr("id", `GCvieweR-graph-container-${widgetId}`)
       .classed("GCVieweR-container", true);
 
 var clusters = Object.keys(series);
@@ -84,7 +86,7 @@ clusters.forEach(function(clusterKey) {
     }
 
 
-    var cluster = createClusterContainer("#GCvieweR-graph-container", clusterOptions)
+    var cluster = createClusterContainer(`#GCvieweR-graph-container-${widgetId}`, clusterOptions)
         .theme("preset")
         .title(titleOptions?.title, titleOptions?.subtitle, titleOptions?.show ?? false, titleOptions)
         .footer(footerOptions?.title, footerOptions?.subtitle, footerOptions?.show ?? false, footerOptions)
@@ -101,14 +103,14 @@ clusters.forEach(function(clusterKey) {
 
       if (legendOptions?.position == "bottom" && legendOptions?.show && legendOptions?.group !== null) {
 
-      d3.select("#GCvieweR-legend-container").remove();
+      d3.select(`#GCvieweR-graph-container-${widgetId}`).remove();
 
       var legendContainer = d3.select(el)
         .append("div")
         .attr("id", "GCvieweR-legend-container")
         .classed("GCVieweR-container", true);
 
-      var legendContainer = createLegendContainer("#GCvieweR-legend-container",
+      var legendContainer = createLegendContainer(`#GCvieweR-graph-container-${widgetId}`,
       {
         width:  width,
         height: legendHeight,

@@ -8,7 +8,7 @@ divide_dimension_value(value, divisor)
 }
 \arguments{
 \item{value}{A character or numeric value representing the dimension.
-It can be in the format "100px", '100\%', or 100.}
+It can be in the format '100px', '100\%', or 100.}
 
 \item{divisor}{A numeric value by which the dimension value will be divided.}
 }

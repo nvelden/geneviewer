@@ -34,22 +34,20 @@ genes_data <- data.frame(
 GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
 GC_labels("name") \%>\%
 GC_item(
-"labels",
-cluster = 2,  # If NULL all clusters will be updated
-fontSize = "16px"
+  "labels",
+  cluster = 2,
+  fontSize = "16px"
 )
 
 # Update style of specific items within a specific cluster
 GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
 GC_labels("name") \%>\%
 GC_item(
-"labels",
-cluster = 2, # Can be index or name of cluster
-itemStyle =
- list(
-   list(index = 0, fontSize = "10px"), # Note index 0 is used
-   list(index = 2, fontSize = "16px"). # because of JS array.
-   )
- )
-
+  "labels",
+  cluster = 2,
+  itemStyle = list(
+    list(index = 0, fontSize = "10px"),  # Index 0 due to JS array
+    list(index = 2, fontSize = "16px")
+  )
+)
 }

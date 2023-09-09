@@ -19,30 +19,30 @@ GC_chart(
 )
 }
 \arguments{
-\item{data}{Data frame with genomic data.}
+\item{data}{Data frame containing genomic information.}
 
-\item{start_col}{Start positions column. Default: "start".}
+\item{start_col}{Column name that indicates start positions. Default is "start".}
 
-\item{stop_col}{Stop positions column. Default: "stop".}
+\item{stop_col}{Column name that indicates stop positions. Default is "stop".}
 
-\item{cluster}{Optional cluster column.}
+\item{cluster}{Optional column name used for clustering purposes. Default is NULL.}
 
-\item{group}{Column to determine gene groups. Used for Aesthetic mapping of genes to colors.}
+\item{group}{Column name used for gene grouping to influence color aesthetics.}
 
-\item{width}{Chart width, e.g., "100%" or 500.}
+\item{width}{Width specification for the chart, such as '100\%' or 500. Default is unspecified.}
 
-\item{height}{Chart height, e.g., "400px" or 300.}
+\item{height}{Height specification for the chart, such as '400px' or 300. Default is unspecified.}
 
-\item{elementId}{Optional widget ID.}
+\item{elementId}{Optional identifier string for the widget. Default is NULL.}
 
-\item{scale_breaks}{Use scale breaks? Default: TRUE.}
+\item{scale_breaks}{Logical flag indicating if scale breaks should be employed. Default is TRUE.}
 
-\item{scale_break_threshold}{% of full range to determine inter-gene regions for scale breaks.}
+\item{scale_break_threshold}{Numeric value indicating the threshold percentage of the entire range for determining inter-gene regions suitable for scale breaks. Default is unspecified.}
 
-\item{scale_break_padding}{% of full range as padding on both sides of a scale break.}
+\item{scale_break_padding}{Numeric value indicating the padding percentage of the entire range on either side of a scale break. Default is unspecified.}
 }
 \value{
-GC chart widget.
+A GC chart widget.
 }
 \description{
 Generates an interactive GC chart for genomic data.

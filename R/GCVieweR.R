@@ -6,19 +6,19 @@ magrittr::`%>%`
 #'
 #' Generates an interactive GC chart for genomic data.
 #'
-#' @param data Data frame with genomic data.
-#' @param start_col Start positions column. Default: "start".
-#' @param stop_col Stop positions column. Default: "stop".
-#' @param cluster Optional cluster column.
-#' @param group Column to determine gene groups. Used for Aesthetic mapping of genes to colors.
-#' @param width Chart width, e.g., "100%" or 500.
-#' @param height Chart height, e.g., "400px" or 300.
-#' @param elementId Optional widget ID.
-#' @param scale_breaks Use scale breaks? Default: TRUE.
-#' @param scale_break_threshold % of full range to determine inter-gene regions for scale breaks.
-#' @param scale_break_padding % of full range as padding on both sides of a scale break.
+#' @param data Data frame containing genomic information.
+#' @param start_col Column name that indicates start positions. Default is "start".
+#' @param stop_col Column name that indicates stop positions. Default is "stop".
+#' @param cluster Optional column name used for clustering purposes. Default is NULL.
+#' @param group Column name used for gene grouping to influence color aesthetics.
+#' @param width Width specification for the chart, such as '100\%' or 500. Default is unspecified.
+#' @param height Height specification for the chart, such as '400px' or 300. Default is unspecified.
+#' @param elementId Optional identifier string for the widget. Default is NULL.
+#' @param scale_breaks Logical flag indicating if scale breaks should be employed. Default is TRUE.
+#' @param scale_break_threshold Numeric value indicating the threshold percentage of the entire range for determining inter-gene regions suitable for scale breaks. Default is unspecified.
+#' @param scale_break_padding Numeric value indicating the padding percentage of the entire range on either side of a scale break. Default is unspecified.
 #'
-#' @return GC chart widget.
+#' @return A GC chart widget.
 #'
 #' @examples
 #' genes_data <- data.frame(
@@ -32,8 +32,7 @@ magrittr::`%>%`
 #'
 #' @import htmlwidgets
 #' @export
-GC_chart <- function(data, start_col = "start", stop_col = "stop", cluster = NULL, group = NULL,
-                     width = "100%", height = "400px", elementId = NULL, scale_breaks = TRUE, scale_break_threshold = 20, scale_break_padding = 1){
+GC_chart <- function(data, start_col = "start", stop_col = "stop", cluster = NULL, group = NULL, width = "100%", height = "400px", elementId = NULL, scale_breaks = TRUE, scale_break_threshold = 20, scale_break_padding = 1){
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
@@ -139,24 +138,22 @@ GC_chart <- function(data, start_col = "start", stop_col = "stop", cluster = NUL
 #' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
 #' GC_labels("name") %>%
 #' GC_item(
-#' "labels",
-#' cluster = 2,  # If NULL all clusters will be updated
-#' fontSize = "16px"
+#'   "labels",
+#'   cluster = 2,
+#'   fontSize = "16px"
 #' )
 #'
 #' # Update style of specific items within a specific cluster
 #' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
 #' GC_labels("name") %>%
 #' GC_item(
-#' "labels",
-#' cluster = 2, # Can be index or name of cluster
-#' itemStyle =
-#'  list(
-#'    list(index = 0, fontSize = "10px"), # Note index 0 is used
-#'    list(index = 2, fontSize = "16px"). # because of JS array.
-#'    )
-#'  )
-#'
+#'   "labels",
+#'   cluster = 2,
+#'   itemStyle = list(
+#'     list(index = 0, fontSize = "10px"),  # Index 0 due to JS array
+#'     list(index = 2, fontSize = "16px")
+#'   )
+#' )
 #' @export
 GC_item <- function(
     GC_chart,

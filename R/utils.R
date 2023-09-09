@@ -83,18 +83,18 @@ getUpdatedClusters <- function(GCVieweR, cluster) {
 
 #' Divide Dimension Value
 #'
-#' This function takes a dimension value (which can be in the format "100px", "100%", or 100)
+#' This function takes a dimension value (which can be in the format '100px', '100\%', or 100)
 #' and divides it by a given divisor. The result is returned in the same format as the input.
 #'
 #' @param value A character or numeric value representing the dimension.
-#' It can be in the format "100px", "100%", or 100.
+#' It can be in the format '100px', '100\%', or 100.
 #' @param divisor A numeric value by which the dimension value will be divided.
 #'
 #' @return A character or numeric value representing the divided dimension.
 #'
 #' @examples
-#' divide_dimension_value("100px", 2)  # Returns "50px"
-#' divide_dimension_value("100%", 2)  # Returns "50%"
+#' divide_dimension_value('100px', 2)  # Returns "50px"
+#' divide_dimension_value('100%', 2)  # Returns '50%'
 #' divide_dimension_value(100, 2)     # Returns 50
 #'
 #' @export

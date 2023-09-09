@@ -7,7 +7,9 @@ const themes = {
         weight: "bold",
         decoration: "normal",
         family: "sans-serif",
-        cursor: "default"
+        cursor: "default",
+      },
+    subtitleFont: {
       }
     },
     footerOptions: {
@@ -15,7 +17,8 @@ const themes = {
         fontSize: "12px",
         fontWeight: "bold",
         fontFamily: "sans-serif",
-        cursor: "default"
+        cursor: "default",
+        fill: "green"
       }
     },
     clusterLabelOptions: {

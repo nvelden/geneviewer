@@ -191,33 +191,35 @@ GC_item <- function(
 
 #' Update Title of a GC Chart Cluster
 #'
-#' This function allows you to modify the title and subtitle of specified clusters
-#' within a GC chart, as well as adjust the display settings.
+#' Modify the title and subtitle of specified clusters within a GC chart and adjust
+#' the display settings.
 #'
-#' @param GC_chart A GC chart object to be updated.
-#' @param title Character. The title to set for the clusters.
-#' @param subtitle Character. The subtitle to set for the clusters.
-#' @param show Logical. If TRUE, the title will be displayed.
-#' @param height Character. Specifies the height for the title. Accepts values like "40px".
-#' @param cluster Numeric or character vector. Cluster(s) within the GC chart to be updated.
-#' @param ... Additional arguments for customizing the title and subtitle.
+#' @param GC_chart A GC chart object.
+#' @param title Character vector. Titles to set for the clusters.
+#' @param subtitle Character vector. Subtitles to set for the clusters.
+#' @param show Logical. Whether to display the title. Default is TRUE.
+#' @param height Character. Height for the title (e.g., "40px").
+#' @param cluster Numeric or character vector. Clusters in the GC chart to update.
+#' @param titleFont List. Settings for the title font.
+#' @param subtitleFont List. Settings for the subtitle font.
+#' @param x Numeric. X-coordinate for title's position.
+#' @param y Numeric. Y-coordinate for title's position.
+#' @param position Character. Title position ("center", "left", or "right").
+#' @param spacing Numeric. Spacing between title and subtitle.
+#' @param ... Additional customization arguments for title and subtitle.
 #'
-#' @return An updated GC chart object with modified title settings.
+#' @return Updated GC chart with new title settings.
 #'
 #' @examples
-#' # Assuming you have a pre-existing GC_chart and genes_data as before
-#'
-#' # Update the title of all clusters
-#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
-#' GC_labels("name") %>%
-#' GC_title(
-#'   title = "Genomic Data",
-#'   subtitle = "Cluster Overview",
-#'   show = TRUE,
-#'   height = "50px"
+#' genes_data <- data.frame(
+#'   start = c(10, 50, 90, 130, 170, 210),
+#'   stop = c(40, 80, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 1, 2, 2, 2)
 #' )
 #'
-#' # Update the title of a specific cluster
+#' # Basic usage
 #' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
 #' GC_labels("name") %>%
 #' GC_title(
@@ -227,11 +229,45 @@ GC_item <- function(
 #'   cluster = 1
 #' )
 #'
+#' # Customizing title style
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#'   GC_labels("name") %>%
+#'   GC_title(
+#'     title = "Cluster 1 Data",
+#'     subtitle = "Detailed View",
+#'     show = TRUE,
+#'     cluster = 1,
+#'     x = 0,
+#'     y = 0,
+#'     position = "center",
+#'     spacing = 20,
+#'     titleFont = list(
+#'       size = "16px",
+#'       style = "normal",
+#'       weight = "bold",
+#'       decoration = "normal",
+#'       family = "sans-serif",
+#'       cursor = "default",
+#'       fill = "black"
+#'     ),
+#'     subtitleFont = list(
+#'       size = "14px",
+#'       style = "normal",
+#'       weight = "bold",
+#'       decoration = "normal",
+#'       family = "sans-serif",
+#'       cursor = "default",
+#'       fill = "black"
+#'     )
+#'   )
+#'
 #' @export
 GC_title <- function(
     GC_chart,
     title = NULL,
     subtitle = NULL,
+    subtitleFont = list(),
+    titleFont = list(),
     show = TRUE,
     height = "40px",
     cluster = NULL,
@@ -250,6 +286,8 @@ GC_title <- function(
     options <- list(
       title = title[(i-1) %% length(title) + 1],
       subtitle = subtitle[(i-1) %% length(subtitle) + 1],
+      subtitleFont = subtitleFont,
+      titleFont = titleFont,
       show = show
     )
 

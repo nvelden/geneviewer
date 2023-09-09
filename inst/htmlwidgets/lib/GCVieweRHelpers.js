@@ -591,7 +591,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   if (!show) {
     return this;
   }
-
+  console.log(options)
   // Default options for title and subtitle
   const defaultOptions = {
     x: 0,

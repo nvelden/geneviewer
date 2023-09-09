@@ -1636,7 +1636,7 @@ function createLegendContainer(targetElementId, options = {}) {
 legendContainer.prototype.legendData = function (data) {
 
   this.data = [...new Set(data)];
-  console.log(this.data)
+
   return this;
 
 };

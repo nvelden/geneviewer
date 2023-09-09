@@ -24,7 +24,7 @@ magrittr::`%>%`
 #' genes_data <- data.frame(
 #'   start = c(10, 50, 90, 130, 170, 210),
 #'   stop = c(40, 80, 120, 160, 200, 240),
-#'   name = c('Gene1', 'Gene2', 'Gene3', 'Gene4', 'Gene5', 'Gene6'),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
 #'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
 #'   cluster = c(1, 1, 1, 2, 2, 2)
 #' )
@@ -115,7 +115,48 @@ GC_chart <- function(data, start_col = "start", stop_col = "stop", cluster = NUL
 
 }
 
-
+#' Update Settings of a GC Chart Item
+#'
+#' This function modifies the settings of specified clusters within a GC chart.
+#'
+#' @param GC_chart A GC chart object to be updated.
+#' @param setting Character. The setting within the cluster to be modified.
+#' @param cluster Numeric or character vector. Cluster(s) within the GC chart to be updated.
+#' @param ... Additional arguments to modify the settings of the cluster.
+#'
+#' @return An updated GC chart object.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 50, 90, 130, 170, 210),
+#'   stop = c(40, 80, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 1, 2, 2, 2)
+#' )
+#'
+#' # Update style of a specific cluster
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_labels("name") %>%
+#' GC_item(
+#' "labels",
+#' cluster = 2,  # If NULL all clusters will be updated
+#' fontSize = "16px"
+#' )
+#'
+#' # Update style of specific items within a specific cluster
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_labels("name") %>%
+#' GC_item(
+#' "labels",
+#' cluster = 2, # Can be index or name of cluster
+#' itemStyle =
+#'  list(
+#'    list(index = 0, fontSize = "10px"), # Note index 0 is used
+#'    list(index = 2, fontSize = "16px"). # because of JS array.
+#'    )
+#'  )
+#'
 #' @export
 GC_item <- function(
     GC_chart,
@@ -127,10 +168,15 @@ GC_item <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GC_chart object with sequence options for each cluster
+  # If cluster is NULL, retrieve all clusters from the GC_chart
+  if (is.null(cluster)) {
+    cluster <- unique(names(GC_chart$x$series))
+  }
+
+  # Update the GC_chart object with options for each cluster
   clusters <- getUpdatedClusters(GC_chart, cluster)
 
-  for(clust in cluster){
+  for(clust in clusters){
 
     settings <- GC_chart$x$series[[clust]][[setting]]
     updated_settings <- modifyList(settings, dots)
@@ -141,9 +187,46 @@ GC_item <- function(
   }
 
   return(GC_chart)
-
 }
 
+#' Update Title of a GC Chart Cluster
+#'
+#' This function allows you to modify the title and subtitle of specified clusters
+#' within a GC chart, as well as adjust the display settings.
+#'
+#' @param GC_chart A GC chart object to be updated.
+#' @param title Character. The title to set for the clusters.
+#' @param subtitle Character. The subtitle to set for the clusters.
+#' @param show Logical. If TRUE, the title will be displayed.
+#' @param height Character. Specifies the height for the title. Accepts values like "40px".
+#' @param cluster Numeric or character vector. Cluster(s) within the GC chart to be updated.
+#' @param ... Additional arguments for customizing the title and subtitle.
+#'
+#' @return An updated GC chart object with modified title settings.
+#'
+#' @examples
+#' # Assuming you have a pre-existing GC_chart and genes_data as before
+#'
+#' # Update the title of all clusters
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_labels("name") %>%
+#' GC_title(
+#'   title = "Genomic Data",
+#'   subtitle = "Cluster Overview",
+#'   show = TRUE,
+#'   height = "50px"
+#' )
+#'
+#' # Update the title of a specific cluster
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_labels("name") %>%
+#' GC_title(
+#'   title = "Cluster 1 Data",
+#'   subtitle = "Detailed View",
+#'   show = TRUE,
+#'   cluster = 1
+#' )
+#'
 #' @export
 GC_title <- function(
     GC_chart,

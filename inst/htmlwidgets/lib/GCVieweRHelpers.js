@@ -870,7 +870,7 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
       stroke: "grey",
       strokeWidth: 1,
       tiltAmount: -5,
-      gap: 5
+      gap: 0
     }
   };
 
@@ -896,14 +896,11 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
       setAttributesFromOptions(currentElement, additionalOptions);
     });
 
-  const domainWidth = this.maxStop - this.minStart;
-
   // Draw break markers with tilted lines
   for (let gap of this.breaks) {
-    const gapWidth = domainWidth * (marker.gap / 100);
-    const xStart = this.xScale(gap.start - gapWidth);
-    const xEnd = this.xScale(gap.stop + gapWidth);
 
+    const xStart = this.xScale(gap.start - 0.001) * (1 - marker.gap/100);
+    const xEnd = this.xScale(gap.stop + 0.001) * (1 + marker.gap/100);
     const yBase = this.yScale(y);
     const yTop = yBase - marker.markerHeight / 2;
     const yBottom = yBase + marker.markerHeight / 2;

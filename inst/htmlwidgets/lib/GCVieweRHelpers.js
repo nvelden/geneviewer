@@ -619,6 +619,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'titleOptions', options);
   const { x, y, titleFont, subtitleFont, position, spacing } = combinedOptions;
 
+
   // Extract additional options that are not in defaultOptions
   const additionalOptionsTitleFont = extractAdditionalOptions(titleFont, defaultOptions.titleFont);
   const additionalOptionsSubtitleFont = extractAdditionalOptions(subtitleFont, defaultOptions.subtitleFont);
@@ -869,7 +870,7 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
       stroke: "grey",
       strokeWidth: 1,
       tiltAmount: -5,
-      gap: 5 // Default value, modify if needed
+      gap: 5
     }
   };
 
@@ -895,10 +896,13 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
       setAttributesFromOptions(currentElement, additionalOptions);
     });
 
+  const domainWidth = this.maxStop - this.minStart;
+
   // Draw break markers with tilted lines
   for (let gap of this.breaks) {
-    const xStart = this.xScale(gap.start - marker.gap);
-    const xEnd = this.xScale(gap.stop + marker.gap);
+    const gapWidth = domainWidth * (marker.gap / 100);
+    const xStart = this.xScale(gap.start - gapWidth);
+    const xEnd = this.xScale(gap.stop + gapWidth);
 
     const yBase = this.yScale(y);
     const yTop = yBase - marker.markerHeight / 2;
@@ -908,12 +912,12 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
 
    g.append("line")
       .attr("class", "gap-line")
-      .attr("x1", xStart + 2.5)
-      .attr("y1", yTop)
-      .attr("x2", xEnd + marker.tiltAmount + (marker.gap / 2))
-      .attr("y2", yBottom)
+      .attr("x1", xStart + (marker.tiltAmount / 2))
+      .attr("y1", yBase)
+      .attr("x2", xEnd - (marker.tiltAmount / 2))
+      .attr("y2", yBase)
       .attr("stroke", "white")
-      .style("stroke-width", marker.gap);
+      .style("stroke-width", strokeWidth * 1.1);
     }
 
     if (xStart !== null) {

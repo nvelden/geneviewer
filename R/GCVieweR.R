@@ -303,19 +303,50 @@ GC_title <- function(
   return(GC_chart)
 }
 
+#' Update Sequence Display of a GC Chart Cluster
+#'
+#' Modify the sequence display of specified clusters within a GC chart and adjust
+#' the display settings.
+#'
+#' @param GC_chart A GC chart object.
+#' @param show Logical. Whether to display the sequence. Default is TRUE.
+#' @param cluster Numeric or character vector. Clusters in the GC chart to update.
+#' @param marker List. Settings for the sequence break marker.
+#' @param ... Additional customization arguments for sequence display.
+#'
+#' @return Updated GC chart with new sequence display settings.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 50, 90, 130, 170, 210),
+#'   stop = c(40, 80, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 1, 2, 2, 2)
+#' )
+#'
+#' # Basic usage
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_labels("name") %>%
+#' GC_sequence(
+#'   show = TRUE,
+#'   cluster = 1
+#' )
+#'
+#' # Customize sequence style
+#'
+#'
 #' @export
 GC_sequence <- function(
     GC_chart,
     show = TRUE,
-    option = NULL,
     cluster = NULL,
+    marker = list(),
     ...
 ) {
 
   # Capture ... arguments
   dots <- list(...)
-
-  GC_item(GC_chart, "sequence", cluster = cluster, dots)
 
   # Update the GC_chart object with title and options for each cluster
   clusters <- getUpdatedClusters(GC_chart, cluster)
@@ -324,7 +355,8 @@ GC_sequence <- function(
 
     # Default options
     options <- list(
-      show = show[(i-1) %% length(show) + 1]
+      show = show[(i-1) %% length(show) + 1],
+      marker = marker
     )
 
     # Add ... arguments to options

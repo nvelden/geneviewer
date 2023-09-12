@@ -103,22 +103,22 @@ clusters.forEach(function(clusterKey) {
 
       if (legendOptions?.position == "bottom" && legendOptions?.show && legendOptions?.group !== null) {
 
-      d3.select(`#GCvieweR-graph-container-${widgetId}`).remove();
+      d3.select(`#GCvieweR-legend-container-${widgetId}`).remove();
 
       var legendContainer = d3.select(el)
         .append("div")
-        .attr("id", "GCvieweR-legend-container")
+        .attr("id", `GCvieweR-legend-container-${widgetId}`)
         .classed("GCVieweR-container", true);
 
-      var legendContainer = createLegendContainer(`#GCvieweR-graph-container-${widgetId}`,
+      var legendContainer = createLegendContainer(`#GCvieweR-legend-container-${widgetId}`,
       {
         width:  width,
         height: legendHeight,
-        backgroundColor: legendOptions.backgroundColor,
+        backgroundColor: legendOptions?.backgroundColor ?? "white",
         margin: legendOptions.margin
       })
        .legendData(data)
-       .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, legendOptions?.options);
+       .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, legendOptions);
 
       }
 

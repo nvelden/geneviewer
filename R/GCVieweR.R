@@ -615,6 +615,55 @@ GC_scaleBar <- function(
   return(GC_chart)
 }
 
+#' Set or Update Cluster Labels for a GC Chart
+#'
+#' This function allows you to set or update the labels for specified clusters within a GC chart.
+#' It provides flexibility in terms of the title, visibility, width, position, and other additional customization options.
+#'
+#' @param GC_chart A GC chart object.
+#' @param title Character vector. The title for the cluster label. Default is NULL.
+#' @param show Logical. Whether to show the cluster label. Default is TRUE.
+#' @param width Character. The width of the cluster label. Default is "100px".
+#' @param cluster Numeric or character vector. Clusters in the GC chart to update. Default is NULL.
+#' @param position Character. Position of the label, either "left" or "right". Default is "left".
+#' @param ... Additional customization arguments for the cluster label.
+#'
+#' @return Updated GC chart with new or modified cluster labels.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 170, 210),
+#'   stop = c(40, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 2, 2, 2)
+#' )
+#'
+#' # Set cluster labels
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_clusterLabel(title = unique(genes_data$cluster))
+#'
+#' # Set label for a specific cluster
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_clusterLabel(title = "Cluster 1", cluster = 1)
+#'
+#' # Style labels
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#'   GC_clusterLabel(
+#'     title = "Cluster 1",
+#'     width = "100px",
+#'     x = 0,
+#'     y = 0,
+#'     position = "left",
+#'     wrapLabel = TRUE,
+#'     wrapOptions = list(),
+#'     fontSize = "12px",
+#'     fontStyle = "normal",
+#'     fontWeight = "bold",
+#'     fontFamily = "sans-serif",
+#'     cursor = "default"
+#'   )
+#'
 #' @export
 GC_clusterLabel <- function(
     GC_chart,
@@ -622,6 +671,7 @@ GC_clusterLabel <- function(
     show = TRUE,
     width = "100px",
     cluster = NULL,
+    position = "left",
     ...
 ) {
 
@@ -633,10 +683,14 @@ GC_clusterLabel <- function(
 
   for(i in seq_along(clusters)){
 
+    # Get the current position for this cluster
+    currentPosition <- position[(i-1) %% length(position) + 1]
+
     # Default options
     options <- list(
       title = title[(i-1) %% length(title) + 1],
-      show = show[(i-1) %% length(show) + 1]
+      show = show[(i-1) %% length(show) + 1],
+      position = currentPosition
     )
 
     # Add ... arguments to options
@@ -647,8 +701,12 @@ GC_clusterLabel <- function(
     # Set clusterLabel options for each cluster
     GC_chart$x$series[[clusters[i]]]$clusterLabel <- options
 
-    # Set width for each cluster
-    GC_chart$x$series[[clusters[i]]]$grid$margin$left <- width[(i-1) %% length(width) + 1]
+    # Set width for each cluster based on position
+    if (currentPosition == "left") {
+      GC_chart$x$series[[clusters[i]]]$grid$margin$left <- width[(i-1) %% length(width) + 1]
+    } else if (currentPosition == "right") {
+      GC_chart$x$series[[clusters[i]]]$grid$margin$right <- width[(i-1) %% length(width) + 1]
+    }
 
   }
 

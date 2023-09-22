@@ -44,7 +44,7 @@ const themes = {
         stroke: "grey",
         strokeWidth: 1,
         //tiltAmount: -5,
-        gap: 5
+        gap: 0
       }
     },
     markerOptions: {

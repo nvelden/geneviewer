@@ -210,3 +210,26 @@ get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
   return(non_coding_regions)
 }
 
+#' @export
+compute_size <- function(value, length = 2) {
+  # Check if value is numeric
+  if (is.numeric(value)) {
+    return(value / length)
+  }
+
+  # Check if value ends with 'px'
+  if (grepl("px$", value)) {
+    num_val <- as.numeric(sub("px$", "", value))
+    return(paste0(num_val / length, "px"))
+  }
+
+  # Check if value ends with '%'
+  if (grepl("%$", value)) {
+    num_val <- as.numeric(sub("%$", "", value))
+    return(paste0(num_val / length, "%"))
+  }
+
+  stop("Unsupported format")
+}
+
+

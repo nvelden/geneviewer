@@ -475,6 +475,7 @@ function isInAnyDiscontinuity(value, breaks) {
 }
 
 function createDiscontinuousScale(minStart, maxStop, width, margin, breaks) {
+
     let totalGap = 0;
 
     // Calculate the total gap based on all discontinuities
@@ -491,18 +492,28 @@ function createDiscontinuousScale(minStart, maxStop, width, margin, breaks) {
 
     // Proxy object for discontinuous scale
     const scaleProxy = function(value) {
-        if (isInAnyDiscontinuity(value, breaks)) {
-            return null;
-        }
-
-        // Adjust the value by all previous discontinuities
-        for (let gap of breaks) {
-    if (value > gap.stop && gap.start >= minStart && gap.stop <= maxStop) {
-        value -= (gap.stop - gap.start);
+    if (isInAnyDiscontinuity(value, breaks)) {
+        return null;
     }
-}
-        return linearScale(value);
-    };
+
+    let cumulativeAdjustment = 0;
+
+    // Adjust the value by all previous discontinuities
+    for (let gap of breaks) {
+        if (value > gap.stop) {
+            cumulativeAdjustment += (gap.stop - gap.start);
+        } else {
+            // If the value is beyond a gap's start but hasn't reached the gap's stop,
+            // it means the value is within or after this gap, so we break out of the loop.
+            break;
+        }
+    }
+
+    // Subtract the cumulative adjustment from the value
+    value -= cumulativeAdjustment;
+
+    return linearScale(value);
+};
 
     // Dynamically copy all methods and properties from linearScale to scaleProxy
     for (let prop in linearScale) {

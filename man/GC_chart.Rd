@@ -6,8 +6,8 @@
 \usage{
 GC_chart(
   data,
-  start_col = "start",
-  stop_col = "stop",
+  start = "start",
+  stop = "stop",
   cluster = NULL,
   group = NULL,
   width = "100\%",
@@ -21,9 +21,9 @@ GC_chart(
 \arguments{
 \item{data}{Data frame containing genomic information.}
 
-\item{start_col}{Column name that indicates start positions. Default is "start".}
+\item{start}{Column name that indicates start positions. Default is "start".}
 
-\item{stop_col}{Column name that indicates stop positions. Default is "stop".}
+\item{stop}{Column name that indicates stop positions. Default is "stop".}
 
 \item{cluster}{Optional column name used for clustering purposes. Default is NULL.}
 

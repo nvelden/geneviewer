@@ -1250,14 +1250,26 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
     labelPosition: "left", // default label position
     fontSize: "10px",
     fontFamily: "sans-serif",
-    cursor: "default"
+    cursor: "default",
+    textPadding: 0, // padding between text and line in x-direction
+    scaleBarLine: { // default styling for the scale bar line
+      stroke: "grey",
+      strokeWidth: 1
+    },
+    scaleBarTick: { // default styling for the scale bar ticks
+      stroke: "grey",
+      strokeWidth: 1
+    }
   };
 
-  const combinedOptions = { ...defaultOptions, ...options };
-  const { title, scaleBarUnit, x, y, labelPosition, fontSize, fontFamily, cursor } = combinedOptions;
+  // Merge the default options with any predefined scaleBarOptions and the provided options
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'scaleBarOptions', options);
+  const { title, scaleBarUnit, x, y, labelPosition, fontSize, fontFamily, cursor, textPadding, scaleBarLine, scaleBarTick } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
-  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
+  const additionalOptionsText = extractAdditionalOptions(combinedOptions, defaultOptions);
+  const additionalOptionsLine = extractAdditionalOptions(scaleBarLine, defaultOptions.scaleBarLine);
+  const additionalOptionsTick = extractAdditionalOptions(scaleBarTick, defaultOptions.scaleBarTick);
 
   // Calculate the length of the scale bar in pixels
   const scaleBarLength = this.xScale(scaleBarUnit) - this.xScale(0);
@@ -1272,8 +1284,12 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
     .attr("x2", parseInt(fontSize) + 5)
     .attr("y1", -y)
     .attr("y2", -y)
-    .attr("stroke", "grey")
-    .attr("stroke-width", 1);
+    .style("stroke", scaleBarLine.stroke)
+    .style("stroke-width", scaleBarLine.strokeWidth)
+    .each(function() {
+      const currentElement = d3.select(this);
+      setAttributesFromOptions(currentElement, additionalOptionsLine);
+    });
 
   // Add the ticks
   [parseInt(fontSize) + 5, parseInt(fontSize) + 5 + scaleBarLength].forEach(d => {
@@ -1282,12 +1298,16 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
       .attr("x2", d)
       .attr("y1", -y - 5)
       .attr("y2", -y + 5)
-      .attr("stroke", "grey")
-      .attr("stroke-width", 1);
+      .style("stroke", scaleBarTick.stroke)
+      .style("stroke-width", scaleBarTick.strokeWidth)
+      .each(function() {
+        const currentElement = d3.select(this);
+        setAttributesFromOptions(currentElement, additionalOptionsTick);
+      });
   });
 
-  // Determine the x position of the title based on the labelPosition
-  const titleX = labelPosition === "left" ? parseInt(fontSize) : parseInt(fontSize) + 5 + scaleBarLength;
+  // Determine the x position of the title based on the labelPosition and adjust with textPadding
+  const titleX = labelPosition === "left" ? (parseInt(fontSize) - textPadding) : (parseInt(fontSize) + 5 + scaleBarLength + textPadding);
   const textAnchor = labelPosition === "left" ? "end" : "start";
 
   // Add the title
@@ -1301,7 +1321,7 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
     .style("cursor", cursor)
     .each(function() {
       const currentElement = d3.select(this);
-      setAttributesFromOptions(currentElement, additionalOptions);
+      setAttributesFromOptions(currentElement, additionalOptionsText);
     })
     .text(title);
 

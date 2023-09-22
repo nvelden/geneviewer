@@ -7,8 +7,8 @@ magrittr::`%>%`
 #' Generates an interactive GC chart for genomic data.
 #'
 #' @param data Data frame containing genomic information.
-#' @param start_col Column name that indicates start positions. Default is "start".
-#' @param stop_col Column name that indicates stop positions. Default is "stop".
+#' @param start Column name that indicates start positions. Default is "start".
+#' @param stop Column name that indicates stop positions. Default is "stop".
 #' @param cluster Optional column name used for clustering purposes. Default is NULL.
 #' @param group Column name used for gene grouping to influence color aesthetics.
 #' @param width Width specification for the chart, such as '100\%' or 500. Default is unspecified.
@@ -32,15 +32,15 @@ magrittr::`%>%`
 #'
 #' @import htmlwidgets
 #' @export
-GC_chart <- function(data, start_col = "start", stop_col = "stop", cluster = NULL, group = NULL, width = "100%", height = "400px", elementId = NULL, scale_breaks = TRUE, scale_break_threshold = 20, scale_break_padding = 1){
+GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group = NULL, width = "100%", height = "400px", elementId = NULL, scale_breaks = TRUE, scale_break_threshold = 20, scale_break_padding = 1){
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
 
   # Check if column names are in the data frame
   colnames_data <- colnames(data)
-  if (!(start_col %in% colnames_data)) stop("start column not found in data")
-  if (!(stop_col %in% colnames_data)) stop("stop column not found in data")
+  if (!(start %in% colnames_data)) stop("start column not found in data")
+  if (!(stop %in% colnames_data)) stop("stop column not found in data")
   if (!is.null(cluster) && !(cluster %in% colnames_data)){
     stop("cluster column not found in data")
   }
@@ -74,8 +74,8 @@ GC_chart <- function(data, start_col = "start", stop_col = "stop", cluster = NUL
       subset_data <- data[data[[cluster]] == clust, ]
     }
 
-    subset_data$start <- subset_data[[start_col]]
-    subset_data$stop <- subset_data[[stop_col]]
+    subset_data$start <- subset_data[[start]]
+    subset_data$stop <- subset_data[[stop]]
     subset_data <- subset_data[with(subset_data, order(-pmax(start, stop), abs(stop - start))), ]
     subset_data$cluster <- clust
 
@@ -86,10 +86,11 @@ GC_chart <- function(data, start_col = "start", stop_col = "stop", cluster = NUL
     # Settings
     if(scale_breaks) {
       breaks_data <- get_scale_breaks(subset_data, threshold_percentage = scale_break_threshold, padding = scale_break_padding)
+      print(breaks_data)
       x$series[[clust]]$scale <- list(breaks = breaks_data)
     }
 
-    x$series[[clust]]$grid <- list(margin = list(left = "50px", right = "50px", top = 0, bottom = 0), height = height, width = width)
+    x$series[[clust]]$grid <- list(margin = list(left = "50px", right = "50px", top = 0, bottom = 0), height = compute_size(height, length(clusters)), width = width)
     x$series[[clust]]$title <- list()
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
     x$series[[clust]]$labels <- list(group = group, show = TRUE)
@@ -318,11 +319,11 @@ GC_title <- function(
 #'
 #' @examples
 #' genes_data <- data.frame(
-#'   start = c(10, 50, 90, 130, 170, 210),
-#'   stop = c(40, 80, 120, 160, 200, 240),
-#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
-#'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
-#'   cluster = c(1, 1, 1, 2, 2, 2)
+#'   start = c(10, 90, 130, 170, 210),
+#'   stop = c(40, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 2, 2, 2)
 #' )
 #'
 #' # Basic usage
@@ -334,7 +335,19 @@ GC_title <- function(
 #' )
 #'
 #' # Customize sequence style
-#'
+#' GC_chart(genes_data, cluster="cluster", group = "group") %>%
+#' GC_sequence(
+#'   stroke = "black",
+#'   strokeWidth = 2,
+#'   # Any other CSS styles
+#'   marker =         # Style sequence
+#'   list(            # break marker
+#'     stroke = "black",
+#'     strokeWidth = 2,
+#'     gap = 3,
+#'     tiltAmount = 5
+#'     )
+#'   )
 #'
 #' @export
 GC_sequence <- function(
@@ -372,6 +385,38 @@ GC_sequence <- function(
   return(GC_chart)
 }
 
+#' Update Grid Display of a GC Chart Cluster
+#'
+#' Modify the grid display of specified clusters within a GC chart. This
+#' function allows users to adjust the margins, width, and height of the grid
+#' for each cluster.
+#'
+#' @param GC_chart A GC chart object.
+#' @param margin A list specifying top, right, bottom, and left margins.
+#' @param width Numeric or character. Width of the grid. If numeric, will be
+#' considered as percentage.
+#' @param height Numeric. Height of the grid.
+#' @param cluster Numeric or character vector. Clusters in the GC chart to update.
+#'
+#' @return Updated GC chart with new grid display settings.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 170, 210),
+#'   stop = c(40, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 2, 2, 2)
+#' )
+#'
+#' # Set Margin of clusters
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_grid(margin = list(left = "10px", right = "10px"))
+#'
+#' # Set height of a specific cluster
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_grid(height = "200px", cluster = 2)
+#'
 #' @export
 GC_grid <- function(
     GC_chart,
@@ -381,7 +426,7 @@ GC_grid <- function(
     cluster = NULL
 ) {
 
-  # Update the GC_chart object with title and options for each cluster
+
   clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for (i in seq_along(clusters)) {
@@ -399,16 +444,13 @@ GC_grid <- function(
       if (is.numeric(current_width)) {
         current_width <- paste0(current_width, "%")
       }
-      GC_chart$x$series[[cluster_name]]$grid$width <- current_width
+      GC_chart$x$series[[cluster_name]]$grid$width <- width
     }
 
     # Update height if provided
     if (!is.null(height)) {
       current_height <- height[(i-1) %% length(height) + 1]
       # Convert numeric height to percentage string
-      if (is.numeric(current_height)) {
-        current_height <- paste0(current_height, "%")
-      }
       GC_chart$x$series[[cluster_name]]$grid$height <- current_height
     }
   }
@@ -416,6 +458,40 @@ GC_grid <- function(
   return(GC_chart)
 }
 
+#' Update Scale of a GC Chart Cluster
+#'
+#' Modify the scale settings for specified clusters within a GC chart.
+#'
+#' @param GC_chart A GC chart object.
+#' @param cluster Numeric or character vector. Clusters in the GC chart to update.
+#' @param start Numeric vector. Starting points for the scales.
+#' @param stop Numeric vector. Stopping points for the scales.
+#' @param breaks List. Settings for the scale breaks.
+#' @param ... Additional arguments for scale settings.
+#'
+#' @return Updated GC chart with new scale settings.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#' start = c(100, 1000, 2000),
+#' stop = c(150, 1500, 2500),
+#' name = c( 'Gene 4', 'Gene 5', 'Gene 6'),
+#' group = c( 'B', 'A', 'C'),
+#' cluster = c(2, 2, 2)
+#' )
+#'
+#' # Set manual start and stop values for scales domain
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_scale(
+#'   start = 1,
+#'   stop = 2600,
+#'   breaks =
+#'   list(
+#'     list(start = 160, stop = 900),
+#'     list(start = 1600, stop = 1900)
+#'       )
+#'   )
+#'
 #' @export
 GC_scale <- function(
     GC_chart,
@@ -454,11 +530,60 @@ GC_scale <- function(
 
 
 
+#' Update Scale Bar of a GC Chart Cluster
+#'
+#' Modify the scale bar settings for specified clusters within a GC chart.
+#'
+#' @param GC_chart A GC chart object.
+#' @param show Logical. Whether to show the scale bar.
+#' @param cluster Numeric or character vector. Clusters in the GC chart to update.
+#' @param ... Additional arguments for scale bar settings.
+#'
+#' @return Updated GC chart with new scale bar settings.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'  start = c(1000, 9000, 13000, 17000, 21000),
+#'  stop = c(4000, 12000, 16000, 20000, 24000),
+#'  name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'  group = c('A', 'B', 'B', 'A', 'C'),
+#'  cluster = c(1, 1, 2, 2, 2)
+#' )
+#'
+#' # Set scale bar for individual clusters
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_scaleBar(cluster = 1, title = "1 kb", scaleBarUnit = 1000) %>%
+#' GC_scaleBar(cluster = 2, title = "2 kb", scaleBarUnit = 2000)
+#'
+#' # Style scale bar
+#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#'   GC_scaleBar(
+#'     title = " 1kb",
+#'     scaleBarUnit = 1000,
+#'     y = 50,
+#'     labelPosition =  "left",
+#'     fontSize =  "10px",
+#'     fontFamily = "sans-serif",
+#'     textPadding =  -2,
+#'     scaleBarLine =
+#'       list(
+#'         stroke = "black",
+#'         strokeWidth = 2
+#'            ),
+#'     scaleBarTick =
+#'       list(
+#'         stroke = "black",
+#'         strokeWidth = 2
+#'         )
+#'        )
+#'
 #' @export
 GC_scaleBar <- function(
     GC_chart,
     show = TRUE,
     cluster = NULL,
+    scaleBarTick = list(),
+    scaleBarLine = list(),
     ...
 ) {
 
@@ -472,7 +597,9 @@ GC_scaleBar <- function(
 
     # Default options
     options <- list(
-      show = show[(i-1) %% length(show) + 1]
+      show = show[(i-1) %% length(show) + 1],
+      scaleBarTick = scaleBarTick,
+      scaleBarLine = scaleBarLine
     )
 
     # Add ... arguments to options

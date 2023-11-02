@@ -602,7 +602,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   if (!show) {
     return this;
   }
-  console.log(options)
+
   // Default options for title and subtitle
   const defaultOptions = {
     x: 0,
@@ -1384,6 +1384,9 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   const g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
+   // Sort the data first by the minimum value of start and stop.
+  this.data.sort((a, b) => Math.min(a.start, a.stop) - Math.min(b.start, b.stop));
+
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
     const currentX = style.x || x;
@@ -1877,6 +1880,9 @@ const defaultOptions = {
 
     var g = this.svg.append("g")
         .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+
+    // Sort the data first by the minimum value of start and stop.
+    this.data.sort((a, b) => Math.min(a.start, a.stop) - Math.min(b.start, b.stop));
 
     const getAttributesForIndex = (d, i) => {
         const style = itemStyle.find(s => s.index === i) || {};

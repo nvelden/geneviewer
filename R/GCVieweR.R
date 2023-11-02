@@ -714,10 +714,8 @@ GC_clusterLabel <- function(
 
 #' Add a Footer to Each Cluster in a GC Chart
 #'
-#' This function allows you to add a footer to each cluster within a GC chart.
-#' You can specify titles, subtitles, and control the display properties of the footers,
-#' such as height and visibility. Additionally, the function supports further customization
-#' via additional arguments passed through '...'.
+#' This function allows you to add a footer to all or specific clusters within a GC chart.
+#' You can specify titles, subtitles, and control the display and styling.
 #'
 #' @param GC_chart A GC chart object that the footers will be added to.
 #' @param title Character vector or NULL. The title to be displayed in the footer.
@@ -837,12 +835,71 @@ GC_footer <- function(
   return(GC_chart)
 }
 
+#' Add Labels to Each Cluster in a GC Chart
+#'
+#' This function adds labels to each cluster within a GC chart. It provides the
+#' option to show or hide the labels and supports customization of label properties.
+#' It can automatically pick up group names as labels from the `GC_chart` object if not provided.
+#'
+#' @param GC_chart A `GC chart` object to which labels will be added.
+#' @param label Character vector, logical, or NULL. Specific labels for the clusters.
+#'        If NULL and `GC_chart` has group names, those will be used as labels.
+#' @param show Logical; controls the visibility of labels. Default is `TRUE`.
+#' @param cluster Numeric or character vector or NULL; specifies which clusters should be labeled.
+#'        If NULL, labels will be applied to all clusters. Default is NULL.
+#' @param ... Additional arguments for further customization of the labels.
+#'
+#' @return A `GC chart` object with updated label settings for each specified cluster.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 170, 210),
+#'   stop = c(40, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 2, 2, 2)
+#' )
+#'
+#' # Add labels to all clusters
+#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_labels()
+#'
+#' # Add labels and styling
+#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_labels(
+#'  label = "group",
+#'  show = TRUE,
+#'  x = 0,
+#'  y = 50,
+#'  dy = "-1.2em",
+#'  dx = "0em",
+#'  rotate = 0,
+#'  adjustLabels = TRUE, # Rotate labels to prevent overlap
+#'  fontSize = "12px",
+#'  fontStyle = "italic",
+#'  fill = "black",
+#'  fontFamily = "sans-serif",
+#'  textAnchor = "middle",
+#'  cursor = "default",
+#' )
+#'
+#' # Alter style of a specific label
+#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_labels(label = "group") %>%
+#' GC_labels(
+#'   cluster = 1,
+#'   itemStyle = list(
+#'     list(index = 0, fill = "red", fontSize = "14px", fontWeight = "bold")
+#'   )
+#' )
+#'
 #' @export
 GC_labels <- function(
     GC_chart,
     label = NULL,
     show = TRUE,
     cluster = NULL,
+    itemStyle = list(),
     ...
 ) {
 
@@ -874,7 +931,8 @@ GC_labels <- function(
     # Default options
     options <- list(
       label = label[(i-1) %% length(label) + 1],
-      show = show[(i-1) %% length(show) + 1]
+      show = show[(i-1) %% length(show) + 1],
+      itemStyle = itemStyle
     )
 
     # Add ... arguments to options

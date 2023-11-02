@@ -704,17 +704,19 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
   // Default options for title and subtitle
   const defaultOptions = {
     x: 6,
-    y: 0,
+    y: -20,
     position: "left",
     spacing: 12, // Default spacing between title and subtitle
     titleFont: {
       fontSize: "12px",
       fontWeight: "bold",
+      fontStyle: "normal",
       fontFamily: "sans-serif",
       cursor: "default"
     },
     subtitleFont: {
       fontSize: "10px",
+      fontWeight: "normal",
       fontStyle: "normal",
       fontFamily: "sans-serif",
       cursor: "default"
@@ -757,6 +759,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
     .attr("text-anchor", textAnchor)
     .style("font-size", titleFont.fontSize)
     .style("font-weight", titleFont.fontWeight)
+    .style("font-style", titleFont.fontStyle)
     .style("font-family", titleFont.fontFamily)
     .style("cursor", titleFont.cursor)
     .text(title)
@@ -772,6 +775,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
       .attr("y", subtitleYPos)
       .attr("text-anchor", textAnchor)
       .style("font-size", subtitleFont.fontSize)
+      .style("font-weight", subtitleFont.fontWeight)
       .style("font-style", subtitleFont.fontStyle)
       .style("font-family", subtitleFont.fontFamily)
       .style("cursor", subtitleFont.cursor)

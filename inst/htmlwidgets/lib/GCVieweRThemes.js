@@ -5,21 +5,20 @@ const themes = {
         size: "16px",
         style: "normal",
         weight: "bold",
+        fill: "black",
         decoration: "normal",
         family: "sans-serif",
         cursor: "default",
       },
     subtitleFont: {
-      }
-    },
-    footerOptions: {
-      titleFont: {
-        fontSize: "12px",
+       fontSize: "12px",
         fontWeight: "bold",
         fontFamily: "sans-serif",
         cursor: "default",
-        fill: "green"
+        fill: "black"
       }
+    },
+    footerOptions: {
     },
     clusterLabelOptions: {
       x: 0,

@@ -86,7 +86,6 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
     # Settings
     if(scale_breaks) {
       breaks_data <- get_scale_breaks(subset_data, threshold_percentage = scale_break_threshold, padding = scale_break_padding)
-      print(breaks_data)
       x$series[[clust]]$scale <- list(breaks = breaks_data)
     }
 
@@ -713,6 +712,73 @@ GC_clusterLabel <- function(
   return(GC_chart)
 }
 
+#' Add a Footer to Each Cluster in a GC Chart
+#'
+#' This function allows you to add a footer to each cluster within a GC chart.
+#' You can specify titles, subtitles, and control the display properties of the footers,
+#' such as height and visibility. Additionally, the function supports further customization
+#' via additional arguments passed through '...'.
+#'
+#' @param GC_chart A GC chart object that the footers will be added to.
+#' @param title Character vector or NULL. The title to be displayed in the footer.
+#'        Multiple titles can be provided for different clusters, and they will be recycled
+#'        if there are more clusters than titles. Default is NULL.
+#' @param subtitle Character vector or NULL. Subtitles to accompany the main titles.
+#'        Default is NULL.
+#' @param height Character vector or NULL. The height of the footer, which can vary
+#'        between clusters. Default is NULL.
+#' @param show Logical vector. Controls the visibility of each footer.
+#'        Default is TRUE for all clusters.
+#' @param cluster Numeric or character vector specifying which clusters should have footers added or updated.
+#'        If NULL, all clusters will be updated. Default is NULL.
+#' @param ... Additional arguments for further customization of the footers.
+#'
+#' @return A GC chart object with updated footer settings for each specified cluster.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 170, 210),
+#'   stop = c(40, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 2, 2, 2)
+#' )
+#'
+#' # Add a simple footer with subtitle to all clusters
+#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#'   GC_footer(
+#'     title = "Cluster Footer",
+#'     subtitle = "Cluster subtitle"
+#'   )
+#' # Add styling to the title and sub title
+#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#'   GC_footer(
+#'     title = "This is a footer",
+#'     subtitle = "Subtitle for the footer",
+#'     height = "15px",
+#'     spacing = 15,
+#'     show = TRUE,
+#'     cluster = 1,
+#'     x = 6,
+#'     y = -20,
+#'     position = "middle", # right / middle
+#'     spacing = 12,
+#'     titleFont = list(
+#'       fontSize = "12px",
+#'       fontWeight = "bold",
+#'       fontFamily = "sans-serif",
+#'       fill = "black",
+#'       cursor = "default"
+#'     ),
+#'     subtitleFont = list(
+#'       fill = "grey",
+#'       fontSize = "10px",
+#'       fontStyle = "normal",
+#'       fontFamily = "sans-serif",
+#'       cursor = "default"
+#'     )
+#'   )
+#'
 #' @export
 GC_footer <- function(
     GC_chart,
@@ -721,6 +787,8 @@ GC_footer <- function(
     height = NULL,
     show = TRUE,
     cluster = NULL,
+    subtitleFont = list(),
+    titleFont = list(),
     ...
 ) {
 
@@ -748,7 +816,9 @@ GC_footer <- function(
     options <- list(
       title = title[(i-1) %% length(title) + 1],
       subtitle = subtitle[(i-1) %% length(subtitle) + 1],
-      show = show[(i-1) %% length(show) + 1]
+      show = show[(i-1) %% length(show) + 1],
+      subtitleFont = subtitleFont,
+      titleFont = titleFont
     )
 
     # Add ... arguments to options

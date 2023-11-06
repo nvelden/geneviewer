@@ -986,6 +986,59 @@ GC_coordinates <- function(
   return(GC_chart)
 }
 
+
+#' Modify Gene Characteristics within a Chart
+#'
+#' This function updates a gene chart with specific characteristics for genes based on the given parameters.
+#' It can show/hide genes, apply a color scheme, assign custom colors, filter by cluster, and accept additional options.
+#'
+#' @param GC_chart The gene chart object to be modified.
+#' @param group Character or NULL, groups to show or hide in the chart. If NULL, the group is taken from the chart object.
+#' @param show Logical, whether to show the genes or not.
+#' @param colorScheme Character or NULL, the name of the color scheme to use.
+#' @param customColors List or NULL, custom colors to apply to the genes.
+#' @param cluster Numeric or character, the specific cluster to filter genes by.
+#' @param ... Additional arguments to be passed to the gene options.
+#'
+#' @return Returns the modified gene chart object.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 170, 210),
+#'   stop = c(40, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 2, 2, 2)
+#' )
+#'
+#' # Change the appearance of a specific gene cluster
+#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#'   GC_genes(
+#'     group = "group",
+#'     show = TRUE,
+#'     colorScheme = NULL, # One of D3.js build in colorSchemes
+#'                         # (eg. "schemeCategory10",
+#'                         # "schemeAccent", "schemeTableau10")
+#'     customColors = NULL, # A vector of color names
+#'     cluster = 1, # Specify a specific cluster
+#'     x = 1,
+#'     y = 50,
+#'     stroke = "black",
+#'     strokeWidth = 1,
+#'     arrowheadWidth = 10,
+#'     arrowheadHeight = 20,
+#'     arrowHeight = 10
+#'    )
+#'   )
+#'
+#' # Change the appearance of a specific gene
+#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_genes(
+#'   cluster = 2,
+#'   itemStyle = list(list(index = 2, fill = "red", stroke = "blue")
+#'   )
+#'  )
+#'
 #' @export
 GC_genes <- function(
     GC_chart,

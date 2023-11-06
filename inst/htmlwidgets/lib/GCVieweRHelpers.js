@@ -1854,7 +1854,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
         return this;
     }
 
-const defaultOptions = {
+    const defaultOptions = {
         x: 1,
         y: 50,
         stroke: "black",
@@ -1864,8 +1864,8 @@ const defaultOptions = {
         cursor: "default",
         itemStyle: [],
         arrowheadWidth: 10,
-        arrowheadHeight: 10,
-        arrowHeight: 20
+        arrowheadHeight: 20,
+        arrowHeight: 10
     };
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
@@ -1886,44 +1886,47 @@ const defaultOptions = {
 
     const getAttributesForIndex = (d, i) => {
         const style = itemStyle.find(s => s.index === i) || {};
+        // Apply custom values from itemStyle or default if not provided
+        const currentArrowheadWidth = style.arrowheadWidth || arrowheadWidth;
+        const currentArrowheadHeight = style.arrowheadHeight || arrowheadHeight;
+        const currentArrowHeight = style.arrowHeight || arrowHeight;
         const currentX = style.x || x;
         const currentY = style.y || y;
 
-        const yPos = this.yScale(currentY);  // Adjusted for arrow size
+        const yPos = this.yScale(currentY); // Adjusted for arrow size
         const xPos = this.xScale(d.start); // Always use d.start for xPos
 
-        return { xPos, yPos };
+        return { xPos, yPos, currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight };
     };
 
     g.selectAll(".gene")
         .data(this.data)
         .enter()
         .append("path")
-        .attr("d", (d) => {
-            const geneLength = Math.abs(this.xScale(d.stop) - this.xScale(d.start));
-            const shaftLength = geneLength - arrowheadWidth;
+        .attr("d", (d, i) => {
 
-            const shaftTop = (arrowHeight - arrowheadHeight) / 2;
-            const shaftBottom = shaftTop + arrowheadHeight;
+            const { currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight } = getAttributesForIndex(d, i);
+            const geneLength = Math.abs(this.xScale(d.stop) - this.xScale(d.start));
+            const shaftLength = geneLength - currentArrowheadWidth;
+
+            const shaftTop = (currentArrowheadHeight - currentArrowHeight) / 2;
+            const shaftBottom = shaftTop + currentArrowHeight;
 
             const shaftPath =
             `M0 ${shaftTop}
             L0 ${shaftBottom}
-            L${shaftLength}
-            ${shaftBottom}
-            L${shaftLength}
-            ${arrowHeight}
-            L${geneLength}
-            ${(arrowHeight / 2)}
+            L${shaftLength} ${shaftBottom}
+            L${shaftLength} ${currentArrowheadHeight}
+            L${geneLength} ${(currentArrowheadHeight / 2)}
             L${shaftLength} 0
             L${shaftLength} ${shaftTop} Z`;
 
             return shaftPath;
         })
         .attr("transform", (d, i) => {
-            const { xPos, yPos } = getAttributesForIndex(d, i);
+            const { xPos, yPos, currentArrowheadHeight } = getAttributesForIndex(d, i);
             const rotation = d.direction === 'forward' ? 0 : 180;
-            return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (arrowHeight / 2)})`;
+            return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (currentArrowheadHeight / 2)})`;
         })
         .attr("fill", (d) => colorScale(d[group]))
         .attr("class", "gene")

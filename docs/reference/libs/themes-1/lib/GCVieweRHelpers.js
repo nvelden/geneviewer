@@ -475,6 +475,7 @@ function isInAnyDiscontinuity(value, breaks) {
 }
 
 function createDiscontinuousScale(minStart, maxStop, width, margin, breaks) {
+
     let totalGap = 0;
 
     // Calculate the total gap based on all discontinuities
@@ -491,18 +492,28 @@ function createDiscontinuousScale(minStart, maxStop, width, margin, breaks) {
 
     // Proxy object for discontinuous scale
     const scaleProxy = function(value) {
-        if (isInAnyDiscontinuity(value, breaks)) {
-            return null;
-        }
-
-        // Adjust the value by all previous discontinuities
-        for (let gap of breaks) {
-    if (value > gap.stop && gap.start >= minStart && gap.stop <= maxStop) {
-        value -= (gap.stop - gap.start);
+    if (isInAnyDiscontinuity(value, breaks)) {
+        return null;
     }
-}
-        return linearScale(value);
-    };
+
+    let cumulativeAdjustment = 0;
+
+    // Adjust the value by all previous discontinuities
+    for (let gap of breaks) {
+        if (value > gap.stop) {
+            cumulativeAdjustment += (gap.stop - gap.start);
+        } else {
+            // If the value is beyond a gap's start but hasn't reached the gap's stop,
+            // it means the value is within or after this gap, so we break out of the loop.
+            break;
+        }
+    }
+
+    // Subtract the cumulative adjustment from the value
+    value -= cumulativeAdjustment;
+
+    return linearScale(value);
+};
 
     // Dynamically copy all methods and properties from linearScale to scaleProxy
     for (let prop in linearScale) {
@@ -591,7 +602,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   if (!show) {
     return this;
   }
-  console.log(options)
+
   // Default options for title and subtitle
   const defaultOptions = {
     x: 0,
@@ -618,6 +629,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'titleOptions', options);
   const { x, y, titleFont, subtitleFont, position, spacing } = combinedOptions;
+
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsTitleFont = extractAdditionalOptions(titleFont, defaultOptions.titleFont);
@@ -692,17 +704,19 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
   // Default options for title and subtitle
   const defaultOptions = {
     x: 6,
-    y: 0,
+    y: -20,
     position: "left",
     spacing: 12, // Default spacing between title and subtitle
     titleFont: {
       fontSize: "12px",
       fontWeight: "bold",
+      fontStyle: "normal",
       fontFamily: "sans-serif",
       cursor: "default"
     },
     subtitleFont: {
       fontSize: "10px",
+      fontWeight: "normal",
       fontStyle: "normal",
       fontFamily: "sans-serif",
       cursor: "default"
@@ -745,6 +759,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
     .attr("text-anchor", textAnchor)
     .style("font-size", titleFont.fontSize)
     .style("font-weight", titleFont.fontWeight)
+    .style("font-style", titleFont.fontStyle)
     .style("font-family", titleFont.fontFamily)
     .style("cursor", titleFont.cursor)
     .text(title)
@@ -760,6 +775,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
       .attr("y", subtitleYPos)
       .attr("text-anchor", textAnchor)
       .style("font-size", subtitleFont.fontSize)
+      .style("font-weight", subtitleFont.fontWeight)
       .style("font-style", subtitleFont.fontStyle)
       .style("font-family", subtitleFont.fontFamily)
       .style("cursor", subtitleFont.cursor)
@@ -869,7 +885,7 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
       stroke: "grey",
       strokeWidth: 1,
       tiltAmount: -5,
-      gap: 5 // Default value, modify if needed
+      gap: 0
     }
   };
 
@@ -897,9 +913,9 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
 
   // Draw break markers with tilted lines
   for (let gap of this.breaks) {
-    const xStart = this.xScale(gap.start - marker.gap);
-    const xEnd = this.xScale(gap.stop + marker.gap);
 
+    const xStart = this.xScale(gap.start - 0.001) * (1 - marker.gap/100);
+    const xEnd = this.xScale(gap.stop + 0.001) * (1 + marker.gap/100);
     const yBase = this.yScale(y);
     const yTop = yBase - marker.markerHeight / 2;
     const yBottom = yBase + marker.markerHeight / 2;
@@ -908,12 +924,12 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
 
    g.append("line")
       .attr("class", "gap-line")
-      .attr("x1", xStart + 2.5)
-      .attr("y1", yTop)
-      .attr("x2", xEnd + marker.tiltAmount + (marker.gap / 2))
-      .attr("y2", yBottom)
+      .attr("x1", xStart + (marker.tiltAmount / 2))
+      .attr("y1", yBase)
+      .attr("x2", xEnd - (marker.tiltAmount / 2))
+      .attr("y2", yBase)
       .attr("stroke", "white")
-      .style("stroke-width", marker.gap);
+      .style("stroke-width", strokeWidth * 1.1);
     }
 
     if (xStart !== null) {
@@ -1238,14 +1254,26 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
     labelPosition: "left", // default label position
     fontSize: "10px",
     fontFamily: "sans-serif",
-    cursor: "default"
+    cursor: "default",
+    textPadding: 0, // padding between text and line in x-direction
+    scaleBarLine: { // default styling for the scale bar line
+      stroke: "grey",
+      strokeWidth: 1
+    },
+    scaleBarTick: { // default styling for the scale bar ticks
+      stroke: "grey",
+      strokeWidth: 1
+    }
   };
 
-  const combinedOptions = { ...defaultOptions, ...options };
-  const { title, scaleBarUnit, x, y, labelPosition, fontSize, fontFamily, cursor } = combinedOptions;
+  // Merge the default options with any predefined scaleBarOptions and the provided options
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'scaleBarOptions', options);
+  const { title, scaleBarUnit, x, y, labelPosition, fontSize, fontFamily, cursor, textPadding, scaleBarLine, scaleBarTick } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
-  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
+  const additionalOptionsText = extractAdditionalOptions(combinedOptions, defaultOptions);
+  const additionalOptionsLine = extractAdditionalOptions(scaleBarLine, defaultOptions.scaleBarLine);
+  const additionalOptionsTick = extractAdditionalOptions(scaleBarTick, defaultOptions.scaleBarTick);
 
   // Calculate the length of the scale bar in pixels
   const scaleBarLength = this.xScale(scaleBarUnit) - this.xScale(0);
@@ -1260,8 +1288,12 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
     .attr("x2", parseInt(fontSize) + 5)
     .attr("y1", -y)
     .attr("y2", -y)
-    .attr("stroke", "grey")
-    .attr("stroke-width", 1);
+    .style("stroke", scaleBarLine.stroke)
+    .style("stroke-width", scaleBarLine.strokeWidth)
+    .each(function() {
+      const currentElement = d3.select(this);
+      setAttributesFromOptions(currentElement, additionalOptionsLine);
+    });
 
   // Add the ticks
   [parseInt(fontSize) + 5, parseInt(fontSize) + 5 + scaleBarLength].forEach(d => {
@@ -1270,12 +1302,16 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
       .attr("x2", d)
       .attr("y1", -y - 5)
       .attr("y2", -y + 5)
-      .attr("stroke", "grey")
-      .attr("stroke-width", 1);
+      .style("stroke", scaleBarTick.stroke)
+      .style("stroke-width", scaleBarTick.strokeWidth)
+      .each(function() {
+        const currentElement = d3.select(this);
+        setAttributesFromOptions(currentElement, additionalOptionsTick);
+      });
   });
 
-  // Determine the x position of the title based on the labelPosition
-  const titleX = labelPosition === "left" ? parseInt(fontSize) : parseInt(fontSize) + 5 + scaleBarLength;
+  // Determine the x position of the title based on the labelPosition and adjust with textPadding
+  const titleX = labelPosition === "left" ? (parseInt(fontSize) - textPadding) : (parseInt(fontSize) + 5 + scaleBarLength + textPadding);
   const textAnchor = labelPosition === "left" ? "end" : "start";
 
   // Add the title
@@ -1289,7 +1325,7 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
     .style("cursor", cursor)
     .each(function() {
       const currentElement = d3.select(this);
-      setAttributesFromOptions(currentElement, additionalOptions);
+      setAttributesFromOptions(currentElement, additionalOptionsText);
     })
     .text(title);
 
@@ -1347,6 +1383,9 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   // Create the group
   const g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
+
+   // Sort the data first by the minimum value of start and stop.
+  this.data.sort((a, b) => Math.min(a.start, a.stop) - Math.min(b.start, b.stop));
 
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
@@ -1653,12 +1692,12 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
     orientation: "horizontal",
     adjustHeight: true,
     labels: null, // Add labels option here
-    legend: {
+    legendOptions: {
       cursor: "pointer",
       colorScheme: null,
       customColors: null
     },
-    legendText: {
+    legendTextOptions: {
       cursor: "pointer",
       textAnchor: "start",
       dy: ".35em",
@@ -1674,14 +1713,14 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
   const combinedOptions = {
     ...defaultOptions,
     ...options,
-    legend: { ...defaultOptions.legend, ...options.legend },
-    legendText: { ...defaultOptions.legendText, ...options.legendText }
+    legendOptions: { ...defaultOptions.legendOptions, ...options.legendOptions },
+    legendTextOptions: { ...defaultOptions.legendTextOptions, ...options.legendTextOptions }
   };
 
-  const { x, y, orientation, adjustHeight, legend, legendText, labels } = combinedOptions;
+  const { x, y, orientation, adjustHeight, legendOptions, legendTextOptions, labels } = combinedOptions;
 
-  const additionalOptionsLegend = extractAdditionalOptions(legend, defaultOptions.legend);
-  const additionalOptionsLegendText = extractAdditionalOptions(legendText, defaultOptions.legendText);
+  const additionalOptionsLegend = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
+  const additionalOptionsLegendText = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
 
   const svgLegend = this.svg;
   const parentWidth = svgLegend.node().getBoundingClientRect().width;
@@ -1697,9 +1736,9 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
     return;
   }
 
-  const colorScale = getColorScale(legend.colorScheme, legend.customColors, uniqueGroups);
+  const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
 
-  const legendSize = parseFloat(legendText.fontSize);
+  const legendSize = parseFloat(legendTextOptions.fontSize);
   const legendPadding = legendSize / 2;
   let currentX = x;
   let currentY = y;
@@ -1716,11 +1755,11 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
         .append("text")
         .attr("class", "legend-label")
         .attr("id", (d, i) => `legend-label-${i}`)
-        .attr("dy", legendText.dy)
-        .style("text-anchor", legendText.textAnchor)
-        .style("font-size", legendText.fontSize)
-        .style("font-family", legendText.fontFamily)
-        .style("cursor", legendText.cursor)
+        .attr("dy", legendTextOptions.dy)
+        .style("text-anchor", legendTextOptions.textAnchor)
+        .style("font-size", legendTextOptions.fontSize)
+        .style("font-family", legendTextOptions.fontFamily)
+        .style("cursor", legendTextOptions.cursor)
         .text(d)
         .each(function() {
           const currentElement = d3.select(this);
@@ -1742,7 +1781,7 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
         .append("rect")
         .attr("class", "legend-marker")
         .attr("id", (d, i) => `legend-marker-${i}`)
-        .style("cursor", legend.cursor)
+        .style("cursor", legendOptions.cursor)
         .attr("x", currentX)
         .attr("y", currentY)
         .attr("width", legendSize)
@@ -1815,7 +1854,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
         return this;
     }
 
-const defaultOptions = {
+    const defaultOptions = {
         x: 1,
         y: 50,
         stroke: "black",
@@ -1825,8 +1864,8 @@ const defaultOptions = {
         cursor: "default",
         itemStyle: [],
         arrowheadWidth: 10,
-        arrowheadHeight: 10,
-        arrowHeight: 20
+        arrowheadHeight: 20,
+        arrowHeight: 10
     };
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
@@ -1842,46 +1881,52 @@ const defaultOptions = {
     var g = this.svg.append("g")
         .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
+    // Sort the data first by the minimum value of start and stop.
+    this.data.sort((a, b) => Math.min(a.start, a.stop) - Math.min(b.start, b.stop));
+
     const getAttributesForIndex = (d, i) => {
         const style = itemStyle.find(s => s.index === i) || {};
+        // Apply custom values from itemStyle or default if not provided
+        const currentArrowheadWidth = style.arrowheadWidth || arrowheadWidth;
+        const currentArrowheadHeight = style.arrowheadHeight || arrowheadHeight;
+        const currentArrowHeight = style.arrowHeight || arrowHeight;
         const currentX = style.x || x;
         const currentY = style.y || y;
 
-        const yPos = this.yScale(currentY);  // Adjusted for arrow size
+        const yPos = this.yScale(currentY); // Adjusted for arrow size
         const xPos = this.xScale(d.start); // Always use d.start for xPos
 
-        return { xPos, yPos };
+        return { xPos, yPos, currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight };
     };
 
     g.selectAll(".gene")
         .data(this.data)
         .enter()
         .append("path")
-        .attr("d", (d) => {
-            const geneLength = Math.abs(this.xScale(d.stop) - this.xScale(d.start));
-            const shaftLength = geneLength - arrowheadWidth;
+        .attr("d", (d, i) => {
 
-            const shaftTop = (arrowHeight - arrowheadHeight) / 2;
-            const shaftBottom = shaftTop + arrowheadHeight;
+            const { currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight } = getAttributesForIndex(d, i);
+            const geneLength = Math.abs(this.xScale(d.stop) - this.xScale(d.start));
+            const shaftLength = geneLength - currentArrowheadWidth;
+
+            const shaftTop = (currentArrowheadHeight - currentArrowHeight) / 2;
+            const shaftBottom = shaftTop + currentArrowHeight;
 
             const shaftPath =
             `M0 ${shaftTop}
             L0 ${shaftBottom}
-            L${shaftLength}
-            ${shaftBottom}
-            L${shaftLength}
-            ${arrowHeight}
-            L${geneLength}
-            ${(arrowHeight / 2)}
+            L${shaftLength} ${shaftBottom}
+            L${shaftLength} ${currentArrowheadHeight}
+            L${geneLength} ${(currentArrowheadHeight / 2)}
             L${shaftLength} 0
             L${shaftLength} ${shaftTop} Z`;
 
             return shaftPath;
         })
         .attr("transform", (d, i) => {
-            const { xPos, yPos } = getAttributesForIndex(d, i);
+            const { xPos, yPos, currentArrowheadHeight } = getAttributesForIndex(d, i);
             const rotation = d.direction === 'forward' ? 0 : 180;
-            return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (arrowHeight / 2)})`;
+            return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (currentArrowheadHeight / 2)})`;
         })
         .attr("fill", (d) => colorScale(d[group]))
         .attr("class", "gene")

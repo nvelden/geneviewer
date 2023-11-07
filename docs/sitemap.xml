@@ -13,7 +13,34 @@
     <loc>/reference/GC_chart.html</loc>
   </url>
   <url>
+    <loc>/reference/GC_clusterLabel.html</loc>
+  </url>
+  <url>
+    <loc>/reference/GC_footer.html</loc>
+  </url>
+  <url>
+    <loc>/reference/GC_genes.html</loc>
+  </url>
+  <url>
+    <loc>/reference/GC_grid.html</loc>
+  </url>
+  <url>
     <loc>/reference/GC_item.html</loc>
+  </url>
+  <url>
+    <loc>/reference/GC_labels.html</loc>
+  </url>
+  <url>
+    <loc>/reference/GC_legend.html</loc>
+  </url>
+  <url>
+    <loc>/reference/GC_scale.html</loc>
+  </url>
+  <url>
+    <loc>/reference/GC_scaleBar.html</loc>
+  </url>
+  <url>
+    <loc>/reference/GC_sequence.html</loc>
   </url>
   <url>
     <loc>/reference/GC_title.html</loc>

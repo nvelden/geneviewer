@@ -6,7 +6,8 @@ HTMLWidgets.widget({
     var data,
         series,
         legendOptions;
-
+    console.log(series)
+    console.log(legendOptions)
     var widgetId = el.id.split('-')[1];
 
     var draw = function(width, height, backgroundColor) {
@@ -50,7 +51,8 @@ clusters.forEach(function(clusterKey) {
       // Compute margins
       var margin = { top: 0, right: 0, bottom: 0, left: 0 }
       var clusterMargins = series[clusterKey]["grid"].margin
-      var clusterHeight = computeSize(el.clientHeight - legendHeight,series[clusterKey]["grid"].height) / clusters.length
+      var clusterHeight = computeSize(series[clusterKey]["grid"].height, el.clientHeight) - (legendHeight / clusters.length)
+
       var clusterWidth = computeSize(series[clusterKey]["grid"].width, width)
 
       if (Object.keys(clusterMargins).length > 0) {
@@ -103,22 +105,22 @@ clusters.forEach(function(clusterKey) {
 
       if (legendOptions?.position == "bottom" && legendOptions?.show && legendOptions?.group !== null) {
 
-      d3.select(`#GCvieweR-graph-container-${widgetId}`).remove();
+      d3.select(`#GCvieweR-legend-container-${widgetId}`).remove();
 
       var legendContainer = d3.select(el)
         .append("div")
-        .attr("id", "GCvieweR-legend-container")
+        .attr("id", `GCvieweR-legend-container-${widgetId}`)
         .classed("GCVieweR-container", true);
 
-      var legendContainer = createLegendContainer(`#GCvieweR-graph-container-${widgetId}`,
+      var legendContainer = createLegendContainer(`#GCvieweR-legend-container-${widgetId}`,
       {
         width:  width,
         height: legendHeight,
-        backgroundColor: legendOptions.backgroundColor,
+        backgroundColor: legendOptions?.backgroundColor ?? "white",
         margin: legendOptions.margin
       })
        .legendData(data)
-       .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, legendOptions?.options);
+       .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, legendOptions);
 
       }
 

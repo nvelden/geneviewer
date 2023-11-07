@@ -32,7 +32,7 @@ magrittr::`%>%`
 #'
 #' @import htmlwidgets
 #' @export
-GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group = NULL, width = "100%", height = "400px", elementId = NULL, scale_breaks = TRUE, scale_break_threshold = 20, scale_break_padding = 1){
+GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group = NULL, width = "100%", height = "400px", background_color = "red", elementId = NULL, scale_breaks = TRUE, scale_break_threshold = 20, scale_break_padding = 1){
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
@@ -57,7 +57,9 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 
   x$data <- data
   x$group <- group
-  x$legend <- list(group = group, show = show_legend, position = "top")
+  x$backgroundColor <- background_color
+  x$legend <- list(group = group, show = show_legend, position = "top", backgroundColor = background_color)
+
 
   if(is.null(cluster)){
     clusters <- "cluster"
@@ -90,6 +92,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
     }
 
     x$series[[clust]]$grid <- list(margin = list(left = "50px", right = "50px", top = 0, bottom = 0), height = compute_size(height, length(clusters)), width = width)
+    x$series[[clust]]$style <- list(backgroundColor = background_color)
     x$series[[clust]]$title <- list()
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
     x$series[[clust]]$labels <- list(group = group, show = TRUE)
@@ -526,7 +529,6 @@ GC_scale <- function(
 
   return(GC_chart)
 }
-
 
 
 #' Update Scale Bar of a GC Chart Cluster
@@ -1029,7 +1031,7 @@ GC_coordinates <- function(
 #'     arrowheadHeight = 20,
 #'     arrowHeight = 10
 #'    )
-#'   )
+#'
 #'
 #' # Change the appearance of a specific gene
 #' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
@@ -1095,6 +1097,68 @@ GC_genes <- function(
   return(GC_chart)
 }
 
+#' Set Legend for a Gene Chart
+#'
+#' This function configures the legend for a gene chart. It can toggle the legend's visibility,
+#' apply a color scheme, assign custom colors, and set custom labels for the legend entries.
+#'
+#' @param GC_chart The gene chart object to be modified.
+#' @param group Optional; character or NULL, the groups to include in the legend. If NULL,
+#'   the groups are taken from the 'group' attribute of the 'GC_chart' object.
+#' @param show Logical, whether to display the legend or not.
+#' @param colorScheme Optional; character or NULL, the name of the color scheme to apply to the legend.
+#'   This can be one of D3.js's built-in color schemes (e.g., "schemeCategory10",
+#'   "schemeAccent", "schemeTableau10").
+#' @param customColors Optional; list or NULL, custom colors to apply to the legend entries.
+#' @param labels Optional; character or NULL, custom labels for the legend entries.
+#' @param ... Additional arguments to be passed to the legend configuration.
+#'
+#' @return Returns the gene chart object with the legend configured.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 170, 210),
+#'   stop = c(40, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'B', 'B', 'A', 'C')
+#' )
+#'
+#' # Assuming GC_chart is a function that creates a gene chart object
+#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#'   GC_legend(
+#'     position = "top", #bottom
+#'     orientation = "horizontal", #vertical
+#'     x = 10,
+#'     y = 10,
+#'     adjustHeight = TRUE,
+#'     labels = NULL, # c('Group A', 'Group B', 'Group C'),
+#'     legendOptions = list(
+#'       cursor = "pointer",
+#'       colorScheme = NULL,
+#'       customColors = NULL # c("red", "green", "orange")
+#'       # Additional styles
+#'     ),
+#'     legendTextOptions = list(
+#'       cursor = "pointer",
+#'       textAnchor = "start",
+#'       dy = ".35em",
+#'       fontSize = "12px",
+#'       fontFamily = "sans-serif",
+#'       fill = "black"
+#'       # Additional styles
+#'     ),
+#'   )
+#'
+#' # Configure the legend of the gene chart
+#' gene_chart_modified <- gene_chart %>%
+#'   GC_legend(
+#'     show = TRUE,
+#'     colorScheme = 'schemeCategory10', # Example color scheme
+#'     customColors = list('A' = 'blue', 'B' = 'green', 'C' = 'red'),
+#'     labels = c('Group A', 'Group B', 'Group C')
+#'   )
+#'
+#'
 #' @export
 GC_legend <- function(
     GC_chart,
@@ -1102,6 +1166,7 @@ GC_legend <- function(
     show = TRUE,
     colorScheme = NULL,
     customColors = NULL,
+    backgroundColor = "white",
     labels = NULL,
     ...
 ) {
@@ -1135,6 +1200,7 @@ GC_legend <- function(
     show = show,
     colorScheme = colorScheme,
     customColors = customColors,
+    backgroundColor = backgroundColor,
     labels = labels
   )
 

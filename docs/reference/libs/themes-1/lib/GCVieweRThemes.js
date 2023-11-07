@@ -5,21 +5,20 @@ const themes = {
         size: "16px",
         style: "normal",
         weight: "bold",
+        fill: "black",
         decoration: "normal",
         family: "sans-serif",
         cursor: "default",
       },
     subtitleFont: {
-      }
-    },
-    footerOptions: {
-      titleFont: {
-        fontSize: "12px",
+       fontSize: "12px",
         fontWeight: "bold",
         fontFamily: "sans-serif",
         cursor: "default",
-        fill: "green"
+        fill: "black"
       }
+    },
+    footerOptions: {
     },
     clusterLabelOptions: {
       x: 0,
@@ -43,8 +42,8 @@ const themes = {
         markerHeight: 10,
         stroke: "grey",
         strokeWidth: 1,
-        tiltAmount: -5,
-        gap: 5
+        //tiltAmount: -5,
+        gap: 0
       }
     },
     markerOptions: {

@@ -398,14 +398,21 @@ function createClusterContainer(targetElementId, options = {}) {
   const defaultOptions = {
     id: "svg-container",
     margin: { top: 0, right: "10%", bottom: 0, left: "10%" },
-    backgroundColor: "white",
+    style: {
+      backgroundColor: "#0000"
+    },
     width: null,
     height: null
   };
 
   // Merge default options and user-specified options
-  const { id, margin: originalMargin, backgroundColor, width, height } = { ...defaultOptions, ...options };
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'clusterOptions', options);
+  const { id, margin: originalMargin, style, width, height } = combinedOptions;
 
+  // Extract additional options that are not in defaultOptions
+  const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
+  console.log(defaultOptions.style)
+  console.log(additionalOptionsStyle)
   // Compute margins without modifying the original margin object
   const computedMargin = {
     top: computeSize(originalMargin.top, height),
@@ -417,13 +424,22 @@ function createClusterContainer(targetElementId, options = {}) {
   var svg = d3.select(targetElementId)
     .append("svg")
     .attr("id", getUniqueId(id))
-    .attr("width", "100%")
-    .attr("height", "100%")
+    .attr("width", width || "100%")
+    .attr("height", height || "100%")
     .attr("preserveAspectRatio", "xMinYMin meet")
-    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("viewBox", `0 0 ${width || computedWidth} ${height || computedHeight}`)
     .classed("GCVieweR-svg-content", true)
     .style("box-sizing", "border-box")
-    .style("background-color", backgroundColor);
+    .style("background-color", style.backgroundColor)
+    .each(function() {
+      const currentElement = d3.select(this);
+      setAttributesFromOptions(currentElement, additionalOptionsStyle);
+    });
+
+  // Apply styles from the combined options
+  Object.entries(style).forEach(([key, value]) => {
+    svg.style(key, value);
+  });
 
   return new clusterContainer(svg, computedMargin, width, height);
 }
@@ -928,7 +944,7 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
       .attr("y1", yBase)
       .attr("x2", xEnd - (marker.tiltAmount / 2))
       .attr("y2", yBase)
-      .attr("stroke", "white")
+      .attr("stroke", "#0000")
       .style("stroke-width", strokeWidth * 1.1);
     }
 
@@ -1692,12 +1708,12 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
     orientation: "horizontal",
     adjustHeight: true,
     labels: null, // Add labels option here
-    legend: {
+    legendOptions: {
       cursor: "pointer",
       colorScheme: null,
       customColors: null
     },
-    legendText: {
+    legendTextOptions: {
       cursor: "pointer",
       textAnchor: "start",
       dy: ".35em",
@@ -1713,14 +1729,14 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
   const combinedOptions = {
     ...defaultOptions,
     ...options,
-    legend: { ...defaultOptions.legend, ...options.legend },
-    legendText: { ...defaultOptions.legendText, ...options.legendText }
+    legendOptions: { ...defaultOptions.legendOptions, ...options.legendOptions },
+    legendTextOptions: { ...defaultOptions.legendTextOptions, ...options.legendTextOptions }
   };
 
-  const { x, y, orientation, adjustHeight, legend, legendText, labels } = combinedOptions;
+  const { x, y, orientation, adjustHeight, legendOptions, legendTextOptions, labels } = combinedOptions;
 
-  const additionalOptionsLegend = extractAdditionalOptions(legend, defaultOptions.legend);
-  const additionalOptionsLegendText = extractAdditionalOptions(legendText, defaultOptions.legendText);
+  const additionalOptionsLegend = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
+  const additionalOptionsLegendText = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
 
   const svgLegend = this.svg;
   const parentWidth = svgLegend.node().getBoundingClientRect().width;
@@ -1736,9 +1752,9 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
     return;
   }
 
-  const colorScale = getColorScale(legend.colorScheme, legend.customColors, uniqueGroups);
+  const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
 
-  const legendSize = parseFloat(legendText.fontSize);
+  const legendSize = parseFloat(legendTextOptions.fontSize);
   const legendPadding = legendSize / 2;
   let currentX = x;
   let currentY = y;
@@ -1755,11 +1771,11 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
         .append("text")
         .attr("class", "legend-label")
         .attr("id", (d, i) => `legend-label-${i}`)
-        .attr("dy", legendText.dy)
-        .style("text-anchor", legendText.textAnchor)
-        .style("font-size", legendText.fontSize)
-        .style("font-family", legendText.fontFamily)
-        .style("cursor", legendText.cursor)
+        .attr("dy", legendTextOptions.dy)
+        .style("text-anchor", legendTextOptions.textAnchor)
+        .style("font-size", legendTextOptions.fontSize)
+        .style("font-family", legendTextOptions.fontFamily)
+        .style("cursor", legendTextOptions.cursor)
         .text(d)
         .each(function() {
           const currentElement = d3.select(this);
@@ -1781,7 +1797,7 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
         .append("rect")
         .attr("class", "legend-marker")
         .attr("id", (d, i) => `legend-marker-${i}`)
-        .style("cursor", legend.cursor)
+        .style("cursor", legendOptions.cursor)
         .attr("x", currentX)
         .attr("y", currentY)
         .attr("width", legendSize)

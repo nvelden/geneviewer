@@ -46,8 +46,8 @@
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">GC_chart</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
-<span>  start_col <span class="op">=</span> <span class="st">"start"</span>,</span>
-<span>  stop_col <span class="op">=</span> <span class="st">"stop"</span>,</span>
+<span>  start <span class="op">=</span> <span class="st">"start"</span>,</span>
+<span>  stop <span class="op">=</span> <span class="st">"stop"</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  width <span class="op">=</span> <span class="st">"100%"</span>,</span>
@@ -65,11 +65,11 @@
 <dd><p>Data frame containing genomic information.</p></dd>
 
 
-<dt>start_col</dt>
+<dt>start</dt>
 <dd><p>Column name that indicates start positions. Default is "start".</p></dd>
 
 
-<dt>stop_col</dt>
+<dt>stop</dt>
 <dd><p>Column name that indicates stop positions. Default is "stop".</p></dd>
 
 
@@ -121,9 +121,9 @@
 <span class="r-in"><span>  group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'A'</span>, <span class="st">'A'</span>, <span class="st">'B'</span>, <span class="st">'B'</span>, <span class="st">'A'</span>, <span class="st">'C'</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  cluster <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">GC_chart</span><span class="op">(</span><span class="va">genes_data</span>, group <span class="op">=</span> <span class="st">"group"</span>, cluster <span class="op">=</span> <span class="st">"cluster"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">GC_labels</span><span class="op">(</span><span class="st">"name"</span><span class="op">)</span></span></span>
-<div id="htmlwidget-9edabaa6d53bbdfab354" style="width:100%;height:400px;" class="GCVieweR html-widget "></div>
-<script type="application/json" data-for="htmlwidget-9edabaa6d53bbdfab354">{"x":{"data":{"start":[10,50,90,130,170,210],"stop":[40,80,120,160,200,240],"name":["Gene 1","Gene 2","Gene 3","Gene 4","Gene 5","Gene 6"],"group":["A","A","B","B","A","C"],"cluster":[1,1,1,2,2,2],"rowID":[1,2,3,4,5,6]},"group":"group","legend":{"group":"group","show":true,"position":"top"},"series":{"1":{"clusterName":"1","data":{"start":[90,50,10],"stop":[120,80,40],"name":["Gene 3","Gene 2","Gene 1"],"group":["B","A","A"],"cluster":["1","1","1"],"rowID":[3,2,1]},"scale":{"breaks":[]},"grid":{"margin":{"left":"50px","right":"50px","top":0,"bottom":0},"height":"400px","width":"100%"},"title":[],"genes":{"group":"group","show":true},"labels":{"label":"name","show":true},"cluster":[],"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":[],"sequence":{"show":true},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start} <br><b>Stop:<\/b> {stop}"}},"2":{"clusterName":"2","data":{"start":[210,170,130],"stop":[240,200,160],"name":["Gene 6","Gene 5","Gene 4"],"group":["C","A","B"],"cluster":["2","2","2"],"rowID":[6,5,4]},"scale":{"breaks":[]},"grid":{"margin":{"left":"50px","right":"50px","top":0,"bottom":0},"height":"400px","width":"100%"},"title":[],"genes":{"group":"group","show":true},"labels":{"label":"name","show":true},"cluster":[],"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":[],"sequence":{"show":true},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start} <br><b>Stop:<\/b> {stop}"}}}},"evals":[],"jsHooks":[]}</script><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">GC_chart</span><span class="op">(</span><span class="va">genes_data</span>, group <span class="op">=</span> <span class="st">"group"</span>, cluster <span class="op">=</span> <span class="st">"cluster"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="GC_labels.html">GC_labels</a></span><span class="op">(</span><span class="st">"name"</span><span class="op">)</span></span></span>
+<div id="htmlwidget-ff5970386c6fc8041d5f" style="width:100%;height:400px;" class="GCVieweR html-widget "></div>
+<script type="application/json" data-for="htmlwidget-ff5970386c6fc8041d5f">{"x":{"data":{"start":[10,50,90,130,170,210],"stop":[40,80,120,160,200,240],"name":["Gene 1","Gene 2","Gene 3","Gene 4","Gene 5","Gene 6"],"group":["A","A","B","B","A","C"],"cluster":[1,1,1,2,2,2],"rowID":[1,2,3,4,5,6]},"group":"group","legend":{"group":"group","show":true,"position":"top"},"series":{"1":{"clusterName":"1","data":{"start":[90,50,10],"stop":[120,80,40],"name":["Gene 3","Gene 2","Gene 1"],"group":["B","A","A"],"cluster":["1","1","1"],"rowID":[3,2,1]},"scale":{"breaks":[]},"grid":{"margin":{"left":"50px","right":"50px","top":0,"bottom":0},"height":"200px","width":"100%"},"title":[],"genes":{"group":"group","show":true},"labels":{"label":"name","show":true,"itemStyle":[]},"cluster":[],"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":[],"sequence":{"show":true},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start} <br><b>Stop:<\/b> {stop}"}},"2":{"clusterName":"2","data":{"start":[210,170,130],"stop":[240,200,160],"name":["Gene 6","Gene 5","Gene 4"],"group":["C","A","B"],"cluster":["2","2","2"],"rowID":[6,5,4]},"scale":{"breaks":[]},"grid":{"margin":{"left":"50px","right":"50px","top":0,"bottom":0},"height":"200px","width":"100%"},"title":[],"genes":{"group":"group","show":true},"labels":{"label":"name","show":true,"itemStyle":[]},"cluster":[],"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":[],"sequence":{"show":true},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start} <br><b>Stop:<\/b> {stop}"}}}},"evals":[],"jsHooks":[]}</script><span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>

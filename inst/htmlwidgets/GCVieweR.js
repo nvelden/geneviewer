@@ -9,7 +9,7 @@ HTMLWidgets.widget({
 
     var widgetId = el.id.split('-')[1];
 
-    var draw = function(width, height, backgroundColor) {
+    var draw = function(width, height) {
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
 
@@ -26,7 +26,7 @@ HTMLWidgets.widget({
       {
         width:  width,
         height: legendHeight,
-        backgroundColor: legendOptions.backgroundColor,
+        backgroundColor: legendOptions?.backgroundColor ?? "#0000",
         margin: legendOptions.margin
       })
        .legendData(data)
@@ -64,6 +64,7 @@ clusters.forEach(function(clusterKey) {
          }
 
     var cluster = series[clusterKey],
+        clusterStyle = cluster.style,
         clusterData = HTMLWidgets.dataframeToD3(series[clusterKey].data),
         scaleOptions = cluster.scale,
         titleOptions = cluster.title,
@@ -79,7 +80,8 @@ clusters.forEach(function(clusterKey) {
     //var clusterHeight = Math.floor(el.clientHeight - legendHeight);
     var clusterOptions = {
         width: clusterWidth,
-        height: clusterHeight
+        height: clusterHeight,
+        style: clusterStyle
     };
 
     if (Object.keys(clusterMargins).length > 0) {
@@ -115,7 +117,7 @@ clusters.forEach(function(clusterKey) {
       {
         width:  width,
         height: legendHeight,
-        backgroundColor: legendOptions?.backgroundColor ?? "white",
+        backgroundColor: legendOptions?.backgroundColor ?? "#0000",
         margin: legendOptions.margin
       })
        .legendData(data)

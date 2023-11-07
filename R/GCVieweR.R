@@ -1214,6 +1214,33 @@ GC_legend <- function(
   return(GC_chart)
 }
 
+#' Set Tooltip for a Gene Chart
+#'
+#' This function configures the tooltip for a gene chart.
+#'
+#' @param GC_chart The gene chart object to be modified.
+#' @param formatter A character string defining the HTML content of the tooltip. It can
+#'   include placeholders like `{start}` and `{stop}` which will be replaced by actual
+#'   data values. The default value shows start and stop data.
+#' @param show Logical, whether to display the tooltip or not.
+#' @param cluster Optional; used to specify which clusters in the chart should have tooltips.
+#' @param ... Additional arguments that can be used to further customize the tooltip.
+#'
+#' @return Returns the gene chart object with the tooltip configured.
+#'
+#' @examples
+#' # Set tooltip
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 170, 210),
+#'   stop = c(40, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'B', 'B', 'A', 'C')
+#' )
+#'
+#' # Add tooltips to the gene chart
+#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_tooltip(formatter = " <b>Start:</b> {start}<br><b>Stop:</b> {stop}")
+#'
 #' @export
 GC_tooltip <- function(
     GC_chart,

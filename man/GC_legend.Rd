@@ -10,6 +10,7 @@ GC_legend(
   show = TRUE,
   colorScheme = NULL,
   customColors = NULL,
+  backgroundColor = "white",
   labels = NULL,
   ...
 )

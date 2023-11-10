@@ -1,0 +1,22 @@
+# Name of your package
+package:
+  name: GCVieweR
+  title: Interactive Gene Cluster Visualization in R
+  description: This package provides a streamlined tool for visualizing gene clusters in R.
+
+# Template settings
+template:
+  bootstrap: 5
+  bootswatch: flatly
+  bslib:
+    pkgdown-nav-height: 100px
+# Navbar settings
+navbar:
+  structure:
+    left:  [intro, reference, articles, tutorials, news]
+    right: [search, github]
+
+# Control the development status of your package
+status:
+  # Use development, experimental, stable, or deprecated
+  package: development

@@ -398,14 +398,21 @@ function createClusterContainer(targetElementId, options = {}) {
   const defaultOptions = {
     id: "svg-container",
     margin: { top: 0, right: "10%", bottom: 0, left: "10%" },
-    backgroundColor: "white",
+    style: {
+      backgroundColor: "#0000"
+    },
     width: null,
     height: null
   };
 
   // Merge default options and user-specified options
-  const { id, margin: originalMargin, backgroundColor, width, height } = { ...defaultOptions, ...options };
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'clusterOptions', options);
+  const { id, margin: originalMargin, style, width, height } = combinedOptions;
 
+  // Extract additional options that are not in defaultOptions
+  const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
+  console.log(defaultOptions.style)
+  console.log(additionalOptionsStyle)
   // Compute margins without modifying the original margin object
   const computedMargin = {
     top: computeSize(originalMargin.top, height),
@@ -417,13 +424,22 @@ function createClusterContainer(targetElementId, options = {}) {
   var svg = d3.select(targetElementId)
     .append("svg")
     .attr("id", getUniqueId(id))
-    .attr("width", "100%")
-    .attr("height", "100%")
+    .attr("width", width || "100%")
+    .attr("height", height || "100%")
     .attr("preserveAspectRatio", "xMinYMin meet")
-    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("viewBox", `0 0 ${width || computedWidth} ${height || computedHeight}`)
     .classed("GCVieweR-svg-content", true)
     .style("box-sizing", "border-box")
-    .style("background-color", backgroundColor);
+    .style("background-color", style.backgroundColor)
+    .each(function() {
+      const currentElement = d3.select(this);
+      setAttributesFromOptions(currentElement, additionalOptionsStyle);
+    });
+
+  // Apply styles from the combined options
+  Object.entries(style).forEach(([key, value]) => {
+    svg.style(key, value);
+  });
 
   return new clusterContainer(svg, computedMargin, width, height);
 }
@@ -928,7 +944,7 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
       .attr("y1", yBase)
       .attr("x2", xEnd - (marker.tiltAmount / 2))
       .attr("y2", yBase)
-      .attr("stroke", "white")
+      .attr("stroke", "#0000")
       .style("stroke-width", strokeWidth * 1.1);
     }
 

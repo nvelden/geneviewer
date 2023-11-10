@@ -12,6 +12,7 @@ GC_chart(
   group = NULL,
   width = "100\%",
   height = "400px",
+  background_color = "#0000",
   elementId = NULL,
   scale_breaks = TRUE,
   scale_break_threshold = 20,

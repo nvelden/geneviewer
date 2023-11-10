@@ -16,7 +16,7 @@ magrittr::`%>%`
 #' @param elementId Optional identifier string for the widget. Default is NULL.
 #' @param scale_breaks Logical flag indicating if scale breaks should be employed. Default is TRUE.
 #' @param scale_break_threshold Numeric value indicating the threshold percentage of the entire range for determining inter-gene regions suitable for scale breaks. Default is unspecified.
-#' @param scale_break_padding Numeric value indicating the padding percentage of the entire range on either side of a scale break. Default is unspecified.
+#' @param scale_break_padding Numeric value indicating the padding percentage of the entire range on either side of a scale break. Default is 1.
 #'
 #' @return A GC chart widget.
 #'

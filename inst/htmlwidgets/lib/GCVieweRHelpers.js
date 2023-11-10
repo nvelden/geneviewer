@@ -324,36 +324,28 @@ function removeNullKeys(obj) {
 function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
   // Start with default options
   let combinedOptions = { ...defaultOptions };
+  let themeOpts = removeNullKeys(this.themeOptions?.[themeOptionsKey] ?? {});
+
   userOptions = removeNullKeys(userOptions);
 
-  // Merge theme options over default options if they exist
-  if (this.themeOptions && this.themeOptions[themeOptionsKey]) {
-    const themeOpts = this.themeOptions[themeOptionsKey];
-    combinedOptions = {
-      ...combinedOptions,
-      ...themeOpts,
-      ...userOptions
-    };
-
-    // Merge nested properties like titleFont, subtitleFont, etc.
-    for (let key in defaultOptions) {
-      if (typeof defaultOptions[key] === 'object' && !Array.isArray(defaultOptions[key]) && defaultOptions[key] !== null) {
-        combinedOptions[key] = {
-          ...defaultOptions[key],
-          ...themeOpts[key],
-          ...userOptions[key]
-        };
-      }
+  // Iterate over the keys in defaultOptions
+  for (let key in defaultOptions) {
+    if (typeof defaultOptions[key] === 'object' && !Array.isArray(defaultOptions[key]) && defaultOptions[key] !== null) {
+      combinedOptions[key] = {
+        ...defaultOptions[key],
+        ...(themeOpts[key] || {}), // Safeguard against undefined values
+        ...(userOptions[key] || {}) // Safeguard against undefined values
+      };
+    } else {
+      // Direct merge for non-object or null properties
+      combinedOptions[key] = userOptions[key] || themeOpts[key] || defaultOptions[key];
     }
-  } else {
-    combinedOptions = {
-      ...combinedOptions,
-      ...userOptions
-    };
   }
 
   return combinedOptions;
 }
+
+
 
 function getColorScale(colorScheme, customColors, uniqueGroups) {
   let colorScale;
@@ -411,8 +403,7 @@ function createClusterContainer(targetElementId, options = {}) {
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
-  console.log(defaultOptions.style)
-  console.log(additionalOptionsStyle)
+
   // Compute margins without modifying the original margin object
   const computedMargin = {
     top: computeSize(originalMargin.top, height),
@@ -1277,7 +1268,7 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
       strokeWidth: 1
     },
     scaleBarTick: { // default styling for the scale bar ticks
-      stroke: "grey",
+      stroke: "gray",
       strokeWidth: 1
     }
   };

@@ -345,8 +345,6 @@ function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
   return combinedOptions;
 }
 
-
-
 function getColorScale(colorScheme, customColors, uniqueGroups) {
   let colorScale;
 
@@ -613,7 +611,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   // Default options for title and subtitle
   const defaultOptions = {
     x: 0,
-    y: 0,
+    y: 20,
     position: "center",
     spacing: 20, // Default spacing between title and subtitle
     titleFont: {
@@ -1268,7 +1266,7 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
       strokeWidth: 1
     },
     scaleBarTick: { // default styling for the scale bar ticks
-      stroke: "gray",
+      stroke: "grey",
       strokeWidth: 1
     }
   };
@@ -1287,7 +1285,7 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
 
   // Create the group with the x offset applied
   const g = this.svg.append("g")
-    .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(fontSize) - 5 + x}, ${this.height - this.margin.bottom - this.margin.top})`);
+    .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(fontSize) - 5 + x}, ${this.height - this.margin.bottom})`);
 
   // Create the scale bar line
   g.append("line")

@@ -47,4 +47,4 @@ GC_chart(gene_cluster, group = "class", height = "200px") %>%
   GC_clusterLabel(title = unique(ophA_clusters$cluster))
 ```
 
-<img src="man/figures/ophA_gene_cluster.PNG" class="screenshot"/>
+<img src="man/figures/ophA_gene_cluster.png" class="screenshot"/>

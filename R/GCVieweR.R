@@ -14,8 +14,8 @@ magrittr::`%>%`
 #' @param width Width specification for the chart, such as '100\%' or 500. Default is unspecified.
 #' @param height Height specification for the chart, such as '400px' or 300. Default is unspecified.
 #' @param elementId Optional identifier string for the widget. Default is NULL.
-#' @param scale_breaks Logical flag indicating if scale breaks should be employed. Default is TRUE.
-#' @param scale_break_threshold Numeric value indicating the threshold percentage of the entire range for determining inter-gene regions suitable for scale breaks. Default is unspecified.
+#' @param scale_breaks Logical flag indicating if scale breaks should be employed. Default is FALSE.
+#' @param scale_break_threshold Numeric value indicating the threshold percentage of the entire range for determining inter-gene regions suitable for scale breaks. Default is 20.
 #' @param scale_break_padding Numeric value indicating the padding percentage of the entire range on either side of a scale break. Default is 1.
 #'
 #' @return A GC chart widget.
@@ -32,7 +32,7 @@ magrittr::`%>%`
 #'
 #' @import htmlwidgets
 #' @export
-GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group = NULL, width = "100%", height = "400px", background_color = "#0000", elementId = NULL, scale_breaks = TRUE, scale_break_threshold = 20, scale_break_padding = 1){
+GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group = NULL, width = "100%", height = "400px", background_color = "#0000", elementId = NULL, scale_breaks = FALSE, scale_break_threshold = 20, scale_break_padding = 1){
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))

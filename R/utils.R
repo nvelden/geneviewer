@@ -157,8 +157,7 @@ get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
 
   # Ensure start is always smaller than stop
   swapped_indices <- genes$start > genes$stop
-  genes$stop[swapped_indices] <- genes$start[swapped_indices] + genes$stop[swapped_indices]
-  genes$start[swapped_indices] <- genes$stop[swapped_indices] - genes$start[swapped_indices]
+  genes[swapped_indices, c("start", "stop")] <- genes[swapped_indices, c("stop", "start")]
 
   # Calculate the entire region's length using min and max
   entire_region_length <- max(genes$stop) - min(genes$start) + 1

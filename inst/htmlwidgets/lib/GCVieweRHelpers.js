@@ -374,6 +374,71 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
   return colorScale;
 }
 
+function isInAnyDiscontinuity(value, breaks) {
+    for (let gap of breaks) {
+        if (value >= gap.start && value <= gap.stop) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function createDiscontinuousScale(minStart, maxStop, width, margin, breaks) {
+
+    let totalGap = 0;
+
+    // Calculate the total gap based on all discontinuities
+    for (let gap of breaks) {
+        if (gap.start >= minStart && gap.stop <= maxStop) {
+            totalGap += (gap.stop - gap.start);
+        }
+    }
+
+    // Define the linear scale by adjusting the maxStop by the totalGap
+    const linearScale = d3.scaleLinear()
+        .domain([minStart, maxStop - totalGap])
+        .range([0, width - margin.left - margin.right]);
+
+    // Proxy object for discontinuous scale
+    const scaleProxy = function(value) {
+    if (isInAnyDiscontinuity(value, breaks)) {
+        return null;
+    }
+
+    let cumulativeAdjustment = 0;
+
+    // Adjust the value by all previous discontinuities
+    for (let gap of breaks) {
+        if (value > gap.stop) {
+            cumulativeAdjustment += (gap.stop - gap.start);
+        } else {
+            // If the value is beyond a gap's start but hasn't reached the gap's stop,
+            // it means the value is within or after this gap, so we break out of the loop.
+            break;
+        }
+    }
+
+    // Subtract the cumulative adjustment from the value
+    value -= cumulativeAdjustment;
+
+    return linearScale(value);
+};
+
+    // Dynamically copy all methods and properties from linearScale to scaleProxy
+    for (let prop in linearScale) {
+        if (typeof linearScale[prop] === 'function') {
+            scaleProxy[prop] = (...args) => {
+                const result = linearScale[prop](...args);
+                return result === linearScale ? scaleProxy : result;
+            };
+        } else {
+            scaleProxy[prop] = linearScale[prop];
+        }
+    }
+
+    return scaleProxy;  // Return the discontinuous scale
+}
+
 // CLuster
 
 function clusterContainer(svg, margin, width, height) {
@@ -469,71 +534,6 @@ clusterContainer.prototype.geneData = function (data, clusterData) {
 
   return this;
 };
-
-function isInAnyDiscontinuity(value, breaks) {
-    for (let gap of breaks) {
-        if (value >= gap.start && value <= gap.stop) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function createDiscontinuousScale(minStart, maxStop, width, margin, breaks) {
-
-    let totalGap = 0;
-
-    // Calculate the total gap based on all discontinuities
-    for (let gap of breaks) {
-        if (gap.start >= minStart && gap.stop <= maxStop) {
-            totalGap += (gap.stop - gap.start);
-        }
-    }
-
-    // Define the linear scale by adjusting the maxStop by the totalGap
-    const linearScale = d3.scaleLinear()
-        .domain([minStart, maxStop - totalGap])
-        .range([0, width - margin.left - margin.right]);
-
-    // Proxy object for discontinuous scale
-    const scaleProxy = function(value) {
-    if (isInAnyDiscontinuity(value, breaks)) {
-        return null;
-    }
-
-    let cumulativeAdjustment = 0;
-
-    // Adjust the value by all previous discontinuities
-    for (let gap of breaks) {
-        if (value > gap.stop) {
-            cumulativeAdjustment += (gap.stop - gap.start);
-        } else {
-            // If the value is beyond a gap's start but hasn't reached the gap's stop,
-            // it means the value is within or after this gap, so we break out of the loop.
-            break;
-        }
-    }
-
-    // Subtract the cumulative adjustment from the value
-    value -= cumulativeAdjustment;
-
-    return linearScale(value);
-};
-
-    // Dynamically copy all methods and properties from linearScale to scaleProxy
-    for (let prop in linearScale) {
-        if (typeof linearScale[prop] === 'function') {
-            scaleProxy[prop] = (...args) => {
-                const result = linearScale[prop](...args);
-                return result === linearScale ? scaleProxy : result;
-            };
-        } else {
-            scaleProxy[prop] = linearScale[prop];
-        }
-    }
-
-    return scaleProxy;  // Return the discontinuous scale
-}
 
 clusterContainer.prototype.scale = function(options = {}) {
 

@@ -40,11 +40,11 @@ gene_cluster <- data.frame(
 
 # Chart
 GC_chart(gene_cluster, group = "class", height = "200px") %>%
-  GC_title("omphalotin gene cluster", cluster = 1) %>%
+  GC_title("omphalotin gene cluster") %>%
   GC_labels("name") %>%
   GC_legend(position = "bottom") %>%
   GC_scaleBar() %>% 
-  GC_clusterLabel(title = unique(ophA_clusters$cluster))
+  GC_clusterLabel(title = "ophA")
 ```
 
 <img src="man/figures/ophA_gene_cluster.png" class="screenshot"/>

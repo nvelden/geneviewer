@@ -45,7 +45,8 @@ genes_data <- data.frame(
   start = c(10, 90, 130, 170, 210),
   stop = c(40, 120, 160, 200, 240),
   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
-  group = c('A', 'B', 'B', 'A', 'C')
+  group = c('A', 'B', 'B', 'A', 'C'),
+  cluster = c('A', 'A', 'A', 'B', 'B')
 )
 
 # Assuming GC_chart is a function that creates a gene chart object
@@ -75,7 +76,7 @@ GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
   )
 
 # Configure the legend of the gene chart
-gene_chart_modified <- gene_chart \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
   GC_legend(
     show = TRUE,
     colorScheme = 'schemeCategory10', # Example color scheme

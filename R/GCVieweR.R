@@ -58,7 +58,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
   x$data <- data
   x$group <- group
   x$backgroundColor <- background_color
-  x$legend <- list(group = group, show = show_legend, position = "top", backgroundColor = background_color)
+  x$legend <- list(group = group, show = show_legend, position = "bottom", backgroundColor = background_color)
 
 
   if(is.null(cluster)){
@@ -618,16 +618,25 @@ GC_scaleBar <- function(
 
 #' Set or Update Cluster Labels for a GC Chart
 #'
-#' This function allows you to set or update the labels for specified clusters within a GC chart.
-#' It provides flexibility in terms of the title, visibility, width, position, and other additional customization options.
+#' This function allows you to set or update the labels for specified clusters
+#' within a GC chart. It provides flexibility in terms of the title, visibility,
+#' width, position, and other additional customization options.
 #'
 #' @param GC_chart A GC chart object.
 #' @param title Character vector. The title for the cluster label. Default is NULL.
 #' @param show Logical. Whether to show the cluster label. Default is TRUE.
 #' @param width Character. The width of the cluster label. Default is "100px".
-#' @param cluster Numeric or character vector. Clusters in the GC chart to update. Default is NULL.
-#' @param position Character. Position of the label, either "left" or "right". Default is "left".
-#' @param ... Additional customization arguments for the cluster label.
+#' @param cluster Numeric or character vector. Clusters in the GC chart to update.
+#' Default is NULL.
+#' @param position Character. Position of the label, either "left" or "right".
+#' Default is "left".
+#' @param wrapLabel Logical. Indicates whether the label should be wrapped.
+#' Default is TRUE.
+#' @param wrapOptions List. Specifies the wrapping options.
+#' Default is an empty List.
+#' @param ... Additional customization arguments for the cluster label,
+#' such as 'fontSize', 'fontStyle', 'fontWeight', 'fontFamily', 'cursor', etc.
+#'
 #'
 #' @return Updated GC chart with new or modified cluster labels.
 #'
@@ -657,7 +666,13 @@ GC_scaleBar <- function(
 #'     y = 0,
 #'     position = "left",
 #'     wrapLabel = TRUE,
-#'     wrapOptions = list(),
+#'     wrapOptions = list(
+#'       dyAdjust = 0,
+#'       lineHeightEms = 1.05,
+#'       lineHeightSquishFactor =  1,
+#'       splitOnHyphen =  TRUE,
+#'       centreVertically = TRUE
+#'      ),
 #'     fontSize = "12px",
 #'     fontStyle = "normal",
 #'     fontWeight = "bold",
@@ -673,6 +688,8 @@ GC_clusterLabel <- function(
     width = "100px",
     cluster = NULL,
     position = "left",
+    wrapLabel = TRUE,
+    wrapOptions = list(),
     ...
 ) {
 
@@ -691,6 +708,8 @@ GC_clusterLabel <- function(
     options <- list(
       title = title[(i-1) %% length(title) + 1],
       show = show[(i-1) %% length(show) + 1],
+      wrapLabel = wrapLabel,
+      wrapOptions = wrapOptions,
       position = currentPosition
     )
 
@@ -930,6 +949,7 @@ GC_labels <- function(
 
   for(i in seq_along(clusters)){
 
+
     # Default options
     options <- list(
       label = label[(i-1) %% length(label) + 1],
@@ -950,11 +970,57 @@ GC_labels <- function(
   return(GC_chart)
 }
 
+#' Modify Coordinates in a GC Chart
+#'
+#' This function updates a GC chart by modifying the coordinates settings.
+#' It allows for showing or hiding tick values, applying custom tick values for the top and bottom axes,
+#' and supports several other customizations for specific or all clusters in the chart.
+#'
+#' @param GC_chart The GC chart object to be modified.
+#' @param show Logical, whether to show the tick values or not. Can be a single value or a vector.
+#' @param tickValuesTop Numeric vector or NULL, custom tick values to be used at the top of the cluster.
+#'                      If NULL, the default tick values are used.
+#' @param tickValuesBottom Numeric vector or NULL, custom tick values to be used at the bottom of the cluster.
+#'                         If NULL, the default tick values are used.
+#' @param cluster Numeric or character, specifies the clusters to be affected by the coordinate modifications.
+#'                If NULL, applies to all clusters.
+#' @param ... Additional arguments to be passed to the coordinate options.
+#'
+#' @return Returns the GC chart object with updated coordinates.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 170, 210),
+#'   stop = c(40, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5'),
+#'   cluster = c(1, 1, 2, 2, 2)
+#' )
+#'
+#' # Add coordinates to all clusters
+#' GC_chart(genes_data, cluster = "cluster", group = "name") %>%
+#' GC_coordinates()
+#'
+#' # Modify coordinates of a specific cluster
+#' GC_chart(genes_data, cluster = "cluster", group = "name") %>%
+#' GC_coordinates() %>%
+#' GC_coordinates(
+#'   cluster = 2,
+#'   show = TRUE,
+#'   tickValuesTop = c(130, 170, 210, 240),
+#'   tickValuesBottom = c(160, 200),
+#'   rotate = -45,
+#'   yPositionTop = 55,
+#'   yPositionBottom = 45,
+#'   overlapPercentage = 2,
+#'   cursor = "default"
+#' )
+#'
 #' @export
 GC_coordinates <- function(
     GC_chart,
     show = TRUE,
-    tickValues = NULL,
+    tickValuesTop = NULL,
+    tickValuesBottom = NULL,
     cluster = NULL,
     ...
 ) {
@@ -981,7 +1047,8 @@ GC_coordinates <- function(
     GC_chart$x$series[[clusters[i]]]$coordinates <- options
 
     # Add tickvalues for each cluster
-    GC_chart$x$series[[clusters[i]]]$coordinates$tickValues <- tickValues
+    GC_chart$x$series[[clusters[i]]]$coordinates$tickValuesTop <- tickValuesTop
+    GC_chart$x$series[[clusters[i]]]$coordinates$tickValuesBottom <- tickValuesBottom
 
   }
 
@@ -1120,7 +1187,8 @@ GC_genes <- function(
 #'   start = c(10, 90, 130, 170, 210),
 #'   stop = c(40, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
-#'   group = c('A', 'B', 'B', 'A', 'C')
+#'   group = c('A', 'B', 'B', 'A', 'C'),
+#'   cluster = c('A', 'A', 'A', 'B', 'B')
 #' )
 #'
 #' # Assuming GC_chart is a function that creates a gene chart object
@@ -1150,7 +1218,7 @@ GC_genes <- function(
 #'   )
 #'
 #' # Configure the legend of the gene chart
-#' gene_chart_modified <- gene_chart %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
 #'   GC_legend(
 #'     show = TRUE,
 #'     colorScheme = 'schemeCategory10', # Example color scheme

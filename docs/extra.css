@@ -1,0 +1,17 @@
+pre.sourceCode {
+  background-color: #f8f8f8; /* Light gray background */
+  border: 1px solid #ddd; /* Light gray border */
+  border-radius: 5px; /* Rounded corners */
+  padding: 15px; /* Padding around the text */
+  overflow-x: auto; /* Adds a horizontal scrollbar if needed */
+}
+
+body {
+  line-height: 1.6; /* Increase line height for better readability */
+  padding: 20px; /* Padding around the text */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 20px; /* Space above headers */
+  margin-bottom: 10px; /* Space below headers */
+}

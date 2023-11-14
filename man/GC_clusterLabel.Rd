@@ -11,6 +11,8 @@ GC_clusterLabel(
   width = "100px",
   cluster = NULL,
   position = "left",
+  wrapLabel = TRUE,
+  wrapOptions = list(),
   ...
 )
 }
@@ -23,18 +25,28 @@ GC_clusterLabel(
 
 \item{width}{Character. The width of the cluster label. Default is "100px".}
 
-\item{cluster}{Numeric or character vector. Clusters in the GC chart to update. Default is NULL.}
+\item{cluster}{Numeric or character vector. Clusters in the GC chart to update.
+Default is NULL.}
 
-\item{position}{Character. Position of the label, either "left" or "right". Default is "left".}
+\item{position}{Character. Position of the label, either "left" or "right".
+Default is "left".}
 
-\item{...}{Additional customization arguments for the cluster label.}
+\item{wrapLabel}{Logical. Indicates whether the label should be wrapped.
+Default is TRUE.}
+
+\item{wrapOptions}{List. Specifies the wrapping options.
+Default is an empty List.}
+
+\item{...}{Additional customization arguments for the cluster label,
+such as 'fontSize', 'fontStyle', 'fontWeight', 'fontFamily', 'cursor', etc.}
 }
 \value{
 Updated GC chart with new or modified cluster labels.
 }
 \description{
-This function allows you to set or update the labels for specified clusters within a GC chart.
-It provides flexibility in terms of the title, visibility, width, position, and other additional customization options.
+This function allows you to set or update the labels for specified clusters
+within a GC chart. It provides flexibility in terms of the title, visibility,
+width, position, and other additional customization options.
 }
 \examples{
 genes_data <- data.frame(
@@ -62,7 +74,13 @@ GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
     y = 0,
     position = "left",
     wrapLabel = TRUE,
-    wrapOptions = list(),
+    wrapOptions = list(
+      dyAdjust = 0,
+      lineHeightEms = 1.05,
+      lineHeightSquishFactor =  1,
+      splitOnHyphen =  TRUE,
+      centreVertically = TRUE
+     ),
     fontSize = "12px",
     fontStyle = "normal",
     fontWeight = "bold",

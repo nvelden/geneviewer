@@ -324,32 +324,22 @@ function removeNullKeys(obj) {
 function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
   // Start with default options
   let combinedOptions = { ...defaultOptions };
+  let themeOpts = removeNullKeys(this.themeOptions?.[themeOptionsKey] ?? {});
+
   userOptions = removeNullKeys(userOptions);
 
-  // Merge theme options over default options if they exist
-  if (this.themeOptions && this.themeOptions[themeOptionsKey]) {
-    const themeOpts = this.themeOptions[themeOptionsKey];
-    combinedOptions = {
-      ...combinedOptions,
-      ...themeOpts,
-      ...userOptions
-    };
-
-    // Merge nested properties like titleFont, subtitleFont, etc.
-    for (let key in defaultOptions) {
-      if (typeof defaultOptions[key] === 'object' && !Array.isArray(defaultOptions[key]) && defaultOptions[key] !== null) {
-        combinedOptions[key] = {
-          ...defaultOptions[key],
-          ...themeOpts[key],
-          ...userOptions[key]
-        };
-      }
+  // Iterate over the keys in defaultOptions
+  for (let key in defaultOptions) {
+    if (typeof defaultOptions[key] === 'object' && !Array.isArray(defaultOptions[key]) && defaultOptions[key] !== null) {
+      combinedOptions[key] = {
+        ...defaultOptions[key],
+        ...(themeOpts[key] || {}), // Safeguard against undefined values
+        ...(userOptions[key] || {}) // Safeguard against undefined values
+      };
+    } else {
+      // Direct merge for non-object or null properties
+      combinedOptions[key] = userOptions[key] !== undefined ? userOptions[key] : (themeOpts[key] !== undefined ? themeOpts[key] : defaultOptions[key]);
     }
-  } else {
-    combinedOptions = {
-      ...combinedOptions,
-      ...userOptions
-    };
   }
 
   return combinedOptions;
@@ -384,6 +374,71 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
   return colorScale;
 }
 
+function isInAnyDiscontinuity(value, breaks) {
+    for (let gap of breaks) {
+        if (value >= gap.start && value <= gap.stop) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function createDiscontinuousScale(minStart, maxStop, width, margin, breaks) {
+
+    let totalGap = 0;
+
+    // Calculate the total gap based on all discontinuities
+    for (let gap of breaks) {
+        if (gap.start >= minStart && gap.stop <= maxStop) {
+            totalGap += (gap.stop - gap.start);
+        }
+    }
+
+    // Define the linear scale by adjusting the maxStop by the totalGap
+    const linearScale = d3.scaleLinear()
+        .domain([minStart, maxStop - totalGap])
+        .range([0, width - margin.left - margin.right]);
+
+    // Proxy object for discontinuous scale
+    const scaleProxy = function(value) {
+    if (isInAnyDiscontinuity(value, breaks)) {
+        return null;
+    }
+
+    let cumulativeAdjustment = 0;
+
+    // Adjust the value by all previous discontinuities
+    for (let gap of breaks) {
+        if (value > gap.stop) {
+            cumulativeAdjustment += (gap.stop - gap.start);
+        } else {
+            // If the value is beyond a gap's start but hasn't reached the gap's stop,
+            // it means the value is within or after this gap, so we break out of the loop.
+            break;
+        }
+    }
+
+    // Subtract the cumulative adjustment from the value
+    value -= cumulativeAdjustment;
+
+    return linearScale(value);
+};
+
+    // Dynamically copy all methods and properties from linearScale to scaleProxy
+    for (let prop in linearScale) {
+        if (typeof linearScale[prop] === 'function') {
+            scaleProxy[prop] = (...args) => {
+                const result = linearScale[prop](...args);
+                return result === linearScale ? scaleProxy : result;
+            };
+        } else {
+            scaleProxy[prop] = linearScale[prop];
+        }
+    }
+
+    return scaleProxy;  // Return the discontinuous scale
+}
+
 // CLuster
 
 function clusterContainer(svg, margin, width, height) {
@@ -411,8 +466,7 @@ function createClusterContainer(targetElementId, options = {}) {
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
-  console.log(defaultOptions.style)
-  console.log(additionalOptionsStyle)
+
   // Compute margins without modifying the original margin object
   const computedMargin = {
     top: computeSize(originalMargin.top, height),
@@ -480,71 +534,6 @@ clusterContainer.prototype.geneData = function (data, clusterData) {
 
   return this;
 };
-
-function isInAnyDiscontinuity(value, breaks) {
-    for (let gap of breaks) {
-        if (value >= gap.start && value <= gap.stop) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function createDiscontinuousScale(minStart, maxStop, width, margin, breaks) {
-
-    let totalGap = 0;
-
-    // Calculate the total gap based on all discontinuities
-    for (let gap of breaks) {
-        if (gap.start >= minStart && gap.stop <= maxStop) {
-            totalGap += (gap.stop - gap.start);
-        }
-    }
-
-    // Define the linear scale by adjusting the maxStop by the totalGap
-    const linearScale = d3.scaleLinear()
-        .domain([minStart, maxStop - totalGap])
-        .range([0, width - margin.left - margin.right]);
-
-    // Proxy object for discontinuous scale
-    const scaleProxy = function(value) {
-    if (isInAnyDiscontinuity(value, breaks)) {
-        return null;
-    }
-
-    let cumulativeAdjustment = 0;
-
-    // Adjust the value by all previous discontinuities
-    for (let gap of breaks) {
-        if (value > gap.stop) {
-            cumulativeAdjustment += (gap.stop - gap.start);
-        } else {
-            // If the value is beyond a gap's start but hasn't reached the gap's stop,
-            // it means the value is within or after this gap, so we break out of the loop.
-            break;
-        }
-    }
-
-    // Subtract the cumulative adjustment from the value
-    value -= cumulativeAdjustment;
-
-    return linearScale(value);
-};
-
-    // Dynamically copy all methods and properties from linearScale to scaleProxy
-    for (let prop in linearScale) {
-        if (typeof linearScale[prop] === 'function') {
-            scaleProxy[prop] = (...args) => {
-                const result = linearScale[prop](...args);
-                return result === linearScale ? scaleProxy : result;
-            };
-        } else {
-            scaleProxy[prop] = linearScale[prop];
-        }
-    }
-
-    return scaleProxy;  // Return the discontinuous scale
-}
 
 clusterContainer.prototype.scale = function(options = {}) {
 
@@ -622,7 +611,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   // Default options for title and subtitle
   const defaultOptions = {
     x: 0,
-    y: 0,
+    y: 20,
     position: "center",
     spacing: 20, // Default spacing between title and subtitle
     titleFont: {
@@ -831,15 +820,16 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
     x,
     y,
     position,
+    wrapLabel,
+    wrapOptions,
     fontSize,
     fontStyle,
     fontWeight,
     fontFamily,
     cursor,
-    wrapLabel,
-    wrapOptions
   } = combinedOptions;
 
+  const additionalwrapOptions = extractAdditionalOptions(wrapOptions, defaultOptions.wrapOptions);
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
@@ -870,7 +860,7 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
       const currentElement = d3.select(this);
       setAttributesFromOptions(currentElement, additionalOptions);
     });
-
+  console.log(wrapLabel)
   // If wrapLabel is true, wrap the text
   if (wrapLabel) {
     wrap(clusterTitle, titleWidth, wrapOptions);
@@ -1150,7 +1140,6 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 */
 
 clusterContainer.prototype.coordinates = function(show = true, options = {}) {
-
     if (!show) {
         return this;
     }
@@ -1161,7 +1150,8 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
         rotate: -45,
         yPositionTop: 55,
         yPositionBottom: 45,
-        tickValues: null,
+        tickValuesTop: null,
+        tickValuesBottom: null,
         overlapPercentage: 2, // Default percentage for overlap threshold
         cursor: "default",
     };
@@ -1171,87 +1161,93 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
     }
 
     const combinedOptions = { ...defaultOptions, ...options };
-    const { start, stop, rotate, yPositionTop, yPositionBottom, tickValues, overlapPercentage, cursor } = combinedOptions;
+    const { rotate, yPositionTop, yPositionBottom, tickValuesTop, tickValuesBottom, cursor } = combinedOptions;
     const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
     const g = this.svg.append("g")
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-    const allTickValues = tickValues || this.data.reduce((acc, d) => {
-        acc.push({ value: d.start, rowID: d.rowID });
-        acc.push({ value: d.stop, rowID: d.rowID });
-        return acc;
-    }, []);
+    // Convert provided tickValues to the required format
+    let tickValuesTopFinal = Array.isArray(tickValuesTop) ? tickValuesTop.map(value => ({ value, rowID: null }))
+                         : (tickValuesTop != null ? [{ value: tickValuesTop, rowID: null }] : []);
+    let tickValuesBottomFinal = Array.isArray(tickValuesBottom) ? tickValuesBottom.map(value => ({ value, rowID: null }))
+                          : (tickValuesBottom != null ? [{ value: tickValuesBottom, rowID: null }] : []);
 
-    allTickValues.sort((a, b) => a.value - b.value);
+    // If neither tickValuesTop nor tickValuesBottom are provided, calculate them
+    if (!tickValuesTop && !tickValuesBottom) {
+        let allTickValues = this.data.reduce((acc, d) => {
+            acc.push({ value: d.start, rowID: d.rowID });
+            acc.push({ value: d.stop, rowID: d.rowID });
+            return acc;
+        }, []);
 
-    // Calculate the total range based on tick values
-    const minXValue = allTickValues[0].value;
-    const maxXValue = allTickValues[allTickValues.length - 1].value;
-    const totalXValueRange = maxXValue - minXValue;
-    const tickValueThreshold = totalXValueRange * (overlapPercentage / 100);
+        allTickValues.sort((a, b) => a.value - b.value);
 
-    let tickValuesTop = [];
-    const tickValuesBottom = allTickValues.filter((tickObj, index, array) => {
-        if (index === 0) return true;
-        const diff = tickObj.value - array[index - 1].value;
-        if (diff < tickValueThreshold) {
-            tickValuesTop.push(tickObj);
-            return false;
-        }
-        return true;
-    });
+        // Calculate overlap and distribute tick values between top and bottom
+        const totalXValueRange = allTickValues[allTickValues.length - 1].value - allTickValues[0].value;
+        const tickValueThreshold = totalXValueRange * (combinedOptions.overlapPercentage / 100);
 
+        tickValuesBottomFinal = allTickValues.filter((tickObj, index, array) => {
+            if (index === 0) return true;
+            const diff = tickObj.value - array[index - 1].value;
+            if (diff < tickValueThreshold) {
+                tickValuesTopFinal.push(tickObj);
+                return false;
+            }
+            return true;
+        });
+    }
+
+    // Create and configure the top axis
     const xAxisTop = g.append("g")
-        .attr("transform", "translate(0," + this.yScale(yPositionTop) + ")")
-        .call(d3.axisTop(this.xScale).tickValues(tickValuesTop.map(t => t.value)));
+            .attr("transform", "translate(0," + this.yScale(yPositionTop) + ")")
+            .call(d3.axisTop(this.xScale).tickValues(tickValuesTopFinal.map(t => t.value)));
 
+        xAxisTop.selectAll(".tick")
+            .data(tickValuesTopFinal)
+            .attr("rowID", d => d.rowID)
+            .attr("transform", d => "translate(" + this.xScale(d.value) + ",0)");
+
+        xAxisTop.select(".domain").attr("stroke", "none");
+
+        xAxisTop.selectAll("text")
+            .data(tickValuesTopFinal)
+            .attr("class", "coordinate")
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".4em")
+            .attr("transform", "rotate(" + (-rotate) + ")")
+            .style("cursor", cursor)
+            .each(function() {
+                const currentElement = d3.select(this);
+                setAttributesFromOptions(currentElement, additionalOptions);
+            });
+
+
+    // Create and configure the bottom axis
     const xAxisBottom = g.append("g")
-        .attr("transform", "translate(0," + this.yScale(yPositionBottom) + ")")
-        .call(d3.axisBottom(this.xScale).tickValues(tickValuesBottom.map(t => t.value)));
+            .attr("transform", "translate(0," + this.yScale(yPositionBottom) + ")")
+            .call(d3.axisBottom(this.xScale).tickValues(tickValuesBottomFinal.map(t => t.value)));
 
-    xAxisTop.selectAll(".tick")
-        .data(tickValuesTop)
-        .attr("rowID", d => d.rowID)
-        .attr("transform", d => "translate(" + this.xScale(d.value) + ",0)");
+        xAxisBottom.selectAll(".tick")
+            .data(tickValuesBottomFinal)
+            .attr("rowID", d => d.rowID)
+            .attr("transform", d => "translate(" + this.xScale(d.value) + ",0)");
 
-    xAxisBottom.selectAll(".tick")
-        .data(tickValuesBottom)
-        .attr("rowID", d => d.rowID)
-        .attr("transform", d => "translate(" + this.xScale(d.value) + ",0)");
+        xAxisBottom.select(".domain").attr("stroke", "none");
 
-    xAxisTop.select(".domain").attr("stroke", "none");
-    xAxisBottom.select(".domain").attr("stroke", "none");
-
-    xAxisTop.selectAll("text")
-        .data(tickValuesTop)
-        .attr("class", "coordinate")
-        .attr("id", (d, i) => `${sanitizeId(this.data[0].cluster)}-coordinate-top-${i}`)
-        .attr("rowID", d => d.rowID)
-        .style("text-anchor", "end")
-        .attr("dx", "-.8em")
-        .attr("dy", ".4em")
-        .attr("transform", "rotate(" + (-rotate) + ")")
-        .style("cursor", cursor)
-        .each(function() {
-            const currentElement = d3.select(this);
-            setAttributesFromOptions(currentElement, additionalOptions);
-        });
-
-    xAxisBottom.selectAll("text")
-        .data(tickValuesBottom)
-        .attr("class", "coordinate")
-        .attr("id", (d, i) => `${sanitizeId(this.data[0].cluster)}-coordinate-bottom-${i}`)
-        .attr("rowID", d => d.rowID)
-        .style("text-anchor", "start")
-        .attr("dx", ".8em")
-        .attr("dy", "-.15em")
-        .attr("transform", "rotate(" + (-rotate) + ")")
-        .style("cursor", cursor)
-        .each(function() {
-            const currentElement = d3.select(this);
-            setAttributesFromOptions(currentElement, additionalOptions);
-        });
+        xAxisBottom.selectAll("text")
+            .data(tickValuesBottomFinal)
+            .attr("class", "coordinate")
+            .style("text-anchor", "start")
+            .attr("dx", ".8em")
+            .attr("dy", "-.15em")
+            .attr("transform", "rotate(" + (-rotate) + ")")
+            .style("cursor", cursor)
+            .each(function() {
+                const currentElement = d3.select(this);
+                setAttributesFromOptions(currentElement, additionalOptions);
+            });
 
     return this;
 };
@@ -1296,7 +1292,7 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
 
   // Create the group with the x offset applied
   const g = this.svg.append("g")
-    .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(fontSize) - 5 + x}, ${this.height - this.margin.bottom - this.margin.top})`);
+    .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(fontSize) - 5 + x}, ${this.height - this.margin.bottom})`);
 
   // Create the scale bar line
   g.append("line")
@@ -1379,7 +1375,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
       dx: "-0.8em",
       dy: "0.15em"
     },
-    itemStyle: []
+    itemStyle: [] // [{"index": 3,"y": 20}]
   };
 
   // If theme options exist, use them as the default options
@@ -1402,6 +1398,9 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
 
    // Sort the data first by the minimum value of start and stop.
   this.data.sort((a, b) => Math.min(a.start, a.stop) - Math.min(b.start, b.stop));
+
+    // Check for existing labels
+  const existingLabels = g.selectAll("text.label");
 
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};

@@ -1,6 +1,6 @@
 Package: GCVieweR
 Type: Package
-Title: Interactive Gene Cluster Visualizations in R
+Title: Gene Cluster Visualizations in R
 Version: 0.1.0
 Author: Niels van der Velden
 Maintainer: Niels van der Velden <n.s.j.vandervelden@gmail.com>
@@ -14,3 +14,7 @@ LazyData: true
 RoxygenNote: 7.2.3
 URL: https://github.com/nvelden/GCVieweR
 BugReports: https://github.com/nvelden/GCVieweR/issues
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

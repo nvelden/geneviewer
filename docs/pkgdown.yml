@@ -1,6 +1,7 @@
 pandoc: 3.1.1
 pkgdown: 2.0.7
 pkgdown_sha: ~
-articles: {}
-last_built: 2023-11-10T13:58Z
+articles:
+  GCVieweR: GCVieweR.html
+last_built: 2023-11-14T22:26Z
 

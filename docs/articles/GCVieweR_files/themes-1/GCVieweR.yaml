@@ -1,0 +1,15 @@
+dependencies:
+  - name: D3
+    version: 7.8.5
+    src: htmlwidgets
+    script: ./lib/D3-7.8.5/d3.min.js
+  - name: themes
+    version: 1.0
+    src: htmlwidgets
+    script: ./lib/GCVieweRThemes.js
+  - name: helperFunctions
+    version: 1.0
+    src: htmlwidgets
+    script: ./lib/GCVieweRHelpers.js
+    stylesheet: ./lib/styles.css
+

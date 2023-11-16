@@ -163,51 +163,52 @@ GC_chart(gene_cluster, start = "start", stop = "stop", group = "class", height =
   GC_genes(customColors = custom_color_map)
 ```
 
+### Coordinates
+
+Gene coordinates can be displayed with the `GC_coordinates()` function. When overlapping coordinates occur, they are, by default, shifted to the top axis for clearer visualization. By default the `overlapPercentage` parameter is set to 2%.
+
+```{r echo=TRUE, results='asis'}
+dbophA_cluster <- gene_clusters[gene_clusters$cluster == "dbophA", ]
+
+GC_chart(dbophA_cluster, start = "start", stop = "stop", group = "class",height = "100px") %>%
+  GC_coordinates(
+  rotate = -45,
+  yPositionTop = 55,
+  yPositionBottom = 45,
+  overlapPercentage = 2
+  ) %>%
+  GC_legend(FALSE)
+```
+
+The style of the ticks and text can be customized using the tickStyle and textStyle variables
+
+```{r echo=TRUE, results='asis'}
+GC_chart(dbophA_cluster, start = "start", stop = "stop", group = "class",height = "100px") %>%
+  GC_coordinates(
+   tickStyle = list(stroke = "grey", strokeWidth = 1, lineLength = 10),
+   textStyle = list(fill = "gray", fontSize = "10px", fontFamily = "Arial", cursor = "default")
+   ) %>%
+   GC_legend(FALSE)
+```
+
+By default, the start and stop positions of each gene are indicated by coordinates. However, you can customize these by providing your own values for the top and bottom ticks, using the tickValuesTop and tickValuesBottom options.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(dbophA_cluster, start = "start", stop = "stop", group = "class",height = "100px") %>%
+  GC_coordinates(
+    tickValuesTop = c(27371, 28937),
+    tickValuesBottom = c(25288, 27217)                  
+   ) %>%
+   GC_legend(FALSE)
+```
+
 ### Scale 
 
 #### Scale Breaks
 
 In the `GC_chart()` function, the parameters `scale_breaks`, `scale_break_threshold`, and `scale_break_padding` can be used to avoid issues with widely spaced genes within a cluster. Setting `scale_breaks` to TRUE introduces breaks in the genomic scale which will avoid long empty stretches. The `scale_break_threshold` defines the spacing percentage between genes needed to activate these breaks. `scale_break_padding` controls the padding around these breaks.
 
-```{r echo=TRUE, results='asis'}
-# Without scale breaks
-GC_chart(gene_cluster, 
-         start = "start", 
-         stop = "stop", 
-         group = "class", 
-         height = "100px", 
-         scale_breaks = FALSE)
-```
-
-#### Scale Adjustments
-
-By default the minimum and maximum of the genes start and stop positions are used to position the genes along the sequence. Using the GC_scale function one can specify the values. In addition one can add breaks in the sequence which will be excluded.
-
-```{r echo=TRUE, results='asis'}
-# Without custom scale
-GC_chart(gene_clusters, 
-         start = "start", 
-         stop = "stop", 
-         group = "class", 
-         cluster = "cluster",
-         height = "200px") %>%
-  GC_coordinates()
-```
-
-```{r echo=TRUE, results='asis'}
-# Without custom scale
-GC_chart(gene_clusters, 
-         start = "start", 
-         stop = "stop", 
-         group = "class", 
-         cluster = "cluster",
-         height = "200px") %>%
-  GC_scale(
-    
-  )
-```
-
-
+In the given example, a scale break will be introduced in cases where the intergenic region exceeds 20% of the total range of the gene cluster. Additionally, a padding of 1% will be added to both the left and right sides of this break.
 
 ```{r echo=TRUE, results='asis'}
 # With scale breaks
@@ -221,13 +222,33 @@ GC_chart(gene_cluster,
          scale_break_padding = 1)
 ```
 
-### Sequence
+#### Manual Scale Adjustments
 
+By default the minimum and maximum of the genes start and stop positions are used to position the genes along the sequence. With the use of the `GC_scale()` function, these values can be adjusted. Furthermore, this function allows for the introduction of breaks within the sequence.
 
+In the provided example, adjustments are made to the start and stop range to incorporate additional padding on both the left and right sides of the gene cluster. Additionally, a scale break is introduced to remove the extensive intergenic region that exists between gene 2 and gene 3.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(
+  gene_cluster, 
+  start = "start", 
+  stop = "stop", 
+  group = "class", 
+  height = "200px") %>%
+  GC_coordinates() %>%
+  GC_scale(
+    start = 1522, 
+    stop = 22484,
+    breaks = 
+      list(
+        list(start = 5486, stop = 9336)
+      )
+    )
+```
 
 ### Grid
 
-The GC_grid() function can be used to modify the grid of all or a specific cluster. In the below example the height and margins are adjusted for the second gene cluster.
+The `GC_grid()` function can be used to modify the grid of all or a specific cluster. In the below example the height and margins are adjusted for the second gene cluster.
 
 ```{r echo=TRUE, results='asis'}
 # With scale breaks

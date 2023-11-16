@@ -1012,7 +1012,8 @@ GC_labels <- function(
 #'   yPositionTop = 55,
 #'   yPositionBottom = 45,
 #'   overlapPercentage = 2,
-#'   cursor = "default"
+#'   tickStyle = list(stroke = "black", strokeWidth = 1, lineLength = 6),
+#'   textStyle = list(fill = "black", fontSize = "12px", fontFamily = "Arial", cursor = "default")
 #' )
 #'
 #' @export
@@ -1021,6 +1022,8 @@ GC_coordinates <- function(
     show = TRUE,
     tickValuesTop = NULL,
     tickValuesBottom = NULL,
+    tickStyle = list(),
+    textStyle = list(),
     cluster = NULL,
     ...
 ) {
@@ -1035,7 +1038,9 @@ GC_coordinates <- function(
 
     # Default options
     options <- list(
-      show = show[(i-1) %% length(show) + 1]
+      show = show[(i-1) %% length(show) + 1],
+      tickStyle = tickStyle,
+      textStyle = textStyle
     )
 
     # Add ... arguments to options

@@ -860,7 +860,6 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
       const currentElement = d3.select(this);
       setAttributesFromOptions(currentElement, additionalOptions);
     });
-  console.log(wrapLabel)
   // If wrapLabel is true, wrap the text
   if (wrapLabel) {
     wrap(clusterTitle, titleWidth, wrapOptions);
@@ -1145,24 +1144,33 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
     }
 
     const defaultOptions = {
-        start: null,
-        stop: null,
         rotate: -45,
         yPositionTop: 55,
         yPositionBottom: 45,
         tickValuesTop: null,
         tickValuesBottom: null,
-        overlapPercentage: 2, // Default percentage for overlap threshold
-        cursor: "default",
+        overlapPercentage: 2,
+        tickStyle: {
+          stroke: "black",
+          strokeWidth: 1,
+          lineLength: 6
+        },
+        textStyle: {
+          fill: "black",
+          fontSize: "12px",
+          fontFamily: "Arial",
+          cursor: "default"
+        }
     };
 
-    if (this.themeOptions && this.themeOptions.coordinatesOptions) {
-        options = { ...this.themeOptions.coordinatesOptions, ...options };
-    }
+    const combinedOptions = mergeOptions.call(this, defaultOptions, 'coordinatesOptions', options);
+    console.log(options)
+    const { rotate, yPositionTop, yPositionBottom, tickValuesTop, tickValuesBottom, tickStyle, textStyle } = combinedOptions;
 
-    const combinedOptions = { ...defaultOptions, ...options };
-    const { rotate, yPositionTop, yPositionBottom, tickValuesTop, tickValuesBottom, cursor } = combinedOptions;
-    const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
+    // Extract additional options that are not in defaultOptions
+    const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultOptions.tickStyle);
+    const additionalOptionsTextStyle = extractAdditionalOptions(textStyle, defaultOptions.textStyle);
+
 
     const g = this.svg.append("g")
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
@@ -1217,11 +1225,24 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
             .attr("dx", "-.8em")
             .attr("dy", ".4em")
             .attr("transform", "rotate(" + (-rotate) + ")")
-            .style("cursor", cursor)
+            .style("fill", textStyle.fill)
+            .style("font-size", textStyle.fontSize)
+            .style("font-family", textStyle.fontFamily)
+            .style("cursor", textStyle.cursor)
             .each(function() {
                 const currentElement = d3.select(this);
-                setAttributesFromOptions(currentElement, additionalOptions);
+                setAttributesFromOptions(currentElement, additionalOptionsTextStyle);
             });
+
+        xAxisTop.selectAll(".tick line")
+            .style("stroke", tickStyle.stroke)
+            .style("stroke-width", tickStyle.strokeWidth)
+            .attr("y2", -tickStyle.lineLength)
+            .each(function() {
+                const currentElement = d3.select(this);
+                setAttributesFromOptions(currentElement, additionalOptionsTickStyle);
+            });
+
 
 
     // Create and configure the bottom axis
@@ -1243,10 +1264,22 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
             .attr("dx", ".8em")
             .attr("dy", "-.15em")
             .attr("transform", "rotate(" + (-rotate) + ")")
-            .style("cursor", cursor)
+            .style("fill", textStyle.fill)
+            .style("font-size", textStyle.fontSize)
+            .style("font-family", textStyle.fontFamily)
+            .style("cursor", textStyle.cursor)
             .each(function() {
                 const currentElement = d3.select(this);
-                setAttributesFromOptions(currentElement, additionalOptions);
+                setAttributesFromOptions(currentElement, additionalOptionsTextStyle);
+            });
+
+        xAxisBottom.selectAll(".tick line")
+            .style("stroke", tickStyle.stroke)
+            .style("stroke-width", tickStyle.strokeWidth)
+            .attr("y2", tickStyle.lineLength)
+            .each(function() {
+                const currentElement = d3.select(this);
+                setAttributesFromOptions(currentElement, additionalOptionsTickStyle);
             });
 
     return this;
@@ -1272,7 +1305,7 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
       stroke: "grey",
       strokeWidth: 1
     },
-    scaleBarTick: { // default styling for the scale bar ticks
+    scaleBarTick: {
       stroke: "grey",
       strokeWidth: 1
     }

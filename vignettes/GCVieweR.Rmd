@@ -204,7 +204,7 @@ GC_chart(dbophA_cluster, start = "start", stop = "stop", group = "class",height 
 
 ### Scale 
 
-#### Scale Breaks
+#### Automatic Scale Breaks
 
 In the `GC_chart()` function, the parameters `scale_breaks`, `scale_break_threshold`, and `scale_break_padding` can be used to avoid issues with widely spaced genes within a cluster. Setting `scale_breaks` to TRUE introduces breaks in the genomic scale which will avoid long empty stretches. The `scale_break_threshold` defines the spacing percentage between genes needed to activate these breaks. `scale_break_padding` controls the padding around these breaks.
 
@@ -219,7 +219,8 @@ GC_chart(gene_cluster,
          height = "100px", 
          scale_breaks = TRUE,
          scale_break_threshold = 20,
-         scale_break_padding = 1)
+         scale_break_padding = 1) %>%
+  GC_legend(FALSE)
 ```
 
 #### Manual Scale Adjustments
@@ -234,7 +235,7 @@ GC_chart(
   start = "start", 
   stop = "stop", 
   group = "class", 
-  height = "200px") %>%
+  height = "100px") %>%
   GC_coordinates() %>%
   GC_scale(
     start = 1522, 
@@ -243,7 +244,25 @@ GC_chart(
       list(
         list(start = 5486, stop = 9336)
       )
-    )
+    ) %>%
+  GC_legend(FALSE)
+```
+
+### Tooltip
+
+By default, the tooltip in the gene chart displays the start and stop positions of a gene when hovering over it. These positions are dynamically replaced by the actual start and stop data values for each gene. You can customize the text of the tooltip using the `formatter` variable. In the example below, the tooltip is customized to not only include the gene's start and stop positions but also its name. The gene name is pulled from the 'name' column in the data set. 
+
+```{r echo=TRUE, results='asis'}
+GC_chart(
+  gene_cluster, 
+  start = "start", 
+  stop = "stop", 
+  group = "class", 
+  height = "150px") %>%
+  GC_tooltip(
+    formatter = "<b>Gene: </b>{name}<br><b>Start:</b> {start}<br><b>Stop:</b> {stop}",
+  ) %>%
+  GC_legend(FALSE)
 ```
 
 ### Grid
@@ -265,5 +284,6 @@ GC_chart(gene_clusters,
     cluster = 2, # Set to NULL to adjust all clusters
     height = "80px",
     margin = list(left = "5px", right = "5px", top = "0px", bottom = "0px")
-  )
+  ) %>% 
+  GC_legend(FALSE)
 ```

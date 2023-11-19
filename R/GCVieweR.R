@@ -308,16 +308,21 @@ GC_title <- function(
 
 #' Update Sequence Display of a GC Chart Cluster
 #'
-#' Modify the sequence display of specified clusters within a GC chart and adjust
-#' the display settings.
+#' Modify the sequence display and break markers of specified clusters within a GC chart.
+#'
+#' This function allows customization of the sequence line and break markers in a GC chart.
+#' It offers options to adjust the sequence line (`sequenceStyle`) and break markers (`markerStyle`).
+#' The `y` parameter can be used to set the vertical position of the sequence.
 #'
 #' @param GC_chart A GC chart object.
-#' @param show Logical. Whether to display the sequence. Default is TRUE.
-#' @param cluster Numeric or character vector. Clusters in the GC chart to update.
-#' @param marker List. Settings for the sequence break marker.
+#' @param show Logical, whether to display the sequence (default is TRUE).
+#' @param y Vertical position of the sequence line (default is 50).
+#' @param cluster Numeric or character vector specifying clusters to update.
+#' @param sequenceStyle A list of styling options for the sequence line.
+#' @param markerStyle A list of styling options for the sequence break markers.
 #' @param ... Additional customization arguments for sequence display.
 #'
-#' @return Updated GC chart with new sequence display settings.
+#' @return An updated GC chart with modified sequence display settings.
 #'
 #' @examples
 #' genes_data <- data.frame(
@@ -331,32 +336,34 @@ GC_title <- function(
 #' # Basic usage
 #' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
 #' GC_labels("name") %>%
-#' GC_sequence(
-#'   show = TRUE,
-#'   cluster = 1
-#' )
+#' GC_sequence(show = TRUE, y = 50, cluster = NULL)
 #'
-#' # Customize sequence style
+#' # Customize sequence and marker styles
 #' GC_chart(genes_data, cluster="cluster", group = "group") %>%
 #' GC_sequence(
-#'   stroke = "black",
-#'   strokeWidth = 2,
-#'   # Any other CSS styles
-#'   marker =         # Style sequence
-#'   list(            # break marker
-#'     stroke = "black",
-#'     strokeWidth = 2,
+#'   sequenceStyle = list(
+#'     stroke = "grey",
+#'     strokeWidth = 1
+#'     # Any other CSS style
+#'   ),
+#'   markerStyle = list(
+#'     stroke = "grey",
+#'     strokeWidth = 1,
 #'     gap = 3,
 #'     tiltAmount = 5
-#'     )
+#'     # Any other CSS style
 #'   )
+#' ) %>%
+#' GC_legend(FALSE)
 #'
 #' @export
 GC_sequence <- function(
     GC_chart,
     show = TRUE,
     cluster = NULL,
-    marker = list(),
+    y = 50,
+    sequenceStyle = list(),
+    markerStyle = list(),
     ...
 ) {
 
@@ -371,7 +378,9 @@ GC_sequence <- function(
     # Default options
     options <- list(
       show = show[(i-1) %% length(show) + 1],
-      marker = marker
+      y = y[(i-1) %% length(y) + 1],
+      sequenceStyle = sequenceStyle,
+      markerStyle = markerStyle
     )
 
     # Add ... arguments to options
@@ -538,6 +547,9 @@ GC_scale <- function(
 #' @param GC_chart A GC chart object.
 #' @param show Logical. Whether to show the scale bar.
 #' @param cluster Numeric or character vector. Clusters in the GC chart to update.
+#' @param scaleBarLineStyle List of style options for the scale bar line.
+#' @param scaleBarTickStyle List of style options for the scale bar ticks.
+#' @param labelStyle List of style options for the scale bar label.
 #' @param ... Additional arguments for scale bar settings.
 #'
 #' @return Updated GC chart with new scale bar settings.
@@ -559,32 +571,40 @@ GC_scale <- function(
 #' # Style scale bar
 #' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
 #'   GC_scaleBar(
-#'     title = " 1kb",
+#'     title = "1kb",
 #'     scaleBarUnit = 1000,
+#'     cluster = NULL,
+#'     x = 0,
 #'     y = 50,
-#'     labelPosition =  "left",
-#'     fontSize =  "10px",
-#'     fontFamily = "sans-serif",
-#'     textPadding =  -2,
-#'     scaleBarLine =
-#'       list(
-#'         stroke = "black",
-#'         strokeWidth = 2
-#'            ),
-#'     scaleBarTick =
-#'       list(
-#'         stroke = "black",
-#'         strokeWidth = 2
-#'         )
-#'        )
+#'     labelStyle = list(
+#'       labelPosition =  "left",
+#'       fontSize = "10px",
+#'       fontFamily = "sans-serif",
+#'       fill = "red", # Text color
+#'       cursor = "default"
+#'       # Any other CSS style for the label
+#'     ),
+#'     textPadding = -2,
+#'     scaleBarLineStyle = list(
+#'       stroke = "black",
+#'       strokeWidth = 1
+#'       # Any other CSS style for the line
+#'     ),
+#'     scaleBarTickStyle = list(
+#'       stroke = "black",
+#'       strokeWidth = 1
+#'       # Any other CSS style for the tick
+#'     )
+#'   )
 #'
 #' @export
 GC_scaleBar <- function(
     GC_chart,
     show = TRUE,
     cluster = NULL,
-    scaleBarTick = list(),
-    scaleBarLine = list(),
+    scaleBarLineStyle = list(),
+    scaleBarTickStyle = list(),
+    labelStyle = list(),
     ...
 ) {
 
@@ -599,8 +619,9 @@ GC_scaleBar <- function(
     # Default options
     options <- list(
       show = show[(i-1) %% length(show) + 1],
-      scaleBarTick = scaleBarTick,
-      scaleBarLine = scaleBarLine
+      scaleBarLineStyle = scaleBarLineStyle,
+      scaleBarTickStyle = scaleBarTickStyle,
+      labelStyle = labelStyle
     )
 
     # Add ... arguments to options

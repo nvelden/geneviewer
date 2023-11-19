@@ -9,6 +9,8 @@ GC_coordinates(
   show = TRUE,
   tickValuesTop = NULL,
   tickValuesBottom = NULL,
+  tickStyle = list(),
+  textStyle = list(),
   cluster = NULL,
   ...
 )
@@ -55,13 +57,14 @@ GC_coordinates() \%>\%
 GC_coordinates(
   cluster = 2,
   show = TRUE,
-  tickValuesTop = c(170, 210, 240),
+  tickValuesTop = c(130, 170, 210, 240),
   tickValuesBottom = c(160, 200),
   rotate = -45,
   yPositionTop = 55,
   yPositionBottom = 45,
   overlapPercentage = 2,
-  cursor = "default"
+  tickStyle = list(stroke = "black", strokeWidth = 1, lineLength = 6),
+  textStyle = list(fill = "black", fontSize = "12px", fontFamily = "Arial", cursor = "default")
 )
 
 }

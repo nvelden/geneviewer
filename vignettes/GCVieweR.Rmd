@@ -62,6 +62,80 @@ GC_chart(ophA_clusters,
 
 ## Customization
 
+### Specific Clusters
+
+Customization functions are preset to alter the styling of all gene clusters across the chart. To select a specific cluster one can use the cluster `variable` which is available in most customization functions. You can select a cluster either by it's name or number.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") %>%
+  GC_title(title = "ophA Gene Clusters", cluster = 1) %>%
+  GC_labels(label = "name", cluster = "ophA", y = 10) %>%
+  GC_labels(label = "name", cluster = 2) %>%
+  GC_grid(cluster = 2, height = "150px")
+```
+
+### Individual Items
+
+To apply styling to a particular item within a gene cluster, the `itemStyle` variable can be used. This variable, accessible in most customization functions, requires a list that specifies the index number of the desired item along with the intended styling attributes. It's important to note that indexing for `itemStyle` begins at 0, following a zero-based numbering system.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") %>%
+  GC_title(title = "ophA Gene Clusters", cluster = 1) %>%
+  GC_labels(label = "name", 
+            cluster = "ophA", 
+            y = 10, 
+            itemStyle = 
+              list(
+                list(index = 2, fill = "red", fontWeight = "bold")
+                )
+            ) %>%
+  GC_labels(
+    label = "name", 
+    cluster = 2,
+    itemStyle = 
+              list(
+                list(index = 4, fill = "red", fontWeight = "bold"),
+                list(index = 3, y = 20, x = -5)
+                )
+    ) %>%
+  GC_grid(cluster = 2, height = "150px")
+```
+
+### Genes
+
+The `GC_genes()` function can be used to custom style the genes. By default the genes are color-coded based on the 'group' column defined in in the `GC_chart() function`, but this can be altered using the group variable in the `GC_genes()` function. Color coding uses the "schemeCategory10" palette from D3.js by default. To explore other palettes, use the `colorScheme` variable, or define a unique color set with `customColors`. For detailed color customization, see the ([Colors section](###Color). Beyond color, the `GC_genes()` function supports various CSS styles, such as stroke and stroke width for further customization.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "150px") %>%
+  GC_genes(
+    group = "name",
+    show = TRUE,
+    customColors = c("blue", "red", "orange", "yellow", "purple", "green", "pink"), # A vector of color names
+    colorScheme = NULL, # One of D3.js build in colorSchemes
+                        # (eg. "schemeCategory10",
+                        # "schemeAccent", "schemeTableau10")
+    stroke = "grey",
+    strokeWidth = 2,
+    # Any other CSS style
+  ) %>%
+   GC_legend(FALSE)
+```
+
+By default the genes are displayed as arrows. To alter there appearance one can use the `arrowheadWidth`, `arrowheadHeight` and `arrowHeight` variables. In addition the positioning of the genes can be altered using the `x` and `y` variables.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "150px") %>%
+  GC_genes(
+    x = 0,
+    y = 55,
+    strokeWidth = 1, 
+    arrowheadWidth = 15, # 10
+    arrowheadHeight = 15, # 20
+    arrowHeight = 15 # 10
+   ) %>%
+   GC_legend(FALSE)
+```
+
 ### Labels
 
 To each gene cluster one can add a title, gene labels, a cluster label and a footer as shown in the example below. 
@@ -264,7 +338,7 @@ GC_chart(
 
 ### Scalebar
 
-A scalebar can be added to the gene cluster chart using GC_scaleBar(). This function, by default, displays a scale bar of 1000 base pairs (bp) labeled as "1kb". 
+A scalebar can be added to the gene cluster chart using `GC_scaleBar()`. This function, by default, displays a scale bar of 1000 base pairs (bp) labeled as "1kb". 
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(

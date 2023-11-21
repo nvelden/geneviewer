@@ -28,6 +28,9 @@
     <loc>/reference/GC_clusterLabel.html</loc>
   </url>
   <url>
+    <loc>/reference/GC_color.html</loc>
+  </url>
+  <url>
     <loc>/reference/GC_coordinates.html</loc>
   </url>
   <url>
@@ -80,6 +83,9 @@
   </url>
   <url>
     <loc>/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/ophA_clusters.html</loc>
   </url>
   <url>
     <loc>/reference/reexports.html</loc>

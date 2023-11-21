@@ -8,37 +8,38 @@ GC_legend(
   GC_chart,
   group = NULL,
   show = TRUE,
-  colorScheme = NULL,
-  customColors = NULL,
-  backgroundColor = "white",
+  backgroundColor = "#0000",
   labels = NULL,
+  legendOptions = list(),
+  legendTextOptions = list(),
   ...
 )
 }
 \arguments{
 \item{GC_chart}{The gene chart object to be modified.}
 
-\item{group}{Optional; character or NULL, the groups to include in the legend. If NULL,
-the groups are taken from the 'group' attribute of the 'GC_chart' object.}
+\item{group}{Optional; character or NULL, specifies the groups to include in the legend.
+If NULL, groups are taken from the 'group' attribute of the 'GC_chart' object.}
 
-\item{show}{Logical, whether to display the legend or not.}
+\item{show}{Logical, specifies whether to display the legend.}
 
-\item{colorScheme}{Optional; character or NULL, the name of the color scheme to apply to the legend.
-This can be one of D3.js's built-in color schemes (e.g., "schemeCategory10",
-"schemeAccent", "schemeTableau10").}
+\item{backgroundColor}{String, the background color of the legend.}
 
-\item{customColors}{Optional; list or NULL, custom colors to apply to the legend entries.}
+\item{labels}{Optional; character vector or NULL, custom labels for the legend entries.}
 
-\item{labels}{Optional; character or NULL, custom labels for the legend entries.}
+\item{legendOptions}{List, additional options for the legend.}
+
+\item{legendTextOptions}{List, additional text options for the legend.}
 
 \item{...}{Additional arguments to be passed to the legend configuration.}
 }
 \value{
-Returns the gene chart object with the legend configured.
+Returns the modified gene chart object with the legend configured.
 }
 \description{
-This function configures the legend for a gene chart. It can toggle the legend's visibility,
-apply a color scheme, assign custom colors, and set custom labels for the legend entries.
+This function configures the legend for a gene chart. It allows toggling the legend's visibility,
+setting a background color, and assigning custom labels for the legend entries.
+The function can also handle additional customizations through various options.
 }
 \examples{
 genes_data <- data.frame(
@@ -49,7 +50,7 @@ genes_data <- data.frame(
   cluster = c('A', 'A', 'A', 'B', 'B')
 )
 
-# Assuming GC_chart is a function that creates a gene chart object
+# Customize legend
 GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
   GC_legend(
     position = "top", #bottom
@@ -57,6 +58,7 @@ GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
     x = 10,
     y = 10,
     adjustHeight = TRUE,
+    backgroundColor = "#0000",
     labels = NULL, # c('Group A', 'Group B', 'Group C'),
     legendOptions = list(
       cursor = "pointer",
@@ -72,17 +74,7 @@ GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
       fontFamily = "sans-serif",
       fill = "black"
       # Additional styles
-    ),
+    )
   )
-
-# Configure the legend of the gene chart
-GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
-  GC_legend(
-    show = TRUE,
-    colorScheme = 'schemeCategory10', # Example color scheme
-    customColors = list('A' = 'blue', 'B' = 'green', 'C' = 'red'),
-    labels = c('Group A', 'Group B', 'Group C')
-  )
-
 
 }

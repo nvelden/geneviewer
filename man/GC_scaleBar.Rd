@@ -8,8 +8,9 @@ GC_scaleBar(
   GC_chart,
   show = TRUE,
   cluster = NULL,
-  scaleBarTick = list(),
-  scaleBarLine = list(),
+  scaleBarLineStyle = list(),
+  scaleBarTickStyle = list(),
+  labelStyle = list(),
   ...
 )
 }
@@ -19,6 +20,12 @@ GC_scaleBar(
 \item{show}{Logical. Whether to show the scale bar.}
 
 \item{cluster}{Numeric or character vector. Clusters in the GC chart to update.}
+
+\item{scaleBarLineStyle}{List of style options for the scale bar line.}
+
+\item{scaleBarTickStyle}{List of style options for the scale bar ticks.}
+
+\item{labelStyle}{List of style options for the scale bar label.}
 
 \item{...}{Additional arguments for scale bar settings.}
 }
@@ -45,23 +52,30 @@ GC_scaleBar(cluster = 2, title = "2 kb", scaleBarUnit = 2000)
 # Style scale bar
 GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
   GC_scaleBar(
-    title = " 1kb",
+    title = "1kb",
     scaleBarUnit = 1000,
+    cluster = NULL,
+    x = 0,
     y = 50,
-    labelPosition =  "left",
-    fontSize =  "10px",
-    fontFamily = "sans-serif",
-    textPadding =  -2,
-    scaleBarLine =
-      list(
-        stroke = "black",
-        strokeWidth = 2
-           ),
-    scaleBarTick =
-      list(
-        stroke = "black",
-        strokeWidth = 2
-        )
-       )
+    labelStyle = list(
+      labelPosition =  "left",
+      fontSize = "10px",
+      fontFamily = "sans-serif",
+      fill = "red", # Text color
+      cursor = "default"
+      # Any other CSS style for the label
+    ),
+    textPadding = -2,
+    scaleBarLineStyle = list(
+      stroke = "black",
+      strokeWidth = 1
+      # Any other CSS style for the line
+    ),
+    scaleBarTickStyle = list(
+      stroke = "black",
+      strokeWidth = 1
+      # Any other CSS style for the tick
+    )
+  )
 
 }

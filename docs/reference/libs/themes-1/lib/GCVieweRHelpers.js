@@ -860,7 +860,6 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
       const currentElement = d3.select(this);
       setAttributesFromOptions(currentElement, additionalOptions);
     });
-  console.log(wrapLabel)
   // If wrapLabel is true, wrap the text
   if (wrapLabel) {
     wrap(clusterTitle, titleWidth, wrapOptions);
@@ -870,7 +869,6 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
 };
 
 clusterContainer.prototype.sequence = function(show = true, options = {}) {
-
   if (!show) {
     return this;
   }
@@ -884,9 +882,11 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
     y: 50,
     start: null,
     stop: null,
-    stroke: "grey",
-    strokeWidth: 1,
-    marker: {
+    sequenceStyle: { // Adding sequenceStyle
+      stroke: "grey",
+      strokeWidth: 1
+    },
+    markerStyle: {
       markerHeight: 10,
       stroke: "grey",
       strokeWidth: 1,
@@ -895,47 +895,47 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
     }
   };
 
+  // Merge the default options with any predefined sequenceOptions and the provided options
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'sequenceOptions', options);
-  const { y, start, stop, stroke, strokeWidth, marker } = combinedOptions;
+  const { y, start, stop, markerStyle, sequenceStyle } = combinedOptions;
 
-  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
+  // Extract additional options that are not in defaultOptions for sequenceStyle
+  const additionalOptionsSequence = extractAdditionalOptions(sequenceStyle, defaultOptions.sequenceStyle);
 
   var g = this.svg.append("g")
-    .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+    .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
-  // Draw baseline
+  // Draw baseline with sequenceStyle
   g.append("line")
     .attr("class", "baseline")
     .attr("x1", this.xScale(start || this.minStart))
     .attr("y1", this.yScale(y))
     .attr("x2", this.xScale(stop || this.maxStop))
     .attr("y2", this.yScale(y))
-    .attr("stroke", stroke)
-    .attr("stroke-width", strokeWidth)
+    .style("stroke", sequenceStyle.stroke)
+    .style("stroke-width", sequenceStyle.strokeWidth)
     .each(function() {
       const currentElement = d3.select(this);
-      setAttributesFromOptions(currentElement, additionalOptions);
+      setAttributesFromOptions(currentElement, additionalOptionsSequence);
     });
 
   // Draw break markers with tilted lines
   for (let gap of this.breaks) {
-
-    const xStart = this.xScale(gap.start - 0.001) * (1 - marker.gap/100);
-    const xEnd = this.xScale(gap.stop + 0.001) * (1 + marker.gap/100);
+    const xStart = this.xScale(gap.start - 0.001) * (1 - markerStyle.gap / 100);
+    const xEnd = this.xScale(gap.stop + 0.001) * (1 + markerStyle.gap / 100);
     const yBase = this.yScale(y);
-    const yTop = yBase - marker.markerHeight / 2;
-    const yBottom = yBase + marker.markerHeight / 2;
+    const yTop = yBase - markerStyle.markerHeight / 2;
+    const yBottom = yBase + markerStyle.markerHeight / 2;
 
     if (xStart !== null && xEnd !== null) {
-
-   g.append("line")
-      .attr("class", "gap-line")
-      .attr("x1", xStart + (marker.tiltAmount / 2))
-      .attr("y1", yBase)
-      .attr("x2", xEnd - (marker.tiltAmount / 2))
-      .attr("y2", yBase)
-      .attr("stroke", "#0000")
-      .style("stroke-width", strokeWidth * 1.1);
+      g.append("line")
+        .attr("class", "gap-line")
+        .attr("x1", xStart + (markerStyle.tiltAmount / 2))
+        .attr("y1", yBase)
+        .attr("x2", xEnd - (markerStyle.tiltAmount / 2))
+        .attr("y2", yBase)
+        .attr("stroke", "#0000")
+        .style("stroke-width", sequenceStyle.strokeWidth * 1.1);
     }
 
     if (xStart !== null) {
@@ -943,21 +943,21 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
       g.append("line")
         .attr("x1", xStart)
         .attr("y1", yTop)
-        .attr("x2", xStart + marker.tiltAmount)
+        .attr("x2", xStart + markerStyle.tiltAmount)
         .attr("y2", yBottom)
-        .attr("stroke", marker.stroke)
-        .attr("stroke-width", marker.strokeWidth);
+        .attr("stroke", markerStyle.stroke)
+        .attr("stroke-width", markerStyle.strokeWidth);
     }
 
     if (xEnd !== null) {
       // Draw the tilted line after the gap
       g.append("line")
-        .attr("x1", xEnd - marker.tiltAmount) // Tilt before the end point
+        .attr("x1", xEnd - markerStyle.tiltAmount)
         .attr("y1", yTop)
         .attr("x2", xEnd)
         .attr("y2", yBottom)
-        .attr("stroke", marker.stroke)
-        .attr("stroke-width", marker.strokeWidth);
+        .attr("stroke", markerStyle.stroke)
+        .attr("stroke-width", markerStyle.strokeWidth);
     }
   }
 
@@ -1145,24 +1145,33 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
     }
 
     const defaultOptions = {
-        start: null,
-        stop: null,
         rotate: -45,
         yPositionTop: 55,
         yPositionBottom: 45,
         tickValuesTop: null,
         tickValuesBottom: null,
-        overlapPercentage: 2, // Default percentage for overlap threshold
-        cursor: "default",
+        overlapPercentage: 2,
+        tickStyle: {
+          stroke: "black",
+          strokeWidth: 1,
+          lineLength: 6
+        },
+        textStyle: {
+          fill: "black",
+          fontSize: "12px",
+          fontFamily: "Arial",
+          cursor: "default"
+        }
     };
 
-    if (this.themeOptions && this.themeOptions.coordinatesOptions) {
-        options = { ...this.themeOptions.coordinatesOptions, ...options };
-    }
+    const combinedOptions = mergeOptions.call(this, defaultOptions, 'coordinatesOptions', options);
+    console.log(options)
+    const { rotate, yPositionTop, yPositionBottom, tickValuesTop, tickValuesBottom, tickStyle, textStyle } = combinedOptions;
 
-    const combinedOptions = { ...defaultOptions, ...options };
-    const { rotate, yPositionTop, yPositionBottom, tickValuesTop, tickValuesBottom, cursor } = combinedOptions;
-    const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
+    // Extract additional options that are not in defaultOptions
+    const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultOptions.tickStyle);
+    const additionalOptionsTextStyle = extractAdditionalOptions(textStyle, defaultOptions.textStyle);
+
 
     const g = this.svg.append("g")
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
@@ -1217,11 +1226,24 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
             .attr("dx", "-.8em")
             .attr("dy", ".4em")
             .attr("transform", "rotate(" + (-rotate) + ")")
-            .style("cursor", cursor)
+            .style("fill", textStyle.fill)
+            .style("font-size", textStyle.fontSize)
+            .style("font-family", textStyle.fontFamily)
+            .style("cursor", textStyle.cursor)
             .each(function() {
                 const currentElement = d3.select(this);
-                setAttributesFromOptions(currentElement, additionalOptions);
+                setAttributesFromOptions(currentElement, additionalOptionsTextStyle);
             });
+
+        xAxisTop.selectAll(".tick line")
+            .style("stroke", tickStyle.stroke)
+            .style("stroke-width", tickStyle.strokeWidth)
+            .attr("y2", -tickStyle.lineLength)
+            .each(function() {
+                const currentElement = d3.select(this);
+                setAttributesFromOptions(currentElement, additionalOptionsTickStyle);
+            });
+
 
 
     // Create and configure the bottom axis
@@ -1243,17 +1265,28 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
             .attr("dx", ".8em")
             .attr("dy", "-.15em")
             .attr("transform", "rotate(" + (-rotate) + ")")
-            .style("cursor", cursor)
+            .style("fill", textStyle.fill)
+            .style("font-size", textStyle.fontSize)
+            .style("font-family", textStyle.fontFamily)
+            .style("cursor", textStyle.cursor)
             .each(function() {
                 const currentElement = d3.select(this);
-                setAttributesFromOptions(currentElement, additionalOptions);
+                setAttributesFromOptions(currentElement, additionalOptionsTextStyle);
+            });
+
+        xAxisBottom.selectAll(".tick line")
+            .style("stroke", tickStyle.stroke)
+            .style("stroke-width", tickStyle.strokeWidth)
+            .attr("y2", tickStyle.lineLength)
+            .each(function() {
+                const currentElement = d3.select(this);
+                setAttributesFromOptions(currentElement, additionalOptionsTickStyle);
             });
 
     return this;
 };
 
-clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
-
+clusterContainer.prototype.scaleBar = function(show = true, options = {}) {
   if (!show) {
     return this;
   }
@@ -1263,16 +1296,19 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
     scaleBarUnit: 1000,
     x: 0, // default x offset
     y: 10,
-    labelPosition: "left", // default label position
-    fontSize: "10px",
-    fontFamily: "sans-serif",
-    cursor: "default",
+    labelStyle: { // default styling for the label
+      fontSize: "10px",
+      fontFamily: "sans-serif",
+      cursor: "default",
+      fill: "black", // default text color
+      labelPosition: "left" // moved labelPosition into labelStyle
+    },
     textPadding: 0, // padding between text and line in x-direction
-    scaleBarLine: { // default styling for the scale bar line
+    scaleBarLineStyle: { // default styling for the scale bar line
       stroke: "grey",
       strokeWidth: 1
     },
-    scaleBarTick: { // default styling for the scale bar ticks
+    scaleBarTickStyle: { // default styling for the scale bar ticks
       stroke: "grey",
       strokeWidth: 1
     }
@@ -1280,51 +1316,51 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
 
   // Merge the default options with any predefined scaleBarOptions and the provided options
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'scaleBarOptions', options);
-  const { title, scaleBarUnit, x, y, labelPosition, fontSize, fontFamily, cursor, textPadding, scaleBarLine, scaleBarTick } = combinedOptions;
+  const { title, scaleBarUnit, x, y, textPadding, labelStyle, scaleBarLineStyle, scaleBarTickStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
-  const additionalOptionsText = extractAdditionalOptions(combinedOptions, defaultOptions);
-  const additionalOptionsLine = extractAdditionalOptions(scaleBarLine, defaultOptions.scaleBarLine);
-  const additionalOptionsTick = extractAdditionalOptions(scaleBarTick, defaultOptions.scaleBarTick);
+  const additionalOptionsLine = extractAdditionalOptions(scaleBarLineStyle, defaultOptions.scaleBarLineStyle);
+  const additionalOptionsTick = extractAdditionalOptions(scaleBarTickStyle, defaultOptions.scaleBarTickStyle);
+  const additionalOptionsLabel = extractAdditionalOptions(labelStyle, defaultOptions.labelStyle);
 
   // Calculate the length of the scale bar in pixels
   const scaleBarLength = this.xScale(scaleBarUnit) - this.xScale(0);
 
   // Create the group with the x offset applied
   const g = this.svg.append("g")
-    .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(fontSize) - 5 + x}, ${this.height - this.margin.bottom})`);
+    .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(labelStyle.fontSize) - 5 + x}, ${this.height - this.margin.bottom})`);
 
   // Create the scale bar line
   g.append("line")
-    .attr("x1", parseInt(fontSize) + 5 + scaleBarLength)
-    .attr("x2", parseInt(fontSize) + 5)
+    .attr("x1", parseInt(labelStyle.fontSize) + 5 + scaleBarLength)
+    .attr("x2", parseInt(labelStyle.fontSize) + 5)
     .attr("y1", -y)
     .attr("y2", -y)
-    .style("stroke", scaleBarLine.stroke)
-    .style("stroke-width", scaleBarLine.strokeWidth)
+    .style("stroke", scaleBarLineStyle.stroke)
+    .style("stroke-width", scaleBarLineStyle.strokeWidth)
     .each(function() {
       const currentElement = d3.select(this);
       setAttributesFromOptions(currentElement, additionalOptionsLine);
     });
 
   // Add the ticks
-  [parseInt(fontSize) + 5, parseInt(fontSize) + 5 + scaleBarLength].forEach(d => {
+  [parseInt(labelStyle.fontSize) + 5, parseInt(labelStyle.fontSize) + 5 + scaleBarLength].forEach(d => {
     g.append("line")
       .attr("x1", d)
       .attr("x2", d)
       .attr("y1", -y - 5)
       .attr("y2", -y + 5)
-      .style("stroke", scaleBarTick.stroke)
-      .style("stroke-width", scaleBarTick.strokeWidth)
+      .style("stroke", scaleBarTickStyle.stroke)
+      .style("stroke-width", scaleBarTickStyle.strokeWidth)
       .each(function() {
         const currentElement = d3.select(this);
         setAttributesFromOptions(currentElement, additionalOptionsTick);
       });
   });
 
-  // Determine the x position of the title based on the labelPosition and adjust with textPadding
-  const titleX = labelPosition === "left" ? (parseInt(fontSize) - textPadding) : (parseInt(fontSize) + 5 + scaleBarLength + textPadding);
-  const textAnchor = labelPosition === "left" ? "end" : "start";
+  // Determine the x position of the title based on the labelPosition within labelStyle and adjust with textPadding
+  const titleX = labelStyle.labelPosition === "left" ? (parseInt(labelStyle.fontSize) - textPadding) : (parseInt(labelStyle.fontSize) + 5 + scaleBarLength + textPadding);
+  const textAnchor = labelStyle.labelPosition === "left" ? "end" : "start";
 
   // Add the title
   g.append("text")
@@ -1332,12 +1368,13 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
     .attr("y", -y)
     .style("text-anchor", textAnchor)
     .style("dominant-baseline", "middle")
-    .style("font-size", fontSize)
-    .style("font-family", fontFamily)
-    .style("cursor", cursor)
+    .style("font-size", labelStyle.fontSize)
+    .style("font-family", labelStyle.fontFamily)
+    .style("cursor", labelStyle.cursor)
+    .style("fill", labelStyle.fill) // Apply text color
     .each(function() {
       const currentElement = d3.select(this);
-      setAttributesFromOptions(currentElement, additionalOptionsText);
+      setAttributesFromOptions(currentElement, additionalOptionsLabel);
     })
     .text(title);
 

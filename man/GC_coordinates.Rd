@@ -63,8 +63,17 @@ GC_coordinates(
   yPositionTop = 55,
   yPositionBottom = 45,
   overlapPercentage = 2,
-  tickStyle = list(stroke = "black", strokeWidth = 1, lineLength = 6),
-  textStyle = list(fill = "black", fontSize = "12px", fontFamily = "Arial", cursor = "default")
+  tickStyle = list(
+  stroke = "black",
+  strokeWidth = 1,
+  lineLength = 6
+  ),
+  textStyle = list(
+  fill = "black",
+  fontSize = "12px",
+  fontFamily = "Arial",
+  cursor = "default"
+  )
 )
 
 }

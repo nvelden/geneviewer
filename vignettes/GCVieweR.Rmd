@@ -40,13 +40,13 @@ GC_chart(ophA_cluster,
          start = "start", 
          stop = "stop", 
          group = "class", 
-         height = "200px"
+         height = "150px"
          )
 ```
 
 ### Multiple Gene Clusters
 
-For visualizing multiple gene clusters, an additional variable is needed which is used to define the clusters (as shown in the 'cluster' column below). 
+For visualizing multiple gene clusters, an additional variable is needed which is used to define the clusters (as shown in the 'cluster' column below). In the example below the overall chart height is set at "300px". Since there are two distinct gene clusters the height of each cluster will be 150px.
 
 ```{r echo=TRUE, results='asis'}
 # Example data for two Gene clusters
@@ -64,7 +64,7 @@ GC_chart(ophA_clusters,
 
 ### Specific Clusters
 
-Customization functions are preset to alter the styling of all gene clusters across the chart. To select a specific cluster one can use the cluster `variable` which is available in most customization functions. You can select a cluster either by it's name or number.
+Customization functions are by default set to alter the styling of all gene clusters across the chart. To select a specific cluster one can use the cluster `variable` which is available in most customization functions. You can select a cluster either by it's name or number.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") %>%
@@ -103,7 +103,7 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") 
 
 ### Genes
 
-The `GC_genes()` function can be used to custom style the genes. By default the genes are color-coded based on the 'group' column defined in in the `GC_chart() function`, but this can be altered using the group variable in the `GC_genes()` function. Color coding uses the "schemeCategory10" palette from D3.js by default. To explore other palettes, use the `colorScheme` variable, or define a unique color set with `customColors`. For detailed color customization, see the ([Colors section](###Color). Beyond color, the `GC_genes()` function supports various CSS styles, such as stroke and stroke width for further customization.
+The `GC_genes()` function can be used to custom style the genes. By default the genes are color-coded based on the `group` column defined in in the `GC_chart()` function, but this can be altered using the `group` variable in the `GC_genes()` function. Color coding uses the "schemeCategory10" palette from D3.js by default. To explore other palettes, use the `colorScheme` variable, or define a unique color set with `customColors`. For detailed color customization, see the [Colors section](#colors). Beyond color, the `GC_genes()` function supports various CSS styles, such as stroke and stroke width for further customization.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "150px") %>%
@@ -160,25 +160,36 @@ GC_chart(ophA_clusters,
     )
 ```
 
-To adjust the positioning of labels, the x, y, and position variables can be used. Note that in this example, GC_labels() is employed twice: initially, it sets labels uniformly for all gene clusters, and then it specifically adjusts the fourth label (considering the index starts at 0) in cluster 2, to ensure there is no overlap.
+To adjust the positioning of labels, the `x`, `y`, and `position` variables can be used. Note that in this example, `GC_labels()` is employed twice: initially, it sets labels uniformly for all gene clusters, and then it specifically adjusts the fourth and eight label (considering the index starts at 0) in cluster 2, to ensure there is no overlap.
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(ophA_clusters, start = "start", stop = "stop", group = "class", cluster = "cluster", height = "360px") %>%
-  GC_title(c("Omphalotus Olearius", "Dendrothele Bisporus"), position = "left", x = 20) %>%
+GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") %>%
+  GC_title(
+    c("Omphalotus Olearius", "Dendrothele Bisporus"), 
+    position = "left", 
+    x = 20) %>%
   GC_labels("name", y = 25) %>%
-  GC_labels("name", cluster = 2, y = 25, itemStyle = list(list(index = 3, y = 50))) %>%
-  GC_footer(title = c("Nr. of Genes: 7", "Nr. of Genes: 10"), subtitle = c("Locus: 2522 - 21,484", "Locus 19,236 - 43,005"), position = "center", y = -30)
+  GC_labels("name", 
+            cluster = 2, 
+            y = 25, 
+            itemStyle = 
+              list(
+                list(index = 3, y = 50),
+                list(index = 7, y = 50)
+                )
+            ) %>%
+  GC_footer(
+    title = c("Nr. of Genes: 7", "Nr. of Genes: 10"), 
+    subtitle = c("Locus: 2522 - 21,484", "Locus 19,236 - 43,005"), 
+    position = "center", 
+    y = -30
+    )
 ```
 
-To adjust the position or styling of specific labels one can use the cluster and itemStyle variables. With the cluster variable one can select a specific cluster by their name or number. Using itemStyle variable one can provide a list with the index number of a specific label and the styles that should be applied to it. Note that the index for itemStyle starts with 0.
+To adjust the position or styling of specific labels one can use the `cluster` and `itemStyle` variables. With the cluster variable one can select a specific cluster by their name or number. Using `itemStyle` variable one can provide a list with the index number of a specific label and the styles that should be applied to it. Note that the index for `itemStyle` starts with 0.
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(ophA_clusters, 
-         start = "start", 
-         stop = "stop", 
-         group = "class", 
-         cluster = "cluster", 
-         height = "360px") %>%
+GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") %>%
   GC_labels("name", y = 30) %>%
   GC_labels("name", 
             cluster = 2, 
@@ -190,32 +201,90 @@ GC_chart(ophA_clusters,
             )
 ```
 
-For more detailed examples on how to adjust styling, positioning, and settings for these elements, see the Reference documentation of each function.
-
 ### Colors
 
-The color of the legend and genes can be controlled through the `colorScheme` and `customColors` variables.
+The color of the legend and genes can be controlled through the `GC_color` function using the `colorScheme` or `customColors` variables.
 
 #### colorScheme
 
-Defines a predefined color scheme for the legend, such as "schemeCategory10" or "schemeAccent" from D3.js. To maintain consistency in color representation apply the same `colorScheme` to both the legend and the gene elements. 
+Defines a predefined color scheme for the legend, such as "schemeCategory10" or "schemeAccent" from D3.js. 
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(ophA_cluster, start = "start", stop = "stop", group = "class", height = "100px") %>%
-  GC_legend(legendOptions = list(colorScheme = "schemeAccent")) %>%
-  GC_genes(colorScheme = "schemeAccent")
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_color(colorScheme = "schemeAccent")
+```
+
+Supported schemes include:
+
+  - `d3.schemeCategory10`: An array of ten categorical colors.
+```{r echo=FALSE, results='asis'}
+generate_GC_color_patches <- function(color_scheme_name, color_scheme_length) {
+  if (color_scheme_length <= 0) {
+    stop("Color scheme length must be positive")
+  }
+
+  color_array <- data.frame(
+    start = seq(1, (color_scheme_length - 1) * 10 + 1, by = 10),
+    stop = seq(10, color_scheme_length * 10, by = 10),
+    group = 1:color_scheme_length
+  )
+
+  chart <- GC_chart(color_array, group = "group", height = "30px", width = 300) %>%
+    GC_genes(colorScheme = color_scheme_name, arrowheadWidth = 0, arrowheadHeight = 25, arrowHeight = 25) %>%
+    GC_legend(FALSE) %>%
+    GC_tooltip(FALSE) %>%
+    GC_sequence(FALSE)
+
+  return(chart)
+}
+generate_GC_color_patches("schemeCategory10", 10)
+```
+  - `d3.schemeAccent`: An array of eight categorical colors.
+```{r echo=FALSE, results='asis'}
+generate_GC_color_patches("schemeAccent", 8)
+```
+  - `d3.schemeDark2`: An array of eight categorical colors.
+```{r echo=FALSE, results='asis'}
+generate_GC_color_patches("schemeDark2", 8)
+```
+  - `d3.schemePaired`: An array of twelve categorical colors.
+```{r echo=FALSE, results='asis'}
+generate_GC_color_patches("schemePaired", 12)
+```
+  - `d3.schemePastel1`: An array of nine categorical colors.
+```{r echo=FALSE, results='asis'}
+generate_GC_color_patches("schemePastel1", 9)
+```
+  - `d3.schemePastel2`: An array of eight categorical colors.
+```{r echo=FALSE, results='asis'}
+generate_GC_color_patches("schemePastel2", 8)
+```
+  - `d3.schemeSet1`: An array of nine categorical colors.
+```{r echo=FALSE, results='asis'}
+generate_GC_color_patches("schemeSet1", 9)
+```
+  - `d3.schemeSet2`: An array of eight categorical colors.
+```{r echo=FALSE, results='asis'}
+generate_GC_color_patches("schemeSet2", 8)
+```
+  - `d3.schemeSet3`: An array of twelve categorical colors.
+```{r echo=FALSE, results='asis'}
+generate_GC_color_patches("schemeSet3", 12)
+```
+  - `d3.schemeTableau10`: An array of ten categorical colors, originally created for Tableau.
+```{r echo=FALSE, results='asis'}
+generate_GC_color_patches("schemeTableau10", 10)
 ```
 
 #### customColors
 
-Defines a predefined set of colors, customColors allows for specifying exact colors for each group in the legend. 
+Defines a predefined set of colors, `customColors` allows for specifying exact colors for each group in the legend. 
 
 ```{r echo=TRUE, results='asis'}
-custom_color_map =c("#F8766D","#00BA38","#619CFF","#F564E3","#FFC61E","#00BFC4")
+custom_colors <- c("#F8766D","#00BA38","#619CFF","#F564E3","#FFC61E","#00BFC4")
 
-GC_chart(ophA_cluster, start = "start", stop = "stop", group = "class", height = "100px") %>%
-  GC_legend(legendOptions = list(customColors = custom_color_map)) %>% 
-  GC_genes(customColors = custom_color_map)
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_color(customColors = custom_colors)
 ```
 
 ### Coordinates
@@ -225,7 +294,7 @@ Gene coordinates can be displayed with the `GC_coordinates()` function. When ove
 ```{r echo=TRUE, results='asis'}
 dbophA_cluster <- subset(ophA_clusters, cluster == "dbophA")
 
-GC_chart(dbophA_cluster, start = "start", stop = "stop", group = "class",height = "100px") %>%
+GC_chart(dbophA_cluster, group = "class",height = "100px") %>%
   GC_coordinates(
   rotate = -45,
   yPositionTop = 55,
@@ -235,10 +304,10 @@ GC_chart(dbophA_cluster, start = "start", stop = "stop", group = "class",height 
   GC_legend(FALSE)
 ```
 
-The style of the ticks and text can be customized using the tickStyle and textStyle variables
+The style of the ticks and text can be customized using the `tickStyle` and `textStyle` variables
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(dbophA_cluster, start = "start", stop = "stop", group = "class",height = "100px") %>%
+GC_chart(dbophA_cluster, group = "class",height = "100px") %>%
   GC_coordinates(
    tickStyle = list(stroke = "grey", strokeWidth = 1, lineLength = 10),
    textStyle = list(fill = "gray", fontSize = "10px", fontFamily = "Arial", cursor = "default")
@@ -246,10 +315,10 @@ GC_chart(dbophA_cluster, start = "start", stop = "stop", group = "class",height 
    GC_legend(FALSE)
 ```
 
-By default, the start and stop positions of each gene are indicated by coordinates. However, you can customize these by providing your own values for the top and bottom ticks, using the tickValuesTop and tickValuesBottom options.
+By default, the start and stop positions of each gene are indicated by coordinates. However, you can customize these by providing your own values for the top and bottom ticks, using the `tickValuesTop` and `tickValuesBottom` options.
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(dbophA_cluster, start = "start", stop = "stop", group = "class",height = "100px") %>%
+GC_chart(dbophA_cluster, group = "class",height = "100px") %>%
   GC_coordinates(
     tickValuesTop = c(27371, 28937),
     tickValuesBottom = c(25288, 27217)                  
@@ -268,8 +337,6 @@ In the given example, a scale break will be introduced in cases where the interg
 ```{r echo=TRUE, results='asis'}
 # With scale breaks
 GC_chart(ophA_cluster, 
-         start = "start", 
-         stop = "stop", 
          group = "class", 
          height = "100px", 
          scale_breaks = TRUE,
@@ -309,10 +376,7 @@ The sequence line in the `GC_sequence()` function is initially presented as a so
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(
-  ophA_clusters, 
-  start = "start", 
-  stop = "stop", 
-  group = "class",
+  ophA_clusters, group = "class",
   scale_breaks = TRUE,
   cluster = "cluster",
   height = "150px") %>%
@@ -341,13 +405,7 @@ GC_chart(
 A scalebar can be added to the gene cluster chart using `GC_scaleBar()`. This function, by default, displays a scale bar of 1000 base pairs (bp) labeled as "1kb". 
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(
-  ophA_clusters, 
-  start = "start", 
-  stop = "stop", 
-  group = "class",
-  cluster = "cluster",
-  height = "150px") %>%
+GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "150px") %>%
   GC_scaleBar(
     title = "1kb",
     scaleBarUnit = 1000
@@ -358,14 +416,7 @@ GC_chart(
 The scalebar's position and label can be customized using the `x`, `y`, and `labelPosition` parameters. CSS styles can be added to modify the labels. The appearance of the scalebar line and ticks is adjustable through the `scaleBarLine` and `scaleBarTick` options.
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(
-  ophA_clusters, 
-  start = "start", 
-  stop = "stop", 
-  group = "class",
-  cluster = "cluster",
-  height = "150px"
-) %>%
+GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "150px") %>%
   GC_scaleBar(
     title = "1kb",
     scaleBarUnit = 1000,
@@ -399,12 +450,7 @@ GC_chart(
 By default, the tooltip in the gene chart displays the start and stop positions of a gene when hovering over it. These positions are dynamically replaced by the actual start and stop data values for each gene. You can customize the text of the tooltip using the `formatter` variable. In the example below, the tooltip is customized to not only include the gene's start and stop positions but also its name. The gene name is pulled from the 'name' column in the data set. 
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(
-  ophA_cluster, 
-  start = "start", 
-  stop = "stop", 
-  group = "class", 
-  height = "150px") %>%
+GC_chart(ophA_cluster, group = "class", height = "150px") %>%
   GC_tooltip(
     formatter = "<b>Gene: </b>{name}<br><b>Start:</b> {start}<br><b>Stop:</b> {stop}",
   ) %>%
@@ -417,14 +463,10 @@ The `GC_grid()` function can be used to modify the grid of all or a specific clu
 
 ```{r echo=TRUE, results='asis'}
 # With scale breaks
-GC_chart(ophA_clusters, 
-         start = "start", 
-         stop = "stop", 
-         group = "class", 
-         cluster = "cluster",
+GC_chart(ophA_clusters, group = "class", cluster = "cluster",
          height = "200px" # Total height 
                           # since there are 2 clusters in the data 
-                          # the height will be 200px each
+                          # the height of each cluster will be 100px
          ) %>% 
   GC_grid(
     cluster = 2, # Set to NULL to adjust all clusters

@@ -231,4 +231,25 @@ compute_size <- function(value, length = 2) {
   stop("Unsupported format")
 }
 
+#' @export
+get_relative_height <- function(baseHeight, relativeHeight) {
+  # Convert baseHeight to numeric if it's in the format "400px"
+  if(is.character(baseHeight) && grepl("px$", baseHeight)) {
+    baseHeight <- as.numeric(sub("px", "", baseHeight))
+  }
+
+  # Check if relativeHeight is a percentage
+  if(is.character(relativeHeight) && grepl("%$", relativeHeight)) {
+    # Convert percentage to a decimal and calculate the new height
+    percentage <- as.numeric(sub("%", "", relativeHeight)) / 100
+    return(baseHeight * percentage)
+  } else {
+    # If relativeHeight is numeric or a string like "400px", treat it as numeric
+    if(is.character(relativeHeight) && grepl("px$", relativeHeight)) {
+      relativeHeight <- as.numeric(sub("px", "", relativeHeight))
+    }
+    return(as.numeric(relativeHeight))
+  }
+}
+
 

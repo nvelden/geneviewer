@@ -4,25 +4,41 @@
 \alias{GC_sequence}
 \title{Update Sequence Display of a GC Chart Cluster}
 \usage{
-GC_sequence(GC_chart, show = TRUE, cluster = NULL, marker = list(), ...)
+GC_sequence(
+  GC_chart,
+  show = TRUE,
+  cluster = NULL,
+  y = 50,
+  sequenceStyle = list(),
+  markerStyle = list(),
+  ...
+)
 }
 \arguments{
 \item{GC_chart}{A GC chart object.}
 
-\item{show}{Logical. Whether to display the sequence. Default is TRUE.}
+\item{show}{Logical, whether to display the sequence (default is TRUE).}
 
-\item{cluster}{Numeric or character vector. Clusters in the GC chart to update.}
+\item{cluster}{Numeric or character vector specifying clusters to update.}
 
-\item{marker}{List. Settings for the sequence break marker.}
+\item{y}{Vertical position of the sequence line (default is 50).}
+
+\item{sequenceStyle}{A list of styling options for the sequence line.}
+
+\item{markerStyle}{A list of styling options for the sequence break markers.}
 
 \item{...}{Additional customization arguments for sequence display.}
 }
 \value{
-Updated GC chart with new sequence display settings.
+An updated GC chart with modified sequence display settings.
 }
 \description{
-Modify the sequence display of specified clusters within a GC chart and adjust
-the display settings.
+Modify the sequence display and break markers of specified clusters within a GC chart.
+}
+\details{
+This function allows customization of the sequence line and break markers in a GC chart.
+It offers options to adjust the sequence line (`sequenceStyle`) and break markers (`markerStyle`).
+The `y` parameter can be used to set the vertical position of the sequence.
 }
 \examples{
 genes_data <- data.frame(
@@ -36,24 +52,24 @@ genes_data <- data.frame(
 # Basic usage
 GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
 GC_labels("name") \%>\%
-GC_sequence(
-  show = TRUE,
-  cluster = 1
-)
+GC_sequence(show = TRUE, y = 50, cluster = NULL)
 
-# Customize sequence style
+# Customize sequence and marker styles
 GC_chart(genes_data, cluster="cluster", group = "group") \%>\%
 GC_sequence(
-  stroke = "black",
-  strokeWidth = 2,
-  # Any other CSS styles
-  marker =         # Style sequence
-  list(            # break marker
-    stroke = "black",
-    strokeWidth = 2,
+  sequenceStyle = list(
+    stroke = "grey",
+    strokeWidth = 1
+    # Any other CSS style
+  ),
+  markerStyle = list(
+    stroke = "grey",
+    strokeWidth = 1,
     gap = 3,
     tiltAmount = 5
-    )
+    # Any other CSS style
   )
+) \%>\%
+GC_legend(FALSE)
 
 }

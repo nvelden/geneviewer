@@ -708,8 +708,8 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
 
   // Default options for title and subtitle
   const defaultOptions = {
-    x: 6,
-    y: -20,
+    x: 0,
+    y: 0,
     position: "left",
     spacing: 12, // Default spacing between title and subtitle
     titleFont: {
@@ -741,20 +741,21 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
   // Determine text position and anchor based on the provided position
   switch (position) {
     case "left":
-      xPos = x;
+      xPos = x + 6;
       textAnchor = "start";
       break;
     case "right":
-      xPos = this.width - x;
+      xPos = this.width - x - 6;
       textAnchor = "end";
       break;
     default:
-      xPos = x + (this.width / 2);
+      xPos = (this.width / 2) + x;
       textAnchor = "middle";
-  }
+}
+
 
   // Calculate y position for title and subtitle based on the SVG height and bottom margin
-  const titleYPos = this.height - this.margin.bottom + y;
+  const titleYPos = this.height - this.margin.bottom + y - 20;
   const subtitleYPos = titleYPos + spacing;
 
   // Add title to the SVG
@@ -1158,7 +1159,7 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
         },
         textStyle: {
           fill: "black",
-          fontSize: "12px",
+          fontSize: "10px",
           fontFamily: "Arial",
           cursor: "default"
         }
@@ -1959,7 +1960,8 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 
             const { currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight } = getAttributesForIndex(d, i);
             const geneLength = Math.abs(this.xScale(d.stop) - this.xScale(d.start));
-            const shaftLength = geneLength - currentArrowheadWidth;
+            let shaftLength = geneLength - currentArrowheadWidth;
+            shaftLength = Math.max(0, shaftLength);
 
             const shaftTop = (currentArrowheadHeight - currentArrowHeight) / 2;
             const shaftBottom = shaftTop + currentArrowHeight;

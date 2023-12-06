@@ -2,7 +2,7 @@
 title: "Example charts"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{GCVieweR example charts}
+  %\VignetteIndexEntry{Example charts}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

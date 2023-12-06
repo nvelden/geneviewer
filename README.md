@@ -2,7 +2,6 @@
   <img src="man/figures/logo.png" height="150px" width="150px" align="right">
   <h1><strong>GCVieweR</strong> - Interactive Gene Cluster Visualizations in R</h1>
 </p>
-
 <!-- badges: start -->
 [![CRAN status](https://www.r-pkg.org/badges/version/GCVieweR)](https://CRAN.R-project.org/package=GCVieweR)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)

@@ -23,7 +23,7 @@ library(biomaRt)
 
 <details>
 <summary>Click to see the code</summary>
-```{r echo=TRUE, results='asis'}
+```{r echo=TRUE, results='hide'}
 lacZ_operon <- data.frame(
   start = c(361249, 361926, 363231, 366428), 
   stop = c(361860, 363179, 366305, 367510), 
@@ -48,7 +48,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   GC_title ("The Lac operon") %>%
   GC_footer(
     position = "middle",
-    y = -40,
+    y = -30,
     subtitle = "Escherichia coli str. K-12 substr. MG1655" 
   ) %>%
   GC_coordinates(

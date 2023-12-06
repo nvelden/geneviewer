@@ -182,7 +182,7 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") 
     title = c("Nr. of Genes: 7", "Nr. of Genes: 10"), 
     subtitle = c("Locus: 2522 - 21,484", "Locus 19,236 - 43,005"), 
     position = "center", 
-    y = -30
+    y = -10
     )
 ```
 

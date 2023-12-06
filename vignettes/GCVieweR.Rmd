@@ -64,7 +64,9 @@ GC_chart(ophA_clusters,
 
 ### Specific Clusters
 
-Customization functions are by default set to alter the styling of all gene clusters across the chart. To select a specific cluster one can use the cluster `variable` which is available in most customization functions. You can select a cluster either by it's name or number.
+Customization functions are by default set to alter the styling of all gene clusters across the chart. To select a specific cluster one can use the `cluster` variable which is available in most customization functions. You can select a cluster either by it's name or number.
+
+In the below example a title is set for the first cluster and the y position and height is adjusted for the second cluster.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") %>%
@@ -77,6 +79,8 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") 
 ### Individual Items
 
 To apply styling to a particular item within a gene cluster, the `itemStyle` variable can be used. This variable, accessible in most customization functions, requires a list that specifies the index number of the desired item along with the intended styling attributes. It's important to note that indexing for `itemStyle` begins at 0, following a zero-based numbering system.
+
+In the example below, the 3rd label in the ophA cluster is styled with red color and bold font. The code also customizes labels in cluster 2, where the 5th label is similarly styled in red and bold, and the 4th label's position is adjusted.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") %>%
@@ -216,7 +220,7 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
 
 Supported schemes include:
 
-  - `d3.schemeCategory10`: An array of ten categorical colors.
+  - `schemeCategory10`: An array of ten categorical colors.
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches <- function(color_scheme_name, color_scheme_length) {
   if (color_scheme_length <= 0) {
@@ -239,39 +243,39 @@ generate_GC_color_patches <- function(color_scheme_name, color_scheme_length) {
 }
 generate_GC_color_patches("schemeCategory10", 10)
 ```
-  - `d3.schemeAccent`: An array of eight categorical colors.
+  - `schemeAccent`: An array of eight categorical colors.
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemeAccent", 8)
 ```
-  - `d3.schemeDark2`: An array of eight categorical colors.
+  - `schemeDark2`: An array of eight categorical colors.
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemeDark2", 8)
 ```
-  - `d3.schemePaired`: An array of twelve categorical colors.
+  - `schemePaired`: An array of twelve categorical colors.
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemePaired", 12)
 ```
-  - `d3.schemePastel1`: An array of nine categorical colors.
+  - `schemePastel1`: An array of nine categorical colors.
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemePastel1", 9)
 ```
-  - `d3.schemePastel2`: An array of eight categorical colors.
+  - `schemePastel2`: An array of eight categorical colors.
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemePastel2", 8)
 ```
-  - `d3.schemeSet1`: An array of nine categorical colors.
+  - `schemeSet1`: An array of nine categorical colors.
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemeSet1", 9)
 ```
-  - `d3.schemeSet2`: An array of eight categorical colors.
+  - `schemeSet2`: An array of eight categorical colors.
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemeSet2", 8)
 ```
-  - `d3.schemeSet3`: An array of twelve categorical colors.
+  - `schemeSet3`: An array of twelve categorical colors.
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemeSet3", 12)
 ```
-  - `d3.schemeTableau10`: An array of ten categorical colors, originally created for Tableau.
+  - `schemeTableau10`: An array of ten categorical colors, originally created for Tableau.
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemeTableau10", 10)
 ```

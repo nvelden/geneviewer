@@ -154,7 +154,7 @@ GC_chart(ophA_clusters,
          ) %>%
   GC_title(
     title = c("Gene Cluster"), 
-    subtitle = c("Omphalotus Olearius", "Dendrothele Bisporus")
+    subtitle = c("<i>Omphalotus Olearius</i>", "<i>Dendrothele Bisporus</i>")
     ) %>%
   GC_labels("name") %>%
   GC_clusterLabel(title = unique(ophA_clusters$cluster)) %>%
@@ -169,7 +169,7 @@ To adjust the positioning of labels, the `x`, `y`, and `position` variables can 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") %>%
   GC_title(
-    c("Omphalotus Olearius", "Dendrothele Bisporus"), 
+    c("<i>Omphalotus Olearius</i>", "<i>Dendrothele Bisporus</i>"), 
     position = "left", 
     x = 20) %>%
   GC_labels("name", y = 25) %>%

@@ -49,7 +49,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   GC_footer(
     position = "middle",
     y = -30,
-    subtitle = "Escherichia coli str. K-12 substr. MG1655" 
+    subtitle = "<i>Escherichia coli</i> str. K-12 substr. MG1655" 
   ) %>%
   GC_coordinates(
     rotate = 0,
@@ -87,7 +87,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   GC_footer(
     position = "middle",
     y = -40,
-    subtitle = "Escherichia coli str. K-12 substr. MG1655" 
+    subtitle = "<i>Escherichia coli</i> str. K-12 substr. MG1655" 
   ) %>%
   GC_coordinates(
     rotate = 0,

@@ -784,7 +784,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
   const titleYPos = this.height - this.margin.bottom + y - 20;
   const subtitleYPos = titleYPos + spacing;
 
-  // Add title to the SVG
+  if (title) {
   this.svg.append("text")
     .attr("x", xPos)
     .attr("y", titleYPos)
@@ -799,6 +799,8 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
       parseAndStyleText(title, currentElement, titleFont);
       setAttributesFromOptions(currentElement, additionalOptionsTitleFont);
     });
+
+  }
 
   // Add subtitle to the SVG if provided
   if (subtitle) {

@@ -1,3 +1,9 @@
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
 name: 'check-r-package'
 description: 'Action to check R package with rcmdcheck. Assumes that rcmdcheck has already been installed.'
 author: 'Jim Hester'

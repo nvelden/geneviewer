@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="man/figures/logo.png" height="150px" width="150px" align="right">
+  <img src="man/figures/logo.png" height="150px" align="right">
   <h1><strong>GCVieweR</strong> - Interactive Gene Cluster Visualizations in R</h1>
 </p>
 

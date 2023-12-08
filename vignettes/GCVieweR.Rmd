@@ -59,6 +59,44 @@ GC_chart(ophA_clusters,
          )
 ```
 
+## Shiny
+
+The `GC_chartOutput()` and `renderGC_chart()` functions enable you to visualize gene clusters within Shiny applications. 
+
+```{r echo=TRUE, eval = FALSE}
+# Load necessary libraries
+library(shiny)
+library(GCVieweR)
+
+
+# Define UI
+ui <- fluidPage(titlePanel("Omphalotin Gene Cluster Visualization"),
+                mainPanel(# Output for GC_chart
+                  GC_chartOutput(
+                    "gcChart", width = "100%", height = "500px"
+                  )))
+
+# Define server logic
+server <- function(input, output) {
+  output$gcChart <- renderGC_chart({
+    
+    GC_chart(
+      ophA_clusters,
+      cluster = "cluster",
+      group = "class"
+    ) %>%
+      GC_title(title = c("<i>O. olearius</i>", "<i>D. bispora</i>")) %>%
+      GC_labels("name") %>%
+      GC_legend(position = "bottom") %>%
+      GC_scaleBar() %>%
+      GC_clusterLabel(title = "ophA")
+    
+  })
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
+```
 
 ## Customization
 

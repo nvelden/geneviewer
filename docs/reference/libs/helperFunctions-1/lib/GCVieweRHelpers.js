@@ -439,6 +439,43 @@ function createDiscontinuousScale(minStart, maxStop, width, margin, breaks) {
     return scaleProxy;  // Return the discontinuous scale
 }
 
+function parseAndStyleText(text, parentElement, fontOptions) {
+  const tagRegex = /<([biu])>(.*?)<\/\1>/g;
+
+  let lastIndex = 0;
+
+  // Helper function to append text with specific styles
+  const appendText = (content, isBold = false, isItalic = false, isUnderline = false) => {
+    const tspan = parentElement.append("tspan")
+      .style("font-weight", isBold ? "bold" : fontOptions.weight)
+      .style("font-style", isItalic ? "italic" : fontOptions.style)
+      .text(content);
+
+    if (isUnderline) {
+      tspan.style("text-decoration", "underline");
+    }
+  };
+
+  // Iterate through the string and apply styles
+  text.replace(tagRegex, function(match, tag, content, offset) {
+    // Append text before the tag
+    if (offset > lastIndex) {
+      appendText(text.substring(lastIndex, offset), false, false, false);
+    }
+
+    // Apply style based on the tag
+    appendText(content, tag === 'b', tag === 'i', tag === 'u');
+
+    lastIndex = offset + match.length;
+    return match; // This return is not used, but is necessary for the replace function
+  });
+
+  // Append any remaining text after the last tag
+  if (lastIndex < text.length) {
+    appendText(text.substring(lastIndex), false, false, false);
+  }
+}
+
 // CLuster
 
 function clusterContainer(svg, margin, width, height) {
@@ -635,7 +672,6 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'titleOptions', options);
   const { x, y, titleFont, subtitleFont, position, spacing } = combinedOptions;
 
-
   // Extract additional options that are not in defaultOptions
   const additionalOptionsTitleFont = extractAdditionalOptions(titleFont, defaultOptions.titleFont);
   const additionalOptionsSubtitleFont = extractAdditionalOptions(subtitleFont, defaultOptions.subtitleFont);
@@ -663,15 +699,9 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
     .attr("x", xPos)
     .attr("y", y + (this.margin.top / 2))
     .attr("text-anchor", textAnchor)
-    .style("font-size", titleFont.size)
-    .style("font-style", titleFont.style)
-    .style("font-weight", titleFont.weight)
-    .style("text-decoration", titleFont.decoration)
-    .style("font-family", titleFont.family)
-    .style("cursor", titleFont.cursor)
-    .text(title)
     .each(function() {
       const currentElement = d3.select(this);
+      parseAndStyleText(title, currentElement, titleFont);
       setAttributesFromOptions(currentElement, additionalOptionsTitleFont);
     });
 
@@ -679,15 +709,11 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   if (subtitle) {
     this.svg.append("text")
       .attr("x", xPos)
-      .attr("y", y + (this.margin.top / 2) + spacing) // Use the spacing option for subtitle spacing
+      .attr("y", y + (this.margin.top / 2) + spacing)
       .attr("text-anchor", textAnchor)
-      .style("font-size", subtitleFont.size)
-      .style("font-style", subtitleFont.style)
-      .style("font-family", subtitleFont.family)
-      .style("cursor", subtitleFont.cursor)
-      .text(subtitle)
       .each(function() {
         const currentElement = d3.select(this);
+        parseAndStyleText(subtitle, currentElement, subtitleFont);
         setAttributesFromOptions(currentElement, additionalOptionsSubtitleFont);
       });
   }
@@ -758,7 +784,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
   const titleYPos = this.height - this.margin.bottom + y - 20;
   const subtitleYPos = titleYPos + spacing;
 
-  // Add title to the SVG
+  if (title) {
   this.svg.append("text")
     .attr("x", xPos)
     .attr("y", titleYPos)
@@ -768,11 +794,13 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
     .style("font-style", titleFont.fontStyle)
     .style("font-family", titleFont.fontFamily)
     .style("cursor", titleFont.cursor)
-    .text(title)
     .each(function() {
       const currentElement = d3.select(this);
+      parseAndStyleText(title, currentElement, titleFont);
       setAttributesFromOptions(currentElement, additionalOptionsTitleFont);
     });
+
+  }
 
   // Add subtitle to the SVG if provided
   if (subtitle) {
@@ -785,10 +813,10 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
       .style("font-style", subtitleFont.fontStyle)
       .style("font-family", subtitleFont.fontFamily)
       .style("cursor", subtitleFont.cursor)
-      .text(subtitle)
       .each(function() {
         const currentElement = d3.select(this);
-        setAttributesFromOptions(currentElement, additionalOptionsSubtitleFont);
+        parseAndStyleText(subtitle, currentElement, subtitleFont);
+        setAttributesFromOptions(currentElement, subtitleFont);
       });
   }
 
@@ -796,7 +824,6 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
 };
 
 clusterContainer.prototype.clusterLabel = function(title, show = true, options = {}) {
-
   if (!show) {
     return this;
   }
@@ -834,6 +861,14 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
+  const titleFont = {
+    size: fontSize,
+    style: fontStyle,
+    weight: fontWeight,
+    family: fontFamily,
+    cursor: cursor
+  };
+
   // calculate middle y position
   const adjustedHeight = this.height - this.margin.top - this.margin.bottom;
   const middleY = this.margin.top + adjustedHeight / 2 + y;
@@ -856,15 +891,25 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
     .style("font-weight", fontWeight)
     .style("font-family", fontFamily)
     .style("cursor", cursor)
-    .text(title)
     .each(function() {
       const currentElement = d3.select(this);
+
+      if (!wrapLabel) {
+        // Set the text and apply styles only if wrapLabel is false
+        parseAndStyleText(title, currentElement, titleFont);
+      } else {
+        currentElement.text(title);
+        // If wrapLabel is true, wrap the text
+        wrap(currentElement, titleWidth, wrapOptions);
+        currentElement.selectAll("tspan").each(function() {
+          const currentTspan = d3.select(this);
+          const tspanText = currentTspan.text();
+          currentTspan.text('');
+          parseAndStyleText(tspanText, currentTspan, titleFont);
+        });
+      }
       setAttributesFromOptions(currentElement, additionalOptions);
     });
-  // If wrapLabel is true, wrap the text
-  if (wrapLabel) {
-    wrap(clusterTitle, titleWidth, wrapOptions);
-  }
 
   return this;
 };

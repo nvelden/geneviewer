@@ -10,7 +10,7 @@
 
 ## GCVieweR
 
-**GCVieweR** provides a streamlined tool for visualizing gene clusters in R, with capabilities for comparing multiple clusters, customizing color schemes, and adding labels, annotations, and interactive tooltips for enhanced genomic data analysis.
+**GCVieweR** is an R package designed for gene cluster visualizations. It allows side by side visualization of multiple clusters and has options to add a legend, labels, annotations, and interactive tooltips.
 
 ## Installation
 

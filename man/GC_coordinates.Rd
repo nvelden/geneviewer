@@ -18,16 +18,21 @@ GC_coordinates(
 \arguments{
 \item{GC_chart}{The GC chart object to be modified.}
 
-\item{show}{Logical, whether to show the tick values or not. Can be a single value or a vector.}
+\item{show}{Logical, whether to show the tick values or not. Can be a single
+value or a vector.}
 
-\item{tickValuesTop}{Numeric vector or NULL, custom tick values to be used at the top of the cluster.
-If NULL, the default tick values are used.}
+\item{tickValuesTop}{Numeric vector or NULL, custom tick values to be used at
+the top of the cluster. If NULL, the default tick values are used.}
 
-\item{tickValuesBottom}{Numeric vector or NULL, custom tick values to be used at the bottom of the cluster.
-If NULL, the default tick values are used.}
+\item{tickValuesBottom}{Numeric vector or NULL, custom tick values to be used
+at the bottom of the cluster. If NULL, the default tick values are used.}
 
-\item{cluster}{Numeric or character, specifies the clusters to be affected by the coordinate modifications.
-If NULL, applies to all clusters.}
+\item{tickStyle}{List, styling options for the ticks.}
+
+\item{textStyle}{List, styling options for the text.
+the coordinate modifications. If NULL, applies to all clusters.}
+
+\item{cluster}{Numeric or character, specifies the clusters to be affected by}
 
 \item{...}{Additional arguments to be passed to the coordinate options.}
 }
@@ -35,9 +40,10 @@ If NULL, applies to all clusters.}
 Returns the GC chart object with updated coordinates.
 }
 \description{
-This function updates a GC chart by modifying the coordinates settings.
-It allows for showing or hiding tick values, applying custom tick values for the top and bottom axes,
-and supports several other customizations for specific or all clusters in the chart.
+This function updates a GC chart by modifying the coordinates settings. It
+allows for showing or hiding tick values, applying custom tick values for the
+top and bottom axes, and supports several other customizations for specific
+or all clusters in the chart.
 }
 \examples{
 genes_data <- data.frame(

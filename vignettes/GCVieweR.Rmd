@@ -8,9 +8,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-devtools::load_all()
-library(knitr)
-library(kableExtra)
+library(GCVieweR)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -73,7 +71,7 @@ library(GCVieweR)
 ui <- fluidPage(titlePanel("Omphalotin Gene Cluster Visualization"),
                 mainPanel(# Output for GC_chart
                   GC_chartOutput(
-                    "gcChart", width = "100%", height = "500px"
+                    "gcChart", width = "100%", height = "400px"
                   )))
 
 # Define server logic

@@ -24,6 +24,8 @@ If NULL and `GC_chart` has group names, those will be used as labels.}
 \item{cluster}{Numeric or character vector or NULL; specifies which clusters should be labeled.
 If NULL, labels will be applied to all clusters. Default is NULL.}
 
+\item{itemStyle}{List, a list of styles to apply to individual items in the chart.}
+
 \item{...}{Additional arguments for further customization of the labels.}
 }
 \value{

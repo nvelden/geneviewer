@@ -36,12 +36,12 @@ This function configures the tooltip for a gene chart.
 genes_data <- data.frame(
   start = c(10, 90, 130, 170, 210),
   stop = c(40, 120, 160, 200, 240),
-  name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+  name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5'),
   group = c('A', 'B', 'B', 'A', 'C')
 )
 
 # Add tooltips to the gene chart
-GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
+GC_chart(genes_data, group = "group") \%>\%
 GC_tooltip(formatter = " <b>Start:</b> {start}<br><b>Stop:</b> {stop}")
 
 }

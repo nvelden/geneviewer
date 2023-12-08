@@ -34,14 +34,6 @@ GC_title(
 \item{cluster}{Numeric or character vector. Clusters in the GC chart to update.}
 
 \item{...}{Additional customization arguments for title and subtitle.}
-
-\item{x}{Numeric. X-coordinate for title's position.}
-
-\item{y}{Numeric. Y-coordinate for title's position.}
-
-\item{position}{Character. Title position ("center", "left", or "right").}
-
-\item{spacing}{Numeric. Spacing between title and subtitle.}
 }
 \value{
 Updated GC chart with new title settings.

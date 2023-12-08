@@ -35,6 +35,10 @@ Default is TRUE for all clusters.}
 \item{cluster}{Numeric or character vector specifying which clusters should have footers added or updated.
 If NULL, all clusters will be updated. Default is NULL.}
 
+\item{subtitleFont}{List, styling options for the subtitle.}
+
+\item{titleFont}{List, styling options for the title.}
+
 \item{...}{Additional arguments for further customization of the footers.}
 }
 \value{

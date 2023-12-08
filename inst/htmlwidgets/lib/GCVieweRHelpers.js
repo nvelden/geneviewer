@@ -694,16 +694,24 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
       textAnchor = "middle";
   }
 
+  if(title){
   // Add title to the SVG
   this.svg.append("text")
     .attr("x", xPos)
     .attr("y", y + (this.margin.top / 2))
     .attr("text-anchor", textAnchor)
+    .style("font-size", titleFont.size)
+    .style("font-style", titleFont.style)
+    .style("font-weight", titleFont.weight)
+    .style("text-decoration", titleFont.decoration)
+    .style("font-family", titleFont.family)
+    .style("cursor", titleFont.cursor)
     .each(function() {
       const currentElement = d3.select(this);
       parseAndStyleText(title, currentElement, titleFont);
       setAttributesFromOptions(currentElement, additionalOptionsTitleFont);
     });
+  }
 
   // Add subtitle to the SVG if provided
   if (subtitle) {
@@ -711,6 +719,12 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
       .attr("x", xPos)
       .attr("y", y + (this.margin.top / 2) + spacing)
       .attr("text-anchor", textAnchor)
+      .style("font-size", subtitleFont.size)
+      .style("font-style", subtitleFont.style)
+      .style("font-weight", subtitleFont.weight)
+      .style("text-decoration", subtitleFont.decoration)
+      .style("font-family", subtitleFont.family)
+      .style("cursor", subtitleFont.cursor)
       .each(function() {
         const currentElement = d3.select(this);
         parseAndStyleText(subtitle, currentElement, subtitleFont);
@@ -1991,8 +2005,8 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
         const currentX = style.x || x;
         const currentY = style.y || y;
 
-        const yPos = this.yScale(currentY); // Adjusted for arrow size
-        const xPos = this.xScale(d.start); // Always use d.start for xPos
+        const yPos = this.yScale(currentY);
+        const xPos = this.xScale(d.start);
 
         return { xPos, yPos, currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight };
     };

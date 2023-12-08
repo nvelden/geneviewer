@@ -1,13 +1,14 @@
 #' Helper function to validate and clean lists
 #'
-#' This function takes a list as an argument, checks if it's not NULL and is a list,
-#' and then removes any NA or NULL values from it. If the input is not a list,
-#' it returns an empty list.
+#' This function takes a list as an argument, checks if it's not NULL and is a
+#' list, and then removes any NA or NULL values from it. If the input is not a
+#' list, it returns an empty list.
 #'
 #' @param lst A list that might contain NULL or NA values.
 #'
-#' @return A list where NULL and NA values have been removed,
-#' or an empty list if the input wasn't a list.
+#' @return A list where NULL and NA values have been removed, or an empty list
+#'   if the input wasn't a list.
+#' @noRd
 cleanList <- function(lst) {
   if (!is.null(lst) && is.list(lst)) {
     return(lst[!sapply(lst, function(x) is.na(x) | is.null(x))])
@@ -18,23 +19,25 @@ cleanList <- function(lst) {
 
 #' Extract Data from Symbol or Return Vector
 #'
-#' This function evaluates the provided expression. If the expression is a symbol,
-#' it treats the symbol as a column name and extracts the corresponding column from the provided data frame.
-#' If the expression is a call that evaluates to a vector (e.g., `as.character(df$column)`),
-#' it returns the evaluated vector.
+#' This function evaluates the provided expression. If the expression is a
+#' symbol, it treats the symbol as a column name and extracts the corresponding
+#' column from the provided data frame. If the expression is a call that
+#' evaluates to a vector (e.g., `as.character(df$column)`), it returns the
+#' evaluated vector.
 #'
 #' @param data A data frame from which a column might be extracted.
-#' @param x An expression that could be a symbol representing a column name or a call that evaluates to a vector.
+#' @param x An expression that could be a symbol representing a column name or a
+#'   call that evaluates to a vector.
 #'
-#' @return A vector extracted from the data frame based on the column name represented by the symbol,
-#' or a vector if the expression evaluates to one.
+#' @return A vector extracted from the data frame based on the column name
+#'   represented by the symbol, or a vector if the expression evaluates to one.
 #'
 #' @examples
 #' df <- data.frame(a = 1:5, b = 6:10)
 #' select_column_or_return(df, a)
 #' select_column_or_return(df, as.character(df$class))
 #'
-#' @export
+#' @noRd
 select_column_or_return <- function(data, x) {
   x_nm <- deparse(substitute(x))
   if(x_nm %in% names(data)) return(data[x_nm])
@@ -47,17 +50,18 @@ select_column_or_return <- function(data, x) {
 
 #' Get clusters to update from GCVieweR Object
 #'
-#' This function retrieves the clusters to be updated from a GCVieweR object based on the provided cluster argument.
-#' The function checks if the cluster argument is valid and returns the corresponding clusters.
+#' This function retrieves the clusters to be updated from a GCVieweR object
+#' based on the provided cluster argument. The function checks if the cluster
+#' argument is valid and returns the corresponding clusters.
 #'
 #' @param GCVieweR An object containing the series of clusters.
-#' @param cluster A numeric vector or character vector specifying the clusters to be retrieved.
-#' If NULL (default), all clusters are returned.
+#' @param cluster A numeric vector or character vector specifying the clusters
+#'   to be retrieved. If NULL (default), all clusters are returned.
 #'
 #' @return A character vector of cluster names.
 #'
 #'
-#' @export
+#' @noRd
 getUpdatedClusters <- function(GCVieweR, cluster) {
 
   # Get the names of the clusters
@@ -83,11 +87,12 @@ getUpdatedClusters <- function(GCVieweR, cluster) {
 
 #' Divide Dimension Value
 #'
-#' This function takes a dimension value (which can be in the format '100px', '100\%', or 100)
-#' and divides it by a given divisor. The result is returned in the same format as the input.
+#' This function takes a dimension value (which can be in the format '100px',
+#' '100\%', or 100) and divides it by a given divisor. The result is returned in
+#' the same format as the input.
 #'
-#' @param value A character or numeric value representing the dimension.
-#' It can be in the format '100px', '100\%', or 100.
+#' @param value A character or numeric value representing the dimension. It can
+#'   be in the format '100px', '100\%', or 100.
 #' @param divisor A numeric value by which the dimension value will be divided.
 #'
 #' @return A character or numeric value representing the divided dimension.
@@ -97,7 +102,7 @@ getUpdatedClusters <- function(GCVieweR, cluster) {
 #' divide_dimension_value('100%', 2)  # Returns '50%'
 #' divide_dimension_value(100, 2)     # Returns 50
 #'
-#' @export
+#' @noRd
 divide_dimension_value <- function(value, divisor) {
   # Check if value is a character
   if (is.character(value)) {
@@ -121,20 +126,22 @@ divide_dimension_value <- function(value, divisor) {
 
 #' Identify Non-Coding Regions Between Genes
 #'
-#' Given a set of gene positions, this function calculates and returns the non-coding
-#' regions, potentially with added padding. It also considers overlapping genes and ensures
-#' that the starting position is always less than the ending position for each gene.
+#' Given a set of gene positions, this function calculates and returns the
+#' non-coding regions, potentially with added padding. It also considers
+#' overlapping genes and ensures that the starting position is always less than
+#' the ending position for each gene.
 #'
 #' @param genes A data.frame containing the start and end positions of genes.
-#' The data.frame must contain columns named 'start' and 'stop'.
-#' @param threshold_percentage Numeric. A threshold value given as percentage. Only non-coding
-#' regions that are larger than this threshold (relative to the entire genomic region covered)
-#' will be returned.
-#' @param padding Numeric. A value given as percentage that will be added to the start
-#' and subtracted from the end of each non-coding region.
+#'   The data.frame must contain columns named 'start' and 'stop'.
+#' @param threshold_percentage Numeric. A threshold value given as percentage.
+#'   Only non-coding regions that are larger than this threshold (relative to
+#'   the entire genomic region covered) will be returned.
+#' @param padding Numeric. A value given as percentage that will be added to the
+#'   start and subtracted from the end of each non-coding region.
 #'
-#' @return A data.frame containing the start and stop positions of the identified non-coding regions.
-#'
+#' @return A data.frame containing the start and stop positions of the
+#'   identified non-coding regions.
+#' @importFrom stats setNames
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 50, 90),
@@ -142,7 +149,7 @@ divide_dimension_value <- function(value, divisor) {
 #' )
 #' get_scale_breaks(genes_data, threshold_percentage = 5, padding = 2)
 #'
-#' @export
+#' @noRd
 get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
 
   # Ensure genes is a data.frame
@@ -203,13 +210,21 @@ get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
   #convert df to list of lists
   non_coding_regions <-
   apply(non_coding_regions, 1, function(row) {
-    as.list(setNames(row, names(row)))
+    as.list(stats::setNames(row, names(row)))
   })
 
   return(non_coding_regions)
 }
 
-#' @export
+#' Compute Size
+#'
+#' Internal function to compute size for GC_grid. This function is used to
+#' compute the size based on input value and length.
+#'
+#' @param value A numeric or character value specifying size.
+#' @param length A numeric value specifying length to divide the size by.
+#' @return Returns computed size.
+#' @noRd
 compute_size <- function(value, length = 2) {
   # Check if value is numeric
   if (is.numeric(value)) {
@@ -231,7 +246,16 @@ compute_size <- function(value, length = 2) {
   stop("Unsupported format")
 }
 
-#' @export
+#' Get Relative Height
+#'
+#' Internal function to calculate relative height for GC_grid. This function is
+#' used to adjust the height of elements based on the base height.
+#'
+#' @param baseHeight A numeric or character value specifying the base height.
+#' @param relativeHeight A numeric or character value specifying the height
+#'   relative to the base height.
+#' @return Returns the calculated relative height.
+#' @noRd
 get_relative_height <- function(baseHeight, relativeHeight) {
   # Convert baseHeight to numeric if it's in the format "400px"
   if(is.character(baseHeight) && grepl("px$", baseHeight)) {

@@ -9,14 +9,24 @@ magrittr::`%>%`
 #' @param data Data frame containing genomic information.
 #' @param start Column name that indicates start positions. Default is "start".
 #' @param stop Column name that indicates stop positions. Default is "stop".
-#' @param cluster Optional column name used for clustering purposes. Default is NULL.
-#' @param group Column name used for gene grouping to influence color aesthetics.
-#' @param width Width specification for the chart, such as '100\%' or 500. Default is unspecified.
-#' @param height Height specification for the chart, such as '400px' or 300. Default is unspecified.
+#' @param cluster Optional column name used for clustering purposes. Default is
+#'   NULL.
+#' @param group Column name used for gene grouping to influence color
+#'   aesthetics.
+#' @param width Width specification for the chart, such as '100\%' or 500.
+#'   Default is unspecified.
+#' @param height Height specification for the chart, such as '400px' or 300.
+#'   Default is unspecified.
+#' @param background_color Background color for the chart,
+#' specified as a color code. Default is transparent.
 #' @param elementId Optional identifier string for the widget. Default is NULL.
-#' @param scale_breaks Logical flag indicating if scale breaks should be employed. Default is FALSE.
-#' @param scale_break_threshold Numeric value indicating the threshold percentage of the entire range for determining inter-gene regions suitable for scale breaks. Default is 20.
-#' @param scale_break_padding Numeric value indicating the padding percentage of the entire range on either side of a scale break. Default is 1.
+#' @param scale_breaks Logical flag indicating if scale breaks should be
+#'   employed. Default is FALSE.
+#' @param scale_break_threshold Numeric value indicating the threshold
+#'   percentage of the entire range for determining inter-gene regions suitable
+#'   for scale breaks. Default is 20.
+#' @param scale_break_padding Numeric value indicating the padding percentage of
+#'   the entire range on either side of a scale break. Default is 1.
 #'
 #' @return A GC chart widget.
 #'
@@ -130,10 +140,6 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 #' @param cluster Numeric or character vector. Clusters in the GC chart to update.
 #' @param titleFont List. Settings for the title font.
 #' @param subtitleFont List. Settings for the subtitle font.
-#' @param x Numeric. X-coordinate for title's position.
-#' @param y Numeric. Y-coordinate for title's position.
-#' @param position Character. Title position ("center", "left", or "right").
-#' @param spacing Numeric. Spacing between title and subtitle.
 #' @param ... Additional customization arguments for title and subtitle.
 #'
 #' @return Updated GC chart with new title settings.
@@ -338,7 +344,7 @@ GC_sequence <- function(
 #' @param cluster Numeric or character vector. Clusters in the GC chart to update.
 #'
 #' @return Updated GC chart with new grid display settings.
-#'
+#' @importFrom utils modifyList
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 90, 130, 170, 210),
@@ -374,7 +380,7 @@ GC_grid <- function(
 
     # Update margins if provided
     if (!is.null(margin)) {
-      GC_chart$x$series[[cluster_name]]$grid$margin <- modifyList(GC_chart$x$series[[cluster_name]]$grid$margin, margin)
+      GC_chart$x$series[[cluster_name]]$grid$margin <- utils::modifyList(GC_chart$x$series[[cluster_name]]$grid$margin, margin)
     }
 
     # Update width if provided
@@ -713,6 +719,8 @@ GC_clusterLabel <- function(
 #'        Default is TRUE for all clusters.
 #' @param cluster Numeric or character vector specifying which clusters should have footers added or updated.
 #'        If NULL, all clusters will be updated. Default is NULL.
+#' @param subtitleFont List, styling options for the subtitle.
+#' @param titleFont List, styling options for the title.
 #' @param ... Additional arguments for further customization of the footers.
 #'
 #' @return A GC chart object with updated footer settings for each specified cluster.
@@ -831,6 +839,7 @@ GC_footer <- function(
 #' @param show Logical; controls the visibility of labels. Default is `TRUE`.
 #' @param cluster Numeric or character vector or NULL; specifies which clusters should be labeled.
 #'        If NULL, labels will be applied to all clusters. Default is NULL.
+#' @param itemStyle List, a list of styles to apply to individual items in the chart.
 #' @param ... Additional arguments for further customization of the labels.
 #'
 #' @return A `GC chart` object with updated label settings for each specified cluster.
@@ -935,18 +944,22 @@ GC_labels <- function(
 
 #' Modify Coordinates in a GC Chart
 #'
-#' This function updates a GC chart by modifying the coordinates settings.
-#' It allows for showing or hiding tick values, applying custom tick values for the top and bottom axes,
-#' and supports several other customizations for specific or all clusters in the chart.
+#' This function updates a GC chart by modifying the coordinates settings. It
+#' allows for showing or hiding tick values, applying custom tick values for the
+#' top and bottom axes, and supports several other customizations for specific
+#' or all clusters in the chart.
 #'
 #' @param GC_chart The GC chart object to be modified.
-#' @param show Logical, whether to show the tick values or not. Can be a single value or a vector.
-#' @param tickValuesTop Numeric vector or NULL, custom tick values to be used at the top of the cluster.
-#'                      If NULL, the default tick values are used.
-#' @param tickValuesBottom Numeric vector or NULL, custom tick values to be used at the bottom of the cluster.
-#'                         If NULL, the default tick values are used.
-#' @param cluster Numeric or character, specifies the clusters to be affected by the coordinate modifications.
-#'                If NULL, applies to all clusters.
+#' @param show Logical, whether to show the tick values or not. Can be a single
+#'   value or a vector.
+#' @param tickValuesTop Numeric vector or NULL, custom tick values to be used at
+#'   the top of the cluster. If NULL, the default tick values are used.
+#' @param tickValuesBottom Numeric vector or NULL, custom tick values to be used
+#'   at the bottom of the cluster. If NULL, the default tick values are used.
+#' @param cluster Numeric or character, specifies the clusters to be affected by
+#' @param tickStyle List, styling options for the ticks.
+#' @param textStyle List, styling options for the text.
+#'   the coordinate modifications. If NULL, applies to all clusters.
 #' @param ... Additional arguments to be passed to the coordinate options.
 #'
 #' @return Returns the GC chart object with updated coordinates.
@@ -1044,6 +1057,7 @@ GC_coordinates <- function(
 #' @param colorScheme Character or NULL, the name of the color scheme to use.
 #' @param customColors List or NULL, custom colors to apply to the genes.
 #' @param cluster Numeric or character, the specific cluster to filter genes by.
+#' @param itemStyle List, a list of styles to apply to individual items in the chart.
 #' @param ... Additional arguments to be passed to the gene options.
 #'
 #' @return Returns the modified gene chart object.
@@ -1093,6 +1107,7 @@ GC_genes <- function(
     colorScheme = NULL,
     customColors = NULL,
     cluster = NULL,
+    itemStyle = list(),
     ...
 ) {
 
@@ -1126,7 +1141,8 @@ GC_genes <- function(
       group = group[(i-1) %% length(group) + 1],
       show = show[(i-1) %% length(show) + 1],
       colorScheme = colorScheme,
-      customColors = customColors
+      customColors = customColors,
+      itemStyle = itemStyle
     )
 
     # Add ... arguments to defaultOptions
@@ -1327,12 +1343,12 @@ GC_legend <- function(
 #' genes_data <- data.frame(
 #'   start = c(10, 90, 130, 170, 210),
 #'   stop = c(40, 120, 160, 200, 240),
-#'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5'),
 #'   group = c('A', 'B', 'B', 'A', 'C')
 #' )
 #'
 #' # Add tooltips to the gene chart
-#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_chart(genes_data, group = "group") %>%
 #' GC_tooltip(formatter = " <b>Start:</b> {start}<br><b>Stop:</b> {stop}")
 #'
 #' @export

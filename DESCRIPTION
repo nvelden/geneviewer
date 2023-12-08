@@ -4,17 +4,22 @@ Title: Gene Cluster Visualizations in R
 Version: 0.1.0
 Author: Niels van der Velden
 Maintainer: Niels van der Velden <n.s.j.vandervelden@gmail.com>
-Description: GCVieweR provides a streamlined tool for visualizing gene clusters 
-             in R, with capabilities for comparing multiple clusters, customizing
-             color schemes, and adding labels, annotations, and interactive 
-             tooltips for enhanced genomic data analysis.
+Description: GCVieweR is an R package designed for gene cluster visualizations. 
+             It allows side by side visualization of multiple clusters and has 
+             options to add a legend, labels, annotations, and interactive tooltips.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
 URL: https://github.com/nvelden/GCVieweR
 BugReports: https://github.com/nvelden/GCVieweR/issues
+Imports:
+    htmlwidgets,
+    magrittr
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    shiny,
+    biomaRt
 VignetteBuilder: knitr
+

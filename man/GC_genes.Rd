@@ -11,6 +11,7 @@ GC_genes(
   colorScheme = NULL,
   customColors = NULL,
   cluster = NULL,
+  itemStyle = list(),
   ...
 )
 }
@@ -26,6 +27,8 @@ GC_genes(
 \item{customColors}{List or NULL, custom colors to apply to the genes.}
 
 \item{cluster}{Numeric or character, the specific cluster to filter genes by.}
+
+\item{itemStyle}{List, a list of styles to apply to individual items in the chart.}
 
 \item{...}{Additional arguments to be passed to the gene options.}
 }

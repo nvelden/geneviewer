@@ -4,6 +4,7 @@
 </p>
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/nvelden/GCVieweR/workflows/R-CMD-check/badge.svg)](https://github.com/nvelden/GCVieweR/actions)
 [![CRAN status](https://www.r-pkg.org/badges/version/GCVieweR)](https://CRAN.R-project.org/package=GCVieweR)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 <!-- badges: end -->

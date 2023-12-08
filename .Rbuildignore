@@ -1,3 +1,4 @@
+.gitignore
 ^renv$
 ^renv\.lock$
 ^.*\.Rproj$
@@ -6,3 +7,5 @@
 ^pkgdown$
 ^docs$
 ^LICENSE\.md$
+^README\.Rmd$
+^\.github$

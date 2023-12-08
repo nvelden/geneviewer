@@ -1,49 +1,66 @@
-# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
-# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
-on:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
+name: 'check-r-package'
+description: 'Action to check R package with rcmdcheck. Assumes that rcmdcheck has already been installed.'
+author: 'Jim Hester'
+inputs:
+  args:
+    description: 'Arguments to pass to the `args` parameter of rcmdcheck. Must be an R expression. Note that it often needs to be quoted in YAML, see the README for details.'
+    default: 'c("--no-manual", "--as-cran")'
+  build_args:
+    description: 'Arguments to pass to the `build_args` parameter of rcmdcheck. Note that it often needs to be quoted in YAML, see the README for details.'
+    default: '"--no-manual"'
+  error-on:
+    description: 'What type of result should cause a build error? Note that it often needs to be quoted in YAML, see the README for details.'
+    default: '"warning"'
+  check-dir:
+    description: 'Where should the check output go? Note that it often needs to be quoted in YAML, see the README for details.'
+    default: '"check"'
+  working-directory:
+    description: 'Using the working-directory keyword, you can specify the working directory of where "rcmdcheck::rcmdcheck" is run.'
+    default: '.'
+  upload-snapshots:
+    description: 'Whether to upload all testthat snapshots as an artifact.'
+    default: false
+  upload-results:
+    description: 'Whether to upload check results for successful runs too.'
+    default: false
 
-name: R-CMD-check
+runs:
+  using: "composite"
+  steps:
+    - name: Check
+      id: rcmdcheck
+      run: |
+        ## --------------------------------------------------------------------
+        options(crayon.enabled = TRUE)
+        cat("LOGNAME=", Sys.info()[["user"]], "\n", sep = "", file = Sys.getenv("GITHUB_ENV"), append = TRUE)
+        if (Sys.getenv("_R_CHECK_FORCE_SUGGESTS_", "") == "") Sys.setenv("_R_CHECK_FORCE_SUGGESTS_" = "false")
+        if (Sys.getenv("_R_CHECK_CRAN_INCOMING_", "") == "") Sys.setenv("_R_CHECK_CRAN_INCOMING_" = "false")
+        cat("check-dir-path=", file.path(getwd(), (${{ inputs.check-dir }})), "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
+        check_results <- rcmdcheck::rcmdcheck(args = (${{ inputs.args }}), build_args = (${{ inputs.build_args }}), error_on = (${{ inputs.error-on }}), check_dir = (${{ inputs.check-dir }}))
+      shell: Rscript {0}
+      working-directory: ${{ inputs.working-directory }}
 
-jobs:
-  R-CMD-check:
-    runs-on: ${{ matrix.config.os }}
+    - name: Show testthat output
+      if: always()
+      run: |
+        ## --------------------------------------------------------------------
+        echo ::group::Show testthat output
+        find check -name 'testthat.Rout*' -exec cat '{}' \; || true
+        echo ::endgroup::
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    - name: Upload check results
+      if: failure() || inputs.upload-results != 'false'
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ runner.os }}-r${{ matrix.config.r }}-results
+        path: ${{ steps.rcmdcheck.outputs.check-dir-path }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - {os: macos-latest,   r: 'release'}
-          - {os: windows-latest, r: 'release'}
-          - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
-          - {os: ubuntu-latest,   r: 'release'}
-          - {os: ubuntu-latest,   r: 'oldrel-1'}
-
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      R_KEEP_PKG_SOURCE: yes
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: r-lib/actions/setup-pandoc@v2
-
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: ${{ matrix.config.r }}
-          http-user-agent: ${{ matrix.config.http-user-agent }}
-          use-public-rspm: true
-
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: any::rcmdcheck
-          needs: check
-
-      - uses: r-lib/actions/check-r-package@v2
-        with:
-          upload-snapshots: true
+    - name: Upload snapshots
+      if: inputs.upload-snapshots != 'false'
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ runner.os }}-r${{ matrix.config.r }}-testthat-snapshots
+        path: ${{ steps.rcmdcheck.outputs.check-dir-path }}/**/tests*/testthat/_snaps
+        if-no-files-found: ignore

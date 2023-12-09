@@ -368,20 +368,34 @@ GC_chart(dbophA_cluster, group = "class",height = "100px") %>%
 
 ### Scale 
 
+### Reverse Scale
+
+The scale can be reversed by setting reverse = TRUE in the `GC_scale` function
+
+```{r echo=TRUE, results='asis'}
+# With scale breaks
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_scale(
+    reverse = TRUE
+  ) %>%
+  GC_coordinates(TRUE) %>%
+  GC_legend(FALSE)
+```
+
 #### Automatic Scale Breaks
 
-In the `GC_chart()` function, the parameters `scale_breaks`, `scale_break_threshold`, and `scale_break_padding` can be used to avoid issues with widely spaced genes within a cluster. Setting `scale_breaks` to TRUE introduces breaks in the genomic scale which will avoid long empty stretches. The `scale_break_threshold` defines the spacing percentage between genes needed to activate these breaks. `scale_break_padding` controls the padding around these breaks.
+In the `GC_scale()` function, the parameters `scale_breaks`, `scale_break_threshold`, and `scale_break_padding` can be used to avoid issues with widely spaced genes within a cluster. Setting `scale_breaks` to TRUE introduces breaks in the genomic scale which will avoid long empty stretches. The `scale_break_threshold` defines the spacing percentage between genes needed to activate these breaks. `scale_break_padding` controls the padding around these breaks.
 
 In the given example, a scale break will be introduced in cases where the intergenic region exceeds 20% of the total range of the gene cluster. Additionally, a padding of 1% will be added to both the left and right sides of this break.
 
 ```{r echo=TRUE, results='asis'}
 # With scale breaks
-GC_chart(ophA_cluster, 
-         group = "class", 
-         height = "100px", 
-         scale_breaks = TRUE,
-         scale_break_threshold = 20,
-         scale_break_padding = 1) %>%
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_scale(
+    scale_breaks = TRUE,
+    scale_break_threshold = 20,
+    scale_break_padding = 1
+  ) %>%
   GC_legend(FALSE)
 ```
 
@@ -417,7 +431,6 @@ The sequence line in the `GC_sequence()` function is initially presented as a so
 ```{r echo=TRUE, results='asis'}
 GC_chart(
   ophA_clusters, group = "class",
-  scale_breaks = TRUE,
   cluster = "cluster",
   height = "150px") %>%
   GC_sequence(

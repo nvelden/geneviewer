@@ -10,19 +10,37 @@ GC_scale(
   start = NULL,
   stop = NULL,
   breaks = list(),
+  reverse = FALSE,
+  scale_breaks = FALSE,
+  scale_break_threshold = 20,
+  scale_break_padding = 1,
   ...
 )
 }
 \arguments{
 \item{GC_chart}{A GC chart object.}
 
-\item{cluster}{Numeric or character vector. Clusters in the GC chart to update.}
+\item{cluster}{Numeric or character vector. Clusters in the GC chart to
+update.}
 
 \item{start}{Numeric vector. Starting points for the scales.}
 
 \item{stop}{Numeric vector. Stopping points for the scales.}
 
 \item{breaks}{List. Settings for the scale breaks.}
+
+\item{reverse}{Logical vector, with each element indicating whether to}
+
+\item{scale_breaks}{Logical flag indicating if scale breaks should be
+employed. Default is FALSE.}
+
+\item{scale_break_threshold}{Numeric value indicating the threshold
+percentage of the entire range for determining inter-gene regions suitable
+for scale breaks. Default is 20.}
+
+\item{scale_break_padding}{Numeric value indicating the padding percentage of
+the entire range on either side of a scale break. Default is 1.
+reverse the scale for the corresponding cluster. Default is FALSE.}
 
 \item{...}{Additional arguments for scale settings.}
 }

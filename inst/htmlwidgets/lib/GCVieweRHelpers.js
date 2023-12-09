@@ -383,8 +383,7 @@ function isInAnyDiscontinuity(value, breaks) {
     return false;
 }
 
-function createDiscontinuousScale(minStart, maxStop, width, margin, breaks) {
-
+function createDiscontinuousScale(minStart, maxStop, width, margin, breaks, reverse = false) {
     let totalGap = 0;
 
     // Calculate the total gap based on all discontinuities
@@ -394,35 +393,36 @@ function createDiscontinuousScale(minStart, maxStop, width, margin, breaks) {
         }
     }
 
-    // Define the linear scale by adjusting the maxStop by the totalGap
+    // Define the linear scale. Adjust the scale based on the reverse option.
+    let domainStart = reverse ? maxStop - totalGap : minStart;
+    let domainEnd = reverse ? minStart : maxStop - totalGap;
+
     const linearScale = d3.scaleLinear()
-        .domain([minStart, maxStop - totalGap])
+        .domain([domainStart, domainEnd])
         .range([0, width - margin.left - margin.right]);
 
     // Proxy object for discontinuous scale
     const scaleProxy = function(value) {
-    if (isInAnyDiscontinuity(value, breaks)) {
-        return null;
-    }
-
-    let cumulativeAdjustment = 0;
-
-    // Adjust the value by all previous discontinuities
-    for (let gap of breaks) {
-        if (value > gap.stop) {
-            cumulativeAdjustment += (gap.stop - gap.start);
-        } else {
-            // If the value is beyond a gap's start but hasn't reached the gap's stop,
-            // it means the value is within or after this gap, so we break out of the loop.
-            break;
+        if (isInAnyDiscontinuity(value, breaks)) {
+            return null;
         }
-    }
 
-    // Subtract the cumulative adjustment from the value
-    value -= cumulativeAdjustment;
+        let cumulativeAdjustment = 0;
 
-    return linearScale(value);
-};
+        // Adjust the value by all previous discontinuities
+        for (let gap of breaks) {
+            if (value > gap.stop) {
+                cumulativeAdjustment += (gap.stop - gap.start);
+            } else {
+                break;
+            }
+        }
+
+        // Apply reverse logic to the value adjustment
+        value = reverse ? value + cumulativeAdjustment : value - cumulativeAdjustment;
+
+        return linearScale(value);
+    };
 
     // Dynamically copy all methods and properties from linearScale to scaleProxy
     for (let prop in linearScale) {
@@ -584,6 +584,7 @@ clusterContainer.prototype.scale = function(options = {}) {
   const defaultScaleOptions = {
     start: null,
     stop: null,
+    reverse: false,
     breaks: []
   };
 
@@ -595,7 +596,7 @@ clusterContainer.prototype.scale = function(options = {}) {
   const combinedOptions = mergeOptions.call(this, defaultScaleOptions, 'scaleOptions', options);
 
   // De-structure the combined options
-  const { start, stop, breaks } = combinedOptions;
+  const { start, stop, breaks, reverse } = combinedOptions;
 
   // Filter data based on the provided start value, if provided
   if (start !== null) {
@@ -606,6 +607,8 @@ clusterContainer.prototype.scale = function(options = {}) {
   if (stop !== null) {
     this.data = this.data.filter(d => d.stop <= stop);
   }
+
+  this.reverse = reverse
 
   // Filter out data where d.start or d.stop falls within any of the breaks
   this.data = this.data.filter(d => {
@@ -623,7 +626,7 @@ clusterContainer.prototype.scale = function(options = {}) {
   this.maxStop = stop !== null ? stop : d3.max(this.data, (d) => Math.max(d.start, d.stop));
 
   // Assuming createDiscontinuousScale() also needs to be updated for breaks, else this would be incorrect
-  this.xScale = createDiscontinuousScale(this.minStart, this.maxStop, this.width, this.margin, breaks);
+  this.xScale = createDiscontinuousScale(this.minStart, this.maxStop, this.width, this.margin, breaks, reverse);
 
   this.yScale = d3.scaleLinear()
     .domain([0, 100])
@@ -2006,7 +2009,8 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
         const currentY = style.y || y;
 
         const yPos = this.yScale(currentY);
-        const xPos = this.xScale(d.start);
+
+        const xPos = this.reverse ? this.xScale(d.stop) : this.xScale(d.start);
 
         return { xPos, yPos, currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight };
     };

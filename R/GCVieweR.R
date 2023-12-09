@@ -20,13 +20,6 @@ magrittr::`%>%`
 #' @param background_color Background color for the chart,
 #' specified as a color code. Default is transparent.
 #' @param elementId Optional identifier string for the widget. Default is NULL.
-#' @param scale_breaks Logical flag indicating if scale breaks should be
-#'   employed. Default is FALSE.
-#' @param scale_break_threshold Numeric value indicating the threshold
-#'   percentage of the entire range for determining inter-gene regions suitable
-#'   for scale breaks. Default is 20.
-#' @param scale_break_padding Numeric value indicating the padding percentage of
-#'   the entire range on either side of a scale break. Default is 1.
 #'
 #' @return A GC chart widget.
 #'
@@ -42,7 +35,7 @@ magrittr::`%>%`
 #'
 #' @import htmlwidgets
 #' @export
-GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group = NULL, width = "100%", height = "400px", background_color = "#0000", elementId = NULL, scale_breaks = FALSE, scale_break_threshold = 20, scale_break_padding = 1){
+GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group = NULL, width = "100%", height = "400px", background_color = "#0000", elementId = NULL){
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
@@ -94,12 +87,6 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
     # Data
     x$series[[clust]]$clusterName <- clust
     x$series[[clust]]$data <- subset_data
-
-    # Settings
-    if(scale_breaks) {
-      breaks_data <- get_scale_breaks(subset_data, threshold_percentage = scale_break_threshold, padding = scale_break_padding)
-      x$series[[clust]]$scale <- list(breaks = breaks_data)
-    }
 
     x$series[[clust]]$grid <- list(margin = list(left = "50px", right = "50px", top = 0, bottom = 0), height = compute_size(height, length(clusters)), width = width)
     x$series[[clust]]$style <- list(backgroundColor = background_color)
@@ -422,10 +409,20 @@ GC_grid <- function(
 #' Modify the scale settings for specified clusters within a GC chart.
 #'
 #' @param GC_chart A GC chart object.
-#' @param cluster Numeric or character vector. Clusters in the GC chart to update.
+#' @param cluster Numeric or character vector. Clusters in the GC chart to
+#'   update.
 #' @param start Numeric vector. Starting points for the scales.
 #' @param stop Numeric vector. Stopping points for the scales.
 #' @param breaks List. Settings for the scale breaks.
+#' @param reverse Logical vector, with each element indicating whether to
+#' @param scale_breaks Logical flag indicating if scale breaks should be
+#'   employed. Default is FALSE.
+#' @param scale_break_threshold Numeric value indicating the threshold
+#'   percentage of the entire range for determining inter-gene regions suitable
+#'   for scale breaks. Default is 20.
+#' @param scale_break_padding Numeric value indicating the padding percentage of
+#'   the entire range on either side of a scale break. Default is 1.
+#'   reverse the scale for the corresponding cluster. Default is FALSE.
 #' @param ... Additional arguments for scale settings.
 #'
 #' @return Updated GC chart with new scale settings.
@@ -458,6 +455,10 @@ GC_scale <- function(
     start = NULL,
     stop = NULL,
     breaks = list(),
+    reverse = FALSE,
+    scale_breaks = FALSE,
+    scale_break_threshold = 20,
+    scale_break_padding = 1,
     ...
 ) {
 
@@ -469,17 +470,33 @@ GC_scale <- function(
 
   for(i in seq_along(clusters)){
 
-    # Default options
-    options <- list()
+    # Calculate the index for each parameter considering their different lengths
+    start_idx <- (i-1) %% length(start) + 1
+    stop_idx <- (i-1) %% length(stop) + 1
+    reverse_idx <- (i-1) %% length(reverse) + 1
+
+    # Subset data for the current cluster
+    subset_data <- GC_chart$x$series[[clusters[i]]]$data
+
+    # Compute scale breaks if required
+    if(scale_breaks) {
+      breaks_data <- get_scale_breaks(subset_data, threshold_percentage = scale_break_threshold, padding = scale_break_padding)
+    } else {
+      breaks_data <- breaks
+    }
 
     # Default options
     options <- list(
-      start = start[(i-1) %% length(start) + 1],
-      stop = stop[(i-1) %% length(stop) + 1],
-      breaks = breaks
+      start = start[start_idx],
+      stop = stop[stop_idx],
+      breaks = breaks_data,
+      reverse = reverse[reverse_idx],
+      scale_breaks = scale_breaks,
+      scale_break_threshold = scale_break_threshold,
+      scale_break_padding = scale_break_padding
     )
 
-    # Set scaleBar options for each cluster
+    # Set scale options for each cluster
     GC_chart$x$series[[clusters[i]]]$scale <- options
 
   }

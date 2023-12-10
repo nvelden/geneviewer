@@ -419,7 +419,7 @@ function createDiscontinuousScale(minStart, maxStop, width, margin, breaks, reve
         }
 
         // Apply reverse logic to the value adjustment
-        value = reverse ? value + cumulativeAdjustment : value - cumulativeAdjustment;
+        value = value - cumulativeAdjustment;
 
         return linearScale(value);
     };
@@ -625,7 +625,7 @@ clusterContainer.prototype.scale = function(options = {}) {
   this.minStart = start !== null ? start : d3.min(this.data, (d) => Math.min(d.start, d.stop));
   this.maxStop = stop !== null ? stop : d3.max(this.data, (d) => Math.max(d.start, d.stop));
 
-  // Assuming createDiscontinuousScale() also needs to be updated for breaks, else this would be incorrect
+
   this.xScale = createDiscontinuousScale(this.minStart, this.maxStop, this.width, this.margin, breaks, reverse);
 
   this.yScale = d3.scaleLinear()
@@ -1228,7 +1228,6 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
     };
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'coordinatesOptions', options);
-    console.log(options)
     const { rotate, yPositionTop, yPositionBottom, tickValuesTop, tickValuesBottom, tickStyle, textStyle } = combinedOptions;
 
     // Extract additional options that are not in defaultOptions

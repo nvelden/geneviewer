@@ -83,6 +83,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
     subset_data$stop <- subset_data[[stop]]
 
     subset_data <- subset_data[with(subset_data, order(-pmax(start, stop), abs(stop - start))), ]
+    subset_data <- add_gene_track(subset_data)
     subset_data$cluster <- clust
 
     # Data
@@ -1074,8 +1075,6 @@ GC_coordinates <- function(
 #' @param show Logical, whether to show the genes or not.
 #' @param colorScheme Character or NULL, the name of the color scheme to use.
 #' @param customColors List or NULL, custom colors to apply to the genes.
-#' @param prevent_overlap Logical, whether to prevent overlapping of genes in the chart.
-#' @param trackSpacing Numeric, the spacing between tracks in the chart.
 #' @param cluster Numeric or character, the specific cluster to filter genes by.
 #' @param itemStyle List, a list of styles to apply to individual items in the chart.
 #' @param ... Additional arguments to be passed to the gene options.
@@ -1101,7 +1100,7 @@ GC_coordinates <- function(
 #'                         # "schemeAccent", "schemeTableau10")
 #'     customColors = NULL, # A vector of color names
 #'     prevent_overlap = FALSE,
-#'     trackSpacing = 30,
+#'     track_spacing = 40,
 #'     cluster = 1, # Specify a specific cluster
 #'     x = 1,
 #'     y = 50,
@@ -1128,8 +1127,6 @@ GC_genes <- function(
     show = TRUE,
     colorScheme = NULL,
     customColors = NULL,
-    prevent_overlap = FALSE,
-    trackSpacing = 30,
     cluster = NULL,
     itemStyle = list(),
     ...
@@ -1160,18 +1157,12 @@ GC_genes <- function(
 
   for(i in seq_along(clusters)){
 
-    if(prevent_overlap){
-    # Subset data for the current cluster
-    subset_data <- GC_chart$x$series[[clusters[i]]]$data
-    GC_chart$x$series[[clusters[i]]]$data <- add_gene_track(subset_data)
-    }
     # Default options
     options <- list(
       group = group[(i-1) %% length(group) + 1],
       show = show[(i-1) %% length(show) + 1],
       colorScheme = colorScheme,
       customColors = customColors,
-      trackSpacing = trackSpacing,
       itemStyle = itemStyle
     )
 
@@ -1417,5 +1408,57 @@ GC_tooltip <- function(
     GC_chart$x$series[[clusters[i]]]$tooltip <- options
 
   }
+  return(GC_chart)
+}
+
+#' Modify Gene Track
+#'
+#' This function can conditionally remove a specific gene track and adjust the spacing between tracks.
+#'
+#' @param GC_chart The gene chart object to be modified.
+#' @param track Logical, whether to include the gene track or not. If FALSE, the specified gene track is removed.
+#' @param spacing Numeric, the spacing to be used between gene tracks.
+#' @param cluster Numeric or character, the specific cluster to filter genes by.
+#'
+#' @return Returns the modified gene chart object.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 20, 30, 170, 210),
+#'   stop = c(200, 150, 180, 200, 240),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5'),
+#'   group = c('A', 'A', 'A', 'A', 'A')
+#' )
+#'
+#'
+#' GC_chart(genes_data, group = "group", height = "150px") %>%
+#'   GC_track(spacing=30) %>%
+#'   GC_legend(FALSE)
+#'
+#' @export
+GC_track <- function(
+    GC_chart,
+    track = TRUE,
+    spacing = 40,
+    cluster = NULL
+) {
+
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
+
+  for(i in seq_along(clusters)){
+
+    if(!track){
+    subset_data <- GC_chart$x$series[[i]]$data
+      if("geneTrack" %in% names(subset_data)) {
+        subset_data <- subset_data[, !(names(subset_data) %in% "geneTrack")]
+        GC_chart$x$series[[i]]$data <- subset_data
+      }
+    }
+
+    GC_chart$x$series[[clusters[i]]]$genes$trackSpacing <- spacing
+    GC_chart$x$series[[clusters[i]]]$labels$trackSpacing <- spacing
+  }
+
   return(GC_chart)
 }

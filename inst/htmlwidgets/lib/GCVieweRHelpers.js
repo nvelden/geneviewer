@@ -1464,6 +1464,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     start: null,
     stop: null,
     adjustLabels: true,
+    trackSpacing: 40,
     fontSize: "12px",
     fontStyle: "italic",
     fontFamily: "sans-serif",
@@ -1483,7 +1484,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   }
 
   const combinedOptions = { ...defaultOptions, ...options };
-  const { x, y, start, stop, adjustLabels, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor} = combinedOptions;
+  const { x, y, start, stop, adjustLabels, trackSpacing, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor} = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -1514,7 +1515,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
 
     const xPos = this.xScale((d.start + d.stop) / 2) + currentX;
 
-    const currentTrackOffset = d.geneTrack ? (d.geneTrack - 1) * this.trackOffset : 0;
+    const currentTrackOffset = d.geneTrack ? (d.geneTrack - 1) * trackSpacing : 0;
     const yPos = this.yScale(currentY) - currentTrackOffset;
 
     return {
@@ -1983,7 +1984,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
         arrowheadWidth: 10,
         arrowheadHeight: 20,
         arrowHeight: 10,
-        trackSpacing: 30
+        trackSpacing: 40
     };
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
@@ -2012,7 +2013,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
         const currentX = style.x || x;
         const currentY = style.y || y;
         // Calculate Y position based on geneTrack
-        const currentTrackOffset = d.geneTrack ? (d.geneTrack - 1) * (arrowHeight + trackSpacing) : 0;
+        const currentTrackOffset = d.geneTrack ? (d.geneTrack - 1) * trackSpacing : 0;
 
         const yPos = this.yScale(currentY) - currentTrackOffset;
         const xPos = this.reverse ? this.xScale(d.stop) : this.xScale(d.start);

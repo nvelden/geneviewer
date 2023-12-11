@@ -142,214 +142,52 @@ GC_chart(
   GC_sequence(y=45) %>%
   GC_legend(FALSE) %>%
   GC_clusterLabel(title = unique(combined_hox_genes$cluster)) %>%
-  # Adjust labels and genes for cluster 1
-  GC_labels(cluster = 1,
-            label = "name",
-            fontSize = "10px",
-            adjustLabels = FALSE,
-            itemStyle = list(
-             list(index = 3, y = 70),
-             list(index = 4, y = 70),
-             list(index = 5, y = 70),
-             list(index = 8, y = 70),
-             list(index = 9, y = 70),
-             list(index = 2, y = 34, fill = "white"),
-             list(index = 7, y = 34, fill = "white")
-             )
-            ) %>%
-  GC_genes(cluster = 1,
+  GC_genes(prevent_overlap = TRUE,
+           trackSpacing = 20,
            arrowheadWidth = 0,
            arrowheadHeight = 10,
            arrowHeight = 10,
-           itemStyle = list(
-             list(index = 3, y = 70),
-             list(index = 4, y = 70),
-             list(index = 5, y = 70),
-             list(index = 8, y = 70),
-             list(index = 9, y = 70)
-             )
+  ) %>% 
+  GC_scale(
+    cluster = c(3,4),
+    reverse = TRUE
   ) %>%
-  # Adjust labels and genes for cluster 2
-  GC_labels(cluster = 2,
-            label = "name",
-            fontSize = "10px",
+  GC_labels(label = "name", 
             adjustLabels = FALSE,
+            fontSize = 10,
             itemStyle = list(
-             list(index = 3, y = 70),
-             list(index = 4, y = 70, x=-5),
-             list(index = 5, y = 70),
-             list(index = 7, y = 70),
-             list(index = 8, y = 70),
-             list(index = 2, y = 34, fill = "white"),
-             list(index = 6, y = 34, fill = "white")
+              list(index = 5, x = 8)
              )
-            ) %>%
-  GC_genes(cluster = 2,
-           arrowheadWidth = 0,
-           arrowheadHeight = 10,
-           arrowHeight = 10,
-           itemStyle = list(
-             list(index = 3, y = 70),
-             list(index = 4, y = 70),
-             list(index = 5, y = 70),
-             list(index = 7, y = 70),
-             list(index = 8, y = 70)
-             )
-  ) %>%
-  # Adjust labels and genes for cluster 3
-  GC_labels(cluster = 3,
-            label = "name",
-            fontSize = "10px",
-            adjustLabels = FALSE,
-            itemStyle = list(
-            list(index = 5, y = 70),
-            list(index = 6, y = 70),
-            list(index = 8, y = 73, x = 22),
-            list(index = 4, y = 34, fill = "white"),
-            list(index = 7, y = 54, fill = "white")
-              )
-            ) %>%
-  GC_genes(cluster = 3,
-           arrowheadWidth = 0,
-           arrowheadHeight = 10,
-           arrowHeight = 10,
-           itemStyle = list(
-              list(index = 5, y = 70),
-              list(index = 6, y = 70),
-              list(index = 7, y = 70),
-              list(index = 8, y = 90)
-            )
-  ) %>%
- # Adjust labels and genes for cluster 4
- GC_labels(cluster = 4,
-            label = "name",
-            fontSize = "10px",
-            adjustLabels = FALSE,
-            itemStyle = list(
-            list(index = 3, y = 70),
-            list(index = 7, y = 70),
-            list(index = 2, y = 34, fill = "white"),
-            list(index = 6, y = 34, fill = "white")
-              )
-            ) %>%
-  GC_genes(cluster = 4,
-           arrowheadWidth = 0,
-           arrowheadHeight = 10,
-           arrowHeight = 10,
-           itemStyle = list(
-              list(index = 3, y = 70),
-              list(index = 7, y = 70)
-            )
-  )
+           )
 ```
 </details>
 
 ```{r echo = FALSE, results='asis'}
 GC_chart(
   human_hox_genes,
+  start = "start",
+  stop = "stop",
   group = "cluster",
   height = "400px",
   cluster = "cluster") %>%
   GC_sequence(y=45) %>%
   GC_legend(FALSE) %>%
   GC_clusterLabel(title = unique(combined_hox_genes$cluster)) %>%
-  # Adjust labels and genes for cluster 1
-  GC_labels(cluster = 1,
-            label = "name",
-            fontSize = "10px",
-            adjustLabels = FALSE,
-            itemStyle = list(
-             list(index = 3, y = 70),
-             list(index = 4, y = 70),
-             list(index = 5, y = 70),
-             list(index = 8, y = 70),
-             list(index = 9, y = 70),
-             list(index = 2, y = 34, fill = "white"),
-             list(index = 7, y = 34, fill = "white")
-             )
-            ) %>%
-  GC_genes(cluster = 1,
+  GC_genes(prevent_overlap = TRUE,
+           trackSpacing = 20,
            arrowheadWidth = 0,
            arrowheadHeight = 10,
            arrowHeight = 10,
-           itemStyle = list(
-             list(index = 3, y = 70),
-             list(index = 4, y = 70),
-             list(index = 5, y = 70),
-             list(index = 8, y = 70),
-             list(index = 9, y = 70)
-             )
-  ) %>%
-  # Adjust labels and genes for cluster 2
-  GC_labels(cluster = 2,
-            label = "name",
-            fontSize = "10px",
+  ) %>% 
+  GC_labels(label = "name", 
             adjustLabels = FALSE,
+            fontSize = 10,
             itemStyle = list(
-             list(index = 3, y = 70),
-             list(index = 4, y = 70, x=-5),
-             list(index = 5, y = 70),
-             list(index = 7, y = 70),
-             list(index = 8, y = 70),
-             list(index = 2, y = 34, fill = "white"),
-             list(index = 6, y = 34, fill = "white")
+              list(index = 5, x = 8)
              )
-            ) %>%
-  GC_genes(cluster = 2,
-           arrowheadWidth = 0,
-           arrowheadHeight = 10,
-           arrowHeight = 10,
-           itemStyle = list(
-             list(index = 3, y = 70),
-             list(index = 4, y = 70),
-             list(index = 5, y = 70),
-             list(index = 7, y = 70),
-             list(index = 8, y = 70)
-             )
-  ) %>%
-  # Adjust labels and genes for cluster 3
-  GC_labels(cluster = 3,
-            label = "name",
-            fontSize = "10px",
-            adjustLabels = FALSE,
-            itemStyle = list(
-            list(index = 5, y = 70),
-            list(index = 6, y = 70),
-            list(index = 8, y = 73, x = 22),
-            list(index = 4, y = 34, fill = "white"),
-            list(index = 7, y = 54, fill = "white")
-              )
-            ) %>%
-  GC_genes(cluster = 3,
-           arrowheadWidth = 0,
-           arrowheadHeight = 10,
-           arrowHeight = 10,
-           itemStyle = list(
-              list(index = 5, y = 70),
-              list(index = 6, y = 70),
-              list(index = 7, y = 70),
-              list(index = 8, y = 90)
-            )
-  ) %>%
- # Adjust labels and genes for cluster 4
- GC_labels(cluster = 4,
-            label = "name",
-            fontSize = "10px",
-            adjustLabels = FALSE,
-            itemStyle = list(
-            list(index = 3, y = 70),
-            list(index = 7, y = 70),
-            list(index = 2, y = 34, fill = "white"),
-            list(index = 6, y = 34, fill = "white")
-              )
-            ) %>%
-  GC_genes(cluster = 4,
-           arrowheadWidth = 0,
-           arrowheadHeight = 10,
-           arrowHeight = 10,
-           itemStyle = list(
-              list(index = 3, y = 70),
-              list(index = 7, y = 70)
-            )
+           ) %>%
+  GC_scale(
+    cluster = c(3,4),
+    reverse = TRUE
   )
 ```

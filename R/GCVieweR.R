@@ -81,6 +81,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 
     subset_data$start <- subset_data[[start]]
     subset_data$stop <- subset_data[[stop]]
+
     subset_data <- subset_data[with(subset_data, order(-pmax(start, stop), abs(stop - start))), ]
     subset_data$cluster <- clust
 
@@ -1073,6 +1074,8 @@ GC_coordinates <- function(
 #' @param show Logical, whether to show the genes or not.
 #' @param colorScheme Character or NULL, the name of the color scheme to use.
 #' @param customColors List or NULL, custom colors to apply to the genes.
+#' @param prevent_overlap Logical, whether to prevent overlapping of genes in the chart.
+#' @param trackSpacing Numeric, the spacing between tracks in the chart.
 #' @param cluster Numeric or character, the specific cluster to filter genes by.
 #' @param itemStyle List, a list of styles to apply to individual items in the chart.
 #' @param ... Additional arguments to be passed to the gene options.
@@ -1097,6 +1100,8 @@ GC_coordinates <- function(
 #'                         # (eg. "schemeCategory10",
 #'                         # "schemeAccent", "schemeTableau10")
 #'     customColors = NULL, # A vector of color names
+#'     prevent_overlap = FALSE,
+#'     trackSpacing = 30,
 #'     cluster = 1, # Specify a specific cluster
 #'     x = 1,
 #'     y = 50,
@@ -1123,6 +1128,8 @@ GC_genes <- function(
     show = TRUE,
     colorScheme = NULL,
     customColors = NULL,
+    prevent_overlap = FALSE,
+    trackSpacing = 30,
     cluster = NULL,
     itemStyle = list(),
     ...
@@ -1153,12 +1160,18 @@ GC_genes <- function(
 
   for(i in seq_along(clusters)){
 
+    if(prevent_overlap){
+    # Subset data for the current cluster
+    subset_data <- GC_chart$x$series[[clusters[i]]]$data
+    GC_chart$x$series[[clusters[i]]]$data <- add_gene_track(subset_data)
+    }
     # Default options
     options <- list(
       group = group[(i-1) %% length(group) + 1],
       show = show[(i-1) %% length(show) + 1],
       colorScheme = colorScheme,
       customColors = customColors,
+      trackSpacing = trackSpacing,
       itemStyle = itemStyle
     )
 

@@ -608,8 +608,6 @@ clusterContainer.prototype.scale = function(options = {}) {
     this.data = this.data.filter(d => d.stop <= stop);
   }
 
-  this.reverse = reverse
-
   // Filter out data where d.start or d.stop falls within any of the breaks
   this.data = this.data.filter(d => {
     for (let gap of breaks) {
@@ -620,6 +618,8 @@ clusterContainer.prototype.scale = function(options = {}) {
     }
     return true; // Data is outside all breaks
   });
+
+  this.reverse = reverse;
 
   // Use provided start and stop values if they exist, otherwise compute them from data
   this.minStart = start !== null ? start : d3.min(this.data, (d) => Math.min(d.start, d.stop));
@@ -1505,6 +1505,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     const style = itemStyle.find(s => s.index === i) || {};
     const currentX = style.x || x;
     const currentY = style.y || y;
+
     const currentDx = style.dx || dx;
     const currentDy = style.dy || dy;
     const currentRotate = style.rotate || rotate;
@@ -1512,7 +1513,9 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     const currentAdjustLabels = style.adjustLabels !== undefined ? style.adjustLabels : adjustLabels;
 
     const xPos = this.xScale((d.start + d.stop) / 2) + currentX;
-    const yPos = this.yScale(currentY);
+
+    const currentTrackOffset = d.geneTrack ? (d.geneTrack - 1) * this.trackOffset : 0;
+    const yPos = this.yScale(currentY) - currentTrackOffset;
 
     return {
         xPos,
@@ -1979,11 +1982,12 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
         itemStyle: [],
         arrowheadWidth: 10,
         arrowheadHeight: 20,
-        arrowHeight: 10
+        arrowHeight: 10,
+        trackSpacing: 30
     };
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
-    const { x, y, stroke, strokeWidth, colorScheme, customColors, cursor, itemStyle, arrowheadWidth, arrowheadHeight, arrowHeight } = combinedOptions;
+    const { x, y, stroke, strokeWidth, colorScheme, customColors, cursor, itemStyle, arrowheadWidth, arrowheadHeight, arrowHeight, trackSpacing } = combinedOptions;
 
     // Extract additional options that aren't in defaultOptions
     const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -1997,6 +2001,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 
     // Sort the data first by the minimum value of start and stop.
     this.data.sort((a, b) => Math.min(a.start, a.stop) - Math.min(b.start, b.stop));
+    this.trackOffset = (arrowHeight + trackSpacing)
 
     const getAttributesForIndex = (d, i) => {
         const style = itemStyle.find(s => s.index === i) || {};
@@ -2006,9 +2011,10 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
         const currentArrowHeight = style.arrowHeight || arrowHeight;
         const currentX = style.x || x;
         const currentY = style.y || y;
+        // Calculate Y position based on geneTrack
+        const currentTrackOffset = d.geneTrack ? (d.geneTrack - 1) * (arrowHeight + trackSpacing) : 0;
 
-        const yPos = this.yScale(currentY);
-
+        const yPos = this.yScale(currentY) - currentTrackOffset;
         const xPos = this.reverse ? this.xScale(d.stop) : this.xScale(d.start);
 
         return { xPos, yPos, currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight };
@@ -2063,5 +2069,6 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 
     // Update the reference
     this.genes = g.selectAll(".gene");
+
     return this;
 };

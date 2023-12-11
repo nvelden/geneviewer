@@ -10,6 +10,8 @@ GC_genes(
   show = TRUE,
   colorScheme = NULL,
   customColors = NULL,
+  prevent_overlap = FALSE,
+  trackSpacing = 30,
   cluster = NULL,
   itemStyle = list(),
   ...
@@ -25,6 +27,10 @@ GC_genes(
 \item{colorScheme}{Character or NULL, the name of the color scheme to use.}
 
 \item{customColors}{List or NULL, custom colors to apply to the genes.}
+
+\item{prevent_overlap}{Logical, whether to prevent overlapping of genes in the chart.}
+
+\item{trackSpacing}{Numeric, the spacing between tracks in the chart.}
 
 \item{cluster}{Numeric or character, the specific cluster to filter genes by.}
 
@@ -57,6 +63,8 @@ GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
                         # (eg. "schemeCategory10",
                         # "schemeAccent", "schemeTableau10")
     customColors = NULL, # A vector of color names
+    prevent_overlap = FALSE,
+    trackSpacing = 30,
     cluster = 1, # Specify a specific cluster
     x = 1,
     y = 50,

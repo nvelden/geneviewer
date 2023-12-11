@@ -276,4 +276,60 @@ get_relative_height <- function(baseHeight, relativeHeight) {
   }
 }
 
+#' Assign Tracks to Genes Based on Start and Stop Positions
+#'
+#' This function assigns tracks to genes in a dataset based on their start
+#' and stop positions. It ensures that overlapping genes are assigned to
+#' different tracks. The function operates by iterating over each gene and
+#' finding a suitable track where it can be placed without overlapping.
+#'
+#' @param data A dataframe containing gene data with at least two columns:
+#'   start and stop. Each row in the dataframe should represent a gene with
+#'   its start and stop positions.
+#'
+#' @return A modified version of the input dataframe that includes an additional
+#'   column named 'geneTrack'. This column contains the track number assigned to
+#'   each gene, ensuring no overlap in tracks.
+#' @examples
+#' gene_data <- data.frame(start = c(1, 5, 10), stop = c(4, 9, 15))
+#' peptides_data <- add_gene_track(gene_data)
+#' print(gene_data)
+#' @noRd
+add_gene_track <- function(data) {
+  if (is.null(data) || nrow(data) == 0) {
+    return(NULL)
+  }
+  # Initialize a list to keep track of the start and stop positions in each track
+  track_ranges <- list()
 
+  # Function to find an appropriate track
+  find_track <- function(start, end) {
+
+    if (start > end) {
+      temp <- start
+      start <- end
+      end <- temp
+    }
+
+    for (i in seq_along(track_ranges)) {
+      overlaps <- any(sapply(track_ranges[[i]], function(range) {
+        range_start <- range[1]
+        range_end <- range[2]
+        (start <= range_end && end >= range_start)
+      }))
+      if (!overlaps) {
+        track_ranges[[i]] <<- c(track_ranges[[i]], list(c(start, end)))
+        return(i)
+      }
+    }
+    track_ranges <<- c(track_ranges, list(list(c(start, end))))
+    return(length(track_ranges))
+  }
+
+  # Assign tracks to each peptide
+  data$geneTrack <-
+    sapply(1:nrow(data), function(i)
+      find_track(data$start[i], data$stop[i]))
+
+  return(data)
+}

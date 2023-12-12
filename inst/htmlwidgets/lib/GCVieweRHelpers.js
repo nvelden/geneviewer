@@ -1214,6 +1214,7 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
         tickValuesTop: null,
         tickValuesBottom: null,
         overlapPercentage: 2,
+        trackSpacing: 40,
         tickStyle: {
           stroke: "black",
           strokeWidth: 1,
@@ -1228,7 +1229,7 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
     };
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'coordinatesOptions', options);
-    const { rotate, yPositionTop, yPositionBottom, tickValuesTop, tickValuesBottom, tickStyle, textStyle } = combinedOptions;
+    const { rotate, tickValuesTop, yPositionTop,  yPositionBottom, tickValuesBottom, trackSpacing, tickStyle, textStyle } = combinedOptions;
 
     // Extract additional options that are not in defaultOptions
     const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultOptions.tickStyle);
@@ -1246,11 +1247,28 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
 
     // If neither tickValuesTop nor tickValuesBottom are provided, calculate them
     if (!tickValuesTop && !tickValuesBottom) {
-        let allTickValues = this.data.reduce((acc, d) => {
-            acc.push({ value: d.start, rowID: d.rowID });
-            acc.push({ value: d.stop, rowID: d.rowID });
-            return acc;
-        }, []);
+
+    let allTickValues = this.data.reduce((acc, d) => {
+        // Define tickValueStart and tickValueStop
+        let tickValueStart = { value: d.start, rowID: d.rowID };
+        let tickValueStop = { value: d.stop, rowID: d.rowID };
+
+        // Add geneTrack property if it exists
+        if ('geneTrack' in d) {
+            tickValueStart.geneTrack = d.geneTrack;
+            tickValueStop.geneTrack = d.geneTrack;
+        }
+
+        acc.push(tickValueStart);
+        acc.push(tickValueStop);
+
+        return acc;
+    }, []);
+
+    // Remove duplicates based on the 'value' property
+    allTickValues = allTickValues.filter((obj, index, self) =>
+    index === self.findIndex((t) => t.value === obj.value)
+    );
 
         allTickValues.sort((a, b) => a.value - b.value);
 
@@ -1269,15 +1287,21 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
         });
     }
 
+    const self = this;
+
     // Create and configure the top axis
     const xAxisTop = g.append("g")
             .attr("transform", "translate(0," + this.yScale(yPositionTop) + ")")
             .call(d3.axisTop(this.xScale).tickValues(tickValuesTopFinal.map(t => t.value)));
 
         xAxisTop.selectAll(".tick")
-            .data(tickValuesTopFinal)
-            .attr("rowID", d => d.rowID)
-            .attr("transform", d => "translate(" + this.xScale(d.value) + ",0)");
+          .data(tickValuesTopFinal)
+          .attr("rowID", d => d.rowID)
+          .attr("transform", function(d) {
+              const xOffset = self.xScale(d.value);
+              currentTrackOffset = d.geneTrack ? -(d.geneTrack - 1) * trackSpacing : 0;
+           return "translate(" + xOffset + ","  +  currentTrackOffset  + ")";
+        });
 
         xAxisTop.select(".domain").attr("stroke", "none");
 
@@ -1316,7 +1340,11 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
         xAxisBottom.selectAll(".tick")
             .data(tickValuesBottomFinal)
             .attr("rowID", d => d.rowID)
-            .attr("transform", d => "translate(" + this.xScale(d.value) + ",0)");
+            .attr("transform", function(d) {
+              const xOffset = self.xScale(d.value);
+              currentTrackOffset = d.geneTrack ? -(d.geneTrack - 1) * trackSpacing : 0;
+           return "translate(" + xOffset + ","  +  currentTrackOffset  + ")";
+        });
 
         xAxisBottom.select(".domain").attr("stroke", "none");
 

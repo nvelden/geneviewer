@@ -952,10 +952,14 @@ GC_labels <- function(
     for(name in names(dots)) {
       options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
     }
-
     # Set labels options for each cluster
     GC_chart$x$series[[clusters[i]]]$labels <- options
 
+  }
+
+  # Check if GC_track is called last
+  if (!is.null(GC_chart$x$track_called) && GC_chart$x$track_called) {
+    warning("GC_track must be called after setting genes, labels or coordinates for proper effect.")
   }
 
   return(GC_chart)
@@ -1059,6 +1063,11 @@ GC_coordinates <- function(
     GC_chart$x$series[[clusters[i]]]$coordinates$tickValuesTop <- tickValuesTop
     GC_chart$x$series[[clusters[i]]]$coordinates$tickValuesBottom <- tickValuesBottom
 
+  }
+
+  # Check if GC_track is called last
+  if (!is.null(GC_chart$x$track_called) && GC_chart$x$track_called) {
+    warning("GC_track must be called after setting genes, labels or coordinates for proper effect.")
   }
 
   return(GC_chart)
@@ -1173,6 +1182,11 @@ GC_genes <- function(
 
     GC_chart$x$series[[clusters[i]]]$genes <- options
 
+  }
+
+  # Check if GC_track is called last
+  if (!is.null(GC_chart$x$track_called) && GC_chart$x$track_called) {
+    warning("GC_track must be called after setting genes, labels or coordinates for proper effect.")
   }
 
   return(GC_chart)
@@ -1458,7 +1472,11 @@ GC_track <- function(
 
     GC_chart$x$series[[clusters[i]]]$genes$trackSpacing <- spacing
     GC_chart$x$series[[clusters[i]]]$labels$trackSpacing <- spacing
+    GC_chart$x$series[[clusters[i]]]$coordinates$trackSpacing <- spacing
   }
+
+  # Add flag that function has been called.
+  GC_chart$x$track_called <- TRUE
 
   return(GC_chart)
 }

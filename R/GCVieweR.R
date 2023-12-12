@@ -411,56 +411,101 @@ GC_grid <- function(
 #' Modify the scale settings for specified clusters within a GC chart.
 #'
 #' @param GC_chart A GC chart object.
-#' @param cluster Numeric or character vector. Clusters in the GC chart to
-#'   update.
-#' @param start Numeric vector. Starting points for the scales.
-#' @param stop Numeric vector. Stopping points for the scales.
-#' @param breaks List. Settings for the scale breaks.
-#' @param reverse Logical vector, with each element indicating whether to
+#' @param cluster Numeric or character vector specifying clusters in the GC chart to update.
+#' @param start Numeric vector indicating the starting point for the scale.
+#'     Default is NULL.
+#' @param stop Numeric vector indicating the stopping points for the scale.
+#'     Default is NULL.
+#' @param hidden Logical flag indicating whether the axis is hidden.
+#'     Default is FALSE.
+#' @param breaks List specifying settings for the scale breaks.
+#'     Default is an empty list ().
+#' @param reverse Logical flag indicating whether to
+#'     reverse the scale for the corresponding cluster. Default is FALSE.
 #' @param scale_breaks Logical flag indicating if scale breaks should be
-#'   employed. Default is FALSE.
+#'     employed. Default is FALSE.
 #' @param scale_break_threshold Numeric value indicating the threshold
-#'   percentage of the entire range for determining inter-gene regions suitable
-#'   for scale breaks. Default is 20.
-#' @param scale_break_padding Numeric value indicating the padding percentage of
-#'   the entire range on either side of a scale break. Default is 1.
-#'   reverse the scale for the corresponding cluster. Default is FALSE.
+#'     percentage for determining scale breaks. Default is 20.
+#' @param scale_break_padding Numeric value indicating the padding on either
+#'     side of a scale break. Default is 1.
+#' @param ticksCount Numeric value indicating the number of ticks on the scale.
+#'     Default is 20.
+#' @param ticksFormat Character string indicating the format of the ticks.
+#'     Default is ",.0f".
+#' @param y Numeric value indicating the y-position of the x-axis.
+#'     Default is 30.
+#' @param tickStyle List specifying the style for the ticks.
+#' @param textStyle List specifying the style for the tick text.
+#' @param lineStyle List specifying the style for the axis line.
 #' @param ... Additional arguments for scale settings.
 #'
 #' @return Updated GC chart with new scale settings.
 #'
 #' @examples
 #' genes_data <- data.frame(
-#' start = c(100, 1000, 2000),
-#' stop = c(150, 1500, 2500),
-#' name = c( 'Gene 4', 'Gene 5', 'Gene 6'),
-#' group = c( 'B', 'A', 'C'),
-#' cluster = c(2, 2, 2)
+#'   start = c(100, 1000, 2000),
+#'   stop = c(150, 1500, 2500),
+#'   name = c('Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('B', 'A', 'C'),
+#'   cluster = c(2, 2, 2)
 #' )
-#'
-#' # Set manual start and stop values for scales domain
-#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
-#' GC_scale(
-#'   start = 1,
-#'   stop = 2600,
-#'   breaks =
-#'   list(
-#'     list(start = 160, stop = 900),
-#'     list(start = 1600, stop = 1900)
-#'       )
-#'   )
-#'
+#' #Example usage with all custom options
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
+#'   GC_scale(
+#'     start = 1,
+#'     stop = 2600,
+#'     hidden = FALSE,
+#'     reverse = FALSE,
+#'     #breaks = list(
+#'     #  list(start = 160, stop = 900),
+#'     #  list(start = 1600, stop = 1900)
+#'     #),
+#'     scale_breaks = TRUE,
+#'     scale_break_threshold = 20,
+#'     scale_break_padding = 1,
+#'     ticksCount = 20,
+#'     ticksFormat = ",.0f",
+#'     y = 30,
+#'     tickStyle =
+#'       list(
+#'         stroke = "grey",
+#'         strokeWidth = 1,
+#'         lineLength = 6
+#'         # Any other CSS styles
+#'       ),
+#'     textStyle =
+#'       list(
+#'         fill = "black",
+#'         fontSize = "10px",
+#'         fontFamily = "Arial",
+#'         cursor = "default"
+#'         # Any other CSS styles
+#'       ),
+#'     lineStyle = list(
+#'       stroke = "grey",
+#'       strokeWidth = 1
+#'       # Any other CSS styles
+#'     )
+#'   ) %>%
+#'   GC_legend(FALSE)
 #' @export
 GC_scale <- function(
     GC_chart,
     cluster = NULL,
     start = NULL,
     stop = NULL,
+    hidden = FALSE,
     breaks = list(),
     reverse = FALSE,
     scale_breaks = FALSE,
     scale_break_threshold = 20,
     scale_break_padding = 1,
+    ticksCount = 20,
+    ticksFormat = ",.0f",
+    y = 30,
+    tickStyle = list(),
+    textStyle = list(),
+    lineStyle = list(),
     ...
 ) {
 
@@ -491,11 +536,18 @@ GC_scale <- function(
     options <- list(
       start = start[start_idx],
       stop = stop[stop_idx],
+      hidden = hidden,
       breaks = breaks_data,
       reverse = reverse[reverse_idx],
       scale_breaks = scale_breaks,
       scale_break_threshold = scale_break_threshold,
-      scale_break_padding = scale_break_padding
+      scale_break_padding = scale_break_padding,
+      ticksCount = ticksCount,
+      ticksFormat = ticksFormat,
+      y = y,
+      tickStyle = tickStyle,
+      textStyle = textStyle,
+      lineStyle = lineStyle
     )
 
     # Set scale options for each cluster
@@ -1427,7 +1479,7 @@ GC_tooltip <- function(
 
 #' Modify Gene Track
 #'
-#' This function can conditionally remove a specific gene track and adjust the spacing between tracks.
+#' This function can switch gene tracks off or adjust the spacing between tracks.
 #'
 #' @param GC_chart The gene chart object to be modified.
 #' @param track Logical, whether to include the gene track or not. If FALSE, the specified gene track is removed.

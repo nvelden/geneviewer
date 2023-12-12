@@ -59,7 +59,7 @@ GC_chart(ophA_clusters,
 
 ## Shiny
 
-The `GC_chartOutput()` and `renderGC_chart()` functions enable you to visualize gene clusters within Shiny applications. 
+The `GC_chartOutput()` and `renderGC_chart()` functions enable you to visualize gene clusters within Shiny applications.
 
 ```{r echo=TRUE, eval = FALSE}
 # Load necessary libraries
@@ -178,7 +178,7 @@ GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "150px") %
 
 ### Labels
 
-To each gene cluster one can add a title, gene labels, a cluster label and a footer as shown in the example below. 
+To each gene cluster one can add a title, gene labels, a cluster label and a footer as shown in the example below.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, 
@@ -241,13 +241,13 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") 
             )
 ```
 
-### Colors
+### Colors {#colors}
 
 The color of the legend and genes can be controlled through the `GC_color` function using the `colorScheme` or `customColors` variables.
 
 #### colorScheme
 
-Defines a predefined color scheme for the legend, such as "schemeCategory10" or "schemeAccent" from D3.js. 
+Defines a predefined color scheme for the legend, such as "schemeCategory10" or "schemeAccent" from D3.js.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, group = "class", height = "100px") %>%
@@ -256,7 +256,8 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
 
 Supported schemes include:
 
-  - `schemeCategory10`: An array of ten categorical colors.
+-   `schemeCategory10`: An array of ten categorical colors.
+
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches <- function(color_scheme_name, color_scheme_length) {
   if (color_scheme_length <= 0) {
@@ -279,52 +280,167 @@ generate_GC_color_patches <- function(color_scheme_name, color_scheme_length) {
 }
 generate_GC_color_patches("schemeCategory10", 10)
 ```
-  - `schemeAccent`: An array of eight categorical colors.
+
+-   `schemeAccent`: An array of eight categorical colors.
+
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemeAccent", 8)
 ```
-  - `schemeDark2`: An array of eight categorical colors.
+
+-   `schemeDark2`: An array of eight categorical colors.
+
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemeDark2", 8)
 ```
-  - `schemePaired`: An array of twelve categorical colors.
+
+-   `schemePaired`: An array of twelve categorical colors.
+
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemePaired", 12)
 ```
-  - `schemePastel1`: An array of nine categorical colors.
+
+-   `schemePastel1`: An array of nine categorical colors.
+
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemePastel1", 9)
 ```
-  - `schemePastel2`: An array of eight categorical colors.
+
+-   `schemePastel2`: An array of eight categorical colors.
+
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemePastel2", 8)
 ```
-  - `schemeSet1`: An array of nine categorical colors.
+
+-   `schemeSet1`: An array of nine categorical colors.
+
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemeSet1", 9)
 ```
-  - `schemeSet2`: An array of eight categorical colors.
+
+-   `schemeSet2`: An array of eight categorical colors.
+
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemeSet2", 8)
 ```
-  - `schemeSet3`: An array of twelve categorical colors.
+
+-   `schemeSet3`: An array of twelve categorical colors.
+
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemeSet3", 12)
 ```
-  - `schemeTableau10`: An array of ten categorical colors, originally created for Tableau.
+
+-   `schemeTableau10`: An array of ten categorical colors, originally created for Tableau.
+
 ```{r echo=FALSE, results='asis'}
 generate_GC_color_patches("schemeTableau10", 10)
 ```
 
 #### customColors
 
-Defines a predefined set of colors, `customColors` allows for specifying exact colors for each group in the legend. 
+Defines a predefined set of colors, `customColors` allows for specifying exact colors for each group in the legend.
 
 ```{r echo=TRUE, results='asis'}
 custom_colors <- c("#F8766D","#00BA38","#619CFF","#F564E3","#FFC61E","#00BFC4")
 
 GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_color(customColors = custom_colors)
+```
+
+### Scale
+
+The `GC_scale()`\` function is utilized for adjusting the chart's scale. The visibility of the scale can be controlled by the hidden parameter, which, when set to TRUE, hides the axis. The `y` parameter can be used to adjust the horizontal position of the axis.
+
+```{r echo=TRUE, results='asis'}
+# With scale breaks
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_scale(
+    hidden = FALSE,
+    y = 30) %>%
+   GC_legend(FALSE)
+```
+
+#### Automatic Scale Breaks
+
+In the `GC_scale()` function, the parameters `scale_breaks`, `scale_break_threshold`, and `scale_break_padding` can be used to avoid issues with widely spaced genes within a cluster. Setting `scale_breaks` to TRUE introduces breaks in the genomic scale which will avoid long empty stretches. The `scale_break_threshold` defines the spacing percentage between genes needed to activate these breaks. `scale_break_padding` controls the padding around these breaks.
+
+In the given example, a scale break will be introduced in cases where the intergenic region exceeds 20% of the total range of the gene cluster. Additionally, a padding of 1% will be added to both the left and right sides of this break.
+
+```{r echo=TRUE, results='asis'}
+# With scale breaks
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_scale(
+    scale_breaks = TRUE,
+    scale_break_threshold = 20,
+    scale_break_padding = 1
+  ) %>%
+  GC_legend(FALSE)
+```
+
+#### Manual Scale Adjustments
+
+By default the minimum and maximum of the genes start and stop positions are used to position the genes along the sequence. With the use of the `start` and `stop parameters, these values can be adjusted. Scale breaks can be added manually using the `breaks` parameter.
+
+In the provided example, adjustments are made to the `start` and `stop` range to incorporate additional padding on both the left and right sides of the gene cluster. Additionally, a scale break is introduced to remove the extensive intergenic region that exists between gene 2 and gene 3.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(
+  ophA_cluster, 
+  start = "start", 
+  stop = "stop", 
+  group = "class", 
+  height = "100px") %>%
+  GC_scale(
+    start = 1522, 
+    stop = 22484,
+    breaks = 
+      list(
+        list(start = 5486, stop = 9336)
+      )
+    ) %>%
+  GC_legend(FALSE)
+```
+
+#### Reverse Scale
+
+The scale can be reversed by setting reverse = TRUE
+
+```{r echo=TRUE, results='asis'}
+# With scale breaks
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_scale(reverse = TRUE)
+```
+
+#### Styling
+
+The scale can be styled using the `tickStyle`, `textStyle` and `lineStyle` options. You can pass any valid CSS styles to the respective styling list(). The amount of ticks can be specified using the `ticksCount` option. The `ticksFormat` parameter is used to define how the numerical labels on the tick marks are formatted (see: [link](https://d3js.org/d3-format)).
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_scale(
+    ticksFormat = ".1e", # Default: ",.0f"
+    ticksCount = 10,
+    tickStyle = 
+      list(
+        stroke = "black", 
+        strokeWidth = 2, 
+        lineLength = 12
+        # Any other CSS styles
+        ),
+    textStyle = 
+      list(
+        y = 15,
+        fill = "black", 
+        fontSize = "12px", 
+        fontFamily = "Arial"
+        # Any other CSS styles
+        ),
+    lineStyle = list(
+      stroke = "black", 
+      strokeWidth = 2
+      # Any other CSS styles
+      )
+  ) %>%
+  GC_legend(FALSE)
 ```
 
 ### Coordinates
@@ -366,64 +482,6 @@ GC_chart(dbophA_cluster, group = "class",height = "100px") %>%
    GC_legend(FALSE)
 ```
 
-### Scale 
-
-### Reverse Scale
-
-The scale can be reversed by setting reverse = TRUE in the `GC_scale` function
-
-```{r echo=TRUE, results='asis'}
-# With scale breaks
-GC_chart(ophA_cluster, group = "class", height = "100px") %>%
-  GC_scale(
-    reverse = TRUE
-  ) %>%
-  GC_coordinates(TRUE) %>%
-  GC_legend(FALSE)
-```
-
-#### Automatic Scale Breaks
-
-In the `GC_scale()` function, the parameters `scale_breaks`, `scale_break_threshold`, and `scale_break_padding` can be used to avoid issues with widely spaced genes within a cluster. Setting `scale_breaks` to TRUE introduces breaks in the genomic scale which will avoid long empty stretches. The `scale_break_threshold` defines the spacing percentage between genes needed to activate these breaks. `scale_break_padding` controls the padding around these breaks.
-
-In the given example, a scale break will be introduced in cases where the intergenic region exceeds 20% of the total range of the gene cluster. Additionally, a padding of 1% will be added to both the left and right sides of this break.
-
-```{r echo=TRUE, results='asis'}
-# With scale breaks
-GC_chart(ophA_cluster, group = "class", height = "100px") %>%
-  GC_scale(
-    scale_breaks = TRUE,
-    scale_break_threshold = 20,
-    scale_break_padding = 1
-  ) %>%
-  GC_legend(FALSE)
-```
-
-#### Manual Scale Adjustments
-
-By default the minimum and maximum of the genes start and stop positions are used to position the genes along the sequence. With the use of the `GC_scale()` function, these values can be adjusted. Furthermore, this function allows for the introduction of breaks within the sequence.
-
-In the provided example, adjustments are made to the start and stop range to incorporate additional padding on both the left and right sides of the gene cluster. Additionally, a scale break is introduced to remove the extensive intergenic region that exists between gene 2 and gene 3.
-
-```{r echo=TRUE, results='asis'}
-GC_chart(
-  ophA_cluster, 
-  start = "start", 
-  stop = "stop", 
-  group = "class", 
-  height = "100px") %>%
-  GC_coordinates() %>%
-  GC_scale(
-    start = 1522, 
-    stop = 22484,
-    breaks = 
-      list(
-        list(start = 5486, stop = 9336)
-      )
-    ) %>%
-  GC_legend(FALSE)
-```
-
 ### Sequence
 
 The sequence line in the `GC_sequence()` function is initially presented as a solid black line, but can be customized with the `sequenceStyle` option. Additionally, the `markerStyle` option allows adjusting the style of the break markers.
@@ -455,7 +513,7 @@ GC_chart(
 
 ### Scalebar
 
-A scalebar can be added to the gene cluster chart using `GC_scaleBar()`. This function, by default, displays a scale bar of 1000 base pairs (bp) labeled as "1kb". 
+A scalebar can be added to the gene cluster chart using `GC_scaleBar()`. This function, by default, displays a scale bar of 1000 base pairs (bp) labeled as "1kb".
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "150px") %>%
@@ -500,7 +558,7 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "150px") 
 
 ### Tooltip
 
-By default, the tooltip in the gene chart displays the start and stop positions of a gene when hovering over it. These positions are dynamically replaced by the actual start and stop data values for each gene. You can customize the text of the tooltip using the `formatter` variable. In the example below, the tooltip is customized to not only include the gene's start and stop positions but also its name. The gene name is pulled from the 'name' column in the data set. 
+By default, the tooltip in the gene chart displays the start and stop positions of a gene when hovering over it. These positions are dynamically replaced by the actual start and stop data values for each gene. You can customize the text of the tooltip using the `formatter` variable. In the example below, the tooltip is customized to not only include the gene's start and stop positions but also its name. The gene name is pulled from the 'name' column in the data set.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, group = "class", height = "150px") %>%
@@ -508,6 +566,31 @@ GC_chart(ophA_cluster, group = "class", height = "150px") %>%
     formatter = "<b>Gene: </b>{name}<br><b>Start:</b> {start}<br><b>Stop:</b> {stop}",
   ) %>%
   GC_legend(FALSE)
+```
+
+### Track
+
+To prevent gene overlaps, genes are automatically separated into distinct tracks. With the `GC_track` function the track-based separation can be switched off or the spacing between tracks can be adjusted.
+
+In the below example the track is switched off for the first cluster and the spacing for the second cluster is increased from 40 to 50.
+
+**Note**: The `GC_track()` function must be called after setting genes, labels or coordinates for proper effect.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(
+  subset(human_hox_genes, cluster %in% c("HOXA", "HOXB")),
+  group = "name",
+  cluster = "cluster",
+  height = "300px" 
+  ) %>% 
+  GC_labels(label = "name") %>%
+  GC_labels(label = "name", 
+            cluster = 1, 
+            itemStyle = list(list(index = 2, x=-10))
+            ) %>%
+  GC_legend(FALSE) %>%
+  GC_track(track = FALSE, cluster = 1) %>%
+  GC_track(cluster = 2, spacing = 50)
 ```
 
 ### Grid

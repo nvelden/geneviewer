@@ -9,38 +9,64 @@ GC_scale(
   cluster = NULL,
   start = NULL,
   stop = NULL,
+  hidden = FALSE,
   breaks = list(),
   reverse = FALSE,
   scale_breaks = FALSE,
   scale_break_threshold = 20,
   scale_break_padding = 1,
+  ticksCount = 20,
+  ticksFormat = ",.0f",
+  y = 30,
+  tickStyle = list(),
+  textStyle = list(),
+  lineStyle = list(),
   ...
 )
 }
 \arguments{
 \item{GC_chart}{A GC chart object.}
 
-\item{cluster}{Numeric or character vector. Clusters in the GC chart to
-update.}
+\item{cluster}{Numeric or character vector specifying clusters in the GC chart to update.}
 
-\item{start}{Numeric vector. Starting points for the scales.}
+\item{start}{Numeric vector indicating the starting point for the scale.
+Default is NULL.}
 
-\item{stop}{Numeric vector. Stopping points for the scales.}
+\item{stop}{Numeric vector indicating the stopping points for the scale.
+Default is NULL.}
 
-\item{breaks}{List. Settings for the scale breaks.}
+\item{hidden}{Logical flag indicating whether the axis is hidden.
+Default is FALSE.}
 
-\item{reverse}{Logical vector, with each element indicating whether to}
+\item{breaks}{List specifying settings for the scale breaks.
+Default is an empty list ().}
+
+\item{reverse}{Logical flag indicating whether to
+reverse the scale for the corresponding cluster. Default is FALSE.}
 
 \item{scale_breaks}{Logical flag indicating if scale breaks should be
 employed. Default is FALSE.}
 
 \item{scale_break_threshold}{Numeric value indicating the threshold
-percentage of the entire range for determining inter-gene regions suitable
-for scale breaks. Default is 20.}
+percentage for determining scale breaks. Default is 20.}
 
-\item{scale_break_padding}{Numeric value indicating the padding percentage of
-the entire range on either side of a scale break. Default is 1.
-reverse the scale for the corresponding cluster. Default is FALSE.}
+\item{scale_break_padding}{Numeric value indicating the padding on either
+side of a scale break. Default is 1.}
+
+\item{ticksCount}{Numeric value indicating the number of ticks on the scale.
+Default is 20.}
+
+\item{ticksFormat}{Character string indicating the format of the ticks.
+Default is ",.0f".}
+
+\item{y}{Numeric value indicating the y-position of the x-axis.
+Default is 30.}
+
+\item{tickStyle}{List specifying the style for the ticks.}
+
+\item{textStyle}{List specifying the style for the tick text.}
+
+\item{lineStyle}{List specifying the style for the axis line.}
 
 \item{...}{Additional arguments for scale settings.}
 }
@@ -52,23 +78,49 @@ Modify the scale settings for specified clusters within a GC chart.
 }
 \examples{
 genes_data <- data.frame(
-start = c(100, 1000, 2000),
-stop = c(150, 1500, 2500),
-name = c( 'Gene 4', 'Gene 5', 'Gene 6'),
-group = c( 'B', 'A', 'C'),
-cluster = c(2, 2, 2)
+  start = c(100, 1000, 2000),
+  stop = c(150, 1500, 2500),
+  name = c('Gene 4', 'Gene 5', 'Gene 6'),
+  group = c('B', 'A', 'C'),
+  cluster = c(2, 2, 2)
 )
-
-# Set manual start and stop values for scales domain
-GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
-GC_scale(
-  start = 1,
-  stop = 2600,
-  breaks =
-  list(
-    list(start = 160, stop = 900),
-    list(start = 1600, stop = 1900)
-      )
-  )
-
+#Example usage with all custom options
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
+  GC_scale(
+    start = 1,
+    stop = 2600,
+    hidden = FALSE,
+    reverse = FALSE,
+    #breaks = list(
+    #  list(start = 160, stop = 900),
+    #  list(start = 1600, stop = 1900)
+    #),
+    scale_breaks = TRUE,
+    scale_break_threshold = 20,
+    scale_break_padding = 1,
+    ticksCount = 20,
+    ticksFormat = ",.0f",
+    y = 30,
+    tickStyle =
+      list(
+        stroke = "grey",
+        strokeWidth = 1,
+        lineLength = 6
+        # Any other CSS styles
+      ),
+    textStyle =
+      list(
+        fill = "black",
+        fontSize = "10px",
+        fontFamily = "Arial",
+        cursor = "default"
+        # Any other CSS styles
+      ),
+    lineStyle = list(
+      stroke = "grey",
+      strokeWidth = 1
+      # Any other CSS styles
+    )
+  ) \%>\%
+  GC_legend(FALSE)
 }

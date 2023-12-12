@@ -383,8 +383,7 @@ function isInAnyDiscontinuity(value, breaks) {
     return false;
 }
 
-function createDiscontinuousScale(minStart, maxStop, width, margin, breaks) {
-
+function createDiscontinuousScale(minStart, maxStop, width, margin, breaks, reverse = false) {
     let totalGap = 0;
 
     // Calculate the total gap based on all discontinuities
@@ -394,35 +393,36 @@ function createDiscontinuousScale(minStart, maxStop, width, margin, breaks) {
         }
     }
 
-    // Define the linear scale by adjusting the maxStop by the totalGap
+    // Define the linear scale. Adjust the scale based on the reverse option.
+    let domainStart = reverse ? maxStop - totalGap : minStart;
+    let domainEnd = reverse ? minStart : maxStop - totalGap;
+
     const linearScale = d3.scaleLinear()
-        .domain([minStart, maxStop - totalGap])
+        .domain([domainStart, domainEnd])
         .range([0, width - margin.left - margin.right]);
 
     // Proxy object for discontinuous scale
     const scaleProxy = function(value) {
-    if (isInAnyDiscontinuity(value, breaks)) {
-        return null;
-    }
-
-    let cumulativeAdjustment = 0;
-
-    // Adjust the value by all previous discontinuities
-    for (let gap of breaks) {
-        if (value > gap.stop) {
-            cumulativeAdjustment += (gap.stop - gap.start);
-        } else {
-            // If the value is beyond a gap's start but hasn't reached the gap's stop,
-            // it means the value is within or after this gap, so we break out of the loop.
-            break;
+        if (isInAnyDiscontinuity(value, breaks)) {
+            return null;
         }
-    }
 
-    // Subtract the cumulative adjustment from the value
-    value -= cumulativeAdjustment;
+        let cumulativeAdjustment = 0;
 
-    return linearScale(value);
-};
+        // Adjust the value by all previous discontinuities
+        for (let gap of breaks) {
+            if (value > gap.stop) {
+                cumulativeAdjustment += (gap.stop - gap.start);
+            } else {
+                break;
+            }
+        }
+
+        // Apply reverse logic to the value adjustment
+        value = value - cumulativeAdjustment;
+
+        return linearScale(value);
+    };
 
     // Dynamically copy all methods and properties from linearScale to scaleProxy
     for (let prop in linearScale) {
@@ -573,64 +573,142 @@ clusterContainer.prototype.geneData = function (data, clusterData) {
 };
 
 clusterContainer.prototype.scale = function(options = {}) {
-
   // Verify that the data exists
   if (!this.data) {
     console.error('No data has been added to this cluster container.');
     return this;
   }
 
-  // Default options specific for scales
+  // Default options specific for scales and axis
   const defaultScaleOptions = {
     start: null,
     stop: null,
-    breaks: []
+    hidden: true,
+    reverse: false,
+    breaks: [],
+    ticksCount: 20,
+    ticksFormat: ",.0f",
+    y: 30,
+    tickStyle: {
+      stroke: "grey",
+      strokeWidth: 1,
+      lineLength: 6
+    },
+    textStyle: {
+      fill: "black",
+      fontSize: "10px",
+      fontFamily: "Arial",
+      cursor: "default"
+    },
+    lineStyle: {
+      stroke: "grey",
+      strokeWidth: 1
+    }
   };
-
-  if (options.breaks) {
-    defaultScaleOptions.breaks = options.breaks;
-  }
 
   // Merge provided options with the default ones
   const combinedOptions = mergeOptions.call(this, defaultScaleOptions, 'scaleOptions', options);
 
   // De-structure the combined options
-  const { start, stop, breaks } = combinedOptions;
+  const { start, stop, hidden, breaks, reverse, ticksCount, ticksFormat, y, tickStyle, textStyle, lineStyle } = combinedOptions;
 
-  // Filter data based on the provided start value, if provided
+  // Extract additional options that are not in defaultScaleOptions
+  const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultScaleOptions.tickStyle);
+  const additionalOptionsTextStyle = extractAdditionalOptions(textStyle, defaultScaleOptions.textStyle);
+  const additionalOptionslineStyle = extractAdditionalOptions(lineStyle, defaultScaleOptions.lineStyle);
+
+  // Filter data based on the provided start and stop values
   if (start !== null) {
     this.data = this.data.filter(d => d.start >= start);
   }
-
-  // Filter data based on the provided stop value, if provided
   if (stop !== null) {
     this.data = this.data.filter(d => d.stop <= stop);
   }
 
-  // Filter out data where d.start or d.stop falls within any of the breaks
+  // Filter out data where start or stop falls within any of the breaks
   this.data = this.data.filter(d => {
-    for (let gap of breaks) {
-      if ((d.start >= gap.start && d.start <= gap.stop) ||
-          (d.stop >= gap.start && d.stop <= gap.stop)) {
-        return false; // Data is within one of the breaks
-      }
-    }
-    return true; // Data is outside all breaks
+    return !breaks.some(gap =>
+      (d.start >= gap.start && d.start <= gap.stop) ||
+      (d.stop >= gap.start && d.stop <= gap.stop)
+    );
   });
 
+  this.reverse = reverse;
+
   // Use provided start and stop values if they exist, otherwise compute them from data
-  this.minStart = start !== null ? start : d3.min(this.data, (d) => Math.min(d.start, d.stop));
-  this.maxStop = stop !== null ? stop : d3.max(this.data, (d) => Math.max(d.start, d.stop));
+  this.minStart = start !== null ? start : d3.min(this.data, d => Math.min(d.start, d.stop));
+  this.maxStop = stop !== null ? stop : d3.max(this.data, d => Math.max(d.start, d.stop));
 
-  // Assuming createDiscontinuousScale() also needs to be updated for breaks, else this would be incorrect
-  this.xScale = createDiscontinuousScale(this.minStart, this.maxStop, this.width, this.margin, breaks);
-
+  // Create scales
+  this.xScale = createDiscontinuousScale(this.minStart, this.maxStop, this.width, this.margin, breaks, reverse);
   this.yScale = d3.scaleLinear()
     .domain([0, 100])
     .range([this.height - this.margin.bottom - this.margin.top, 0]);
 
+  // Filter breaks within the scale range
   this.breaks = breaks.filter(gap => gap.start >= this.minStart && gap.stop <= this.maxStop);
 
+  const that = this;
+  if (!hidden) {
+
+  // Create and configure the X-axis
+  const adjustedYOffset = this.yScale ? this.yScale(y) : y;
+  const axisGroup = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left},${this.margin.top + adjustedYOffset})`);
+
+
+  linearScale = d3.scaleLinear()
+        .domain([this.minStart, this.maxStop])
+        .range([0, this.width - this.margin.left - this.margin.right]);
+
+  const xAxis = d3.axisBottom(linearScale)
+        .ticks(ticksCount)
+        .tickFormat(d3.format(ticksFormat));
+
+  const axis = axisGroup.append("g").call(xAxis);
+
+  // Style axis lines and text
+  axis.selectAll(".tick line")
+    .style("stroke", tickStyle.stroke)
+    .style("stroke-width", tickStyle.strokeWidth)
+    .attr("y2", tickStyle.lineLength)
+    .each(function() {
+      const currentElement = d3.select(this)
+      setAttributesFromOptions(currentElement, additionalOptionsTickStyle);
+    });
+
+  axis.selectAll(".tick text")
+    .style("fill", textStyle.fill)
+    .style("font-size", textStyle.fontSize)
+    .style("font-family", textStyle.fontFamily)
+    .each(function() {
+      const currentElement = d3.select(this)
+      setAttributesFromOptions(currentElement, additionalOptionsTextStyle);
+    });
+
+    //
+    axis.selectAll(".tick").each(function(d) {
+      let tickValue = d3.select(this).data()[0];
+      let newX = that.xScale(tickValue);
+
+     if (newX === null) {
+      // If the new X position is null, remove the tick
+      d3.select(this).remove();
+      } else {
+      // Otherwise, update the transform attribute
+      d3.select(this).attr("transform", `translate(${newX},0)`);
+      }
+    });
+
+  axis.select(".domain")
+    .style("stroke", lineStyle.stroke)
+    .style("stroke-width", lineStyle.strokeWidth)
+    .each(function() {
+      const currentElement = d3.select(this);
+      setAttributesFromOptions(currentElement, additionalOptionslineStyle);
+    });
+
+  }
   return this;
 };
 
@@ -1211,6 +1289,7 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
         tickValuesTop: null,
         tickValuesBottom: null,
         overlapPercentage: 2,
+        trackSpacing: 40,
         tickStyle: {
           stroke: "black",
           strokeWidth: 1,
@@ -1225,8 +1304,7 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
     };
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'coordinatesOptions', options);
-    console.log(options)
-    const { rotate, yPositionTop, yPositionBottom, tickValuesTop, tickValuesBottom, tickStyle, textStyle } = combinedOptions;
+    const { rotate, tickValuesTop, yPositionTop,  yPositionBottom, tickValuesBottom, trackSpacing, tickStyle, textStyle } = combinedOptions;
 
     // Extract additional options that are not in defaultOptions
     const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultOptions.tickStyle);
@@ -1244,11 +1322,28 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
 
     // If neither tickValuesTop nor tickValuesBottom are provided, calculate them
     if (!tickValuesTop && !tickValuesBottom) {
-        let allTickValues = this.data.reduce((acc, d) => {
-            acc.push({ value: d.start, rowID: d.rowID });
-            acc.push({ value: d.stop, rowID: d.rowID });
-            return acc;
-        }, []);
+
+    let allTickValues = this.data.reduce((acc, d) => {
+        // Define tickValueStart and tickValueStop
+        let tickValueStart = { value: d.start, rowID: d.rowID };
+        let tickValueStop = { value: d.stop, rowID: d.rowID };
+
+        // Add geneTrack property if it exists
+        if ('geneTrack' in d) {
+            tickValueStart.geneTrack = d.geneTrack;
+            tickValueStop.geneTrack = d.geneTrack;
+        }
+
+        acc.push(tickValueStart);
+        acc.push(tickValueStop);
+
+        return acc;
+    }, []);
+
+    // Remove duplicates based on the 'value' property
+    allTickValues = allTickValues.filter((obj, index, self) =>
+    index === self.findIndex((t) => t.value === obj.value)
+    );
 
         allTickValues.sort((a, b) => a.value - b.value);
 
@@ -1267,15 +1362,21 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
         });
     }
 
+    const self = this;
+
     // Create and configure the top axis
     const xAxisTop = g.append("g")
             .attr("transform", "translate(0," + this.yScale(yPositionTop) + ")")
             .call(d3.axisTop(this.xScale).tickValues(tickValuesTopFinal.map(t => t.value)));
 
         xAxisTop.selectAll(".tick")
-            .data(tickValuesTopFinal)
-            .attr("rowID", d => d.rowID)
-            .attr("transform", d => "translate(" + this.xScale(d.value) + ",0)");
+          .data(tickValuesTopFinal)
+          .attr("rowID", d => d.rowID)
+          .attr("transform", function(d) {
+              const xOffset = self.xScale(d.value);
+              currentTrackOffset = d.geneTrack ? -(d.geneTrack - 1) * trackSpacing : 0;
+           return "translate(" + xOffset + ","  +  currentTrackOffset  + ")";
+        });
 
         xAxisTop.select(".domain").attr("stroke", "none");
 
@@ -1314,7 +1415,11 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
         xAxisBottom.selectAll(".tick")
             .data(tickValuesBottomFinal)
             .attr("rowID", d => d.rowID)
-            .attr("transform", d => "translate(" + this.xScale(d.value) + ",0)");
+            .attr("transform", function(d) {
+              const xOffset = self.xScale(d.value);
+              currentTrackOffset = d.geneTrack ? -(d.geneTrack - 1) * trackSpacing : 0;
+           return "translate(" + xOffset + ","  +  currentTrackOffset  + ")";
+        });
 
         xAxisBottom.select(".domain").attr("stroke", "none");
 
@@ -1462,6 +1567,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     start: null,
     stop: null,
     adjustLabels: true,
+    trackSpacing: 40,
     fontSize: "12px",
     fontStyle: "italic",
     fontFamily: "sans-serif",
@@ -1481,7 +1587,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   }
 
   const combinedOptions = { ...defaultOptions, ...options };
-  const { x, y, start, stop, adjustLabels, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor} = combinedOptions;
+  const { x, y, start, stop, adjustLabels, trackSpacing, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor} = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -1503,6 +1609,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     const style = itemStyle.find(s => s.index === i) || {};
     const currentX = style.x || x;
     const currentY = style.y || y;
+
     const currentDx = style.dx || dx;
     const currentDy = style.dy || dy;
     const currentRotate = style.rotate || rotate;
@@ -1510,7 +1617,9 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     const currentAdjustLabels = style.adjustLabels !== undefined ? style.adjustLabels : adjustLabels;
 
     const xPos = this.xScale((d.start + d.stop) / 2) + currentX;
-    const yPos = this.yScale(currentY);
+
+    const currentTrackOffset = d.geneTrack ? (d.geneTrack - 1) * trackSpacing : 0;
+    const yPos = this.yScale(currentY) - currentTrackOffset;
 
     return {
         xPos,
@@ -1977,11 +2086,12 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
         itemStyle: [],
         arrowheadWidth: 10,
         arrowheadHeight: 20,
-        arrowHeight: 10
+        arrowHeight: 10,
+        trackSpacing: 40
     };
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
-    const { x, y, stroke, strokeWidth, colorScheme, customColors, cursor, itemStyle, arrowheadWidth, arrowheadHeight, arrowHeight } = combinedOptions;
+    const { x, y, stroke, strokeWidth, colorScheme, customColors, cursor, itemStyle, arrowheadWidth, arrowheadHeight, arrowHeight, trackSpacing } = combinedOptions;
 
     // Extract additional options that aren't in defaultOptions
     const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -1995,6 +2105,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 
     // Sort the data first by the minimum value of start and stop.
     this.data.sort((a, b) => Math.min(a.start, a.stop) - Math.min(b.start, b.stop));
+    this.trackOffset = (arrowHeight + trackSpacing)
 
     const getAttributesForIndex = (d, i) => {
         const style = itemStyle.find(s => s.index === i) || {};
@@ -2004,9 +2115,11 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
         const currentArrowHeight = style.arrowHeight || arrowHeight;
         const currentX = style.x || x;
         const currentY = style.y || y;
+        // Calculate Y position based on geneTrack
+        const currentTrackOffset = d.geneTrack ? (d.geneTrack - 1) * trackSpacing : 0;
 
-        const yPos = this.yScale(currentY);
-        const xPos = this.xScale(d.start);
+        const yPos = this.yScale(currentY) - currentTrackOffset;
+        const xPos = this.reverse ? this.xScale(d.stop) : this.xScale(d.start);
 
         return { xPos, yPos, currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight };
     };
@@ -2060,5 +2173,6 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
 
     // Update the reference
     this.genes = g.selectAll(".gene");
+
     return this;
 };

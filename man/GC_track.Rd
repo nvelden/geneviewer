@@ -19,7 +19,7 @@ GC_track(GC_chart, track = TRUE, spacing = 40, cluster = NULL)
 Returns the modified gene chart object.
 }
 \description{
-This function can conditionally remove a specific gene track and adjust the spacing between tracks.
+This function can switch gene tracks off or adjust the spacing between tracks.
 }
 \examples{
 genes_data <- data.frame(

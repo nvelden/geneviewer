@@ -573,67 +573,142 @@ clusterContainer.prototype.geneData = function (data, clusterData) {
 };
 
 clusterContainer.prototype.scale = function(options = {}) {
-
   // Verify that the data exists
   if (!this.data) {
     console.error('No data has been added to this cluster container.');
     return this;
   }
 
-  // Default options specific for scales
+  // Default options specific for scales and axis
   const defaultScaleOptions = {
     start: null,
     stop: null,
+    hidden: true,
     reverse: false,
-    breaks: []
+    breaks: [],
+    ticksCount: 20,
+    ticksFormat: ",.0f",
+    y: 30,
+    tickStyle: {
+      stroke: "grey",
+      strokeWidth: 1,
+      lineLength: 6
+    },
+    textStyle: {
+      fill: "black",
+      fontSize: "10px",
+      fontFamily: "Arial",
+      cursor: "default"
+    },
+    lineStyle: {
+      stroke: "grey",
+      strokeWidth: 1
+    }
   };
-
-  if (options.breaks) {
-    defaultScaleOptions.breaks = options.breaks;
-  }
 
   // Merge provided options with the default ones
   const combinedOptions = mergeOptions.call(this, defaultScaleOptions, 'scaleOptions', options);
 
   // De-structure the combined options
-  const { start, stop, breaks, reverse } = combinedOptions;
+  const { start, stop, hidden, breaks, reverse, ticksCount, ticksFormat, y, tickStyle, textStyle, lineStyle } = combinedOptions;
 
-  // Filter data based on the provided start value, if provided
+  // Extract additional options that are not in defaultScaleOptions
+  const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultScaleOptions.tickStyle);
+  const additionalOptionsTextStyle = extractAdditionalOptions(textStyle, defaultScaleOptions.textStyle);
+  const additionalOptionslineStyle = extractAdditionalOptions(lineStyle, defaultScaleOptions.lineStyle);
+
+  // Filter data based on the provided start and stop values
   if (start !== null) {
     this.data = this.data.filter(d => d.start >= start);
   }
-
-  // Filter data based on the provided stop value, if provided
   if (stop !== null) {
     this.data = this.data.filter(d => d.stop <= stop);
   }
 
-  // Filter out data where d.start or d.stop falls within any of the breaks
+  // Filter out data where start or stop falls within any of the breaks
   this.data = this.data.filter(d => {
-    for (let gap of breaks) {
-      if ((d.start >= gap.start && d.start <= gap.stop) ||
-          (d.stop >= gap.start && d.stop <= gap.stop)) {
-        return false; // Data is within one of the breaks
-      }
-    }
-    return true; // Data is outside all breaks
+    return !breaks.some(gap =>
+      (d.start >= gap.start && d.start <= gap.stop) ||
+      (d.stop >= gap.start && d.stop <= gap.stop)
+    );
   });
 
   this.reverse = reverse;
 
   // Use provided start and stop values if they exist, otherwise compute them from data
-  this.minStart = start !== null ? start : d3.min(this.data, (d) => Math.min(d.start, d.stop));
-  this.maxStop = stop !== null ? stop : d3.max(this.data, (d) => Math.max(d.start, d.stop));
+  this.minStart = start !== null ? start : d3.min(this.data, d => Math.min(d.start, d.stop));
+  this.maxStop = stop !== null ? stop : d3.max(this.data, d => Math.max(d.start, d.stop));
 
-
+  // Create scales
   this.xScale = createDiscontinuousScale(this.minStart, this.maxStop, this.width, this.margin, breaks, reverse);
-
   this.yScale = d3.scaleLinear()
     .domain([0, 100])
     .range([this.height - this.margin.bottom - this.margin.top, 0]);
 
+  // Filter breaks within the scale range
   this.breaks = breaks.filter(gap => gap.start >= this.minStart && gap.stop <= this.maxStop);
 
+  const that = this;
+  if (!hidden) {
+
+  // Create and configure the X-axis
+  const adjustedYOffset = this.yScale ? this.yScale(y) : y;
+  const axisGroup = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left},${this.margin.top + adjustedYOffset})`);
+
+
+  linearScale = d3.scaleLinear()
+        .domain([this.minStart, this.maxStop])
+        .range([0, this.width - this.margin.left - this.margin.right]);
+
+  const xAxis = d3.axisBottom(linearScale)
+        .ticks(ticksCount)
+        .tickFormat(d3.format(ticksFormat));
+
+  const axis = axisGroup.append("g").call(xAxis);
+
+  // Style axis lines and text
+  axis.selectAll(".tick line")
+    .style("stroke", tickStyle.stroke)
+    .style("stroke-width", tickStyle.strokeWidth)
+    .attr("y2", tickStyle.lineLength)
+    .each(function() {
+      const currentElement = d3.select(this)
+      setAttributesFromOptions(currentElement, additionalOptionsTickStyle);
+    });
+
+  axis.selectAll(".tick text")
+    .style("fill", textStyle.fill)
+    .style("font-size", textStyle.fontSize)
+    .style("font-family", textStyle.fontFamily)
+    .each(function() {
+      const currentElement = d3.select(this)
+      setAttributesFromOptions(currentElement, additionalOptionsTextStyle);
+    });
+
+    //
+    axis.selectAll(".tick").each(function(d) {
+      let tickValue = d3.select(this).data()[0];
+      let newX = that.xScale(tickValue);
+
+     if (newX === null) {
+      // If the new X position is null, remove the tick
+      d3.select(this).remove();
+      } else {
+      // Otherwise, update the transform attribute
+      d3.select(this).attr("transform", `translate(${newX},0)`);
+      }
+    });
+
+  axis.select(".domain")
+    .style("stroke", lineStyle.stroke)
+    .style("stroke-width", lineStyle.strokeWidth)
+    .each(function() {
+      const currentElement = d3.select(this);
+      setAttributesFromOptions(currentElement, additionalOptionslineStyle);
+    });
+
+  }
   return this;
 };
 

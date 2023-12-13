@@ -11,13 +11,15 @@ GC_scale(
   stop = NULL,
   hidden = FALSE,
   breaks = list(),
+  tickValues = NULL,
   reverse = FALSE,
+  axisType = "bottom",
+  y = NULL,
   scale_breaks = FALSE,
   scale_break_threshold = 20,
   scale_break_padding = 1,
   ticksCount = 20,
   ticksFormat = ",.0f",
-  y = 30,
   tickStyle = list(),
   textStyle = list(),
   lineStyle = list(),
@@ -27,7 +29,8 @@ GC_scale(
 \arguments{
 \item{GC_chart}{A GC chart object.}
 
-\item{cluster}{Numeric or character vector specifying clusters in the GC chart to update.}
+\item{cluster}{Numeric or character vector specifying clusters in the GC
+chart to update.}
 
 \item{start}{Numeric vector indicating the starting point for the scale.
 Default is NULL.}
@@ -35,14 +38,23 @@ Default is NULL.}
 \item{stop}{Numeric vector indicating the stopping points for the scale.
 Default is NULL.}
 
-\item{hidden}{Logical flag indicating whether the axis is hidden.
-Default is FALSE.}
+\item{hidden}{Logical flag indicating whether the axis is hidden. Default is
+FALSE.}
 
-\item{breaks}{List specifying settings for the scale breaks.
-Default is an empty list ().}
+\item{breaks}{List specifying settings for the scale breaks. Default is an
+empty list ().}
 
-\item{reverse}{Logical flag indicating whether to
-reverse the scale for the corresponding cluster. Default is FALSE.}
+\item{tickValues}{Numeric vector or NULL, custom tick values to be used at
+the top of the cluster. If NULL, the default tick values are used.}
+
+\item{reverse}{Logical flag indicating whether to reverse the scale for the
+corresponding cluster. Default is FALSE.}
+
+\item{axisType}{Character string indicating the type of the axis ('top' or
+'bottom'). Default is 'bottom'.}
+
+\item{y}{Numeric value from 1 to 100 indicating the y-position of the x-axis.
+Default is NULL.}
 
 \item{scale_breaks}{Logical flag indicating if scale breaks should be
 employed. Default is FALSE.}
@@ -58,9 +70,6 @@ Default is 20.}
 
 \item{ticksFormat}{Character string indicating the format of the ticks.
 Default is ",.0f".}
-
-\item{y}{Numeric value indicating the y-position of the x-axis.
-Default is 30.}
 
 \item{tickStyle}{List specifying the style for the ticks.}
 
@@ -91,16 +100,18 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
     stop = 2600,
     hidden = FALSE,
     reverse = FALSE,
-    #breaks = list(
+    axisType = "bottom",
+    # breaks = list(
     #  list(start = 160, stop = 900),
     #  list(start = 1600, stop = 1900)
-    #),
+    # ),
+    # tickValues = c(1, 2600),
     scale_breaks = TRUE,
     scale_break_threshold = 20,
     scale_break_padding = 1,
     ticksCount = 20,
     ticksFormat = ",.0f",
-    y = 30,
+    y = NULL,
     tickStyle =
       list(
         stroke = "grey",

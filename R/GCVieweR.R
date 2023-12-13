@@ -1263,7 +1263,8 @@ GC_genes <- function(
 #' @param colorScheme Optional; character or NULL, the name of a predefined
 #' color scheme to apply to the genes.Acceptable values include D3.js's built-in
 #' color schemes like "schemeCategory10", "schemeAccent", "schemeTableau10".
-#' @param customColors List or NULL, custom colors to apply to the genes.
+#' @param customColors Either NULL, a list of color values, or a named list of
+#' color values.
 #'
 #' @return Returns the gene chart object with updated color settings for the genes.
 #'
@@ -1276,11 +1277,15 @@ GC_genes <- function(
 #'   cluster = c(1, 1, 1, 2, 2, 2)
 #' )
 #'
-#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "100px") %>%
 #'   GC_color(colorScheme = "schemeCategory10")
 #'
-#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "100px") %>%
 #'   GC_color(customColors = c("red", "orange", "green"))
+#'
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "100px") %>%
+#'   GC_color(customColors = c(A = "yellow", B = "pink", C =  "purple"))
+#'
 #'
 #' @export
 GC_color <- function(

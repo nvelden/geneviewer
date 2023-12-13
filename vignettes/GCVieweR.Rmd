@@ -335,25 +335,44 @@ generate_GC_color_patches("schemeTableau10", 10)
 
 ### customColors
 
-Defines a predefined set of colors, `customColors` allows for specifying exact colors for each group in the legend.
+The `customColors` parameter specifies colors for each group in the legend. It accepts either a vector of colors or a named list for direct mapping, such as `list("Class1" = "#FF5733", "Class2" = "#33CFFF")`.
+
+Using a list of colors:
 
 ```{r echo=TRUE, results='asis'}
+# Pass a list of Colors
 custom_colors <- c("#F8766D","#00BA38","#619CFF","#F564E3","#FFC61E","#00BFC4")
 
 GC_chart(ophA_cluster, group = "class", height = "100px") %>%
-  GC_color(customColors = custom_colors)
+  GC_color(customColors = custom_colors )
 ```
+
+Using a named list of colors;
+
+```{r echo=TRUE, results='asis'}
+# Pass a list of Colors
+custom_colors <- c("#D62728", "#2CA02C", "#1F77B4", "#9467BD", "#FF7F0E", "#17BECF")
+
+# Create a named list of colors
+named_vector <- setNames(custom_colors, unique(ophA_cluster$class))
+custom_colors <- as.list(named_vector)
+
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_color(customColors = custom_colors )
+```
+
 
 ## Scale
 
-The `GC_scale()`\` function is utilized for adjusting the chart's scale. The visibility of the scale can be controlled by the hidden parameter, which, when set to TRUE, hides the axis. The `y` parameter can be used to adjust the horizontal position of the axis.
+The `GC_scale()` function is utilized for adjusting the chart's scale. The visibility of the scale can be controlled by the hidden parameter, which, when set to TRUE, hides the axis. The `y` parameter can be used to adjust the horizontal position of the axis (1 at the bottom and 100 being the top). 
 
 ```{r echo=TRUE, results='asis'}
 # With scale breaks
 GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_scale(
     hidden = FALSE,
-    y = 30) %>%
+    axisType = "bottom",
+    y = NULL) %>%
    GC_legend(FALSE)
 ```
 
@@ -459,7 +478,7 @@ GC_chart(dbophA_cluster, group = "class",height = "100px") %>%
   GC_legend(FALSE)
 ```
 
-The style of the ticks and text can be customized using the `tickStyle` and `textStyle` variables. The scale itself can only be changed using the `GC_scale()` function. If you for instance want to use a reverse scale with displaying only the coordinates you can set `GC_scale` to hidden
+The style of the ticks and text can be customized using the `tickStyle` and `textStyle` variables. The scale itself can only be changed using the `GC_scale()` function. If you for instance want to use a reverse scale with displaying only the coordinates you can set `GC_scale` to hidden.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(dbophA_cluster, group = "class",height = "100px") %>%

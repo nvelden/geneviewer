@@ -13,7 +13,8 @@ GC_color(GC_chart, colorScheme = NULL, customColors = NULL)
 color scheme to apply to the genes.Acceptable values include D3.js's built-in
 color schemes like "schemeCategory10", "schemeAccent", "schemeTableau10".}
 
-\item{customColors}{List or NULL, custom colors to apply to the genes.}
+\item{customColors}{Either NULL, a list of color values, or a named list of
+color values.}
 }
 \value{
 Returns the gene chart object with updated color settings for the genes.
@@ -35,5 +36,9 @@ GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
 
 GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
   GC_color(customColors = c("red", "orange", "green"))
+
+GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
+  GC_color(customColors = c(A = "red", B = "orange", C =  "green"))
+
 
 }

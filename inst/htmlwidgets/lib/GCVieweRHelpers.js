@@ -348,7 +348,21 @@ function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
 function getColorScale(colorScheme, customColors, uniqueGroups) {
   let colorScale;
 
-  if (colorScheme) {
+  // Check if customColors is an object and not an array
+  if (customColors && typeof customColors === 'object' && !Array.isArray(customColors)) {
+        // Find groups without a corresponding color in customColors
+    const unmappedGroups = uniqueGroups.filter(group => !(group in customColors));
+    // Issue a warning if there are unmapped groups
+    if (unmappedGroups.length > 0) {
+      console.warn(`Warning: No color mapping found for the following groups, defaulting to black: ${unmappedGroups.join(', ')}`);
+    }
+
+
+    // Create a color scale based on the customColors object
+    colorScale = d3.scaleOrdinal()
+      .domain(uniqueGroups)
+      .range(uniqueGroups.map(group => customColors[group] || "black"));
+  } else if (colorScheme) {
     if (!d3[colorScheme]) {
       console.warn(`Warning: The color scheme "${colorScheme}" does not exist. Defaulting to black.`);
       colorScale = d3.scaleOrdinal()
@@ -357,10 +371,10 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
     } else {
       colorScale = d3.scaleOrdinal(d3[colorScheme])
         .domain(uniqueGroups);
-        // Check if uniqueGroups are more than the colors in the colorScale
-  if (uniqueGroups.length > colorScale.range().length) {
-    console.warn(`Warning: More unique groups than colors. Some colors will repeat.`);
-  }
+      // Check if uniqueGroups are more than the colors in the colorScale
+      if (uniqueGroups.length > colorScale.range().length) {
+        console.warn(`Warning: More unique groups than colors. Some colors will repeat.`);
+      }
     }
   } else if (customColors && customColors.length > 0) {
     colorScale = d3.scaleOrdinal()

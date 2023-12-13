@@ -31,7 +31,8 @@ magrittr::`%>%`
 #'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
 #'   cluster = c(1, 1, 1, 2, 2, 2)
 #' )
-#' GC_chart(genes_data, group = "group", cluster = "cluster") %>% GC_labels("name")
+#' GC_chart(genes_data, group = "group", cluster = "cluster", height = "200px") %>%
+#' GC_labels("name")
 #'
 #' @import htmlwidgets
 #' @export
@@ -143,7 +144,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 #' )
 #'
 #' # Basic usage
-#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "400px") %>%
 #' GC_labels("name") %>%
 #' GC_title(
 #'   title = "Cluster 1 Data",
@@ -153,7 +154,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 #' )
 #'
 #' # Customizing title style
-#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "400px") %>%
 #'   GC_labels("name") %>%
 #'   GC_title(
 #'     title = "Cluster 1 Data",
@@ -257,27 +258,28 @@ GC_title <- function(
 #' )
 #'
 #' # Basic usage
-#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") %>%
 #' GC_labels("name") %>%
 #' GC_sequence(show = TRUE, y = 50, cluster = NULL)
 #'
 #' # Customize sequence and marker styles
-#' GC_chart(genes_data, cluster="cluster", group = "group") %>%
-#' GC_sequence(
-#'   sequenceStyle = list(
-#'     stroke = "grey",
-#'     strokeWidth = 1
-#'     # Any other CSS style
-#'   ),
-#'   markerStyle = list(
-#'     stroke = "grey",
-#'     strokeWidth = 1,
-#'     gap = 3,
-#'     tiltAmount = 5
-#'     # Any other CSS style
-#'   )
-#' ) %>%
-#' GC_legend(FALSE)
+#' GC_chart(genes_data, cluster="cluster", group = "group", height = "200px") %>%
+#'   GC_scale(hidden = TRUE, scale_breaks = TRUE) %>%
+#'   GC_sequence(
+#'     sequenceStyle = list(
+#'       stroke = "blue",
+#'       strokeWidth = 1
+#'       # Any other CSS style
+#'     ),
+#'     markerStyle = list(
+#'       stroke = "blue",
+#'       strokeWidth = 1,
+#'       gap = 3,
+#'       tiltAmount = 5
+#'       # Any other CSS style
+#'     )
+#'   ) %>%
+#'   GC_legend(FALSE)
 #'
 #' @export
 GC_sequence <- function(
@@ -344,11 +346,11 @@ GC_sequence <- function(
 #' )
 #'
 #' # Set Margin of clusters
-#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") %>%
 #' GC_grid(margin = list(left = "10px", right = "10px"))
 #'
 #' # Set height of a specific cluster
-#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") %>%
 #' GC_grid(height = "100px", cluster = 2)
 #'
 #' @export
@@ -496,47 +498,46 @@ GC_grid <- function(
 #'   ) %>%
 #'   GC_legend(FALSE)
 #' @export
-GC_scale <- function(
-    GC_chart,
-    cluster = NULL,
-    start = NULL,
-    stop = NULL,
-    hidden = FALSE,
-    breaks = list(),
-    tickValues = NULL,
-    reverse = FALSE,
-    axisType = "bottom",
-    y = NULL,
-    scale_breaks = FALSE,
-    scale_break_threshold = 20,
-    scale_break_padding = 1,
-    ticksCount = 20,
-    ticksFormat = ",.0f",
-    tickStyle = list(),
-    textStyle = list(),
-    lineStyle = list(),
-    ...
-) {
-
+GC_scale <- function(GC_chart,
+                     cluster = NULL,
+                     start = NULL,
+                     stop = NULL,
+                     hidden = FALSE,
+                     breaks = list(),
+                     tickValues = NULL,
+                     reverse = FALSE,
+                     axisType = "bottom",
+                     y = NULL,
+                     scale_breaks = FALSE,
+                     scale_break_threshold = 20,
+                     scale_break_padding = 1,
+                     ticksCount = 20,
+                     ticksFormat = ",.0f",
+                     tickStyle = list(),
+                     textStyle = list(),
+                     lineStyle = list(),
+                     ...) {
   # Capture ... arguments
   dots <- list(...)
 
   # Update the GC_chart object with title and options for each cluster
   clusters <- getUpdatedClusters(GC_chart, cluster)
 
-  for(i in seq_along(clusters)){
-
+  for (i in seq_along(clusters)) {
     # Calculate the index for each parameter considering their different lengths
-    start_idx <- (i-1) %% length(start) + 1
-    stop_idx <- (i-1) %% length(stop) + 1
-    reverse_idx <- (i-1) %% length(reverse) + 1
+    start_idx <- (i - 1) %% length(start) + 1
+    stop_idx <- (i - 1) %% length(stop) + 1
+    reverse_idx <- (i - 1) %% length(reverse) + 1
 
     # Subset data for the current cluster
     subset_data <- GC_chart$x$series[[clusters[i]]]$data
 
     # Compute scale breaks if required
-    if(scale_breaks) {
-      breaks_data <- get_scale_breaks(subset_data, threshold_percentage = scale_break_threshold, padding = scale_break_padding)
+    if (scale_breaks) {
+      breaks_data <-
+        get_scale_breaks(subset_data,
+                         threshold_percentage = scale_break_threshold,
+                         padding = scale_break_padding)
     } else {
       breaks_data <- breaks
     }
@@ -599,7 +600,7 @@ GC_scale <- function(
 #' GC_scaleBar(cluster = 2, title = "2 kb", scaleBarUnit = 2000)
 #'
 #' # Style scale bar
-#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "400px") %>%
 #'   GC_scaleBar(
 #'     title = "1kb",
 #'     scaleBarUnit = 1000,
@@ -701,15 +702,15 @@ GC_scaleBar <- function(
 #' )
 #'
 #' # Set cluster labels
-#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") %>%
 #' GC_clusterLabel(title = unique(genes_data$cluster))
 #'
 #' # Set label for a specific cluster
-#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") %>%
 #' GC_clusterLabel(title = "Cluster 1", cluster = 1)
 #'
 #' # Style labels
-#' GC_chart(genes_data, cluster ="cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") %>%
 #'   GC_clusterLabel(
 #'     title = "Cluster 1",
 #'     width = "100px",
@@ -817,13 +818,13 @@ GC_clusterLabel <- function(
 #' )
 #'
 #' # Add a simple footer with subtitle to all clusters
-#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
 #'   GC_footer(
 #'     title = "Cluster Footer",
 #'     subtitle = "Cluster subtitle"
 #'   )
 #' # Add styling to the title and sub title
-#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "300px") %>%
 #'   GC_footer(
 #'     title = "This is a footer",
 #'     subtitle = "Subtitle for the footer",
@@ -936,11 +937,11 @@ GC_footer <- function(
 #' )
 #'
 #' # Add labels to all clusters
-#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
 #' GC_labels()
 #'
 #' # Add labels and styling
-#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
 #' GC_labels(
 #'  label = "group",
 #'  show = TRUE,
@@ -959,7 +960,7 @@ GC_footer <- function(
 #' )
 #'
 #' # Alter style of a specific label
-#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
 #' GC_labels(label = "group") %>%
 #' GC_labels(
 #'   cluster = 1,
@@ -1059,11 +1060,11 @@ GC_labels <- function(
 #' )
 #'
 #' # Add coordinates to all clusters
-#' GC_chart(genes_data, cluster = "cluster", group = "name") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "name", height = "200px") %>%
 #' GC_coordinates()
 #'
 #' # Modify coordinates of a specific cluster
-#' GC_chart(genes_data, cluster = "cluster", group = "name") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "name", height = "200px") %>%
 #' GC_coordinates() %>%
 #' GC_coordinates(
 #'   cluster = 2,
@@ -1163,7 +1164,7 @@ GC_coordinates <- function(
 #' )
 #'
 #' # Change the appearance of a specific gene cluster
-#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
 #'   GC_genes(
 #'     group = "group",
 #'     show = TRUE,
@@ -1185,7 +1186,7 @@ GC_coordinates <- function(
 #'
 #'
 #' # Change the appearance of a specific gene
-#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
 #' GC_genes(
 #'   cluster = 2,
 #'   itemStyle = list(list(index = 2, fill = "red", stroke = "blue")
@@ -1284,7 +1285,7 @@ GC_genes <- function(
 #'   GC_color(customColors = c("red", "orange", "green"))
 #'
 #' GC_chart(genes_data, cluster = "cluster", group = "group", height = "100px") %>%
-#'   GC_color(customColors = c(A = "yellow", B = "pink", C =  "purple"))
+#'   GC_color(customColors = list(A = "yellow", B = "pink", C =  "purple"))
 #'
 #'
 #' @export
@@ -1346,7 +1347,7 @@ GC_color <- function(
 #' )
 #'
 #' # Customize legend
-#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
 #'   GC_legend(
 #'     position = "top", #bottom
 #'     orientation = "horizontal", #vertical
@@ -1451,7 +1452,7 @@ GC_legend <- function(
 #' )
 #'
 #' # Add tooltips to the gene chart
-#' GC_chart(genes_data, group = "group") %>%
+#' GC_chart(genes_data, group = "group", height = "200px") %>%
 #' GC_tooltip(formatter = " <b>Start:</b> {start}<br><b>Stop:</b> {stop}")
 #'
 #' @export

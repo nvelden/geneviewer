@@ -586,6 +586,7 @@ clusterContainer.prototype.scale = function(options = {}) {
     hidden: true,
     reverse: false,
     breaks: [],
+    tickValues: null,
     ticksCount: 20,
     ticksFormat: ",.0f",
     y: 30,
@@ -610,7 +611,7 @@ clusterContainer.prototype.scale = function(options = {}) {
   const combinedOptions = mergeOptions.call(this, defaultScaleOptions, 'scaleOptions', options);
 
   // De-structure the combined options
-  const { start, stop, hidden, breaks, reverse, ticksCount, ticksFormat, y, tickStyle, textStyle, lineStyle } = combinedOptions;
+  const { start, stop, hidden, breaks, tickValues, reverse, ticksCount, ticksFormat, y, tickStyle, textStyle, lineStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultScaleOptions
   const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultScaleOptions.tickStyle);
@@ -661,9 +662,16 @@ clusterContainer.prototype.scale = function(options = {}) {
         .domain([this.minStart, this.maxStop])
         .range([0, this.width - this.margin.left - this.margin.right]);
 
-  const xAxis = d3.axisBottom(linearScale)
-        .ticks(ticksCount)
-        .tickFormat(d3.format(ticksFormat));
+    const xAxis = d3.axisBottom(linearScale)
+    .tickFormat(d3.format(ticksFormat));
+
+    if (Array.isArray(tickValues) && tickValues.length > 0) {
+      xAxis.tickValues(tickValues);
+    } else if (typeof tickValues === 'number') {
+      xAxis.tickValues([tickValues]);
+    } else {
+      xAxis.ticks(ticksCount);
+    }
 
   const axis = axisGroup.append("g").call(xAxis);
 

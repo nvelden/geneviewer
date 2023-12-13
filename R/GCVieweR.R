@@ -420,6 +420,8 @@ GC_grid <- function(
 #'     Default is FALSE.
 #' @param breaks List specifying settings for the scale breaks.
 #'     Default is an empty list ().
+#' @param tickValues Numeric vector or NULL, custom tick values to be used at
+#'   the top of the cluster. If NULL, the default tick values are used.
 #' @param reverse Logical flag indicating whether to
 #'     reverse the scale for the corresponding cluster. Default is FALSE.
 #' @param scale_breaks Logical flag indicating if scale breaks should be
@@ -456,10 +458,11 @@ GC_grid <- function(
 #'     stop = 2600,
 #'     hidden = FALSE,
 #'     reverse = FALSE,
-#'     #breaks = list(
+#'     # breaks = list(
 #'     #  list(start = 160, stop = 900),
 #'     #  list(start = 1600, stop = 1900)
-#'     #),
+#'     # ),
+#'     # tickValues = c(1, 2600),
 #'     scale_breaks = TRUE,
 #'     scale_break_threshold = 20,
 #'     scale_break_padding = 1,
@@ -496,6 +499,7 @@ GC_scale <- function(
     stop = NULL,
     hidden = FALSE,
     breaks = list(),
+    tickValues = NULL,
     reverse = FALSE,
     scale_breaks = FALSE,
     scale_break_threshold = 20,
@@ -538,6 +542,7 @@ GC_scale <- function(
       stop = stop[stop_idx],
       hidden = hidden,
       breaks = breaks_data,
+      tickValues = tickValues,
       reverse = reverse[reverse_idx],
       scale_breaks = scale_breaks,
       scale_break_threshold = scale_break_threshold,

@@ -585,11 +585,12 @@ clusterContainer.prototype.scale = function(options = {}) {
     stop: null,
     hidden: true,
     reverse: false,
+    axisType: "bottom",
     breaks: [],
     tickValues: null,
     ticksCount: 20,
     ticksFormat: ",.0f",
-    y: 30,
+    y: null,
     tickStyle: {
       stroke: "grey",
       strokeWidth: 1,
@@ -611,7 +612,10 @@ clusterContainer.prototype.scale = function(options = {}) {
   const combinedOptions = mergeOptions.call(this, defaultScaleOptions, 'scaleOptions', options);
 
   // De-structure the combined options
-  const { start, stop, hidden, breaks, tickValues, reverse, ticksCount, ticksFormat, y, tickStyle, textStyle, lineStyle } = combinedOptions;
+  const { start, stop, hidden, breaks, tickValues, reverse, axisType, ticksCount, ticksFormat, y: initialY, tickStyle, textStyle, lineStyle } = combinedOptions;
+
+  // Determine y based on axisType and initialY
+  const y = initialY !== null ? initialY : (axisType === 'bottom' ? 30 : 80);
 
   // Extract additional options that are not in defaultScaleOptions
   const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultScaleOptions.tickStyle);
@@ -657,12 +661,11 @@ clusterContainer.prototype.scale = function(options = {}) {
   const axisGroup = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top + adjustedYOffset})`);
 
-
   linearScale = d3.scaleLinear()
         .domain([this.minStart, this.maxStop])
         .range([0, this.width - this.margin.left - this.margin.right]);
 
-    const xAxis = d3.axisBottom(linearScale)
+  const xAxis = d3.axisBottom(linearScale)
     .tickFormat(d3.format(ticksFormat));
 
     if (Array.isArray(tickValues) && tickValues.length > 0) {
@@ -694,7 +697,6 @@ clusterContainer.prototype.scale = function(options = {}) {
       setAttributesFromOptions(currentElement, additionalOptionsTextStyle);
     });
 
-    //
     axis.selectAll(".tick").each(function(d) {
       let tickValue = d3.select(this).data()[0];
       let newX = that.xScale(tickValue);

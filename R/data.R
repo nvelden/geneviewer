@@ -41,7 +41,7 @@
 
 #' Human Dystrophin Transcripts Data
 #'
-#' This dataset contains the intron positions on human Dystrophin transcripts
+#' This dataset contains the Exon positions on human Dystrophin transcripts
 #' 'Dp427p2', 'Dp260-2', 'Dp140', 'Dp116', and 'Dp71'.
 #'
 #' @format A data frame with 202 rows and 5 columns:
@@ -50,9 +50,9 @@
 #'   the names of the transcripts.}
 #'   \item{type}{Transcript type.}
 #'   \item{start}{Start positions. An integer vector showing the starting
-#'   positions of each Intron.}
+#'   positions of each Exon.}
 #'   \item{stop}{End positions. An integer vector showing the ending
-#'   positions of each Intron.}
+#'   positions of each Exon.}
 #'   \item{length}{Transcript lengths. An integer vector
 #'   indicating the length of each transcript.}
 #' }

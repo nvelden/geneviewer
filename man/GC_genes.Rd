@@ -49,7 +49,7 @@ genes_data <- data.frame(
 )
 
 # Change the appearance of a specific gene cluster
-GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
   GC_genes(
     group = "group",
     show = TRUE,
@@ -71,7 +71,7 @@ GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
 
 
 # Change the appearance of a specific gene
-GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
 GC_genes(
   cluster = 2,
   itemStyle = list(list(index = 2, fill = "red", stroke = "blue")

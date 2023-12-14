@@ -46,11 +46,11 @@ genes_data <- data.frame(
 )
 
 # Add labels to all clusters
-GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
 GC_labels()
 
 # Add labels and styling
-GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
 GC_labels(
  label = "group",
  show = TRUE,
@@ -69,7 +69,7 @@ GC_labels(
 )
 
 # Alter style of a specific label
-GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
 GC_labels(label = "group") \%>\%
 GC_labels(
   cluster = 1,

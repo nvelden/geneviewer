@@ -58,15 +58,15 @@ genes_data <- data.frame(
 )
 
 # Set cluster labels
-GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") \%>\%
 GC_clusterLabel(title = unique(genes_data$cluster))
 
 # Set label for a specific cluster
-GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") \%>\%
 GC_clusterLabel(title = "Cluster 1", cluster = 1)
 
 # Style labels
-GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") \%>\%
   GC_clusterLabel(
     title = "Cluster 1",
     width = "100px",

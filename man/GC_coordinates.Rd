@@ -54,11 +54,11 @@ genes_data <- data.frame(
 )
 
 # Add coordinates to all clusters
-GC_chart(genes_data, cluster = "cluster", group = "name") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "name", height = "200px") \%>\%
 GC_coordinates()
 
 # Modify coordinates of a specific cluster
-GC_chart(genes_data, cluster = "cluster", group = "name") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "name", height = "200px") \%>\%
 GC_coordinates() \%>\%
 GC_coordinates(
   cluster = 2,

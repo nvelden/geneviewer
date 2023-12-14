@@ -54,6 +54,7 @@ genes_data <- data.frame(
   group = c('A', 'A', 'B', 'B', 'A', 'C'),
   cluster = c(1, 1, 1, 2, 2, 2)
 )
-GC_chart(genes_data, group = "group", cluster = "cluster") \%>\% GC_labels("name")
+GC_chart(genes_data, group = "group", cluster = "cluster", height = "200px") \%>\%
+GC_labels("name")
 
 }

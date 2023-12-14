@@ -58,13 +58,13 @@ genes_data <- data.frame(
 )
 
 # Add a simple footer with subtitle to all clusters
-GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
   GC_footer(
     title = "Cluster Footer",
     subtitle = "Cluster subtitle"
   )
 # Add styling to the title and sub title
-GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "300px") \%>\%
   GC_footer(
     title = "This is a footer",
     subtitle = "Subtitle for the footer",

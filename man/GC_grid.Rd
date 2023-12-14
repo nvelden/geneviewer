@@ -36,11 +36,11 @@ genes_data <- data.frame(
 )
 
 # Set Margin of clusters
-GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") \%>\%
 GC_grid(margin = list(left = "10px", right = "10px"))
 
 # Set height of a specific cluster
-GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") \%>\%
 GC_grid(height = "100px", cluster = 2)
 
 }

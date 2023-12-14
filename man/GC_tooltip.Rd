@@ -41,7 +41,7 @@ genes_data <- data.frame(
 )
 
 # Add tooltips to the gene chart
-GC_chart(genes_data, group = "group") \%>\%
+GC_chart(genes_data, group = "group", height = "200px") \%>\%
 GC_tooltip(formatter = " <b>Start:</b> {start}<br><b>Stop:</b> {stop}")
 
 }

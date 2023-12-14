@@ -51,7 +51,7 @@ genes_data <- data.frame(
 )
 
 # Customize legend
-GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
   GC_legend(
     position = "top", #bottom
     orientation = "horizontal", #vertical

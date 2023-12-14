@@ -50,26 +50,27 @@ genes_data <- data.frame(
 )
 
 # Basic usage
-GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") \%>\%
 GC_labels("name") \%>\%
 GC_sequence(show = TRUE, y = 50, cluster = NULL)
 
 # Customize sequence and marker styles
-GC_chart(genes_data, cluster="cluster", group = "group") \%>\%
-GC_sequence(
-  sequenceStyle = list(
-    stroke = "grey",
-    strokeWidth = 1
-    # Any other CSS style
-  ),
-  markerStyle = list(
-    stroke = "grey",
-    strokeWidth = 1,
-    gap = 3,
-    tiltAmount = 5
-    # Any other CSS style
-  )
-) \%>\%
-GC_legend(FALSE)
+GC_chart(genes_data, cluster="cluster", group = "group", height = "200px") \%>\%
+  GC_scale(hidden = TRUE, scale_breaks = TRUE) \%>\%
+  GC_sequence(
+    sequenceStyle = list(
+      stroke = "blue",
+      strokeWidth = 1
+      # Any other CSS style
+    ),
+    markerStyle = list(
+      stroke = "blue",
+      strokeWidth = 1,
+      gap = 3,
+      tiltAmount = 5
+      # Any other CSS style
+    )
+  ) \%>\%
+  GC_legend(FALSE)
 
 }

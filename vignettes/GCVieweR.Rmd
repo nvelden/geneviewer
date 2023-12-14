@@ -96,7 +96,9 @@ server <- function(input, output) {
 shinyApp(ui = ui, server = server)
 ```
 
-## Specific Clusters
+## Selections
+
+### Specific Clusters
 
 Customization functions are by default set to alter the styling of all gene clusters across the chart. To select a specific cluster one can use the `cluster` variable which is available in most customization functions. You can select a cluster either by it's name or number.
 
@@ -110,7 +112,7 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") 
   GC_grid(cluster = 2, height = "150px")
 ```
 
-## Individual Items
+### Individual Items
 
 To apply styling to a particular item within a gene cluster, the `itemStyle` variable can be used. This variable, accessible in most customization functions, requires a list that specifies the index number of the desired item along with the intended styling attributes. It's important to note that indexing for `itemStyle` begins at 0, following a zero-based numbering system.
 
@@ -629,4 +631,26 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster",
     margin = list(left = "5px", right = "5px", top = "0px", bottom = "0px")
   ) %>% 
   GC_legend(FALSE)
+```
+
+## Saving Plots
+
+The `GCVieweR` package does not have build-in functionality for saving plots. However, plots can be saved to images and .pdf by using the `webshot2` package. To do this plots need to be saved to `.html` first after which `webshot2` can make a screenshot.
+
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+library(webshot2)
+
+# Generate plot with width and height specifications
+cluster_plot <- 
+  GC_chart(ophA_clusters, 
+           group = "class", 
+           cluster = "cluster",
+           width = "400px",
+           height = "250px")
+
+# Save plot to temp.html file
+htmlwidgets::saveWidget(cluster_plot, "temp.html", selfcontained = TRUE)
+
+# Save plot to .png (or .jpg, .jpeg, .webp, .pdf)
+webshot2::webshot("temp.html", "output.png", selector = ".GCVieweR")
 ```

@@ -94,11 +94,11 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   GC_legend(FALSE)
 ```
 
-### *H. sapiens* Hox genes using `biomaRt` to retrieve gene positions
+### *H. sapiens* Hox genes using `biomaRt`
 
 <details>
 <summary>Click to see the code</summary>
-```{r echo=TRUE, results='hide', warning=FALSE}
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
 # Get HOX gene positions 
 library(biomaRt)
 
@@ -131,7 +131,7 @@ combined_hox_genes <- do.call(rbind, hox_gene_positions)
 combined_hox_genes$name <- paste0(substr(combined_hox_genes$hgnc_symbol, 1, 3), substr(combined_hox_genes$hgnc_symbol, 5, nchar(combined_hox_genes$hgnc_symbol)))
 ```
 
-```{r echo=TRUE, results='hide', warning=FALSE}
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
 GC_chart(
   combined_hox_genes,
   start = "start_position",
@@ -171,7 +171,7 @@ GC_chart(
   cluster = "cluster") %>%
   GC_sequence(y=45) %>%
   GC_legend(FALSE) %>%
-  GC_clusterLabel(title = unique(combined_hox_genes$cluster)) %>%
+  GC_clusterLabel(title = unique(human_hox_genes$cluster)) %>%
   GC_genes(arrowheadWidth = 0,
            arrowheadHeight = 10,
            arrowHeight = 10,
@@ -185,7 +185,71 @@ GC_chart(
            ) %>%
   GC_scale(
     cluster = c(3,4),
+    hidden = TRUE,
     reverse = TRUE
   ) %>%
   GC_track(spacing=30)
+```
+
+### *H. sapiens* Dystrophin transcript variants
+
+<details>
+<summary>Click to see the code</summary>
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+GC_chart(hs_dystrophin_transcripts,
+         start = "start",
+         stop = "stop",
+         group = "type",
+         cluster = "transcript") %>%
+  GC_genes(
+    stroke = "#1f77b4",
+  ) %>%
+  GC_scale(
+    cluster = c(1, 2, 3, 4),
+    start = 1,
+    stop = max(hs_dystrophin_transcripts$length),
+    hidden = TRUE
+  ) %>%
+  GC_scale(
+    cluster = 5,
+    y = 25,
+    ticksCount = 8,
+    start = 1,
+    stop = max(DP_transcripts$length),
+  ) %>%
+  GC_clusterLabel(title = unique(hs_dystrophin_transcripts$transcript)) %>%
+  GC_legend(
+    position = "top",
+    x = 25
+  )
+```
+</details>
+
+```{r echo = FALSE, results='asis'}
+GC_chart(hs_dystrophin_transcripts,
+         start = "start",
+         stop = "stop",
+         group = "type",
+         cluster = "transcript") %>%
+  GC_genes(
+    stroke = "#1f77b4",
+  ) %>%
+  GC_scale(
+    cluster = c(1, 2, 3, 4),
+    start = 1,
+    stop = max(hs_dystrophin_transcripts$length),
+    hidden = TRUE
+  ) %>%
+  GC_scale(
+    cluster = 5,
+    y = 25,
+    ticksCount = 8,
+    start = 1,
+    stop = max(hs_dystrophin_transcripts$length),
+  ) %>%
+  GC_clusterLabel(title = unique(hs_dystrophin_transcripts$transcript)) %>%
+  GC_legend(
+    position = "top",
+    x = 25
+  )
 ```

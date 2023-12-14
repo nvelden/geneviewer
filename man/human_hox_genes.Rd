@@ -11,7 +11,8 @@ A data frame with 39 rows and 5 columns:
   \item{chromosome_name}{Chromosome number where each gene is located. A numeric vector.}
   \item{start}{Start positions of the genes on the chromosome. A numeric vector.}
   \item{stop}{End positions of the genes on the chromosome. A numeric vector.}
-  \item{cluster}{Cluster identification as a character vector, specifying the HOX gene cluster (HOXA, HOXB, HOXC, HOXD).}
+  \item{cluster}{Cluster identification as a character vector,
+  specifying the HOX gene cluster (HOXA, HOXB, HOXC, HOXD).}
   \item{name}{Simplified names for the HOX genes. A character vector.}
 }
 }
@@ -19,8 +20,9 @@ A data frame with 39 rows and 5 columns:
 human_hox_genes
 }
 \description{
-This dataset represents the positions and clusters of various human HOX genes.
-HOX genes are a group of related genes that control the body plan of an embryo along the head-tail axis.
-The dataset includes genes from HOXA, HOXB, HOXC, and HOXD clusters.
+This dataset represents the positions and clusters of various human HOX
+genes. HOX genes are a group of related genes that control the body plan of
+an embryo along the head-tail axis. The dataset includes genes from HOXA,
+HOXB, HOXC, and HOXD clusters.
 }
 \keyword{datasets}

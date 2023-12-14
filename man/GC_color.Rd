@@ -31,14 +31,14 @@ genes_data <- data.frame(
   cluster = c(1, 1, 1, 2, 2, 2)
 )
 
-GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "100px") \%>\%
   GC_color(colorScheme = "schemeCategory10")
 
-GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "100px") \%>\%
   GC_color(customColors = c("red", "orange", "green"))
 
-GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
-  GC_color(customColors = c(A = "red", B = "orange", C =  "green"))
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "100px") \%>\%
+  GC_color(customColors = list(A = "yellow", B = "pink", C =  "purple"))
 
 
 }

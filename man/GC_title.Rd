@@ -52,7 +52,7 @@ genes_data <- data.frame(
 )
 
 # Basic usage
-GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster ="cluster", group = "group", height = "400px") \%>\%
 GC_labels("name") \%>\%
 GC_title(
   title = "Cluster 1 Data",
@@ -62,7 +62,7 @@ GC_title(
 )
 
 # Customizing title style
-GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster ="cluster", group = "group", height = "400px") \%>\%
   GC_labels("name") \%>\%
   GC_title(
     title = "Cluster 1 Data",

@@ -25,9 +25,9 @@ Dendrothele bispora, involved in the production of omphalotin, a cyclic
 N-methylated peptide.
 }
 \references{
-van der Velden NS et al. Autocatalytic backbone N-methylation
-in a family of ribosomal peptide natural products.
-Nat Chem Biol. 2017 Aug;13(8):833-835. doi: 10.1038/nchembio.2393.
-Epub 2017 Jun 5. PMID: 28581484.
+van der Velden NS et al. Autocatalytic backbone N-methylation in
+a family of ribosomal peptide natural products. Nat Chem Biol. 2017
+Aug;13(8):833-835. doi: 10.1038/nchembio.2393. Epub 2017 Jun 5. PMID:
+28581484.
 }
 \keyword{datasets}

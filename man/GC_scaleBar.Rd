@@ -50,7 +50,7 @@ GC_scaleBar(cluster = 1, title = "1 kb", scaleBarUnit = 1000) \%>\%
 GC_scaleBar(cluster = 2, title = "2 kb", scaleBarUnit = 2000)
 
 # Style scale bar
-GC_chart(genes_data, cluster ="cluster", group = "group") \%>\%
+GC_chart(genes_data, cluster ="cluster", group = "group", height = "400px") \%>\%
   GC_scaleBar(
     title = "1kb",
     scaleBarUnit = 1000,

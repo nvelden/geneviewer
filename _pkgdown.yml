@@ -6,6 +6,7 @@ package:
 
 # Template settings
 template:
+  favicon: man/figures/favicon.ico
   bootstrap: 5
   bootswatch: flatly
   bslib:

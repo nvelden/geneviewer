@@ -62,6 +62,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
   x$data <- data
   x$group <- group
   x$backgroundColor <- background_color
+  x$title <- list()
   x$legend <- list(group = group, show = show_legend, position = "bottom", backgroundColor = background_color)
 
 
@@ -93,7 +94,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 
     x$series[[clust]]$grid <- list(margin = list(left = "50px", right = "50px", top = 0, bottom = 0), height = compute_size(height, length(clusters)), width = width)
     x$series[[clust]]$style <- list(backgroundColor = background_color)
-    x$series[[clust]]$title <- list()
+
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
     x$series[[clust]]$labels <- list(group = group, show = TRUE)
     x$series[[clust]]$cluster <- list()
@@ -101,6 +102,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
     x$series[[clust]]$scaleBar <- list()
     x$series[[clust]]$footer <- list()
     x$series[[clust]]$clusterLabel <- list()
+    x$series[[clust]]$clusterTitle <- list()
     x$series[[clust]]$sequence <- list(show = TRUE)
     x$series[[clust]]$tooltip <- list(show = TRUE, formatter ="<b>Start:</b> {start} <br><b>Stop:</b> {stop}")
   }
@@ -117,17 +119,16 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 
 }
 
-#' Update Title of a GC Chart Cluster
+#' Add Title to a GC_chart
 #'
-#' Modify the title and subtitle of specified clusters within a GC chart and adjust
+#' Modify the cluster title and subtitle of specified clusters within a GC chart and adjust
 #' the display settings.
 #'
 #' @param GC_chart A GC chart object.
 #' @param title Character vector. Titles to set for the clusters.
 #' @param subtitle Character vector. Subtitles to set for the clusters.
 #' @param show Logical. Whether to display the title. Default is TRUE.
-#' @param height Character. Height for the title (e.g., "40px").
-#' @param cluster Numeric or character vector. Clusters in the GC chart to update.
+#' @param height Character. Height for the title (e.g., "50px").
 #' @param titleFont List. Settings for the title font.
 #' @param subtitleFont List. Settings for the subtitle font.
 #' @param ... Additional customization arguments for title and subtitle.
@@ -160,10 +161,11 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 #'     title = "Cluster 1 Data",
 #'     subtitle = "Detailed View",
 #'     show = TRUE,
+#'     height = "50px",
 #'     cluster = 1,
 #'     x = 0,
 #'     y = 0,
-#'     position = "center",
+#'     align = "center",
 #'     spacing = 20,
 #'     titleFont = list(
 #'       size = "16px",
@@ -187,6 +189,112 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 #'
 #' @export
 GC_title <- function(
+    GC_chart,
+    title = NULL,
+    subtitle = NULL,
+    subtitleFont = list(),
+    titleFont = list(),
+    show = TRUE,
+    height = "50px",
+    ...
+) {
+
+  # Capture ... arguments
+  dots <- list(...)
+
+  # Default options
+    options <- list(
+      title = title,
+      subtitle = subtitle,
+      subtitleFont = subtitleFont,
+      titleFont = titleFont,
+      height = height,
+      show = show
+    )
+
+    # Add arguments to options
+    if (length(dots) > 0) {
+      for (name in names(dots)) {
+        options[[name]] <- dots[[name]]
+      }
+    }
+
+    # Set title options for each cluster
+    GC_chart$x$title <- options
+
+  return(GC_chart)
+}
+
+#' Update cluster Title of a GC Chart Cluster
+#'
+#' Modify the cluster title and subtitle of specified clusters within a GC chart and adjust
+#' the display settings.
+#'
+#' @param GC_chart A GC chart object.
+#' @param title Character vector. Titles to set for the clusters.
+#' @param subtitle Character vector. Subtitles to set for the clusters.
+#' @param show Logical. Whether to display the title. Default is TRUE.
+#' @param height Character. Height for the title (e.g., "40px").
+#' @param cluster Numeric or character vector. Clusters in the GC chart to update.
+#' @param titleFont List. Settings for the title font.
+#' @param subtitleFont List. Settings for the subtitle font.
+#' @param ... Additional customization arguments for title and subtitle.
+#'
+#' @return Updated GC chart with new title settings.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 50, 90, 130, 170, 210),
+#'   stop = c(40, 80, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 1, 2, 2, 2)
+#' )
+#'
+#' # Basic usage
+#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "400px") %>%
+#' GC_labels("name") %>%
+#' GC_clusterTitle(
+#'   title = "Cluster 1 Data",
+#'   subtitle = "Detailed View",
+#'   show = TRUE,
+#'   cluster = 1
+#' )
+#'
+#' # Customizing title style
+#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "400px") %>%
+#'   GC_labels("name") %>%
+#'   GC_clusterTitle(
+#'     title = "Cluster 1 Data",
+#'     subtitle = "Detailed View",
+#'     show = TRUE,
+#'     cluster = 1,
+#'     x = 0,
+#'     y = 0,
+#'     align = "center",
+#'     spacing = 20,
+#'     titleFont = list(
+#'       size = "16px",
+#'       style = "normal",
+#'       weight = "bold",
+#'       decoration = "normal",
+#'       family = "sans-serif",
+#'       cursor = "default",
+#'       fill = "black"
+#'     ),
+#'     subtitleFont = list(
+#'       size = "14px",
+#'       style = "normal",
+#'       weight = "bold",
+#'       decoration = "normal",
+#'       family = "sans-serif",
+#'       cursor = "default",
+#'       fill = "black"
+#'     )
+#'   )
+#'
+#' @export
+GC_clusterTitle <- function(
     GC_chart,
     title = NULL,
     subtitle = NULL,
@@ -224,7 +332,7 @@ GC_title <- function(
     GC_chart$x$series[[clusters[i]]]$grid$margin$top <- height[(i-1) %% length(height) + 1]
 
     # Set title options for each cluster
-    GC_chart$x$series[[clusters[i]]]$title <- options
+    GC_chart$x$series[[clusters[i]]]$clusterTitle <- options
 
   }
   return(GC_chart)
@@ -819,13 +927,13 @@ GC_clusterLabel <- function(
 #'
 #' # Add a simple footer with subtitle to all clusters
 #' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
-#'   GC_footer(
+#'   GC_clusterFooter(
 #'     title = "Cluster Footer",
 #'     subtitle = "Cluster subtitle"
 #'   )
 #' # Add styling to the title and sub title
 #' GC_chart(genes_data, cluster = "cluster", group = "group", height = "300px") %>%
-#'   GC_footer(
+#'   GC_clusterFooter(
 #'     title = "This is a footer",
 #'     subtitle = "Subtitle for the footer",
 #'     height = "15px",
@@ -834,7 +942,7 @@ GC_clusterLabel <- function(
 #'     cluster = 1,
 #'     x = 6,
 #'     y = -20,
-#'     position = "middle", # right / middle
+#'     align = "middle", # left / right / center
 #'     spacing = 12,
 #'     titleFont = list(
 #'       fontSize = "12px",
@@ -853,7 +961,7 @@ GC_clusterLabel <- function(
 #'   )
 #'
 #' @export
-GC_footer <- function(
+GC_clusterFooter <- function(
     GC_chart,
     title = NULL,
     subtitle = NULL,

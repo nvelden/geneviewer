@@ -164,7 +164,7 @@ function computeSize(inputSize, containerSize) {
         resultSize = parseFloat(inputSize);
     }
 
-    return resultSize;
+    return Math.floor(resultSize);
 }
 
 function adjustGeneLabels(clusterContainer, labelSelector, options = {}) {
@@ -751,7 +751,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   const defaultOptions = {
     x: 0,
     y: 20,
-    position: "center",
+    align: "center",
     spacing: 20, // Default spacing between title and subtitle
     titleFont: {
       size: "16px",
@@ -772,7 +772,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'titleOptions', options);
-  const { x, y, titleFont, subtitleFont, position, spacing } = combinedOptions;
+  const { x, y, titleFont, subtitleFont, align, spacing } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsTitleFont = extractAdditionalOptions(titleFont, defaultOptions.titleFont);
@@ -781,8 +781,8 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   let xPos;
   let textAnchor;
 
-  // Determine text position and anchor based on the provided position
-  switch (position) {
+  // Determine text align and anchor based on the provided align
+  switch (align) {
     case "left":
       xPos = x;
       textAnchor = "start";
@@ -852,7 +852,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
   const defaultOptions = {
     x: 0,
     y: 0,
-    position: "left",
+    align: "left",
     spacing: 12, // Default spacing between title and subtitle
     titleFont: {
       fontSize: "12px",
@@ -871,7 +871,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'footerOptions', options);
-  const { x, y, titleFont, subtitleFont, position, spacing } = combinedOptions;
+  const { x, y, titleFont, subtitleFont, align, spacing } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsTitleFont = extractAdditionalOptions(titleFont, defaultOptions.titleFont);
@@ -880,8 +880,8 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
   let xPos;
   let textAnchor;
 
-  // Determine text position and anchor based on the provided position
-  switch (position) {
+  // Determine text align and anchor based on the provided align
+  switch (align) {
     case "left":
       xPos = x + 6;
       textAnchor = "start";
@@ -896,7 +896,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
 }
 
 
-  // Calculate y position for title and subtitle based on the SVG height and bottom margin
+  // Calculate y align for title and subtitle based on the SVG height and bottom margin
   const titleYPos = this.height - this.margin.bottom + y - 20;
   const subtitleYPos = titleYPos + spacing;
 
@@ -990,15 +990,15 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
   const middleY = this.margin.top + adjustedHeight / 2 + y;
   const titleWidth = position === 'left' ? this.margin.left - x : this.margin.right - x;
 
-  let xPosition;
+  let xposition;
   if (position === 'left') {
-    xPosition = this.margin.left / 2 + x;  // title is in the left margin
+    xposition = this.margin.left / 2 + x;  // title is in the left margin
   } else {  // 'right'
-    xPosition = this.width - this.margin.right / 2 - x;  // title is in the right margin
+    xposition = this.width - this.margin.right / 2 - x;  // title is in the right margin
   }
 
   let clusterTitle = this.svg.append("text")
-    .attr("x", xPosition)
+    .attr("x", xposition)
     .attr("y", middleY)
     .attr("text-anchor", "middle")  // text is always centered
     .attr("dominant-baseline", "central")  // Vertically center text

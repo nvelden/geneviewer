@@ -41,8 +41,8 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
     <b>Start:</b> {start}<br>
     <b>Stop:</b> {stop}",
   ) %>%
-  GC_title ("The Lac operon") %>%
-  GC_footer(
+  GC_clusterTitle ("The Lac operon") %>%
+  GC_clusterFooter(
     position = "middle",
     y = -30,
     subtitle = "<i>Escherichia coli</i> str. K-12 substr. MG1655" 
@@ -79,8 +79,8 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
     <b>Start:</b> {start}<br>
     <b>Stop:</b> {stop}",
   ) %>%
-  GC_title ("The Lac operon") %>%
-  GC_footer(
+  GC_clusterTitle("The Lac operon") %>%
+  GC_clusterFooter(
     position = "middle",
     y = -40,
     subtitle = "<i>Escherichia coli</i> str. K-12 substr. MG1655" 
@@ -201,6 +201,7 @@ GC_chart(hs_dystrophin_transcripts,
          stop = "stop",
          group = "type",
          cluster = "transcript") %>%
+  GC_title("Dystrophin transcript variants") %>%
   GC_genes(
     stroke = "#1f77b4",
   ) %>%
@@ -231,6 +232,7 @@ GC_chart(hs_dystrophin_transcripts,
          stop = "stop",
          group = "type",
          cluster = "transcript") %>%
+  GC_title("Dystrophin transcript variants") %>%
   GC_genes(
     stroke = "#1f77b4",
   ) %>%

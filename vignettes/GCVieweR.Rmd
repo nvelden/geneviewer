@@ -83,7 +83,7 @@ server <- function(input, output) {
       cluster = "cluster",
       group = "class"
     ) %>%
-      GC_title(title = c("<i>O. olearius</i>", "<i>D. bispora</i>")) %>%
+      GC_clusterTitle(title = c("<i>O. olearius</i>", "<i>D. bispora</i>")) %>%
       GC_labels("name") %>%
       GC_legend(position = "bottom") %>%
       GC_scaleBar() %>%
@@ -102,14 +102,13 @@ shinyApp(ui = ui, server = server)
 
 Customization functions are by default set to alter the styling of all gene clusters across the chart. To select a specific cluster one can use the `cluster` variable which is available in most customization functions. You can select a cluster either by it's name or number.
 
-In the below example a title is set for the first cluster and the y position and height is adjusted for the second cluster.
+In the below example the y position is adjusted for the first cluster shifting the labels below the cluster.
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") %>%
-  GC_title(title = "ophA Gene Clusters", cluster = 1) %>%
-  GC_labels(label = "name", cluster = "ophA", y = 10) %>%
-  GC_labels(label = "name", cluster = 2) %>%
-  GC_grid(cluster = 2, height = "150px")
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "300px") %>%
+  GC_title(title = "ophA Gene Clusters", height = "30px") %>%
+  GC_labels(label = "name", cluster = "ophA", y = 20) %>%
+  GC_labels(label = "name", cluster = 2)
 ```
 
 ### Individual Items
@@ -120,10 +119,9 @@ In the example below, the 3rd label in the ophA cluster is styled with red color
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") %>%
-  GC_title(title = "ophA Gene Clusters", cluster = 1) %>%
+  GC_title(title = "ophA Gene Clusters", height = "30px") %>%
   GC_labels(label = "name", 
             cluster = "ophA", 
-            y = 10, 
             itemStyle = 
               list(
                 list(index = 2, fill = "red", fontWeight = "bold")
@@ -135,10 +133,9 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") 
     itemStyle = 
               list(
                 list(index = 4, fill = "red", fontWeight = "bold"),
-                list(index = 3, y = 20, x = -5)
+                list(index = 3, y = 5, x = -5)
                 )
-    ) %>%
-  GC_grid(cluster = 2, height = "150px")
+    )
 ```
 
 ## Genes
@@ -188,13 +185,14 @@ GC_chart(ophA_clusters,
          cluster = "cluster", 
          height = "420px"
          ) %>%
-  GC_title(
-    title = c("Gene Cluster"), 
-    subtitle = c("<i>Omphalotus Olearius</i>", "<i>Dendrothele Bisporus</i>")
+  GC_title("OphA Gene Clusters", height = "30px") %>%
+  GC_clusterTitle(
+    title = c("<i>Omphalotus Olearius</i>", "<i>Dendrothele Bisporus</i>"), 
+    titleFont = list(weight = "normal")
     ) %>%
   GC_labels("name") %>%
   GC_clusterLabel(title = unique(ophA_clusters$cluster)) %>%
-  GC_footer(
+  GC_clusterFooter(
     title = c("Nr. of Genes: 7", "Nr. of Genes: 10"), 
     subtitle = c("Locus: 2522 - 21,484", "Locus 19,236 - 43,005")
     )
@@ -204,7 +202,7 @@ To adjust the positioning of labels, the `x`, `y`, and `position` variables can 
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") %>%
-  GC_title(
+  GC_clusterTitle(
     c("<i>Omphalotus Olearius</i>", "<i>Dendrothele Bisporus</i>"), 
     position = "left", 
     x = 20) %>%
@@ -218,7 +216,7 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") 
                 list(index = 7, y = 50)
                 )
             ) %>%
-  GC_footer(
+  GC_clusterFooter(
     title = c("Nr. of Genes: 7", "Nr. of Genes: 10"), 
     subtitle = c("Locus: 2522 - 21,484", "Locus 19,236 - 43,005"), 
     position = "center", 

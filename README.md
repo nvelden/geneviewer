@@ -41,7 +41,7 @@ gene_cluster <- data.frame(
 
 # Chart
 GC_chart(gene_cluster, group = "class", height = "200px") %>%
-  GC_title("omphalotin gene cluster") %>%
+  GC_clusterTitle("omphalotin gene cluster") %>%
   GC_labels("name") %>%
   GC_legend(position = "bottom") %>%
   GC_scaleBar() %>% 

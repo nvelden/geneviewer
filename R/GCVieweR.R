@@ -155,7 +155,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 #' )
 #'
 #' # Customizing title style
-#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "400px") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "400px") %>%
 #'   GC_labels("name") %>%
 #'   GC_title(
 #'     title = "Cluster 1 Data",
@@ -168,20 +168,20 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 #'     align = "center",
 #'     spacing = 20,
 #'     titleFont = list(
-#'       size = "16px",
-#'       style = "normal",
-#'       weight = "bold",
-#'       decoration = "normal",
-#'       family = "sans-serif",
+#'       fontSize = "16px",
+#'       fontStyle = "normal",
+#'       fontWeight = "bold",
+#'       textDecoration = "normal",
+#'       fontFamily = "sans-serif",
 #'       cursor = "default",
 #'       fill = "black"
 #'     ),
 #'     subtitleFont = list(
-#'       size = "14px",
-#'       style = "normal",
-#'       weight = "bold",
-#'       decoration = "normal",
-#'       family = "sans-serif",
+#'       fontSize = "14px",
+#'       fontStyle = "normal",
+#'       fontWeight = "bold",
+#'       textDecoration = "normal",
+#'       fontFamily = "sans-serif",
 #'       cursor = "default",
 #'       fill = "black"
 #'     )
@@ -262,7 +262,7 @@ GC_title <- function(
 #' )
 #'
 #' # Customizing title style
-#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "400px") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "400px") %>%
 #'   GC_labels("name") %>%
 #'   GC_clusterTitle(
 #'     title = "Cluster 1 Data",
@@ -274,25 +274,24 @@ GC_title <- function(
 #'     align = "center",
 #'     spacing = 20,
 #'     titleFont = list(
-#'       size = "16px",
-#'       style = "normal",
-#'       weight = "bold",
-#'       decoration = "normal",
-#'       family = "sans-serif",
+#'       fontSize = "16px",
+#'       fontStyle = "normal",
+#'       fontWeight = "bold",
+#'       textDecoration = "normal",
+#'       fontFamily = "sans-serif",
 #'       cursor = "default",
 #'       fill = "black"
 #'     ),
 #'     subtitleFont = list(
-#'       size = "14px",
-#'       style = "normal",
-#'       weight = "bold",
-#'       decoration = "normal",
-#'       family = "sans-serif",
+#'       fontSize = "14px",
+#'       fontStyle = "normal",
+#'       fontWeight = "bold",
+#'       textDecoration = "normal",
+#'       fontFamily = "sans-serif",
 #'       cursor = "default",
 #'       fill = "black"
 #'     )
 #'   )
-#'
 #' @export
 GC_clusterTitle <- function(
     GC_chart,
@@ -942,7 +941,7 @@ GC_clusterLabel <- function(
 #'     cluster = 1,
 #'     x = 6,
 #'     y = -20,
-#'     align = "middle", # left / right / center
+#'     align = "center", # left / right
 #'     spacing = 12,
 #'     titleFont = list(
 #'       fontSize = "12px",
@@ -1438,7 +1437,9 @@ GC_color <- function(
 #'   If NULL, groups are taken from the 'group' attribute of the 'GC_chart' object.
 #' @param show Logical, specifies whether to display the legend.
 #' @param backgroundColor String, the background color of the legend.
-#' @param labels Optional; character vector or NULL, custom labels for the legend entries.
+#' @param order Optional; list, specifies the order of the legend labels.
+#' @param position Character. Position of the legend, either "top" or "bottom".
+#' Default is "bottom".
 #' @param legendOptions List, additional options for the legend.
 #' @param legendTextOptions List, additional text options for the legend.
 #' @param ... Additional arguments to be passed to the legend configuration.
@@ -1463,7 +1464,8 @@ GC_color <- function(
 #'     y = 10,
 #'     adjustHeight = TRUE,
 #'     backgroundColor = "#0000",
-#'     labels = NULL, # c('Group A', 'Group B', 'Group C'),
+#'     order = list(),
+#'     positions = "bottom",
 #'     legendOptions = list(
 #'       cursor = "pointer",
 #'       colorScheme = NULL,
@@ -1487,7 +1489,8 @@ GC_legend <- function(
     group = NULL,
     show = TRUE,
     backgroundColor = "#0000",
-    labels = NULL,
+    order = list(),
+    position = "bottom",
     legendOptions = list(),
     legendTextOptions = list(),
     ...
@@ -1510,28 +1513,24 @@ GC_legend <- function(
     stop("group column not found in data")
   }
 
-  # Get the names of the clusters
-  clusters <- names(GC_chart$x$series)
-
-  # Capture arguments
-  dots <- list(...)
-
-  # Default options
-  options <- list(
+  # Capture arguments and filter out NULL or empty values
+  options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
     group = group,
     show = show,
     backgroundColor = backgroundColor,
-    labels = labels,
+    order = order,
+    position = position,
     legendOptions = legendOptions,
-    legendTextOptions = legendTextOptions
-  )
+    legendTextOptions = legendTextOptions,
+    ...
+  ))
 
-  # Add ... arguments to defaultOptions
-  for(name in names(dots)) {
-    options[[name]] <- dots[[name]]
+  # Merge new options with existing options
+  if (is.null(GC_chart$x$legend)) {
+    GC_chart$x$legend <- options
+  } else {
+    GC_chart$x$legend <- modifyList(GC_chart$x$legend, options)
   }
-
-  GC_chart$x$legend <- options
 
   return(GC_chart)
 }

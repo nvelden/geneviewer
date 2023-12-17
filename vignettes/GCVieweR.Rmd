@@ -188,7 +188,7 @@ GC_chart(ophA_clusters,
   GC_title("OphA Gene Clusters", height = "30px") %>%
   GC_clusterTitle(
     title = c("<i>Omphalotus Olearius</i>", "<i>Dendrothele Bisporus</i>"), 
-    titleFont = list(weight = "normal")
+    titleFont = list(fontWeight = "normal")
     ) %>%
   GC_labels("name") %>%
   GC_clusterLabel(title = unique(ophA_clusters$cluster)) %>%

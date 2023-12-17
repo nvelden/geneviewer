@@ -9,7 +9,8 @@ GC_legend(
   group = NULL,
   show = TRUE,
   backgroundColor = "#0000",
-  labels = NULL,
+  order = list(),
+  position = "bottom",
   legendOptions = list(),
   legendTextOptions = list(),
   ...
@@ -25,7 +26,10 @@ If NULL, groups are taken from the 'group' attribute of the 'GC_chart' object.}
 
 \item{backgroundColor}{String, the background color of the legend.}
 
-\item{labels}{Optional; character vector or NULL, custom labels for the legend entries.}
+\item{order}{Optional; list, specifies the order of the legend labels.}
+
+\item{position}{Character. Position of the legend, either "top" or "bottom".
+Default is "bottom".}
 
 \item{legendOptions}{List, additional options for the legend.}
 
@@ -59,7 +63,8 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
     y = 10,
     adjustHeight = TRUE,
     backgroundColor = "#0000",
-    labels = NULL, # c('Group A', 'Group B', 'Group C'),
+    order = list(),
+    positions = "bottom",
     legendOptions = list(
       cursor = "pointer",
       colorScheme = NULL,

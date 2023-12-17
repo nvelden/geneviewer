@@ -43,7 +43,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   ) %>%
   GC_clusterTitle ("The Lac operon") %>%
   GC_clusterFooter(
-    position = "middle",
+    align = "center",
     y = -30,
     subtitle = "<i>Escherichia coli</i> str. K-12 substr. MG1655" 
   ) %>%
@@ -81,7 +81,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   ) %>%
   GC_clusterTitle("The Lac operon") %>%
   GC_clusterFooter(
-    position = "middle",
+    align = "center",
     y = -40,
     subtitle = "<i>Escherichia coli</i> str. K-12 substr. MG1655" 
   ) %>%
@@ -254,4 +254,105 @@ GC_chart(hs_dystrophin_transcripts,
     position = "top",
     x = 25
   )
+```
+
+### *Saccharopolyspora erythraea* Erythromycin
+
+<details>
+<summary>Click to see the code</summary>
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+colors <- list(
+  "Tailoring (Hydroxylation)" = "#d62728", 
+  "Precursor biosynthesis" = "#2ca02c",
+  "Tailoring (Glycosylation)" = "#e6b0aa", 
+  "Scaffold biosynthesis" = "#9467bd", 
+  "Tailoring (Methylation)" = "#8b0000", 
+  "Activation / processing" = "#1f77b4", 
+  "Resistance / immunity" = "#f7dc6f" ,
+  "Other" = "#808080"
+)
+
+GC_chart(erythromycin_cluster, 
+         start = "Start",
+         stop = "End",
+         height = "150px",
+         group = "Functions") %>%
+  GC_title(
+    title = "Erythromycin A biosynthetic gene cluster from <i>Saccharopolyspora erythraea</i>",
+    height = "25px",
+    align = "left"
+    ) %>%
+  GC_genes(
+    arrowheadWidth = 5,
+    arrowheadHeight = 20,
+    arrowHeight = 20
+  ) %>%
+  GC_tooltip(
+    formatter = "<b>{Identifiers}</b>
+                 <br>{Product}
+                 <br>{start} - {stop}({Strand})" 
+  ) %>%
+  GC_track(track = FALSE) %>%
+  GC_scale(
+    start = 778000,
+    stop = 832000,
+    ticksCount = 8
+  ) %>%
+  GC_legend(
+    x = 0,
+    legendTextOptions = list(fontSize = "10px"),
+    order = c(setdiff(sort(erythromycin_cluster$Functions), "Other"), "Other")
+    
+    ) %>%
+  GC_color(customColors = colors) %>%
+  GC_grid(margin = list(left = 0, right =0, bottom = 15))
+```
+</details>
+
+```{r echo = FALSE, results='asis'}
+colors <- list(
+  "Tailoring (Hydroxylation)" = "#d62728", 
+  "Precursor biosynthesis" = "#2ca02c",
+  "Tailoring (Glycosylation)" = "#e6b0aa", 
+  "Scaffold biosynthesis" = "#9467bd", 
+  "Tailoring (Methylation)" = "#8b0000", 
+  "Activation / processing" = "#1f77b4", 
+  "Resistance / immunity" = "#f7dc6f" ,
+  "Other" = "#808080"
+)
+
+GC_chart(erythromycin_cluster, 
+         start = "Start",
+         stop = "End",
+         height = "150px",
+         group = "Functions") %>%
+  GC_title(
+    title = "Erythromycin A biosynthetic gene cluster from <i>Saccharopolyspora erythraea</i>",
+    height = "25px",
+    align = "left"
+    ) %>%
+  GC_genes(
+    arrowheadWidth = 5,
+    arrowheadHeight = 20,
+    arrowHeight = 20
+  ) %>%
+  GC_tooltip(
+    formatter = "<b>{Identifiers}</b>
+                 <br>{Product}
+                 <br>{start} - {stop}({Strand})" 
+  ) %>%
+  GC_track(track = FALSE) %>%
+  GC_scale(
+    start = 778000,
+    stop = 832000,
+    ticksCount = 8
+  ) %>%
+  GC_legend(
+    x = 0,
+    legendTextOptions = list(fontSize = "10px"),
+    order = c(setdiff(sort(erythromycin_cluster$Functions), "Other"), "Other")
+    
+    ) %>%
+  GC_color(customColors = colors) %>%
+  GC_grid(margin = list(left = 0, right =0, bottom = 15))
 ```

@@ -62,7 +62,7 @@ GC_clusterTitle(
 )
 
 # Customizing title style
-GC_chart(genes_data, cluster ="cluster", group = "group", height = "400px") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "400px") \%>\%
   GC_labels("name") \%>\%
   GC_clusterTitle(
     title = "Cluster 1 Data",
@@ -74,23 +74,22 @@ GC_chart(genes_data, cluster ="cluster", group = "group", height = "400px") \%>\
     align = "center",
     spacing = 20,
     titleFont = list(
-      size = "16px",
-      style = "normal",
-      weight = "bold",
-      decoration = "normal",
-      family = "sans-serif",
+      fontSize = "16px",
+      fontStyle = "normal",
+      fontWeight = "bold",
+      textDecoration = "normal",
+      fontFamily = "sans-serif",
       cursor = "default",
       fill = "black"
     ),
     subtitleFont = list(
-      size = "14px",
-      style = "normal",
-      weight = "bold",
-      decoration = "normal",
-      family = "sans-serif",
+      fontSize = "14px",
+      fontStyle = "normal",
+      fontWeight = "bold",
+      textDecoration = "normal",
+      fontFamily = "sans-serif",
       cursor = "default",
       fill = "black"
     )
   )
-
 }

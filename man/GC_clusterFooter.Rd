@@ -74,7 +74,7 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "300px") \%>
     cluster = 1,
     x = 6,
     y = -20,
-    align = "middle", # left / right / center
+    align = "center", # left / right
     spacing = 12,
     titleFont = list(
       fontSize = "12px",

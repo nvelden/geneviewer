@@ -754,19 +754,19 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
     align: "center",
     spacing: 20, // Default spacing between title and subtitle
     titleFont: {
-      size: "16px",
-      style: "normal",
-      weight: "bold",
-      decoration: "normal",
-      family: "sans-serif",
+      fontSize: "16px",
+      fontStyle: "normal",
+      fontWeight: "bold",
+      textDecoration: "normal",
+      fontFamily: "sans-serif",
       cursor: "default"
     },
     subtitleFont: {
-      size: "14px",
-      style: "normal",
-      weight: "normal",
-      decoration: "none",
-      family: "sans-serif",
+      fontSize: "14px",
+      fontStyle: "normal",
+      fontWeight: "normal",
+      textDecoration: "none",
+      fontFamily: "sans-serif",
       cursor: "default"
     },
   };
@@ -797,35 +797,35 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   }
 
   if(title){
-  // Add title to the SVG
-  this.svg.append("text")
-    .attr("x", xPos)
-    .attr("y", y + (this.margin.top / 2))
-    .attr("text-anchor", textAnchor)
-    .style("font-size", titleFont.size)
-    .style("font-style", titleFont.style)
-    .style("font-weight", titleFont.weight)
-    .style("text-decoration", titleFont.decoration)
-    .style("font-family", titleFont.family)
-    .style("cursor", titleFont.cursor)
-    .each(function() {
+    // Add title to the SVG
+    this.svg.append("text")
+      .attr("x", xPos)
+      .attr("y", y + (this.margin.top / 2))
+      .attr("text-anchor", textAnchor)
+      .style("font-size", titleFont.fontSize)
+      .style("font-style", titleFont.fontStyle)
+      .style("font-weight", titleFont.fontWeight)
+      .style("text-decoration", titleFont.textDecoration)
+      .style("font-family", titleFont.fontFamily)
+      .style("cursor", titleFont.cursor)
+      .each(function() {
       const currentElement = d3.select(this);
       parseAndStyleText(title, currentElement, titleFont);
       setAttributesFromOptions(currentElement, additionalOptionsTitleFont);
     });
   }
 
-  // Add subtitle to the SVG if provided
   if (subtitle) {
+    // Add subtitle to the SVG
     this.svg.append("text")
       .attr("x", xPos)
       .attr("y", y + (this.margin.top / 2) + spacing)
       .attr("text-anchor", textAnchor)
-      .style("font-size", subtitleFont.size)
-      .style("font-style", subtitleFont.style)
-      .style("font-weight", subtitleFont.weight)
-      .style("text-decoration", subtitleFont.decoration)
-      .style("font-family", subtitleFont.family)
+      .style("font-size", subtitleFont.fontSize)
+      .style("font-style", subtitleFont.fontStyle)
+      .style("font-weight", subtitleFont.fontWeight)
+      .style("text-decoration", subtitleFont.textDecoration)
+      .style("font-family", subtitleFont.fontFamily)
       .style("cursor", subtitleFont.cursor)
       .each(function() {
         const currentElement = d3.select(this);
@@ -1125,181 +1125,6 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
 
   return this;
 };
-
-/*
-clusterContainer.prototype.markers = function(group, show = true, options = {}) {
-
-  if (!show) {
-    return this;
-  }
-
-  // Verify that the data exists
-  if (!this.data) {
-    console.error('No data has been added to this cluster container. Please use the geneData() function before attempting to draw markers.');
-    return this;
-  }
-
-  const defaultOptions = {
-    x: 1,
-    y: 50,
-    start: null,
-    stop: null,
-    size: 15,
-    colorScheme: null,
-    customColors: null,
-    marker: "arrow",
-    cursor: "default",
-    itemStyle: [] // {index: 1, strokeWidth : 10, stroke : "black"}
-  };
-
-  const combinedOptions = mergeOptions.call(this, defaultOptions, 'markerOptions', options);
-
-  const { x, y, start, stop, size, colorScheme, customColors, marker, cursor, itemStyle } = combinedOptions;
-
-  // Extract additional options that are not in defaultOptions
-  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
-
-  // Color Scale Setup
-  const uniqueGroups = [...new Set(this.data.map(d => d[group]))];
-  // Adjust colorScale to use uniqueGroups
-  const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
-
-  // Create the group
-  var g = this.svg.append("g")
-    .attr("transform", "translate(" + (this.margin.left) + "," + this.margin.top + ")");  // Apply x offset here
-
-  const getAttributesForIndex = (d, i) => {
-    const style = itemStyle.find(s => s.index === i) || {};
-    const currentX = style.x || x;
-    const currentY = style.y || y;
-    const currentSize = style.size || size;
-    const currentMarker = style.marker || marker;
-
-    const offset = currentSize / 2;
-    const yPos = this.yScale(currentY);
-    const xPos = d.direction === 'forward' ? this.xScale(d.stop) - offset + currentX : this.xScale(d.stop) + offset - currentX;
-
-    return { xPos, yPos, currentSize, currentMarker };
-   };
-
-  // Create triangles
-  g.selectAll(".marker")
-   .data(this.data)
-   .enter()
-   .append("path")
-   .attr("d", (d, i) => {
-      const { xPos, yPos, currentSize, currentMarker } = getAttributesForIndex(d, i);
-
-      const absoluteDifference = Math.abs(this.xScale(d.stop) - this.xScale(d.start));
-      const markerHeight = currentSize < absoluteDifference ? currentSize : absoluteDifference;
-
-      return getMarker(currentMarker, xPos, yPos, currentSize, markerHeight);
-    })
-    .attr("transform", (d, i) => {
-      const { xPos, yPos } = getAttributesForIndex(d, i);
-      const rotation = d.direction === 'forward' ? 90 : -90;
-      return `rotate(${rotation}, ${xPos}, ${yPos})`;
-    })
-   .attr("fill", (d) => colorScale(d[group]))
-   .attr("class", "marker")
-   .attr("id", (d, i) => `${sanitizeId(d.cluster)}-marker-${i}`)
-   .attr("rowID", (d, i) => `${d["rowID"]}`)
-   .style("cursor", cursor)
-   .each(function (d, i) {
-      const currentElement = d3.select(this);
-
-      // Set additional options as attributes
-      setAttributesFromOptions(currentElement, additionalOptions);
-
-      // Override with itemStyle based on the index
-      applyStyleToElement(currentElement, itemStyle, i);
-  })
-  //Make markers available to tooltip
-  this.markers = g.selectAll(".marker");
-
-  return this;
-};
-
-clusterContainer.prototype.genes = function(group, show = true, options = {}) {
-  if (!show) {
-    return this;
-  }
-
-  // Verify that the data exists
-  if (!this.data) {
-    console.error('No data has been added to this cluster container. Please use the geneData() function before attempting to draw genes.');
-    return this;
-  }
-
-  const defaultOptions = {
-    x: 10,
-    y: 50,
-    start: null,
-    stop: null,
-    colorScheme: null,
-    customColors: null,
-    height: 10,
-    strokeWidth: 1,
-    stroke: 'black',
-    cursor: "default",
-    itemStyle: []
-  };
-
-  const combinedOptions = mergeOptions.call(this, defaultOptions, 'genesOptions', options);
-  const { x, y, start, stop, colorScheme, customColors, itemStyle, height, strokeWidth, stroke, cursor } = combinedOptions;
-
-  // Extract additional options that are not in defaultOptions
-  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
-
-  // Color Scale Setup
-  const uniqueGroups = [...new Set(this.data.map(d => d[group]))];
-  const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
-
-  // Create the group
-  const g = this.svg.append("g")
-    .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-
-  const getAttributesForIndex = (d, i) => {
-    const style = itemStyle.find(s => s.index === i) || {};
-    const currentX = style.x || x;
-    const currentY = style.y || y;
-
-    const xPosStart = d.direction === 'forward' ? this.xScale(d.start) : this.xScale(d.stop) + currentX;
-    const xPosEnd = d.direction === 'forward' ? (Math.max(this.xScale(d.start), this.xScale(d.stop)) - currentX) : Math.max(this.xScale(d.stop), this.xScale(d.start));
-    const rectWidth = xPosEnd - xPosStart;
-    const yPos = this.yScale(currentY) - height / 2;
-
-    return { xPosStart, yPos, rectWidth };
-  };
-
-  // Draw Genes as Rectangles
-  g.selectAll(".gene")
-    .data(this.data)
-    .enter()
-    .append("rect")
-    .attr("class", "gene")
-    .attr("id", (d, i) => `${sanitizeId(d.cluster)}-gene-${i}`)
-    .attr("rowID", (d, i) => `${d["rowID"]}`)
-    .attr("x", (d, i) => getAttributesForIndex(d, i).xPosStart)
-    .attr("y", (d, i) => getAttributesForIndex(d, i).yPos)
-    .attr("width", (d, i) => getAttributesForIndex(d, i).rectWidth)
-    .attr("height", height)
-    .attr("fill", (d) => colorScale(d[group]))
-    .attr("stroke", stroke)
-    .attr("stroke-width", strokeWidth)
-    .style("cursor", cursor)
-    .each(function (d, i) {
-      const currentElement = d3.select(this);
-      setAttributesFromOptions(currentElement, additionalOptions);
-      applyStyleToElement(currentElement, itemStyle, i);
-    });
-
-  // Update the reference
-  this.genes = g.selectAll(".gene");
-
-  return this;
-};
-*/
 
 clusterContainer.prototype.coordinates = function(show = true, options = {}) {
     if (!show) {
@@ -1936,7 +1761,7 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
     y: 10,
     orientation: "horizontal",
     adjustHeight: true,
-    labels: null, // Add labels option here
+    order: [],
     legendOptions: {
       cursor: "pointer",
       colorScheme: null,
@@ -1962,7 +1787,7 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
     legendTextOptions: { ...defaultOptions.legendTextOptions, ...options.legendTextOptions }
   };
 
-  const { x, y, orientation, adjustHeight, legendOptions, legendTextOptions, labels } = combinedOptions;
+  const { x, y, orientation, adjustHeight, legendOptions, legendTextOptions, order} = combinedOptions;
 
   const additionalOptionsLegend = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
   const additionalOptionsLegendText = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
@@ -1973,15 +1798,21 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
   var g = svgLegend.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
-  const uniqueGroups = labels || [...new Set(this.data.map(d => d[group]))];
+  let uniqueGroups = [...new Set(this.data.map(d => d[group]))];
 
+  const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
+
+  // Reorder uniqueGroups based on custom order
+  if (order && order.length > 0) {
+    uniqueGroups = order
+      .filter(item => uniqueGroups.includes(item))
+      .concat(uniqueGroups.filter(item => !order.includes(item)));
+  }
 
   if (!uniqueGroups.length) {
     console.error(`Error: No labels provided and the group "${group}" does not exist in the data.`);
     return;
   }
-
-  const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
 
   const legendSize = parseFloat(legendTextOptions.fontSize);
   const legendPadding = legendSize / 2;

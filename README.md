@@ -24,7 +24,7 @@ devtools::install_github("nvelden/GCVieweR")
 
 ## Example
 
-The below example demonstrates using **GCVieweR** to plot a gene cluster on a genomic sequence, using the start and stop positions of each gene. The genes are grouped by class. Additional functions are used to include a title, labels, legend, and a scale bar.
+The below example demonstrates using **GCVieweR** to plot a gene cluster on a genomic sequence, using the start and end positions of each gene. The genes are grouped by class. Additional functions are used to include a title, labels, legend, and a scale bar.
 
 ``` r
 library(GCVieweR)
@@ -33,7 +33,7 @@ library(GCVieweR)
 gene_cluster <- data.frame(
   name = c("ophB1", "ophC", "ophA", "ophD", "ophB2", "ophP", "ophE"),
   start = c(2522, 5286, 9536, 12616, 13183, 19346, 20170),
-  stop = c(4276, 4718, 10904, 11859, 15046, 16016, 21484),
+  end = c(4276, 4718, 10904, 11859, 15046, 16016, 21484),
   class = c("Monooxygenase", "NTF2-like", "Methyltransferase", 
   "O-acyltransferase", "Monooxygenase", "Prolyloligopeptidase", 
   "F-box/RNHI-like")

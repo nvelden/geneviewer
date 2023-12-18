@@ -25,7 +25,7 @@ This function updates the color scheme of the legend and genes in a gene chart.
 \examples{
 genes_data <- data.frame(
   start = c(10, 50, 90, 130, 170, 210),
-  stop = c(40, 80, 120, 160, 200, 240),
+  end = c(40, 80, 120, 160, 200, 240),
   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
   group = c('A', 'A', 'B', 'B', 'A', 'C'),
   cluster = c(1, 1, 1, 2, 2, 2)

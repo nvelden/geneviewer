@@ -7,7 +7,7 @@
 GC_chart(
   data,
   start = "start",
-  stop = "stop",
+  end = "end",
   cluster = NULL,
   group = NULL,
   width = "100\%",
@@ -21,7 +21,7 @@ GC_chart(
 
 \item{start}{Column name that indicates start positions. Default is "start".}
 
-\item{stop}{Column name that indicates stop positions. Default is "stop".}
+\item{end}{Column name that indicates end positions. Default is "end".}
 
 \item{cluster}{Optional column name used for clustering purposes. Default is
 NULL.}
@@ -49,7 +49,7 @@ Generates an interactive GC chart for genomic data.
 \examples{
 genes_data <- data.frame(
   start = c(10, 50, 90, 130, 170, 210),
-  stop = c(40, 80, 120, 160, 200, 240),
+  end = c(40, 80, 120, 160, 200, 240),
   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
   group = c('A', 'A', 'B', 'B', 'A', 'C'),
   cluster = c(1, 1, 1, 2, 2, 2)

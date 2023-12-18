@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 ```{r echo=TRUE, results='hide'}
 lacZ_operon <- data.frame(
   start = c(361249, 361926, 363231, 366428), 
-  stop = c(361860, 363179, 366305, 367510), 
+  end = c(361860, 363179, 366305, 367510), 
   Gene_symbol = c("lacA", "lacY", "lacZ", "lacI"), 
   Strand = c("minus", "minus", "minus", "minus"), 
   NCBI_Gene_ID = as.character(c(945674, 949083, 945006, 945007)), 
@@ -39,7 +39,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
     <b>ID:</b> {NCBI_Gene_ID}<br>
     <b>Description:</b> {Description}<br>
     <b>Start:</b> {start}<br>
-    <b>Stop:</b> {stop}",
+    <b>End:</b> {end}",
   ) %>%
   GC_clusterTitle ("The Lac operon") %>%
   GC_clusterFooter(
@@ -49,7 +49,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   ) %>%
   GC_coordinates(
     rotate = 0,
-    tickValuesBottom = c(min(lacZ_operon$start), max(lacZ_operon$stop)),
+    tickValuesBottom = c(min(lacZ_operon$start), max(lacZ_operon$end)),
     textStyle = list(x = -25, y = 22, fontSize = "10px"),
     tickStyle = list(lineLength = 10)
     ) %>%
@@ -60,7 +60,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
 ```{r echo = FALSE, results='asis'}
 lacZ_operon <- data.frame(
   start = c(361249, 361926, 363231, 366428), 
-  stop = c(361860, 363179, 366305, 367510), 
+  end = c(361860, 363179, 366305, 367510), 
   Gene_symbol = c("lacA", "lacY", "lacZ", "lacI"), 
   Strand = c("minus", "minus", "minus", "minus"), 
   NCBI_Gene_ID = as.character(c(945674, 949083, 945006, 945007)), 
@@ -77,7 +77,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
     <b>ID:</b> {NCBI_Gene_ID}<br>
     <b>Description:</b> {Description}<br>
     <b>Start:</b> {start}<br>
-    <b>Stop:</b> {stop}",
+    <b>End:</b> {end}",
   ) %>%
   GC_clusterTitle("The Lac operon") %>%
   GC_clusterFooter(
@@ -87,7 +87,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   ) %>%
   GC_coordinates(
     rotate = 0,
-    tickValuesBottom = c(min(lacZ_operon$start), max(lacZ_operon$stop)),
+    tickValuesBottom = c(min(lacZ_operon$start), max(lacZ_operon$end)),
     textStyle = list(x = -25, y = 22, fontSize = "10px"),
     tickStyle = list(lineLength = 10)
     ) %>%
@@ -135,7 +135,7 @@ combined_hox_genes$name <- paste0(substr(combined_hox_genes$hgnc_symbol, 1, 3), 
 GC_chart(
   combined_hox_genes,
   start = "start_position",
-  stop = "end_position",
+  end = "end_position",
   group = "cluster",
   height = "400px",
   cluster = "cluster") %>%
@@ -165,7 +165,7 @@ GC_chart(
 GC_chart(
   human_hox_genes,
   start = "start",
-  stop = "stop",
+  end = "end",
   group = "cluster",
   height = "400px",
   cluster = "cluster") %>%
@@ -198,7 +198,7 @@ GC_chart(
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
 GC_chart(hs_dystrophin_transcripts,
          start = "start",
-         stop = "stop",
+         end = "end",
          group = "type",
          cluster = "transcript") %>%
   GC_title("Dystrophin transcript variants") %>%
@@ -208,7 +208,7 @@ GC_chart(hs_dystrophin_transcripts,
   GC_scale(
     cluster = c(1, 2, 3, 4),
     start = 1,
-    stop = max(hs_dystrophin_transcripts$length),
+    end = max(hs_dystrophin_transcripts$length),
     hidden = TRUE
   ) %>%
   GC_scale(
@@ -216,7 +216,7 @@ GC_chart(hs_dystrophin_transcripts,
     y = 25,
     ticksCount = 8,
     start = 1,
-    stop = max(DP_transcripts$length),
+    end = max(DP_transcripts$length),
   ) %>%
   GC_clusterLabel(title = unique(hs_dystrophin_transcripts$transcript)) %>%
   GC_legend(
@@ -229,7 +229,7 @@ GC_chart(hs_dystrophin_transcripts,
 ```{r echo = FALSE, results='asis'}
 GC_chart(hs_dystrophin_transcripts,
          start = "start",
-         stop = "stop",
+         end = "end",
          group = "type",
          cluster = "transcript") %>%
   GC_title("Dystrophin transcript variants") %>%
@@ -239,7 +239,7 @@ GC_chart(hs_dystrophin_transcripts,
   GC_scale(
     cluster = c(1, 2, 3, 4),
     start = 1,
-    stop = max(hs_dystrophin_transcripts$length),
+    end = max(hs_dystrophin_transcripts$length),
     hidden = TRUE
   ) %>%
   GC_scale(
@@ -247,7 +247,7 @@ GC_chart(hs_dystrophin_transcripts,
     y = 25,
     ticksCount = 8,
     start = 1,
-    stop = max(hs_dystrophin_transcripts$length),
+    end = max(hs_dystrophin_transcripts$length),
   ) %>%
   GC_clusterLabel(title = unique(hs_dystrophin_transcripts$transcript)) %>%
   GC_legend(
@@ -274,7 +274,7 @@ colors <- list(
 
 GC_chart(erythromycin_cluster, 
          start = "Start",
-         stop = "End",
+         end = "End",
          height = "150px",
          group = "Functions") %>%
   GC_title(
@@ -290,12 +290,12 @@ GC_chart(erythromycin_cluster,
   GC_tooltip(
     formatter = "<b>{Identifiers}</b>
                  <br>{Product}
-                 <br>{start} - {stop}({Strand})" 
+                 <br>{start} - {end}({Strand})" 
   ) %>%
   GC_track(track = FALSE) %>%
   GC_scale(
     start = 778000,
-    stop = 832000,
+    end = 832000,
     ticksCount = 8
   ) %>%
   GC_legend(
@@ -323,7 +323,7 @@ colors <- list(
 
 GC_chart(erythromycin_cluster, 
          start = "Start",
-         stop = "End",
+         end = "End",
          height = "150px",
          group = "Functions") %>%
   GC_title(
@@ -339,12 +339,12 @@ GC_chart(erythromycin_cluster,
   GC_tooltip(
     formatter = "<b>{Identifiers}</b>
                  <br>{Product}
-                 <br>{start} - {stop}({Strand})" 
+                 <br>{start} - {end}({Strand})" 
   ) %>%
   GC_track(track = FALSE) %>%
   GC_scale(
     start = 778000,
-    stop = 832000,
+    end = 832000,
     ticksCount = 8
   ) %>%
   GC_legend(

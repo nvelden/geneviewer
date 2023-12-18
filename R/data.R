@@ -8,7 +8,7 @@
 #' \describe{
 #'   \item{name}{Gene names. A character vector.}
 #'   \item{start}{Start positions of the genes. An integer vector.}
-#'   \item{stop}{Stop positions of the genes. An integer vector.}
+#'   \item{end}{End positions of the genes. An integer vector.}
 #'   \item{class}{Classifications of the genes. A character vector indicating
 #'   the type of protein or function associated with each gene.}
 #'   \item{cluster}{Cluster identification as a character vector, specifying whether
@@ -32,7 +32,7 @@
 #'   \item{symbol}{HGNC symbols for the HOX genes. A character vector.}
 #'   \item{chromosome_name}{Chromosome number where each gene is located. A numeric vector.}
 #'   \item{start}{Start positions of the genes on the chromosome. A numeric vector.}
-#'   \item{stop}{End positions of the genes on the chromosome. A numeric vector.}
+#'   \item{end}{End positions of the genes on the chromosome. A numeric vector.}
 #'   \item{cluster}{Cluster identification as a character vector,
 #'   specifying the HOX gene cluster (HOXA, HOXB, HOXC, HOXD).}
 #'   \item{name}{Simplified names for the HOX genes. A character vector.}
@@ -51,7 +51,7 @@
 #'   \item{type}{Transcript type.}
 #'   \item{start}{Start positions. An integer vector showing the starting
 #'   positions of each Exon.}
-#'   \item{stop}{End positions. An integer vector showing the ending
+#'   \item{end}{End positions. An integer vector showing the ending
 #'   positions of each Exon.}
 #'   \item{length}{Transcript lengths. An integer vector
 #'   indicating the length of each transcript.}

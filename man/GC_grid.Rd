@@ -29,7 +29,7 @@ for each cluster.
 \examples{
 genes_data <- data.frame(
   start = c(10, 90, 130, 170, 210),
-  stop = c(40, 120, 160, 200, 240),
+  end = c(40, 120, 160, 200, 240),
   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
   group = c('A', 'B', 'B', 'A', 'C'),
   cluster = c(1, 1, 2, 2, 2)
@@ -37,10 +37,10 @@ genes_data <- data.frame(
 
 # Set Margin of clusters
 GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") \%>\%
-GC_grid(margin = list(left = "10px", right = "10px"))
+GC_grid(margin = list(left = "50px", right = "0px"))
 
 # Set height of a specific cluster
 GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") \%>\%
-GC_grid(height = "100px", cluster = 2)
+GC_grid(height = "120px", cluster = 2)
 
 }

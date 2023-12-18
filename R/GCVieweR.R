@@ -8,7 +8,7 @@ magrittr::`%>%`
 #'
 #' @param data Data frame containing genomic information.
 #' @param start Column name that indicates start positions. Default is "start".
-#' @param stop Column name that indicates stop positions. Default is "stop".
+#' @param end Column name that indicates end positions. Default is "end".
 #' @param cluster Optional column name used for clustering purposes. Default is
 #'   NULL.
 #' @param group Column name used for gene grouping to influence color
@@ -26,7 +26,7 @@ magrittr::`%>%`
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 50, 90, 130, 170, 210),
-#'   stop = c(40, 80, 120, 160, 200, 240),
+#'   end = c(40, 80, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
 #'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
 #'   cluster = c(1, 1, 1, 2, 2, 2)
@@ -36,7 +36,7 @@ magrittr::`%>%`
 #'
 #' @import htmlwidgets
 #' @export
-GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group = NULL, width = "100%", height = "400px", background_color = "#0000", elementId = NULL){
+GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, width = "100%", height = "400px", background_color = "#0000", elementId = NULL){
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
@@ -44,7 +44,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
   # Check if column names are in the data frame
   colnames_data <- colnames(data)
   if (!(start %in% colnames_data)) stop("start column not found in data")
-  if (!(stop %in% colnames_data)) stop("stop column not found in data")
+  if (!(end %in% colnames_data)) stop("end column not found in data")
   if (!is.null(cluster) && !(cluster %in% colnames_data)){
     stop("cluster column not found in data")
   }
@@ -82,9 +82,9 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
     }
 
     subset_data$start <- subset_data[[start]]
-    subset_data$stop <- subset_data[[stop]]
+    subset_data$end <- subset_data[[end]]
 
-    subset_data <- subset_data[with(subset_data, order(-pmax(start, stop), abs(stop - start))), ]
+    subset_data <- subset_data[with(subset_data, order(-pmax(start, end), abs(end - start))), ]
     subset_data <- add_gene_track(subset_data)
     subset_data$cluster <- clust
 
@@ -104,7 +104,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
     x$series[[clust]]$clusterLabel <- list()
     x$series[[clust]]$clusterTitle <- list()
     x$series[[clust]]$sequence <- list(show = TRUE)
-    x$series[[clust]]$tooltip <- list(show = TRUE, formatter ="<b>Start:</b> {start} <br><b>Stop:</b> {stop}")
+    x$series[[clust]]$tooltip <- list(show = TRUE, formatter ="<b>Start:</b> {start} <br><b>end:</b> {end}")
   }
 
   # create the widget
@@ -138,7 +138,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 50, 90, 130, 170, 210),
-#'   stop = c(40, 80, 120, 160, 200, 240),
+#'   end = c(40, 80, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
 #'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
 #'   cluster = c(1, 1, 1, 2, 2, 2)
@@ -150,8 +150,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 #' GC_title(
 #'   title = "Cluster 1 Data",
 #'   subtitle = "Detailed View",
-#'   show = TRUE,
-#'   cluster = 1
+#'   show = TRUE
 #' )
 #'
 #' # Customizing title style
@@ -164,7 +163,7 @@ GC_chart <- function(data, start = "start", stop = "stop", cluster = NULL, group
 #'     height = "50px",
 #'     cluster = 1,
 #'     x = 0,
-#'     y = 0,
+#'     y = 25, # height / 2
 #'     align = "center",
 #'     spacing = 20,
 #'     titleFont = list(
@@ -245,7 +244,7 @@ GC_title <- function(
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 50, 90, 130, 170, 210),
-#'   stop = c(40, 80, 120, 160, 200, 240),
+#'   end = c(40, 80, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
 #'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
 #'   cluster = c(1, 1, 1, 2, 2, 2)
@@ -358,7 +357,7 @@ GC_clusterTitle <- function(
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 90, 130, 170, 210),
-#'   stop = c(40, 120, 160, 200, 240),
+#'   end = c(40, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
 #'   group = c('A', 'B', 'B', 'A', 'C'),
 #'   cluster = c(1, 1, 2, 2, 2)
@@ -446,7 +445,7 @@ GC_sequence <- function(
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 90, 130, 170, 210),
-#'   stop = c(40, 120, 160, 200, 240),
+#'   end = c(40, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
 #'   group = c('A', 'B', 'B', 'A', 'C'),
 #'   cluster = c(1, 1, 2, 2, 2)
@@ -454,11 +453,11 @@ GC_sequence <- function(
 #'
 #' # Set Margin of clusters
 #' GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") %>%
-#' GC_grid(margin = list(left = "10px", right = "10px"))
+#' GC_grid(margin = list(left = "50px", right = "0px"))
 #'
 #' # Set height of a specific cluster
 #' GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") %>%
-#' GC_grid(height = "100px", cluster = 2)
+#' GC_grid(height = "120px", cluster = 2)
 #'
 #' @export
 GC_grid <- function(
@@ -524,7 +523,7 @@ GC_grid <- function(
 #'   chart to update.
 #' @param start Numeric vector indicating the starting point for the scale.
 #'   Default is NULL.
-#' @param stop Numeric vector indicating the stopping points for the scale.
+#' @param end Numeric vector indicating the end point for the scale.
 #'   Default is NULL.
 #' @param hidden Logical flag indicating whether the axis is hidden. Default is
 #'   FALSE.
@@ -558,7 +557,7 @@ GC_grid <- function(
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(100, 1000, 2000),
-#'   stop = c(150, 1500, 2500),
+#'   end = c(150, 1500, 2500),
 #'   name = c('Gene 4', 'Gene 5', 'Gene 6'),
 #'   group = c('B', 'A', 'C'),
 #'   cluster = c(2, 2, 2)
@@ -567,13 +566,13 @@ GC_grid <- function(
 #' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
 #'   GC_scale(
 #'     start = 1,
-#'     stop = 2600,
+#'     end = 2600,
 #'     hidden = FALSE,
 #'     reverse = FALSE,
 #'     axisType = "bottom",
 #'     # breaks = list(
-#'     #  list(start = 160, stop = 900),
-#'     #  list(start = 1600, stop = 1900)
+#'     #  list(start = 160, end = 900),
+#'     #  list(start = 1600, end = 1900)
 #'     # ),
 #'     # tickValues = c(1, 2600),
 #'     scale_breaks = TRUE,
@@ -608,7 +607,7 @@ GC_grid <- function(
 GC_scale <- function(GC_chart,
                      cluster = NULL,
                      start = NULL,
-                     stop = NULL,
+                     end = NULL,
                      hidden = FALSE,
                      breaks = list(),
                      tickValues = NULL,
@@ -633,7 +632,7 @@ GC_scale <- function(GC_chart,
   for (i in seq_along(clusters)) {
     # Calculate the index for each parameter considering their different lengths
     start_idx <- (i - 1) %% length(start) + 1
-    stop_idx <- (i - 1) %% length(stop) + 1
+    stop_idx <- (i - 1) %% length(end) + 1
     reverse_idx <- (i - 1) %% length(reverse) + 1
 
     # Subset data for the current cluster
@@ -652,7 +651,7 @@ GC_scale <- function(GC_chart,
     # Default options
     options <- list(
       start = start[start_idx],
-      stop = stop[stop_idx],
+      end = end[stop_idx],
       hidden = hidden,
       breaks = breaks_data,
       tickValues = tickValues,
@@ -695,7 +694,7 @@ GC_scale <- function(GC_chart,
 #' @examples
 #' genes_data <- data.frame(
 #'  start = c(1000, 9000, 13000, 17000, 21000),
-#'  stop = c(4000, 12000, 16000, 20000, 24000),
+#'  end = c(4000, 12000, 16000, 20000, 24000),
 #'  name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
 #'  group = c('A', 'B', 'B', 'A', 'C'),
 #'  cluster = c(1, 1, 2, 2, 2)
@@ -802,7 +801,7 @@ GC_scaleBar <- function(
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 90, 130, 170, 210),
-#'   stop = c(40, 120, 160, 200, 240),
+#'   end = c(40, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
 #'   group = c('A', 'B', 'B', 'A', 'C'),
 #'   cluster = c(1, 1, 2, 2, 2)
@@ -819,7 +818,7 @@ GC_scaleBar <- function(
 #' # Style labels
 #' GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") %>%
 #'   GC_clusterLabel(
-#'     title = "Cluster 1",
+#'     title = c("Cluster 1", "Cluster 2"),
 #'     width = "100px",
 #'     x = 0,
 #'     y = 0,
@@ -918,7 +917,7 @@ GC_clusterLabel <- function(
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 90, 130, 170, 210),
-#'   stop = c(40, 120, 160, 200, 240),
+#'   end = c(40, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
 #'   group = c('A', 'B', 'B', 'A', 'C'),
 #'   cluster = c(1, 1, 2, 2, 2)
@@ -1037,7 +1036,7 @@ GC_clusterFooter <- function(
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 90, 130, 170, 210),
-#'   stop = c(40, 120, 160, 200, 240),
+#'   end = c(40, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
 #'   group = c('A', 'B', 'B', 'A', 'C'),
 #'   cluster = c(1, 1, 2, 2, 2)
@@ -1161,7 +1160,7 @@ GC_labels <- function(
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 90, 130, 170, 210),
-#'   stop = c(40, 120, 160, 200, 240),
+#'   end = c(40, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5'),
 #'   cluster = c(1, 1, 2, 2, 2)
 #' )
@@ -1264,7 +1263,7 @@ GC_coordinates <- function(
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 90, 130, 170, 210),
-#'   stop = c(40, 120, 160, 200, 240),
+#'   end = c(40, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
 #'   group = c('A', 'B', 'B', 'A', 'C'),
 #'   cluster = c(1, 1, 2, 2, 2)
@@ -1379,7 +1378,7 @@ GC_genes <- function(
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 50, 90, 130, 170, 210),
-#'   stop = c(40, 80, 120, 160, 200, 240),
+#'   end = c(40, 80, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
 #'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
 #'   cluster = c(1, 1, 1, 2, 2, 2)
@@ -1449,7 +1448,7 @@ GC_color <- function(
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 90, 130, 170, 210),
-#'   stop = c(40, 120, 160, 200, 240),
+#'   end = c(40, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
 #'   group = c('A', 'B', 'B', 'A', 'C'),
 #'   cluster = c('A', 'A', 'A', 'B', 'B')
@@ -1542,8 +1541,8 @@ GC_legend <- function(
 #'
 #' @param GC_chart The gene chart object to be modified.
 #' @param formatter A character string defining the HTML content of the tooltip. It can
-#'   include placeholders like `{start}` and `{stop}` which will be replaced by actual
-#'   data values. The default value shows start and stop data.
+#'   include placeholders like `{start}` and `{end}` which will be replaced by actual
+#'   data values. The default value shows start and end data.
 #' @param show Logical, whether to display the tooltip or not.
 #' @param cluster Optional; used to specify which clusters in the chart should have tooltips.
 #' @param ... Additional arguments that can be used to further customize the tooltip.
@@ -1554,19 +1553,19 @@ GC_legend <- function(
 #' # Set tooltip
 #' genes_data <- data.frame(
 #'   start = c(10, 90, 130, 170, 210),
-#'   stop = c(40, 120, 160, 200, 240),
+#'   end = c(40, 120, 160, 200, 240),
 #'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5'),
 #'   group = c('A', 'B', 'B', 'A', 'C')
 #' )
 #'
 #' # Add tooltips to the gene chart
 #' GC_chart(genes_data, group = "group", height = "200px") %>%
-#' GC_tooltip(formatter = " <b>Start:</b> {start}<br><b>Stop:</b> {stop}")
+#' GC_tooltip(formatter = " <b>Start:</b> {start}<br><b>end:</b> {end}")
 #'
 #' @export
 GC_tooltip <- function(
     GC_chart,
-    formatter = "<b>Start:</b> {start}<br><b>Stop:</b> {stop}",
+    formatter = "<b>Start:</b> {start}<br><b>end:</b> {end}",
     show = TRUE,
     cluster = NULL,
     ...
@@ -1616,7 +1615,7 @@ GC_tooltip <- function(
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 20, 30, 170, 210),
-#'   stop = c(200, 150, 180, 200, 240),
+#'   end = c(200, 150, 180, 200, 240),
 #'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5'),
 #'   group = c('A', 'A', 'A', 'A', 'A')
 #' )

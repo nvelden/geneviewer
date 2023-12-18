@@ -28,7 +28,7 @@ devtools::install_github("nvelden/GCVieweR")
 
 ### Single Gene Cluster
 
-To visualize a single gene cluster, the minimum requirements are the start and stop positions of each gene, typically named "start" and "stop". In addition a group can be defined which is used for color coding the genes and is used by default as the categorical variable for the legend.
+To visualize a single gene cluster, the minimum requirements are the start and end positions of each gene, typically named "start" and "end". In addition a group can be defined which is used for color coding the genes and is used by default as the categorical variable for the legend.
 
 ```{r echo=TRUE, results='asis'}
 # Example data for a single Gene cluster
@@ -36,7 +36,7 @@ ophA_cluster <- subset(ophA_clusters, cluster == "ophA")
 
 GC_chart(ophA_cluster, 
          start = "start", 
-         stop = "stop", 
+         end = "end", 
          group = "class", 
          height = "150px"
          )
@@ -50,7 +50,7 @@ For visualizing multiple gene clusters, an additional variable is needed which i
 # Example data for two Gene clusters
 GC_chart(ophA_clusters, 
          start = "start", 
-         stop = "stop", 
+         end = "end", 
          group = "class", 
          cluster = "cluster", 
          height = "300px"
@@ -176,7 +176,7 @@ To each gene cluster one can add a title, gene labels, a cluster label and a foo
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, 
          start = "start", 
-         stop = "stop", 
+         end = "end", 
          group = "class", 
          cluster = "cluster", 
          height = "420px"
@@ -260,7 +260,7 @@ generate_GC_color_patches <- function(color_scheme_name, color_scheme_length) {
 
   color_array <- data.frame(
     start = seq(1, (color_scheme_length - 1) * 10 + 1, by = 10),
-    stop = seq(10, color_scheme_length * 10, by = 10),
+    end = seq(10, color_scheme_length * 10, by = 10),
     group = 1:color_scheme_length
   )
 
@@ -451,23 +451,23 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
 
 ### Manual Scale Adjustments
 
-By default the minimum and maximum of the genes start and stop positions are used to position the genes along the sequence. With the use of the `start` and `stop parameters, these values can be adjusted. Scale breaks can be added manually using the `breaks` parameter.
+By default the minimum and maximum of the genes start and end positions are used to position the genes along the sequence. With the use of the `start` and `end` parameters, these values can be adjusted. Scale breaks can be added manually using the `breaks` parameter.
 
-In the provided example, adjustments are made to the `start` and `stop` range to incorporate additional padding on both the left and right sides of the gene cluster. Additionally, a scale break is introduced to remove the extensive intergenic region that exists between gene 2 and gene 3.
+In the provided example, adjustments are made to the `start` and `end` range to incorporate additional padding on both the left and right sides of the gene cluster. Additionally, a scale break is introduced to remove the extensive intergenic region that exists between gene 2 and gene 3.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(
   ophA_cluster, 
   start = "start", 
-  stop = "stop", 
+  end = "end", 
   group = "class", 
   height = "100px") %>%
   GC_scale(
     start = 1522, 
-    stop = 22484,
+    end = 22484,
     breaks = 
       list(
-        list(start = 5486, stop = 9336)
+        list(start = 5486, end = 9336)
       )
     ) %>%
   GC_legend(FALSE)
@@ -491,7 +491,7 @@ The scale can be styled using the `tickStyle`, `textStyle` and `lineStyle` optio
 GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_scale(
     ticksFormat = ".1e", # Default: ",.0f"
-    tickValues = c(ophA_cluster$start, ophA_cluster$stop),
+    tickValues = c(ophA_cluster$start, ophA_cluster$end),
     #ticksCount = 10,
     tickStyle = 
       list(
@@ -546,7 +546,7 @@ GC_chart(dbophA_cluster, group = "class",height = "100px") %>%
    GC_legend(FALSE)
 ```
 
-By default, the start and stop positions of each gene are indicated by coordinates. However, you can customize these by providing your own values for the top and bottom ticks, using the `tickValuesTop` and `tickValuesBottom` options.
+By default, the start and end positions of each gene are indicated by coordinates. However, you can customize these by providing your own values for the top and bottom ticks, using the `tickValuesTop` and `tickValuesBottom` options.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(dbophA_cluster, group = "class",height = "100px") %>%
@@ -633,12 +633,12 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "150px") 
 
 ## Tooltip
 
-By default, the tooltip in the gene chart displays the start and stop positions of a gene when hovering over it. These positions are dynamically replaced by the actual start and stop data values for each gene. You can customize the text of the tooltip using the `formatter` variable. In the example below, the tooltip is customized to not only include the gene's start and stop positions but also its name. The gene name is pulled from the 'name' column in the data set.
+By default, the tooltip in the gene chart displays the start and end positions of a gene when hovering over it. These positions are dynamically replaced by the actual start and end data values for each gene. You can customize the text of the tooltip using the `formatter` variable. In the example below, the tooltip is customized to not only include the gene's start and end positions but also its name. The gene name is pulled from the 'name' column in the data set.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, group = "class", height = "150px") %>%
   GC_tooltip(
-    formatter = "<b>Gene: </b>{name}<br><b>Start:</b> {start}<br><b>Stop:</b> {stop}",
+    formatter = "<b>Gene: </b>{name}<br><b>Start:</b> {start}<br><b>End:</b> {end}",
   ) %>%
   GC_legend(FALSE)
 ```

@@ -31,7 +31,13 @@
     <loc>/reference/GC_chart.html</loc>
   </url>
   <url>
+    <loc>/reference/GC_clusterFooter.html</loc>
+  </url>
+  <url>
     <loc>/reference/GC_clusterLabel.html</loc>
+  </url>
+  <url>
+    <loc>/reference/GC_clusterTitle.html</loc>
   </url>
   <url>
     <loc>/reference/GC_color.html</loc>
@@ -82,6 +88,9 @@
     <loc>/reference/divide_dimension_value.html</loc>
   </url>
   <url>
+    <loc>/reference/erythromycin_cluster.html</loc>
+  </url>
+  <url>
     <loc>/reference/getUpdatedClusters.html</loc>
   </url>
   <url>
@@ -89,6 +98,9 @@
   </url>
   <url>
     <loc>/reference/hello.html</loc>
+  </url>
+  <url>
+    <loc>/reference/hs_dystrophin_transcripts.html</loc>
   </url>
   <url>
     <loc>/reference/human_hox_genes.html</loc>

@@ -9,7 +9,7 @@ A data frame with 17 rows and 5 columns:
 \describe{
   \item{name}{Gene names. A character vector.}
   \item{start}{Start positions of the genes. An integer vector.}
-  \item{stop}{Stop positions of the genes. An integer vector.}
+  \item{end}{End positions of the genes. An integer vector.}
   \item{class}{Classifications of the genes. A character vector indicating
   the type of protein or function associated with each gene.}
   \item{cluster}{Cluster identification as a character vector, specifying whether

@@ -24,7 +24,7 @@ This function can switch gene tracks off or adjust the spacing between tracks.
 \examples{
 genes_data <- data.frame(
   start = c(10, 20, 30, 170, 210),
-  stop = c(200, 150, 180, 200, 240),
+  end = c(200, 150, 180, 200, 240),
   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5'),
   group = c('A', 'A', 'A', 'A', 'A')
 )

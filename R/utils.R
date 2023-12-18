@@ -132,20 +132,20 @@ divide_dimension_value <- function(value, divisor) {
 #' the ending position for each gene.
 #'
 #' @param genes A data.frame containing the start and end positions of genes.
-#'   The data.frame must contain columns named 'start' and 'stop'.
+#'   The data.frame must contain columns named 'start' and 'end'.
 #' @param threshold_percentage Numeric. A threshold value given as percentage.
 #'   Only non-coding regions that are larger than this threshold (relative to
 #'   the entire genomic region covered) will be returned.
 #' @param padding Numeric. A value given as percentage that will be added to the
 #'   start and subtracted from the end of each non-coding region.
 #'
-#' @return A data.frame containing the start and stop positions of the
+#' @return A data.frame containing the start and end positions of the
 #'   identified non-coding regions.
 #' @importFrom stats setNames
 #' @examples
 #' genes_data <- data.frame(
 #'   start = c(10, 50, 90),
-#'   stop = c(40, 80, 120)
+#'   end = c(40, 80, 120)
 #' )
 #' get_scale_breaks(genes_data, threshold_percentage = 5, padding = 2)
 #'
@@ -154,20 +154,20 @@ get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
 
   # Ensure genes is a data.frame
   if (!is.data.frame(genes)) {
-    stop("Input must be a data.frame with 'start' and 'stop' columns.")
+    stop("Input must be a data.frame with 'start' and 'end' columns.")
   }
 
   # Check if required columns exist
-  if (!all(c("start", "stop") %in% colnames(genes))) {
-    stop("The data.frame must contain 'start' and 'stop' columns.")
+  if (!all(c("start", "end") %in% colnames(genes))) {
+    stop("The data.frame must contain 'start' and 'end' columns.")
   }
 
-  # Ensure start is always smaller than stop
-  swapped_indices <- genes$start > genes$stop
-  genes[swapped_indices, c("start", "stop")] <- genes[swapped_indices, c("stop", "start")]
+  # Ensure start is always smaller than end
+  swapped_indices <- genes$start > genes$end
+  genes[swapped_indices, c("start", "end")] <- genes[swapped_indices, c("end", "start")]
 
   # Calculate the entire region's length using min and max
-  entire_region_length <- max(genes$stop) - min(genes$start) + 1
+  entire_region_length <- max(genes$end) - min(genes$start) + 1
 
   # Calculate the minimum gap length based on threshold_percentage
   min_gap_length <- entire_region_length * threshold_percentage / 100
@@ -180,8 +180,8 @@ get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
   current_region <- genes[1,]
 
   for(i in 2:nrow(genes)){
-    if(genes$start[i] <= current_region$stop){
-      current_region$stop <- max(current_region$stop, genes$stop[i])
+    if(genes$start[i] <= current_region$end){
+      current_region$end <- max(current_region$end, genes$end[i])
     } else {
       merged_regions <- append(merged_regions, list(current_region))
       current_region <- genes[i,]
@@ -191,21 +191,21 @@ get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
   merged_regions <- append(merged_regions, list(current_region))
 
   # Extract non-coding regions
-  non_coding_regions <- data.frame(start=integer(), stop=integer())
+  non_coding_regions <- data.frame(start=integer(), end=integer())
 
   for(i in 1:(length(merged_regions)-1)){
-    non_coding_start <- merged_regions[[i]]$stop + 1
-    non_coding_stop <- merged_regions[[i+1]]$start - 1
-    gap_length <- non_coding_stop - non_coding_start + 1
+    non_coding_start <- merged_regions[[i]]$end + 1
+    non_coding_end <- merged_regions[[i+1]]$start - 1
+    gap_length <- non_coding_end - non_coding_start + 1
 
     if (gap_length >= min_gap_length) {
-      non_coding_regions <- rbind(non_coding_regions, data.frame(start=non_coding_start, stop=non_coding_stop))
+      non_coding_regions <- rbind(non_coding_regions, data.frame(start=non_coding_start, end=non_coding_end))
     }
   }
 
   padding_val <- entire_region_length * padding / 100
   non_coding_regions$start <- non_coding_regions$start + padding_val
-  non_coding_regions$stop <- non_coding_regions$stop - padding_val
+  non_coding_regions$end <- non_coding_regions$end - padding_val
 
   #convert df to list of lists
   non_coding_regions <-
@@ -276,22 +276,22 @@ get_relative_height <- function(baseHeight, relativeHeight) {
   }
 }
 
-#' Assign Tracks to Genes Based on Start and Stop Positions
+#' Assign Tracks to Genes Based on Start and End Positions
 #'
 #' This function assigns tracks to genes in a dataset based on their start
-#' and stop positions. It ensures that overlapping genes are assigned to
+#' and end positions. It ensures that overlapping genes are assigned to
 #' different tracks. The function operates by iterating over each gene and
 #' finding a suitable track where it can be placed without overlapping.
 #'
 #' @param data A dataframe containing gene data with at least two columns:
-#'   start and stop. Each row in the dataframe should represent a gene with
-#'   its start and stop positions.
+#'   start and end. Each row in the dataframe should represent a gene with
+#'   its start and end positions.
 #'
 #' @return A modified version of the input dataframe that includes an additional
 #'   column named 'geneTrack'. This column contains the track number assigned to
 #'   each gene, ensuring no overlap in tracks.
 #' @examples
-#' gene_data <- data.frame(start = c(1, 5, 10), stop = c(4, 9, 15))
+#' gene_data <- data.frame(start = c(1, 5, 10), end = c(4, 9, 15))
 #' peptides_data <- add_gene_track(gene_data)
 #' print(gene_data)
 #' @noRd
@@ -299,7 +299,7 @@ add_gene_track <- function(data) {
   if (is.null(data) || nrow(data) == 0) {
     return(NULL)
   }
-  # Initialize a list to keep track of the start and stop positions in each track
+  # Initialize a list to keep track of the start and end positions in each track
   track_ranges <- list()
 
   # Function to find an appropriate track
@@ -329,7 +329,7 @@ add_gene_track <- function(data) {
   # Assign tracks to each peptide
   data$geneTrack <-
     sapply(1:nrow(data), function(i)
-      find_track(data$start[i], data$stop[i]))
+      find_track(data$start[i], data$end[i]))
 
   return(data)
 }

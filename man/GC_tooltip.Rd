@@ -6,7 +6,7 @@
 \usage{
 GC_tooltip(
   GC_chart,
-  formatter = "<b>Start:</b> {start}<br><b>Stop:</b> {stop}",
+  formatter = "<b>Start:</b> {start}<br><b>end:</b> {end}",
   show = TRUE,
   cluster = NULL,
   ...
@@ -16,8 +16,8 @@ GC_tooltip(
 \item{GC_chart}{The gene chart object to be modified.}
 
 \item{formatter}{A character string defining the HTML content of the tooltip. It can
-include placeholders like `{start}` and `{stop}` which will be replaced by actual
-data values. The default value shows start and stop data.}
+include placeholders like `{start}` and `{end}` which will be replaced by actual
+data values. The default value shows start and end data.}
 
 \item{show}{Logical, whether to display the tooltip or not.}
 
@@ -35,13 +35,13 @@ This function configures the tooltip for a gene chart.
 # Set tooltip
 genes_data <- data.frame(
   start = c(10, 90, 130, 170, 210),
-  stop = c(40, 120, 160, 200, 240),
+  end = c(40, 120, 160, 200, 240),
   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5'),
   group = c('A', 'B', 'B', 'A', 'C')
 )
 
 # Add tooltips to the gene chart
 GC_chart(genes_data, group = "group", height = "200px") \%>\%
-GC_tooltip(formatter = " <b>Start:</b> {start}<br><b>Stop:</b> {stop}")
+GC_tooltip(formatter = " <b>Start:</b> {start}<br><b>end:</b> {end}")
 
 }

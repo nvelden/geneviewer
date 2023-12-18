@@ -12,7 +12,7 @@ A data frame with 202 rows and 5 columns:
   \item{type}{Transcript type.}
   \item{start}{Start positions. An integer vector showing the starting
   positions of each Exon.}
-  \item{stop}{End positions. An integer vector showing the ending
+  \item{end}{End positions. An integer vector showing the ending
   positions of each Exon.}
   \item{length}{Transcript lengths. An integer vector
   indicating the length of each transcript.}

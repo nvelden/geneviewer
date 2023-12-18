@@ -8,7 +8,7 @@ GC_scale(
   GC_chart,
   cluster = NULL,
   start = NULL,
-  stop = NULL,
+  end = NULL,
   hidden = FALSE,
   breaks = list(),
   tickValues = NULL,
@@ -35,7 +35,7 @@ chart to update.}
 \item{start}{Numeric vector indicating the starting point for the scale.
 Default is NULL.}
 
-\item{stop}{Numeric vector indicating the stopping points for the scale.
+\item{end}{Numeric vector indicating the end point for the scale.
 Default is NULL.}
 
 \item{hidden}{Logical flag indicating whether the axis is hidden. Default is
@@ -88,7 +88,7 @@ Modify the scale settings for specified clusters within a GC chart.
 \examples{
 genes_data <- data.frame(
   start = c(100, 1000, 2000),
-  stop = c(150, 1500, 2500),
+  end = c(150, 1500, 2500),
   name = c('Gene 4', 'Gene 5', 'Gene 6'),
   group = c('B', 'A', 'C'),
   cluster = c(2, 2, 2)
@@ -97,13 +97,13 @@ genes_data <- data.frame(
 GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
   GC_scale(
     start = 1,
-    stop = 2600,
+    end = 2600,
     hidden = FALSE,
     reverse = FALSE,
     axisType = "bottom",
     # breaks = list(
-    #  list(start = 160, stop = 900),
-    #  list(start = 1600, stop = 1900)
+    #  list(start = 160, end = 900),
+    #  list(start = 1600, end = 1900)
     # ),
     # tickValues = c(1, 2600),
     scale_breaks = TRUE,

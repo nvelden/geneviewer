@@ -5,6 +5,7 @@ HTMLWidgets.widget({
   factory: function(el, width, height) {
     var data,
         series,
+        titleOptions,
         legendOptions;
 
     var widgetId = el.id.split('-')[1];
@@ -12,6 +13,30 @@ HTMLWidgets.widget({
     var draw = function(width, height) {
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
+
+      // Add Title
+
+      if (titleOptions !== null && titleOptions?.height !== null && titleOptions?.show){
+
+      var titleContainer = d3.select(el)
+        .append("div")
+        .attr("id", `GCvieweR-title-container-${widgetId}`)
+        .classed("GCVieweR-container", true);
+
+      var titleHeight = computeSize(titleOptions?.height, height)
+
+      var title = createClusterContainer(`#GCvieweR-title-container-${widgetId}`,
+      {
+        width:  width,
+        height: titleHeight,
+        backgroundColor: titleOptions?.backgroundColor ?? "#0000",
+        margin: legendOptions.margin
+      })
+        .title(titleOptions?.title, titleOptions?.subtitle, titleOptions?.show ?? false, titleOptions)
+
+      }
+
+      // Add legend
 
       var legendHeight = (legendOptions?.show === false) ? 0 : computeSize(legendOptions?.height, height);
 
@@ -43,14 +68,18 @@ HTMLWidgets.widget({
       .attr("id", `GCvieweR-graph-container-${widgetId}`)
       .classed("GCVieweR-container", true);
 
-var clusters = Object.keys(series);
+      // Add Clusters
 
-clusters.forEach(function(clusterKey) {
+      var clusters = Object.keys(series);
 
-      // Compute margins
-      var margin = { top: 0, right: 0, bottom: 0, left: 0 }
-      var clusterMargins = series[clusterKey]["grid"].margin
-      var clusterHeight = computeSize(series[clusterKey]["grid"].height, el.clientHeight) - (legendHeight / clusters.length)
+      clusters.forEach(function(clusterKey) {
+
+        // Compute margins
+        var margin = { top: 0, right: 0, bottom: 0, left: 0 }
+        var clusterMargins = series[clusterKey]["grid"].margin
+        var clusterHeight = computeSize(series[clusterKey]["grid"].height, el.clientHeight);
+        clusterHeight -= titleHeight ? (titleHeight / clusters.length) : 0;
+        clusterHeight -= legendHeight ? (legendHeight / clusters.length) : 0;
 
       var clusterWidth = computeSize(series[clusterKey]["grid"].width, width)
 
@@ -67,7 +96,7 @@ clusters.forEach(function(clusterKey) {
         clusterStyle = cluster.style,
         clusterData = HTMLWidgets.dataframeToD3(series[clusterKey].data),
         scaleOptions = cluster.scale,
-        titleOptions = cluster.title,
+        clusterTitleOptions = cluster.clusterTitle,
         footerOptions = cluster.footer,
         clusterLabelOptions = cluster.clusterLabel,
         labelOptions = cluster.labels,
@@ -88,10 +117,9 @@ clusters.forEach(function(clusterKey) {
         clusterOptions.margin = margin;
     }
 
-
     var cluster = createClusterContainer(`#GCvieweR-graph-container-${widgetId}`, clusterOptions)
         .theme("preset")
-        .title(titleOptions?.title, titleOptions?.subtitle, titleOptions?.show ?? false, titleOptions)
+        .title(clusterTitleOptions?.title, clusterTitleOptions?.subtitle, clusterTitleOptions?.show ?? false, clusterTitleOptions)
         .footer(footerOptions?.title, footerOptions?.subtitle, footerOptions?.show ?? false, footerOptions)
         .clusterLabel(clusterLabelOptions?.title, clusterLabelOptions?.show ?? false, clusterLabelOptions)
         .geneData(data, clusterData)  // Access data using the cluster key
@@ -104,6 +132,7 @@ clusters.forEach(function(clusterKey) {
         .tooltip(tooltipOptions?.show ?? false, tooltipOptions);
 });
 
+      // Bottom Legend
       if (legendOptions?.position == "bottom" && legendOptions?.show && legendOptions?.group !== null) {
 
       d3.select(`#GCvieweR-legend-container-${widgetId}`).remove();
@@ -125,12 +154,39 @@ clusters.forEach(function(clusterKey) {
 
       }
 
+      // Bottom Title
+      if (titleOptions?.position == "bottom" && titleOptions !== null && titleOptions?.height !== null && titleOptions?.show){
+
+      d3.select(`#GCvieweR-title-container-${widgetId}`).remove();
+
+      var titleContainer = d3.select(el)
+        .append("div")
+        .attr("id", `GCvieweR-title-container-${widgetId}`)
+        .classed("GCVieweR-container", true);
+
+      var titleHeight = computeSize(titleOptions?.height, height)
+
+      var title = createClusterContainer(`#GCvieweR-title-container-${widgetId}`,
+      {
+        width:  width,
+        height: titleHeight,
+        backgroundColor: titleOptions?.backgroundColor ?? "#0000",
+        margin: legendOptions.margin
+      })
+        .title(titleOptions?.title, titleOptions?.subtitle, titleOptions?.show ?? false, titleOptions)
+
+      }
+
+
+
+
     };
 
     return {
       renderValue: function(input) {
         data = HTMLWidgets.dataframeToD3(input.data);
         series = input.series;
+        titleOptions = input.title;
         legendOptions = input.legend;
         draw(width, height);
       },

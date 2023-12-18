@@ -140,22 +140,18 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") 
 
 ## Genes
 
-The `GC_genes()` function can be used to custom style the genes. By default the genes are color-coded based on the `group` column defined in in the `GC_chart()` function, but this can be altered using the `group` variable in the `GC_genes()` function. Color coding uses the "schemeCategory10" palette from D3.js by default. To explore other palettes, use the `colorScheme` variable, or define a unique color set with `customColors`. For detailed color customization, see the [Colors section](#colors). Beyond color, the `GC_genes()` function supports various CSS styles, such as stroke and stroke width for further customization.
+The `GC_genes()` function can be used to custom style the genes. In the below example the stroke and stroke width are altered but it can take any valid CSS style. The color coding is set according to the group in the `GC_chart()` function. Changing the color scheme is best done through the `GC_color()` function (see: [Colors section](#colors)) as this will uniformly change the colors in both the genes and legend. 
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "150px") %>%
   GC_genes(
-    group = "name",
     show = TRUE,
-    customColors = c("blue", "red", "orange", "yellow", "purple", "green", "pink"), # A vector of color names
-    colorScheme = NULL, # One of D3.js build in colorSchemes
-                        # (eg. "schemeCategory10",
-                        # "schemeAccent", "schemeTableau10")
     stroke = "grey",
-    strokeWidth = 2,
+    strokeWidth = 2
     # Any other CSS style
   ) %>%
-   GC_legend(FALSE)
+   GC_color(colorScheme = "schemeAccent") %>%
+   GC_legend()
 ```
 
 By default the genes are displayed as arrows. To alter there appearance one can use the `arrowheadWidth`, `arrowheadHeight` and `arrowHeight` variables. In addition the positioning of the genes can be altered using the `x` and `y` variables.
@@ -362,6 +358,66 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
 ```
 
 
+## Legend
+
+The `GC_legend()` function can be used to show / hide and customize the legend. By default the legend is shown at the bottom. The below example shows the `GC_function()` with all its default settings. 
+
+```{r echo=TRUE, results='asis'}
+GC_chart(
+  ophA_clusters, 
+  group = "class", 
+  cluster = "cluster",
+  height = "200px") %>%
+ GC_legend(
+    show = TRUE,
+    position = "bottom", #top (left and right no supported for now)
+    orientation = "horizontal", #vertical
+    x = 10,
+    y = 10,
+    width = NULL,
+    adjustHeight = TRUE,
+    backgroundColor = "#0000",
+    order = list(),
+    positions = "bottom",
+    legendOptions = list(
+      cursor = "pointer",
+      colorScheme = NULL,
+      customColors = NULL 
+      # Additional CSS styles
+    ),
+    legendTextOptions = list(
+      cursor = "pointer",
+      textAnchor = "start",
+      dy = ".35em",
+      fontSize = "12px",
+      fontFamily = "sans-serif",
+      fill = "black"
+      # Additional CSS styles
+    )
+  )
+```
+
+In the below example a more advanced customization is shown changing the order, size, position and appearance of the legend. The color is changed using the `GC_color` function which simultaneously adjusts the colors of the legend and genes. 
+
+```{r echo=TRUE, results='asis'}
+GC_chart(
+  ophA_clusters, 
+  group = "class", 
+  cluster = "cluster",
+  height = "200px") %>%
+ GC_legend(
+    x = 50,
+    position = "top",
+    width = "60%",
+    order = sort(unique(ophA_clusters$class)),
+    legendTextOptions = list(
+      fontSize = "14px"
+    ),
+    legendOptions = list(stroke = "black", strokeWidth = "2px")
+  ) %>% 
+  GC_color(colorScheme = "schemePaired")
+```
+
 ## Scale
 
 The `GC_scale()` function is utilized for adjusting the chart's scale. The visibility of the scale can be controlled by the hidden parameter, which, when set to TRUE, hides the axis. The `y` parameter can be used to adjust the horizontal position of the axis (1 at the bottom and 100 being the top). 
@@ -422,9 +478,9 @@ GC_chart(
 The scale can be reversed by setting reverse = TRUE
 
 ```{r echo=TRUE, results='asis'}
-# With scale breaks
-GC_chart(ophA_cluster, group = "class", height = "100px") %>%
-  GC_scale(reverse = TRUE)
+GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "200px") %>%
+  GC_scale(cluster = 1, reverse = FALSE, ticksCount = 10) %>%
+  GC_scale(cluster = 2, reverse = TRUE, ticksCount = 10)
 ```
 
 ### Styling

@@ -1462,6 +1462,7 @@ GC_color <- function(
 #'     orientation = "horizontal", #vertical
 #'     x = 10,
 #'     y = 10,
+#'     width = NULL, # 100 / "100px" / 50%
 #'     adjustHeight = TRUE,
 #'     backgroundColor = "#0000",
 #'     order = list(),

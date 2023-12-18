@@ -294,9 +294,9 @@ function extractAdditionalOptions(combinedOptions, defaultOptions) {
   return additionalOptions;
 }
 
-function setAttributesFromOptions(currentElement, additionalOptions) {
+function setStyleFromOptions(currentElement, additionalOptions) {
   for (const [key, value] of Object.entries(additionalOptions)) {
-    currentElement.attr(camelToKebab(key), value);
+    currentElement.style(camelToKebab(key), value);
   }
 }
 
@@ -538,7 +538,7 @@ function createClusterContainer(targetElementId, options = {}) {
     .style("background-color", style.backgroundColor)
     .each(function() {
       const currentElement = d3.select(this);
-      setAttributesFromOptions(currentElement, additionalOptionsStyle);
+      setStyleFromOptions(currentElement, additionalOptionsStyle);
     });
 
   // Apply styles from the combined options
@@ -699,16 +699,17 @@ clusterContainer.prototype.scale = function(options = {}) {
     .attr("y2", tickStyle.lineLength)
     .each(function() {
       const currentElement = d3.select(this)
-      setAttributesFromOptions(currentElement, additionalOptionsTickStyle);
+      setStyleFromOptions(currentElement, additionalOptionsTickStyle);
     });
 
   axis.selectAll(".tick text")
     .style("fill", textStyle.fill)
     .style("font-size", textStyle.fontSize)
     .style("font-family", textStyle.fontFamily)
+    .style("cursor", textStyle.cursor)
     .each(function() {
       const currentElement = d3.select(this)
-      setAttributesFromOptions(currentElement, additionalOptionsTextStyle);
+      setStyleFromOptions(currentElement, additionalOptionsTextStyle);
     });
 
     axis.selectAll(".tick").each(function(d) {
@@ -729,7 +730,7 @@ clusterContainer.prototype.scale = function(options = {}) {
     .style("stroke-width", lineStyle.strokeWidth)
     .each(function() {
       const currentElement = d3.select(this);
-      setAttributesFromOptions(currentElement, additionalOptionslineStyle);
+      setStyleFromOptions(currentElement, additionalOptionslineStyle);
     });
 
   }
@@ -811,7 +812,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
       .each(function() {
       const currentElement = d3.select(this);
       parseAndStyleText(title, currentElement, titleFont);
-      setAttributesFromOptions(currentElement, additionalOptionsTitleFont);
+      setStyleFromOptions(currentElement, additionalOptionsTitleFont);
     });
   }
 
@@ -830,7 +831,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
       .each(function() {
         const currentElement = d3.select(this);
         parseAndStyleText(subtitle, currentElement, subtitleFont);
-        setAttributesFromOptions(currentElement, additionalOptionsSubtitleFont);
+        setStyleFromOptions(currentElement, additionalOptionsSubtitleFont);
       });
   }
 
@@ -913,7 +914,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
     .each(function() {
       const currentElement = d3.select(this);
       parseAndStyleText(title, currentElement, titleFont);
-      setAttributesFromOptions(currentElement, additionalOptionsTitleFont);
+      setStyleFromOptions(currentElement, additionalOptionsTitleFont);
     });
 
   }
@@ -932,7 +933,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
       .each(function() {
         const currentElement = d3.select(this);
         parseAndStyleText(subtitle, currentElement, subtitleFont);
-        setAttributesFromOptions(currentElement, subtitleFont);
+        setStyleFromOptions(currentElement, subtitleFont);
       });
   }
 
@@ -1024,7 +1025,7 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
           parseAndStyleText(tspanText, currentTspan, titleFont);
         });
       }
-      setAttributesFromOptions(currentElement, additionalOptions);
+      setStyleFromOptions(currentElement, additionalOptions);
     });
 
   return this;
@@ -1078,7 +1079,7 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
     .style("stroke-width", sequenceStyle.strokeWidth)
     .each(function() {
       const currentElement = d3.select(this);
-      setAttributesFromOptions(currentElement, additionalOptionsSequence);
+      setStyleFromOptions(currentElement, additionalOptionsSequence);
     });
 
   // Draw break markers with tilted lines
@@ -1242,7 +1243,7 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
             .style("cursor", textStyle.cursor)
             .each(function() {
                 const currentElement = d3.select(this);
-                setAttributesFromOptions(currentElement, additionalOptionsTextStyle);
+                setStyleFromOptions(currentElement, additionalOptionsTextStyle);
             });
 
         xAxisTop.selectAll(".tick line")
@@ -1251,7 +1252,7 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
             .attr("y2", -tickStyle.lineLength)
             .each(function() {
                 const currentElement = d3.select(this);
-                setAttributesFromOptions(currentElement, additionalOptionsTickStyle);
+                setStyleFromOptions(currentElement, additionalOptionsTickStyle);
             });
 
 
@@ -1285,7 +1286,7 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
             .style("cursor", textStyle.cursor)
             .each(function() {
                 const currentElement = d3.select(this);
-                setAttributesFromOptions(currentElement, additionalOptionsTextStyle);
+                setStyleFromOptions(currentElement, additionalOptionsTextStyle);
             });
 
         xAxisBottom.selectAll(".tick line")
@@ -1294,7 +1295,7 @@ clusterContainer.prototype.coordinates = function(show = true, options = {}) {
             .attr("y2", tickStyle.lineLength)
             .each(function() {
                 const currentElement = d3.select(this);
-                setAttributesFromOptions(currentElement, additionalOptionsTickStyle);
+                setStyleFromOptions(currentElement, additionalOptionsTickStyle);
             });
 
     return this;
@@ -1354,7 +1355,7 @@ clusterContainer.prototype.scaleBar = function(show = true, options = {}) {
     .style("stroke-width", scaleBarLineStyle.strokeWidth)
     .each(function() {
       const currentElement = d3.select(this);
-      setAttributesFromOptions(currentElement, additionalOptionsLine);
+      setStyleFromOptions(currentElement, additionalOptionsLine);
     });
 
   // Add the ticks
@@ -1368,7 +1369,7 @@ clusterContainer.prototype.scaleBar = function(show = true, options = {}) {
       .style("stroke-width", scaleBarTickStyle.strokeWidth)
       .each(function() {
         const currentElement = d3.select(this);
-        setAttributesFromOptions(currentElement, additionalOptionsTick);
+        setStyleFromOptions(currentElement, additionalOptionsTick);
       });
   });
 
@@ -1388,7 +1389,7 @@ clusterContainer.prototype.scaleBar = function(show = true, options = {}) {
     .style("fill", labelStyle.fill) // Apply text color
     .each(function() {
       const currentElement = d3.select(this);
-      setAttributesFromOptions(currentElement, additionalOptionsLabel);
+      setStyleFromOptions(currentElement, additionalOptionsLabel);
     })
     .text(title);
 
@@ -1515,7 +1516,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
         adjustSpecificLabel(self, "text.label", currentElement.attr("id"), attributes.labelAdjustmentOptions);
      }
       // Set additional options as attributes
-      setAttributesFromOptions(currentElement, additionalOptions);
+      setStyleFromOptions(currentElement, additionalOptions);
       // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
 
@@ -1751,7 +1752,6 @@ legendContainer.prototype.legendData = function (data) {
 };
 
 legendContainer.prototype.legend = function(group, show = true, options = {}) {
-
   if (!show) {
     return this;
   }
@@ -1759,6 +1759,7 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
   const defaultOptions = {
     x: 10,
     y: 10,
+    width: null, // Default width set to null
     orientation: "horizontal",
     adjustHeight: true,
     order: [],
@@ -1776,24 +1777,15 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
     }
   };
 
-  if (this.themeOptions && this.themeOptions.legendOptions) {
-    options = { ...this.themeOptions.legendOptions, ...options };
-  }
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'legendOptions', options);
+  const { x, y, width, orientation, adjustHeight, order, legendOptions, legendTextOptions } = combinedOptions;
 
-  const combinedOptions = {
-    ...defaultOptions,
-    ...options,
-    legendOptions: { ...defaultOptions.legendOptions, ...options.legendOptions },
-    legendTextOptions: { ...defaultOptions.legendTextOptions, ...options.legendTextOptions }
-  };
-
-  const { x, y, orientation, adjustHeight, legendOptions, legendTextOptions, order} = combinedOptions;
-
-  const additionalOptionsLegend = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
-  const additionalOptionsLegendText = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
+  const additionalLegendOptions = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
+  const additionalLegendTextOptions = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
 
   const svgLegend = this.svg;
-  const parentWidth = svgLegend.node().getBoundingClientRect().width;
+  const parentWidth = computeSize(width, svgLegend.node().getBoundingClientRect().width) ||
+                      svgLegend.node().getBoundingClientRect().width;
 
   var g = svgLegend.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
@@ -1802,7 +1794,6 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
 
   const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
 
-  // Reorder uniqueGroups based on custom order
   if (order && order.length > 0) {
     uniqueGroups = order
       .filter(item => uniqueGroups.includes(item))
@@ -1839,12 +1830,12 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
         .text(d)
         .each(function() {
           const currentElement = d3.select(this);
-          setAttributesFromOptions(currentElement, additionalOptionsLegendText);
+          setStyleFromOptions(currentElement, additionalLegendTextOptions);
         });
 
       const textLength = textLabel.node().getComputedTextLength();
 
-      if (currentX + textLength + legendSize + 2 * legendPadding > parentWidth - this.margin.left - this.margin.right) {
+      if (currentX + textLength + legendSize + 2 * legendPadding > parentWidth) {
         currentX = x;
         currentY += legendSize + legendPadding;
       }
@@ -1865,56 +1856,54 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
         .style("fill", colorScale(d))
         .each(function() {
           const currentElement = d3.select(this);
-          setAttributesFromOptions(currentElement, additionalOptionsLegend);
-        });
+          setStyleFromOptions(currentElement, additionalLegendOptions);
+        })
 
-      if (orientation === "horizontal") {
-        currentX += textLength + legendSize + 2 * legendPadding;
-      } else {
-        currentX = x;
-        currentY += legendSize + legendPadding;
-      }
-
-    })
-    .on("mouseover", (event, d) => {
+        if (orientation === "horizontal") {
+          currentX += textLength + legendSize + 2 * legendPadding;
+        } else {
+          currentY += legendSize + legendPadding;
+        }
+      })
+      .on("mouseover", (event, d) => {
         const element = d3.select(event.currentTarget);
         element.classed("hovered", true);
-    })
-    .on("mouseout", (event, d) => {
+        })
+      .on("mouseout", (event, d) => {
         const element = d3.select(event.currentTarget);
         element.classed("hovered", false);
-    })
-    .on("click", (event, d) => {
+        })
+      .on("click", (event, d) => {
         const element = d3.select(event.currentTarget);
         // If it's currently highlighted, unhighlight it, else highlight it
         if(element.classed("unselected")) {
             element.classed("unselected", false);
         } else {
             element.classed("unselected", true);
-    }
-
-    const unselectedLegend = d3.selectAll(".unselected").data();
-    const unselectedRowIds = this.data
-      .filter(item => unselectedLegend.includes(item[group]))
-      .map(item => item.rowID);
-
-    // For all elements with a rowID attribute:
-    d3.selectAll('[rowID]').each(function() {
-        const currentRowID = +d3.select(this).attr("rowID"); // Convert string to number
-        if (unselectedRowIds.includes(currentRowID)) {
-            d3.select(this).style("display", "none"); // Hide it
-        } else {
-            d3.select(this).style("display", ""); // Show it
         }
-    });
-});
 
-  if (adjustHeight && this.height === 0) {
-    var contentHeight = currentY + legendSize + legendPadding;
-    svgLegend.attr("height", contentHeight);
-    var viewBoxWidth = svgLegend.node().getBoundingClientRect().width;
-    svgLegend.attr("viewBox", `0 0 ${viewBoxWidth} ${contentHeight}`);
-  }
+        const unselectedLegend = d3.selectAll(".unselected").data();
+        const unselectedRowIds = this.data
+          .filter(item => unselectedLegend.includes(item[group]))
+          .map(item => item.rowID);
+
+        // For all elements with a rowID attribute:
+        d3.selectAll('[rowID]').each(function() {
+          const currentRowID = +d3.select(this).attr("rowID"); // Convert string to number
+          if (unselectedRowIds.includes(currentRowID)) {
+            d3.select(this).style("display", "none"); // Hide it
+          } else {
+            d3.select(this).style("display", ""); // Show it
+          }
+        });
+      });
+
+      if (adjustHeight && this.height === 0) {
+        var contentHeight = currentY + legendSize + legendPadding;
+        svgLegend.attr("height", contentHeight);
+        var viewBoxWidth = parentWidth;
+        svgLegend.attr("viewBox", `0 0 ${viewBoxWidth} ${contentHeight}`);
+      }
 
   return this;
 };
@@ -2020,7 +2009,7 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
             const currentElement = d3.select(this);
 
             // Set additional options as attributes
-            setAttributesFromOptions(currentElement, additionalOptions);
+            setStyleFromOptions(currentElement, additionalOptions);
 
             // Override with itemStyle based on the index
             applyStyleToElement(currentElement, itemStyle, i);

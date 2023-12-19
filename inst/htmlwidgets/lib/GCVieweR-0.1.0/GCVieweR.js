@@ -136,150 +136,150 @@ function adjustViewBox(svg, options = {}) {
 
 function computeSize(inputSize, containerSize) {
 
-    // If inputSize is undefined or null, return 0
-    if (typeof inputSize === "undefined" || inputSize === null) {
-        return 0;
-    }
+  // If inputSize is undefined or null, return 0
+  if (typeof inputSize === "undefined" || inputSize === null) {
+    return 0;
+  }
 
-    // If inputSize is a number, return it directly
-    if (typeof inputSize === "number") {
-        return inputSize;
-    }
+  // If inputSize is a number, return it directly
+  if (typeof inputSize === "number") {
+    return inputSize;
+  }
 
-    // Initialize resultSize
-    var resultSize;
+  // Initialize resultSize
+  var resultSize;
 
-    // Check if the size is given as a percentage
-    if (inputSize.includes("%")) {
-        var percentageValue = parseFloat(inputSize);
-        var fraction = percentageValue / 100;
-        resultSize = Math.round(fraction * containerSize);
-    }
-    // Check if the size is given in pixels
-    else if (inputSize.includes("px")) {
-        resultSize = parseFloat(inputSize);
-    }
-    // Assume it's a plain number otherwise
-    else {
-        resultSize = parseFloat(inputSize);
-    }
+  // Check if the size is given as a percentage
+  if (inputSize.includes("%")) {
+    var percentageValue = parseFloat(inputSize);
+    var fraction = percentageValue / 100;
+    resultSize = Math.round(fraction * containerSize);
+  }
+  // Check if the size is given in pixels
+  else if (inputSize.includes("px")) {
+    resultSize = parseFloat(inputSize);
+  }
+  // Assume it's a plain number otherwise
+  else {
+    resultSize = parseFloat(inputSize);
+  }
 
-    return Math.floor(resultSize);
+  return Math.floor(resultSize);
 }
 
 function adjustGeneLabels(clusterContainer, labelSelector, options = {}) {
-    // Default options
-    const defaultOptions = {
-        rotation: 65, // Rotation angle (in degrees)
-        dx: "-0.8em", // Horizontal adjustment
-        dy: "0.15em", // Vertical adjustment
-    };
+  // Default options
+  const defaultOptions = {
+    rotation: 65, // Rotation angle (in degrees)
+    dx: "-0.8em", // Horizontal adjustment
+    dy: "0.15em", // Vertical adjustment
+  };
 
-    // Merge default options with the provided options
-    const { rotation, dx, dy } = { ...defaultOptions, ...options };
+  // Merge default options with the provided options
+  const { rotation, dx, dy } = { ...defaultOptions, ...options };
 
-    // Select all the labels based on the provided selector
-    var labels = clusterContainer.svg.selectAll(".label").nodes();
+  // Select all the labels based on the provided selector
+  var labels = clusterContainer.svg.selectAll(".label").nodes();
 
-    // Iterate over each label
-    for (var i = 0; i < labels.length - 1; i++) {
-        var label1 = labels[i].getBoundingClientRect();
+  // Iterate over each label
+  for (var i = 0; i < labels.length - 1; i++) {
+    var label1 = labels[i].getBoundingClientRect();
 
-        // Compare it with all the labels that come after it
-        for (var j = i + 1; j < labels.length; j++) {
-            var label2 = labels[j].getBoundingClientRect();
+    // Compare it with all the labels that come after it
+    for (var j = i + 1; j < labels.length; j++) {
+      var label2 = labels[j].getBoundingClientRect();
 
-            // If the labels overlap
-            if (!(label1.right < label2.left ||
-                  label1.left > label2.right ||
-                  label1.bottom < label2.top ||
-                  label1.top > label2.bottom)) {
+      // If the labels overlap
+      if (!(label1.right < label2.left ||
+        label1.left > label2.right ||
+        label1.bottom < label2.top ||
+        label1.top > label2.bottom)) {
 
-                // Get the current x and y attributes of the labels
-                var x1 = parseFloat(d3.select(labels[i]).attr('x'));
-                var y1 = parseFloat(d3.select(labels[i]).attr('y'));
-                var x2 = parseFloat(d3.select(labels[j]).attr('x'));
-                var y2 = parseFloat(d3.select(labels[j]).attr('y'));
+        // Get the current x and y attributes of the labels
+        var x1 = parseFloat(d3.select(labels[i]).attr('x'));
+        var y1 = parseFloat(d3.select(labels[i]).attr('y'));
+        var x2 = parseFloat(d3.select(labels[j]).attr('x'));
+        var y2 = parseFloat(d3.select(labels[j]).attr('y'));
 
-                // Rotate both labels
-                d3.select(labels[i])
-                    .style("text-anchor", "end")
-                    .attr("dx", dx)
-                    .attr("dy", dy)
-                    .attr("transform", `rotate(${rotation}, ${x1}, ${y1})`);
+        // Rotate both labels
+        d3.select(labels[i])
+          .style("text-anchor", "end")
+          .attr("dx", dx)
+          .attr("dy", dy)
+          .attr("transform", `rotate(${rotation}, ${x1}, ${y1})`);
 
-                d3.select(labels[j])
-                    .style("text-anchor", "end")
-                    .attr("dx", dx)
-                    .attr("dy", dy)
-                    .attr("transform", `rotate(${rotation}, ${x2}, ${y2})`);
-            }
-        }
+        d3.select(labels[j])
+          .style("text-anchor", "end")
+          .attr("dx", dx)
+          .attr("dy", dy)
+          .attr("transform", `rotate(${rotation}, ${x2}, ${y2})`);
+      }
     }
-    return clusterContainer;
+  }
+  return clusterContainer;
 }
 
 function adjustSpecificLabel(clusterContainer, labelSelector, elementId, options = {}) {
-    // Default options
-    const defaultOptions = {
-        rotation: 65, // Rotation angle (in degrees)
-        shiftAmount: 15, // Amount to shift to the right
-        dx: "-0.8em", // Horizontal adjustment
-        dy: "0.15em", // Vertical adjustment
-    };
+  // Default options
+  const defaultOptions = {
+    rotation: 65, // Rotation angle (in degrees)
+    shiftAmount: 15, // Amount to shift to the right
+    dx: "-0.8em", // Horizontal adjustment
+    dy: "0.15em", // Vertical adjustment
+  };
 
-    const overlapPercentage = (rect1, rect2) => {
-        const x_overlap = Math.max(0, Math.min(rect1.right, rect2.right) - Math.max(rect1.left, rect2.left));
-        const y_overlap = Math.max(0, Math.min(rect1.bottom, rect2.bottom) - Math.max(rect1.top, rect2.top));
-        const overlapArea = x_overlap * y_overlap;
-        const rect1Area = (rect1.right - rect1.left) * (rect1.bottom - rect1.top);
-        return (overlapArea / rect1Area) * 100;
-    };
+  const overlapPercentage = (rect1, rect2) => {
+    const x_overlap = Math.max(0, Math.min(rect1.right, rect2.right) - Math.max(rect1.left, rect2.left));
+    const y_overlap = Math.max(0, Math.min(rect1.bottom, rect2.bottom) - Math.max(rect1.top, rect2.top));
+    const overlapArea = x_overlap * y_overlap;
+    const rect1Area = (rect1.right - rect1.left) * (rect1.bottom - rect1.top);
+    return (overlapArea / rect1Area) * 100;
+  };
 
-    // Merge default options with the provided options
-    const { rotation, dx, dy, shiftAmount } = { ...defaultOptions, ...options };
+  // Merge default options with the provided options
+  const { rotation, dx, dy, shiftAmount } = { ...defaultOptions, ...options };
 
-    // Select all the labels based on the provided selector
-    var labels = clusterContainer.svg.selectAll(labelSelector).nodes();
+  // Select all the labels based on the provided selector
+  var labels = clusterContainer.svg.selectAll(labelSelector).nodes();
 
-    // Select the specific label using the provided elementId
-    var specificLabel = clusterContainer.svg.select(`#${elementId}`).node();
-    var specificLabelRect = specificLabel.getBoundingClientRect();
+  // Select the specific label using the provided elementId
+  var specificLabel = clusterContainer.svg.select(`#${elementId}`).node();
+  var specificLabelRect = specificLabel.getBoundingClientRect();
 
-    // Check for overlap with other labels
-    for (var i = 0; i < labels.length; i++) {
-        if (labels[i] !== specificLabel) { // Ensure we're not comparing the label with itself
-            var labelRect = labels[i].getBoundingClientRect();
+  // Check for overlap with other labels
+  for (var i = 0; i < labels.length; i++) {
+    if (labels[i] !== specificLabel) { // Ensure we're not comparing the label with itself
+      var labelRect = labels[i].getBoundingClientRect();
 
-            // If the specific label overlaps with another label
-            if (overlapPercentage(specificLabelRect, labelRect) > 0) {
-                const currentShiftAmount = (overlapPercentage(specificLabelRect, labelRect) > 80) ? shiftAmount : 0;
+      // If the specific label overlaps with another label
+      if (overlapPercentage(specificLabelRect, labelRect) > 0) {
+        const currentShiftAmount = (overlapPercentage(specificLabelRect, labelRect) > 80) ? shiftAmount : 0;
 
-                // Get the current x and y attributes of the specific label
-                var x = parseFloat(d3.select(specificLabel).attr('x'));
-                var y = parseFloat(d3.select(specificLabel).attr('y')) - 5;
+        // Get the current x and y attributes of the specific label
+        var x = parseFloat(d3.select(specificLabel).attr('x'));
+        var y = parseFloat(d3.select(specificLabel).attr('y')) - 5;
 
-                // First shift the label
-                x += currentShiftAmount;
+        // First shift the label
+        x += currentShiftAmount;
 
-                // Then, rotate the specific label
-                d3.select(specificLabel)
-                    .style("text-anchor", "end")
-                    .attr("dx", dx)
-                    .attr("dy", dy)
-                    .attr("x", x)
-                    .attr("transform", `rotate(${rotation}, ${x}, ${y})`);
+        // Then, rotate the specific label
+        d3.select(specificLabel)
+          .style("text-anchor", "end")
+          .attr("dx", dx)
+          .attr("dy", dy)
+          .attr("x", x)
+          .attr("transform", `rotate(${rotation}, ${x}, ${y})`);
 
-                // Break out of the loop once we've adjusted the specific label
-                break;
-            }
-        }
+        // Break out of the loop once we've adjusted the specific label
+        break;
+      }
     }
-    return clusterContainer;
+  }
+  return clusterContainer;
 }
 
 function camelToKebab(string) {
-    return string.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
+  return string.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
 }
 
 function extractAdditionalOptions(combinedOptions, defaultOptions) {
@@ -312,13 +312,13 @@ function applyStyleToElement(currentElement, itemStyle, i) {
 }
 
 function removeNullKeys(obj) {
-    const cleanObj = { ...obj };
-    for (let key in cleanObj) {
-      if (cleanObj[key] === null) {
-        delete cleanObj[key];
-      }
+  const cleanObj = { ...obj };
+  for (let key in cleanObj) {
+    if (cleanObj[key] === null) {
+      delete cleanObj[key];
     }
-    return cleanObj;
+  }
+  return cleanObj;
 }
 
 function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
@@ -350,7 +350,7 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
 
   // Check if customColors is an object and not an array
   if (customColors && typeof customColors === 'object' && !Array.isArray(customColors)) {
-        // Find groups without a corresponding color in customColors
+    // Find groups without a corresponding color in customColors
     const unmappedGroups = uniqueGroups.filter(group => !(group in customColors));
     // Issue a warning if there are unmapped groups
     if (unmappedGroups.length > 0) {
@@ -389,68 +389,68 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
 }
 
 function isInAnyDiscontinuity(value, breaks) {
-    for (let gap of breaks) {
-        if (value >= gap.start && value <= gap.end) {
-            return true;
-        }
+  for (let gap of breaks) {
+    if (value >= gap.start && value <= gap.end) {
+      return true;
     }
-    return false;
+  }
+  return false;
 }
 
 function createDiscontinuousScale(minStart, maxEnd, width, margin, breaks, reverse = false) {
-    let totalGap = 0;
+  let totalGap = 0;
 
-    // Calculate the total gap based on all discontinuities
+  // Calculate the total gap based on all discontinuities
+  for (let gap of breaks) {
+    if (gap.start >= minStart && gap.end <= maxEnd) {
+      totalGap += (gap.end - gap.start);
+    }
+  }
+
+  // Define the linear scale. Adjust the scale based on the reverse option.
+  let domainStart = reverse ? maxEnd - totalGap : minStart;
+  let domainEnd = reverse ? minStart : maxEnd - totalGap;
+
+  const linearScale = d3.scaleLinear()
+    .domain([domainStart, domainEnd])
+    .range([0, width - margin.left - margin.right]);
+
+  // Proxy object for discontinuous scale
+  const scaleProxy = function (value) {
+    if (isInAnyDiscontinuity(value, breaks)) {
+      return null;
+    }
+
+    let cumulativeAdjustment = 0;
+
+    // Adjust the value by all previous discontinuities
     for (let gap of breaks) {
-        if (gap.start >= minStart && gap.end <= maxEnd) {
-            totalGap += (gap.end - gap.start);
-        }
+      if (value > gap.end) {
+        cumulativeAdjustment += (gap.end - gap.start);
+      } else {
+        break;
+      }
     }
 
-    // Define the linear scale. Adjust the scale based on the reverse option.
-    let domainStart = reverse ? maxEnd - totalGap : minStart;
-    let domainEnd = reverse ? minStart : maxEnd - totalGap;
+    // Apply reverse logic to the value adjustment
+    value = value - cumulativeAdjustment;
 
-    const linearScale = d3.scaleLinear()
-        .domain([domainStart, domainEnd])
-        .range([0, width - margin.left - margin.right]);
+    return linearScale(value);
+  };
 
-    // Proxy object for discontinuous scale
-    const scaleProxy = function(value) {
-        if (isInAnyDiscontinuity(value, breaks)) {
-            return null;
-        }
-
-        let cumulativeAdjustment = 0;
-
-        // Adjust the value by all previous discontinuities
-        for (let gap of breaks) {
-            if (value > gap.end) {
-                cumulativeAdjustment += (gap.end - gap.start);
-            } else {
-                break;
-            }
-        }
-
-        // Apply reverse logic to the value adjustment
-        value = value - cumulativeAdjustment;
-
-        return linearScale(value);
-    };
-
-    // Dynamically copy all methods and properties from linearScale to scaleProxy
-    for (let prop in linearScale) {
-        if (typeof linearScale[prop] === 'function') {
-            scaleProxy[prop] = (...args) => {
-                const result = linearScale[prop](...args);
-                return result === linearScale ? scaleProxy : result;
-            };
-        } else {
-            scaleProxy[prop] = linearScale[prop];
-        }
+  // Dynamically copy all methods and properties from linearScale to scaleProxy
+  for (let prop in linearScale) {
+    if (typeof linearScale[prop] === 'function') {
+      scaleProxy[prop] = (...args) => {
+        const result = linearScale[prop](...args);
+        return result === linearScale ? scaleProxy : result;
+      };
+    } else {
+      scaleProxy[prop] = linearScale[prop];
     }
+  }
 
-    return scaleProxy;  // Return the discontinuous scale
+  return scaleProxy;  // Return the discontinuous scale
 }
 
 function parseAndStyleText(text, parentElement, fontOptions) {
@@ -471,7 +471,7 @@ function parseAndStyleText(text, parentElement, fontOptions) {
   };
 
   // Iterate through the string and apply styles
-  text.replace(tagRegex, function(match, tag, content, offset) {
+  text.replace(tagRegex, function (match, tag, content, offset) {
     // Append text before the tag
     if (offset > lastIndex) {
       appendText(text.substring(lastIndex, offset), false, false, false);
@@ -536,7 +536,7 @@ function createClusterContainer(targetElementId, options = {}) {
     .classed("GCVieweR-svg-content", true)
     .style("box-sizing", "border-box")
     .style("background-color", style.backgroundColor)
-    .each(function() {
+    .each(function () {
       const currentElement = d3.select(this);
       setStyleFromOptions(currentElement, additionalOptionsStyle);
     });
@@ -570,13 +570,13 @@ clusterContainer.prototype.geneData = function (data, clusterData) {
   this.dataAll = data
 
   this.data = clusterData.map(item => {
-    var newItem = {...item};
+    var newItem = { ...item };
 
     // Convert cluster to string
     newItem.cluster = String(newItem.cluster);
 
     newItem.direction = "forward";
-    if(newItem.start > newItem.end) {
+    if (newItem.start > newItem.end) {
       newItem.direction = "reverse";
     }
 
@@ -586,7 +586,7 @@ clusterContainer.prototype.geneData = function (data, clusterData) {
   return this;
 };
 
-clusterContainer.prototype.scale = function(options = {}) {
+clusterContainer.prototype.scale = function (options = {}) {
   // Verify that the data exists
   if (!this.data) {
     console.error('No data has been added to this cluster container.');
@@ -670,17 +670,17 @@ clusterContainer.prototype.scale = function(options = {}) {
   const that = this;
   if (!hidden) {
 
-  // Create and configure the X-axis
-  const adjustedYOffset = this.yScale ? this.yScale(y) : y;
-  const axisGroup = this.svg.append("g")
-    .attr("transform", `translate(${this.margin.left},${this.margin.top + adjustedYOffset})`);
+    // Create and configure the X-axis
+    const adjustedYOffset = this.yScale ? this.yScale(y) : y;
+    const axisGroup = this.svg.append("g")
+      .attr("transform", `translate(${this.margin.left},${this.margin.top + adjustedYOffset})`);
 
-  linearScale = d3.scaleLinear()
-        .domain([this.minStart, this.maxEnd])
-        .range([0, this.width - this.margin.left - this.margin.right]);
+    linearScale = d3.scaleLinear()
+      .domain([this.minStart, this.maxEnd])
+      .range([0, this.width - this.margin.left - this.margin.right]);
 
-  const xAxis = d3.axisBottom(linearScale)
-    .tickFormat(d3.format(ticksFormat));
+    const xAxis = d3.axisBottom(linearScale)
+      .tickFormat(d3.format(ticksFormat));
 
     if (Array.isArray(tickValues) && tickValues.length > 0) {
       xAxis.tickValues(tickValues);
@@ -690,54 +690,54 @@ clusterContainer.prototype.scale = function(options = {}) {
       xAxis.ticks(ticksCount);
     }
 
-  const axis = axisGroup.append("g").call(xAxis);
+    const axis = axisGroup.append("g").call(xAxis);
 
-  // Style axis lines and text
-  axis.selectAll(".tick line")
-    .style("stroke", tickStyle.stroke)
-    .style("stroke-width", tickStyle.strokeWidth)
-    .attr("y2", tickStyle.lineLength)
-    .each(function() {
-      const currentElement = d3.select(this)
-      setStyleFromOptions(currentElement, additionalOptionsTickStyle);
-    });
+    // Style axis lines and text
+    axis.selectAll(".tick line")
+      .style("stroke", tickStyle.stroke)
+      .style("stroke-width", tickStyle.strokeWidth)
+      .attr("y2", tickStyle.lineLength)
+      .each(function () {
+        const currentElement = d3.select(this)
+        setStyleFromOptions(currentElement, additionalOptionsTickStyle);
+      });
 
-  axis.selectAll(".tick text")
-    .style("fill", textStyle.fill)
-    .style("font-size", textStyle.fontSize)
-    .style("font-family", textStyle.fontFamily)
-    .style("cursor", textStyle.cursor)
-    .each(function() {
-      const currentElement = d3.select(this)
-      setStyleFromOptions(currentElement, additionalOptionsTextStyle);
-    });
+    axis.selectAll(".tick text")
+      .style("fill", textStyle.fill)
+      .style("font-size", textStyle.fontSize)
+      .style("font-family", textStyle.fontFamily)
+      .style("cursor", textStyle.cursor)
+      .each(function () {
+        const currentElement = d3.select(this)
+        setStyleFromOptions(currentElement, additionalOptionsTextStyle);
+      });
 
-    axis.selectAll(".tick").each(function(d) {
+    axis.selectAll(".tick").each(function (d) {
       let tickValue = d3.select(this).data()[0];
       let newX = that.xScale(tickValue);
 
-     if (newX === null) {
-      // If the new X position is null, remove the tick
-      d3.select(this).remove();
+      if (newX === null) {
+        // If the new X position is null, remove the tick
+        d3.select(this).remove();
       } else {
-      // Otherwise, update the transform attribute
-      d3.select(this).attr("transform", `translate(${newX},0)`);
+        // Otherwise, update the transform attribute
+        d3.select(this).attr("transform", `translate(${newX},0)`);
       }
     });
 
-  axis.select(".domain")
-    .style("stroke", lineStyle.stroke)
-    .style("stroke-width", lineStyle.strokeWidth)
-    .each(function() {
-      const currentElement = d3.select(this);
-      setStyleFromOptions(currentElement, additionalOptionslineStyle);
-    });
+    axis.select(".domain")
+      .style("stroke", lineStyle.stroke)
+      .style("stroke-width", lineStyle.strokeWidth)
+      .each(function () {
+        const currentElement = d3.select(this);
+        setStyleFromOptions(currentElement, additionalOptionslineStyle);
+      });
 
   }
   return this;
 };
 
-clusterContainer.prototype.title = function(title, subtitle, show = true, options = {}) {
+clusterContainer.prototype.title = function (title, subtitle, show = true, options = {}) {
 
   // Return early if neither title nor subtitle is provided
   if (!title && !subtitle) {
@@ -797,7 +797,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
       textAnchor = "middle";
   }
 
-  if(title){
+  if (title) {
     // Add title to the SVG
     this.svg.append("text")
       .attr("x", xPos)
@@ -809,11 +809,11 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
       .style("text-decoration", titleFont.textDecoration)
       .style("font-family", titleFont.fontFamily)
       .style("cursor", titleFont.cursor)
-      .each(function() {
-      const currentElement = d3.select(this);
-      parseAndStyleText(title, currentElement, titleFont);
-      setStyleFromOptions(currentElement, additionalOptionsTitleFont);
-    });
+      .each(function () {
+        const currentElement = d3.select(this);
+        parseAndStyleText(title, currentElement, titleFont);
+        setStyleFromOptions(currentElement, additionalOptionsTitleFont);
+      });
   }
 
   if (subtitle) {
@@ -828,7 +828,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
       .style("text-decoration", subtitleFont.textDecoration)
       .style("font-family", subtitleFont.fontFamily)
       .style("cursor", subtitleFont.cursor)
-      .each(function() {
+      .each(function () {
         const currentElement = d3.select(this);
         parseAndStyleText(subtitle, currentElement, subtitleFont);
         setStyleFromOptions(currentElement, additionalOptionsSubtitleFont);
@@ -838,7 +838,7 @@ clusterContainer.prototype.title = function(title, subtitle, show = true, option
   return this;
 };
 
-clusterContainer.prototype.footer = function(title, subtitle, show = true, options = {}) {
+clusterContainer.prototype.footer = function (title, subtitle, show = true, options = {}) {
 
   // Return early if neither title nor subtitle is provided
   if (!title && !subtitle) {
@@ -894,7 +894,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
     default:
       xPos = (this.width / 2) + x;
       textAnchor = "middle";
-}
+  }
 
 
   // Calculate y align for title and subtitle based on the SVG height and bottom margin
@@ -902,20 +902,20 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
   const subtitleYPos = titleYPos + spacing;
 
   if (title) {
-  this.svg.append("text")
-    .attr("x", xPos)
-    .attr("y", titleYPos)
-    .attr("text-anchor", textAnchor)
-    .style("font-size", titleFont.fontSize)
-    .style("font-weight", titleFont.fontWeight)
-    .style("font-style", titleFont.fontStyle)
-    .style("font-family", titleFont.fontFamily)
-    .style("cursor", titleFont.cursor)
-    .each(function() {
-      const currentElement = d3.select(this);
-      parseAndStyleText(title, currentElement, titleFont);
-      setStyleFromOptions(currentElement, additionalOptionsTitleFont);
-    });
+    this.svg.append("text")
+      .attr("x", xPos)
+      .attr("y", titleYPos)
+      .attr("text-anchor", textAnchor)
+      .style("font-size", titleFont.fontSize)
+      .style("font-weight", titleFont.fontWeight)
+      .style("font-style", titleFont.fontStyle)
+      .style("font-family", titleFont.fontFamily)
+      .style("cursor", titleFont.cursor)
+      .each(function () {
+        const currentElement = d3.select(this);
+        parseAndStyleText(title, currentElement, titleFont);
+        setStyleFromOptions(currentElement, additionalOptionsTitleFont);
+      });
 
   }
 
@@ -930,7 +930,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
       .style("font-style", subtitleFont.fontStyle)
       .style("font-family", subtitleFont.fontFamily)
       .style("cursor", subtitleFont.cursor)
-      .each(function() {
+      .each(function () {
         const currentElement = d3.select(this);
         parseAndStyleText(subtitle, currentElement, subtitleFont);
         setStyleFromOptions(currentElement, subtitleFont);
@@ -940,7 +940,7 @@ clusterContainer.prototype.footer = function(title, subtitle, show = true, optio
   return this;
 };
 
-clusterContainer.prototype.clusterLabel = function(title, show = true, options = {}) {
+clusterContainer.prototype.clusterLabel = function (title, show = true, options = {}) {
   if (!show) {
     return this;
   }
@@ -1008,7 +1008,7 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
     .style("font-weight", fontWeight)
     .style("font-family", fontFamily)
     .style("cursor", cursor)
-    .each(function() {
+    .each(function () {
       const currentElement = d3.select(this);
 
       if (!wrapLabel) {
@@ -1018,7 +1018,7 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
         currentElement.text(title);
         // If wrapLabel is true, wrap the text
         wrap(currentElement, titleWidth, wrapOptions);
-        currentElement.selectAll("tspan").each(function() {
+        currentElement.selectAll("tspan").each(function () {
           const currentTspan = d3.select(this);
           const tspanText = currentTspan.text();
           currentTspan.text('');
@@ -1031,7 +1031,7 @@ clusterContainer.prototype.clusterLabel = function(title, show = true, options =
   return this;
 };
 
-clusterContainer.prototype.sequence = function(show = true, options = {}) {
+clusterContainer.prototype.sequence = function (show = true, options = {}) {
   if (!show) {
     return this;
   }
@@ -1077,7 +1077,7 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
     .attr("y2", this.yScale(y))
     .style("stroke", sequenceStyle.stroke)
     .style("stroke-width", sequenceStyle.strokeWidth)
-    .each(function() {
+    .each(function () {
       const currentElement = d3.select(this);
       setStyleFromOptions(currentElement, additionalOptionsSequence);
     });
@@ -1127,181 +1127,181 @@ clusterContainer.prototype.sequence = function(show = true, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.coordinates = function(show = true, options = {}) {
-    if (!show) {
-        return this;
+clusterContainer.prototype.coordinates = function (show = true, options = {}) {
+  if (!show) {
+    return this;
+  }
+
+  const defaultOptions = {
+    rotate: -45,
+    yPositionTop: 55,
+    yPositionBottom: 45,
+    tickValuesTop: null,
+    tickValuesBottom: null,
+    overlapPercentage: 2,
+    trackSpacing: 40,
+    tickStyle: {
+      stroke: "black",
+      strokeWidth: 1,
+      lineLength: 6
+    },
+    textStyle: {
+      fill: "black",
+      fontSize: "10px",
+      fontFamily: "Arial",
+      cursor: "default"
     }
+  };
 
-    const defaultOptions = {
-        rotate: -45,
-        yPositionTop: 55,
-        yPositionBottom: 45,
-        tickValuesTop: null,
-        tickValuesBottom: null,
-        overlapPercentage: 2,
-        trackSpacing: 40,
-        tickStyle: {
-          stroke: "black",
-          strokeWidth: 1,
-          lineLength: 6
-        },
-        textStyle: {
-          fill: "black",
-          fontSize: "10px",
-          fontFamily: "Arial",
-          cursor: "default"
-        }
-    };
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'coordinatesOptions', options);
+  const { rotate, tickValuesTop, yPositionTop, yPositionBottom, tickValuesBottom, trackSpacing, tickStyle, textStyle } = combinedOptions;
 
-    const combinedOptions = mergeOptions.call(this, defaultOptions, 'coordinatesOptions', options);
-    const { rotate, tickValuesTop, yPositionTop,  yPositionBottom, tickValuesBottom, trackSpacing, tickStyle, textStyle } = combinedOptions;
-
-    // Extract additional options that are not in defaultOptions
-    const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultOptions.tickStyle);
-    const additionalOptionsTextStyle = extractAdditionalOptions(textStyle, defaultOptions.textStyle);
+  // Extract additional options that are not in defaultOptions
+  const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultOptions.tickStyle);
+  const additionalOptionsTextStyle = extractAdditionalOptions(textStyle, defaultOptions.textStyle);
 
 
-    const g = this.svg.append("g")
-        .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+  const g = this.svg.append("g")
+    .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-    // Convert provided tickValues to the required format
-    let tickValuesTopFinal = Array.isArray(tickValuesTop) ? tickValuesTop.map(value => ({ value, rowID: null }))
-                         : (tickValuesTop != null ? [{ value: tickValuesTop, rowID: null }] : []);
-    let tickValuesBottomFinal = Array.isArray(tickValuesBottom) ? tickValuesBottom.map(value => ({ value, rowID: null }))
-                          : (tickValuesBottom != null ? [{ value: tickValuesBottom, rowID: null }] : []);
+  // Convert provided tickValues to the required format
+  let tickValuesTopFinal = Array.isArray(tickValuesTop) ? tickValuesTop.map(value => ({ value, rowID: null }))
+    : (tickValuesTop != null ? [{ value: tickValuesTop, rowID: null }] : []);
+  let tickValuesBottomFinal = Array.isArray(tickValuesBottom) ? tickValuesBottom.map(value => ({ value, rowID: null }))
+    : (tickValuesBottom != null ? [{ value: tickValuesBottom, rowID: null }] : []);
 
-    // If neither tickValuesTop nor tickValuesBottom are provided, calculate them
-    if (!tickValuesTop && !tickValuesBottom) {
+  // If neither tickValuesTop nor tickValuesBottom are provided, calculate them
+  if (!tickValuesTop && !tickValuesBottom) {
 
     let allTickValues = this.data.reduce((acc, d) => {
-        // Define tickValueStart and tickValueStop
-        let tickValueStart = { value: d.start, rowID: d.rowID };
-        let tickValueStop = { value: d.end, rowID: d.rowID };
+      // Define tickValueStart and tickValueStop
+      let tickValueStart = { value: d.start, rowID: d.rowID };
+      let tickValueStop = { value: d.end, rowID: d.rowID };
 
-        // Add geneTrack property if it exists
-        if ('geneTrack' in d) {
-            tickValueStart.geneTrack = d.geneTrack;
-            tickValueStop.geneTrack = d.geneTrack;
-        }
+      // Add geneTrack property if it exists
+      if ('geneTrack' in d) {
+        tickValueStart.geneTrack = d.geneTrack;
+        tickValueStop.geneTrack = d.geneTrack;
+      }
 
-        acc.push(tickValueStart);
-        acc.push(tickValueStop);
+      acc.push(tickValueStart);
+      acc.push(tickValueStop);
 
-        return acc;
+      return acc;
     }, []);
 
     // Remove duplicates based on the 'value' property
     allTickValues = allTickValues.filter((obj, index, self) =>
-    index === self.findIndex((t) => t.value === obj.value)
+      index === self.findIndex((t) => t.value === obj.value)
     );
 
-        allTickValues.sort((a, b) => a.value - b.value);
+    allTickValues.sort((a, b) => a.value - b.value);
 
-        // Calculate overlap and distribute tick values between top and bottom
-        const totalXValueRange = allTickValues[allTickValues.length - 1].value - allTickValues[0].value;
-        const tickValueThreshold = totalXValueRange * (combinedOptions.overlapPercentage / 100);
+    // Calculate overlap and distribute tick values between top and bottom
+    const totalXValueRange = allTickValues[allTickValues.length - 1].value - allTickValues[0].value;
+    const tickValueThreshold = totalXValueRange * (combinedOptions.overlapPercentage / 100);
 
-        tickValuesBottomFinal = allTickValues.filter((tickObj, index, array) => {
-            if (index === 0) return true;
-            const diff = tickObj.value - array[index - 1].value;
-            if (diff < tickValueThreshold) {
-                tickValuesTopFinal.push(tickObj);
-                return false;
-            }
-            return true;
-        });
-    }
+    tickValuesBottomFinal = allTickValues.filter((tickObj, index, array) => {
+      if (index === 0) return true;
+      const diff = tickObj.value - array[index - 1].value;
+      if (diff < tickValueThreshold) {
+        tickValuesTopFinal.push(tickObj);
+        return false;
+      }
+      return true;
+    });
+  }
 
-    const self = this;
+  const self = this;
 
-    // Create and configure the top axis
-    const xAxisTop = g.append("g")
-            .attr("transform", "translate(0," + this.yScale(yPositionTop) + ")")
-            .call(d3.axisTop(this.xScale).tickValues(tickValuesTopFinal.map(t => t.value)));
+  // Create and configure the top axis
+  const xAxisTop = g.append("g")
+    .attr("transform", "translate(0," + this.yScale(yPositionTop) + ")")
+    .call(d3.axisTop(this.xScale).tickValues(tickValuesTopFinal.map(t => t.value)));
 
-        xAxisTop.selectAll(".tick")
-          .data(tickValuesTopFinal)
-          .attr("rowID", d => d.rowID)
-          .attr("transform", function(d) {
-              const xOffset = self.xScale(d.value);
-              currentTrackOffset = d.geneTrack ? -(d.geneTrack - 1) * trackSpacing : 0;
-           return "translate(" + xOffset + ","  +  currentTrackOffset  + ")";
-        });
+  xAxisTop.selectAll(".tick")
+    .data(tickValuesTopFinal)
+    .attr("rowID", d => d.rowID)
+    .attr("transform", function (d) {
+      const xOffset = self.xScale(d.value);
+      currentTrackOffset = d.geneTrack ? -(d.geneTrack - 1) * trackSpacing : 0;
+      return "translate(" + xOffset + "," + currentTrackOffset + ")";
+    });
 
-        xAxisTop.select(".domain").attr("stroke", "none");
+  xAxisTop.select(".domain").attr("stroke", "none");
 
-        xAxisTop.selectAll("text")
-            .data(tickValuesTopFinal)
-            .attr("class", "coordinate")
-            .style("text-anchor", "end")
-            .attr("dx", "-.8em")
-            .attr("dy", ".4em")
-            .attr("transform", "rotate(" + (-rotate) + ")")
-            .style("fill", textStyle.fill)
-            .style("font-size", textStyle.fontSize)
-            .style("font-family", textStyle.fontFamily)
-            .style("cursor", textStyle.cursor)
-            .each(function() {
-                const currentElement = d3.select(this);
-                setStyleFromOptions(currentElement, additionalOptionsTextStyle);
-            });
+  xAxisTop.selectAll("text")
+    .data(tickValuesTopFinal)
+    .attr("class", "coordinate")
+    .style("text-anchor", "end")
+    .attr("dx", "-.8em")
+    .attr("dy", ".4em")
+    .attr("transform", "rotate(" + (-rotate) + ")")
+    .style("fill", textStyle.fill)
+    .style("font-size", textStyle.fontSize)
+    .style("font-family", textStyle.fontFamily)
+    .style("cursor", textStyle.cursor)
+    .each(function () {
+      const currentElement = d3.select(this);
+      setStyleFromOptions(currentElement, additionalOptionsTextStyle);
+    });
 
-        xAxisTop.selectAll(".tick line")
-            .style("stroke", tickStyle.stroke)
-            .style("stroke-width", tickStyle.strokeWidth)
-            .attr("y2", -tickStyle.lineLength)
-            .each(function() {
-                const currentElement = d3.select(this);
-                setStyleFromOptions(currentElement, additionalOptionsTickStyle);
-            });
+  xAxisTop.selectAll(".tick line")
+    .style("stroke", tickStyle.stroke)
+    .style("stroke-width", tickStyle.strokeWidth)
+    .attr("y2", -tickStyle.lineLength)
+    .each(function () {
+      const currentElement = d3.select(this);
+      setStyleFromOptions(currentElement, additionalOptionsTickStyle);
+    });
 
 
 
-    // Create and configure the bottom axis
-    const xAxisBottom = g.append("g")
-            .attr("transform", "translate(0," + this.yScale(yPositionBottom) + ")")
-            .call(d3.axisBottom(this.xScale).tickValues(tickValuesBottomFinal.map(t => t.value)));
+  // Create and configure the bottom axis
+  const xAxisBottom = g.append("g")
+    .attr("transform", "translate(0," + this.yScale(yPositionBottom) + ")")
+    .call(d3.axisBottom(this.xScale).tickValues(tickValuesBottomFinal.map(t => t.value)));
 
-        xAxisBottom.selectAll(".tick")
-            .data(tickValuesBottomFinal)
-            .attr("rowID", d => d.rowID)
-            .attr("transform", function(d) {
-              const xOffset = self.xScale(d.value);
-              currentTrackOffset = d.geneTrack ? -(d.geneTrack - 1) * trackSpacing : 0;
-           return "translate(" + xOffset + ","  +  currentTrackOffset  + ")";
-        });
+  xAxisBottom.selectAll(".tick")
+    .data(tickValuesBottomFinal)
+    .attr("rowID", d => d.rowID)
+    .attr("transform", function (d) {
+      const xOffset = self.xScale(d.value);
+      currentTrackOffset = d.geneTrack ? -(d.geneTrack - 1) * trackSpacing : 0;
+      return "translate(" + xOffset + "," + currentTrackOffset + ")";
+    });
 
-        xAxisBottom.select(".domain").attr("stroke", "none");
+  xAxisBottom.select(".domain").attr("stroke", "none");
 
-        xAxisBottom.selectAll("text")
-            .data(tickValuesBottomFinal)
-            .attr("class", "coordinate")
-            .style("text-anchor", "start")
-            .attr("dx", ".8em")
-            .attr("dy", "-.15em")
-            .attr("transform", "rotate(" + (-rotate) + ")")
-            .style("fill", textStyle.fill)
-            .style("font-size", textStyle.fontSize)
-            .style("font-family", textStyle.fontFamily)
-            .style("cursor", textStyle.cursor)
-            .each(function() {
-                const currentElement = d3.select(this);
-                setStyleFromOptions(currentElement, additionalOptionsTextStyle);
-            });
+  xAxisBottom.selectAll("text")
+    .data(tickValuesBottomFinal)
+    .attr("class", "coordinate")
+    .style("text-anchor", "start")
+    .attr("dx", ".8em")
+    .attr("dy", "-.15em")
+    .attr("transform", "rotate(" + (-rotate) + ")")
+    .style("fill", textStyle.fill)
+    .style("font-size", textStyle.fontSize)
+    .style("font-family", textStyle.fontFamily)
+    .style("cursor", textStyle.cursor)
+    .each(function () {
+      const currentElement = d3.select(this);
+      setStyleFromOptions(currentElement, additionalOptionsTextStyle);
+    });
 
-        xAxisBottom.selectAll(".tick line")
-            .style("stroke", tickStyle.stroke)
-            .style("stroke-width", tickStyle.strokeWidth)
-            .attr("y2", tickStyle.lineLength)
-            .each(function() {
-                const currentElement = d3.select(this);
-                setStyleFromOptions(currentElement, additionalOptionsTickStyle);
-            });
+  xAxisBottom.selectAll(".tick line")
+    .style("stroke", tickStyle.stroke)
+    .style("stroke-width", tickStyle.strokeWidth)
+    .attr("y2", tickStyle.lineLength)
+    .each(function () {
+      const currentElement = d3.select(this);
+      setStyleFromOptions(currentElement, additionalOptionsTickStyle);
+    });
 
-    return this;
+  return this;
 };
 
-clusterContainer.prototype.scaleBar = function(show = true, options = {}) {
+clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
   if (!show) {
     return this;
   }
@@ -1353,7 +1353,7 @@ clusterContainer.prototype.scaleBar = function(show = true, options = {}) {
     .attr("y2", -y)
     .style("stroke", scaleBarLineStyle.stroke)
     .style("stroke-width", scaleBarLineStyle.strokeWidth)
-    .each(function() {
+    .each(function () {
       const currentElement = d3.select(this);
       setStyleFromOptions(currentElement, additionalOptionsLine);
     });
@@ -1367,7 +1367,7 @@ clusterContainer.prototype.scaleBar = function(show = true, options = {}) {
       .attr("y2", -y + 5)
       .style("stroke", scaleBarTickStyle.stroke)
       .style("stroke-width", scaleBarTickStyle.strokeWidth)
-      .each(function() {
+      .each(function () {
         const currentElement = d3.select(this);
         setStyleFromOptions(currentElement, additionalOptionsTick);
       });
@@ -1387,7 +1387,7 @@ clusterContainer.prototype.scaleBar = function(show = true, options = {}) {
     .style("font-family", labelStyle.fontFamily)
     .style("cursor", labelStyle.cursor)
     .style("fill", labelStyle.fill) // Apply text color
-    .each(function() {
+    .each(function () {
       const currentElement = d3.select(this);
       setStyleFromOptions(currentElement, additionalOptionsLabel);
     })
@@ -1437,7 +1437,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   }
 
   const combinedOptions = { ...defaultOptions, ...options };
-  const { x, y, start, end, adjustLabels, trackSpacing, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor} = combinedOptions;
+  const { x, y, start, end, adjustLabels, trackSpacing, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -1449,10 +1449,10 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   const g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
-   // Sort the data first by the minimum value of start and end.
+  // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
 
-    // Check for existing labels
+  // Check for existing labels
   const existingLabels = g.selectAll("text.label");
 
   const getAttributesForIndex = (d, i) => {
@@ -1472,13 +1472,13 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     const yPos = this.yScale(currentY) - currentTrackOffset;
 
     return {
-        xPos,
-        yPos,
-        dx: currentDx,
-        dy: currentDy,
-        rotate: currentRotate,
-        labelAdjustmentOptions: currentLabelAdjustmentOptions,
-        adjustLabels: currentAdjustLabels
+      xPos,
+      yPos,
+      dx: currentDx,
+      dy: currentDy,
+      rotate: currentRotate,
+      labelAdjustmentOptions: currentLabelAdjustmentOptions,
+      adjustLabels: currentAdjustLabels
     };
   };
 
@@ -1497,31 +1497,31 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
     .attr("dy", (d, i) => getAttributesForIndex(d, i).dy)
     .attr("text-anchor", textAnchor)
     .attr("transform", (d, i) => {
-    const xPos = getAttributesForIndex(d, i).xPos;
-    const yPos = getAttributesForIndex(d, i).yPos;
-    const rotateValue = getAttributesForIndex(d, i).rotate;
-    return `rotate(${rotateValue}, ${xPos}, ${yPos})`;
-  })
+      const xPos = getAttributesForIndex(d, i).xPos;
+      const yPos = getAttributesForIndex(d, i).yPos;
+      const rotateValue = getAttributesForIndex(d, i).rotate;
+      return `rotate(${rotateValue}, ${xPos}, ${yPos})`;
+    })
     .style("font-size", fontSize)
     .style("font-style", fontStyle)
     .style("font-family", fontFamily)
     .style("cursor", cursor)
     .text(d => d[label])
-    .each(function(d, i) {
+    .each(function (d, i) {
 
       const currentElement = d3.select(this);
       const attributes = getAttributesForIndex(d, i);
 
-     if (attributes.adjustLabels) {
+      if (attributes.adjustLabels) {
         adjustSpecificLabel(self, "text.label", currentElement.attr("id"), attributes.labelAdjustmentOptions);
-     }
+      }
       // Set additional options as attributes
       setStyleFromOptions(currentElement, additionalOptions);
       // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
 
       // Adjust labels if needed
-     if (attributes.labelAdjustmentOptions) {
+      if (attributes.labelAdjustmentOptions) {
 
         const { rotation, dx, dy } = attributes.labelAdjustmentOptions;
         const x = parseFloat(currentElement.attr('x'));
@@ -1541,44 +1541,44 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   return this;
 };
 
-clusterContainer.prototype.tooltip = function(show = true, options = {}) {
-    if (!show) {
-        return this;
-    }
+clusterContainer.prototype.tooltip = function (show = true, options = {}) {
+  if (!show) {
+    return this;
+  }
 
-    const defaultOptions = {
-        triggers: ["markers", "genes", "labels"],
-        formatter: "<b>Start:</b> {start}<br><b>End: {end}</b>",
-        opacity: 0,
-        position: "absolute",
-        backgroundColor: "rgba(255, 255, 255, 0.9)",
-        padding: "8px",
-        borderRadius: "4px",
-        border: "1px solid rgba(0,0,0,0.1)",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-        pointerEvents: "none",
-        fontFamily: "Arial, sans-serif",
-        fontSize: "12px",
-        zIndex: 1000,
-        color: "#333",
-        lineHeight: "1.5"
-    };
+  const defaultOptions = {
+    triggers: ["markers", "genes", "labels"],
+    formatter: "<b>Start:</b> {start}<br><b>End: {end}</b>",
+    opacity: 0,
+    position: "absolute",
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    padding: "8px",
+    borderRadius: "4px",
+    border: "1px solid rgba(0,0,0,0.1)",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    pointerEvents: "none",
+    fontFamily: "Arial, sans-serif",
+    fontSize: "12px",
+    zIndex: 1000,
+    color: "#333",
+    lineHeight: "1.5"
+  };
 
-    // If theme options exist, use them as the default options
-    if (this.themeOptions && this.themeOptions.tooltipOptions) {
-        options = { ...this.themeOptions.tooltipOptions, ...options };
-    }
+  // If theme options exist, use them as the default options
+  if (this.themeOptions && this.themeOptions.tooltipOptions) {
+    options = { ...this.themeOptions.tooltipOptions, ...options };
+  }
 
-    const combinedOptions = { ...defaultOptions, ...options };
+  const combinedOptions = { ...defaultOptions, ...options };
 
-    // Extract additional options that are not in defaultOptions
-   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
+  // Extract additional options that are not in defaultOptions
+  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
 
-    // Generate CSS for the tooltip and its pseudo-element
-    const generateTooltipCSS = (opts, additionalOpts) => {
-        let additionalStyles = Object.entries(additionalOpts).map(([key, value]) => `${camelToKebab(key)}: ${value};`).join(' ');
-        return `
+  // Generate CSS for the tooltip and its pseudo-element
+  const generateTooltipCSS = (opts, additionalOpts) => {
+    let additionalStyles = Object.entries(additionalOpts).map(([key, value]) => `${camelToKebab(key)}: ${value};`).join(' ');
+    return `
             .cluster-tooltip {
                 ${additionalStyles}
                 opacity: ${opts.opacity};
@@ -1606,103 +1606,103 @@ clusterContainer.prototype.tooltip = function(show = true, options = {}) {
                 border-color: ${opts.backgroundColor} transparent transparent transparent;
             }
         `;
-    };
+  };
 
-    // Inject the generated CSS into the document
-    const styleTag = document.createElement("style");
-    styleTag.innerHTML = generateTooltipCSS(combinedOptions, additionalOptions);
-    document.head.appendChild(styleTag);
+  // Inject the generated CSS into the document
+  const styleTag = document.createElement("style");
+  styleTag.innerHTML = generateTooltipCSS(combinedOptions, additionalOptions);
+  document.head.appendChild(styleTag);
 
-    // Ensure triggers is an array
-    if (typeof combinedOptions.triggers === 'string') {
-        combinedOptions.triggers = [combinedOptions.triggers];
-    }
+  // Ensure triggers is an array
+  if (typeof combinedOptions.triggers === 'string') {
+    combinedOptions.triggers = [combinedOptions.triggers];
+  }
 
-    // Create the tooltip div if it doesn't exist
-    let tooltip = d3.select("body").select(".cluster-tooltip");
-    if (tooltip.empty()) {
-        tooltip = d3.select("body")
-            .append("div")
-            .attr("class", "cluster-tooltip")
-            .style("opacity", combinedOptions.opacity)
-            .style("position", combinedOptions.position)
-            .style("background-color", combinedOptions.backgroundColor)
-            .style("padding", combinedOptions.padding)
-            .style("border-radius", combinedOptions.borderRadius)
-            .style("border", combinedOptions.border)
-            .style("box-shadow", combinedOptions.boxShadow)
-            .style("pointer-events", combinedOptions.pointerEvents)
-            .style("font-family", combinedOptions.fontFamily)
-            .style("font-size", combinedOptions.fontSize)
-            .style("z-index", combinedOptions.zIndex)
-            .style("color", combinedOptions.color)
-            .style("line-height", combinedOptions.lineHeight);
-    }
+  // Create the tooltip div if it doesn't exist
+  let tooltip = d3.select("body").select(".cluster-tooltip");
+  if (tooltip.empty()) {
+    tooltip = d3.select("body")
+      .append("div")
+      .attr("class", "cluster-tooltip")
+      .style("opacity", combinedOptions.opacity)
+      .style("position", combinedOptions.position)
+      .style("background-color", combinedOptions.backgroundColor)
+      .style("padding", combinedOptions.padding)
+      .style("border-radius", combinedOptions.borderRadius)
+      .style("border", combinedOptions.border)
+      .style("box-shadow", combinedOptions.boxShadow)
+      .style("pointer-events", combinedOptions.pointerEvents)
+      .style("font-family", combinedOptions.fontFamily)
+      .style("font-size", combinedOptions.fontSize)
+      .style("z-index", combinedOptions.zIndex)
+      .style("color", combinedOptions.color)
+      .style("line-height", combinedOptions.lineHeight);
+  }
 
-    // Function to generate tooltip content
-    const d3Format = d3.format(",");
+  // Function to generate tooltip content
+  const d3Format = d3.format(",");
 
-    const textAccessor = (d) => {
-        return combinedOptions.formatter.replace(/\{(\w+)\}/g, (match, p1) => {
-            if (typeof d[p1] === 'number') {
-                return d3Format(d[p1]);
-            }
-            return d[p1] || '';
-        });
-    };
+  const textAccessor = (d) => {
+    return combinedOptions.formatter.replace(/\{(\w+)\}/g, (match, p1) => {
+      if (typeof d[p1] === 'number') {
+        return d3Format(d[p1]);
+      }
+      return d[p1] || '';
+    });
+  };
 
-    combinedOptions.triggers.forEach(trigger => {
+  combinedOptions.triggers.forEach(trigger => {
 
     if (!this.hasOwnProperty(trigger)) {
-         return;
+      return;
     }
 
     const selection = this[trigger];
 
     // Check if the selection exists and is not empty
     if (!selection || selection.empty()) {
-        return; // Skip this iteration of the loop
+      return; // Skip this iteration of the loop
     }
 
     // Mouseover event to show the tooltip
     selection.on("mouseover", (event, d) => {
-        const dataPoint = this.data.find(item => item === d);
-        const x = event.pageX;
-        const y = event.pageY;
+      const dataPoint = this.data.find(item => item === d);
+      const x = event.pageX;
+      const y = event.pageY;
 
-        const element = d3.select(event.currentTarget);
-        element.classed("hovered", true);
+      const element = d3.select(event.currentTarget);
+      element.classed("hovered", true);
 
-        tooltip.transition()
-            .duration(200)
-            .style("opacity", 1);
-        tooltip.html(textAccessor(dataPoint))
-            .style("left", (x - tooltip.node().offsetWidth / 2) + "px")
-            .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
+      tooltip.transition()
+        .duration(200)
+        .style("opacity", 1);
+      tooltip.html(textAccessor(dataPoint))
+        .style("left", (x - tooltip.node().offsetWidth / 2) + "px")
+        .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
     });
 
     // Mousemove event to reposition the tooltip as the mouse moves
     selection.on("mousemove", (event, d) => {
-        const x = event.pageX;
-        const y = event.pageY;
+      const x = event.pageX;
+      const y = event.pageY;
 
-        tooltip.style("left", (x - tooltip.node().offsetWidth / 2) + "px")
-            .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
+      tooltip.style("left", (x - tooltip.node().offsetWidth / 2) + "px")
+        .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
     });
 
     // Mouseout event to hide the tooltip
     selection.on("mouseout", () => {
 
-        const element = d3.select(event.currentTarget);
-        element.classed("hovered", false);
+      const element = d3.select(event.currentTarget);
+      element.classed("hovered", false);
 
-        tooltip.transition()
-            .duration(500)
-            .style("opacity", 0);
+      tooltip.transition()
+        .duration(500)
+        .style("opacity", 0);
     });
-});
+  });
 
-    return this; // Return the instance for method chaining
+  return this; // Return the instance for method chaining
 };
 
 function legendContainer(svg, margin, width, height) {
@@ -1751,7 +1751,7 @@ legendContainer.prototype.legendData = function (data) {
 
 };
 
-legendContainer.prototype.legend = function(group, show = true, options = {}) {
+legendContainer.prototype.legend = function (group, show = true, options = {}) {
   if (!show) {
     return this;
   }
@@ -1785,7 +1785,7 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
 
   const svgLegend = this.svg;
   const parentWidth = computeSize(width, svgLegend.node().getBoundingClientRect().width) ||
-                      svgLegend.node().getBoundingClientRect().width;
+    svgLegend.node().getBoundingClientRect().width;
 
   var g = svgLegend.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
@@ -1828,7 +1828,7 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
         .style("font-family", legendTextOptions.fontFamily)
         .style("cursor", legendTextOptions.cursor)
         .text(d)
-        .each(function() {
+        .each(function () {
           const currentElement = d3.select(this);
           setStyleFromOptions(currentElement, additionalLegendTextOptions);
         });
@@ -1854,136 +1854,136 @@ legendContainer.prototype.legend = function(group, show = true, options = {}) {
         .attr("width", legendSize)
         .attr("height", legendSize)
         .style("fill", colorScale(d))
-        .each(function() {
+        .each(function () {
           const currentElement = d3.select(this);
           setStyleFromOptions(currentElement, additionalLegendOptions);
         })
 
-        if (orientation === "horizontal") {
-          currentX += textLength + legendSize + 2 * legendPadding;
-        } else {
-          currentY += legendSize + legendPadding;
-        }
-      })
-      .on("mouseover", (event, d) => {
-        const element = d3.select(event.currentTarget);
-        element.classed("hovered", true);
-        })
-      .on("mouseout", (event, d) => {
-        const element = d3.select(event.currentTarget);
-        element.classed("hovered", false);
-        })
-      .on("click", (event, d) => {
-        const element = d3.select(event.currentTarget);
-        // If it's currently highlighted, unhighlight it, else highlight it
-        if(element.classed("unselected")) {
-            element.classed("unselected", false);
-        } else {
-            element.classed("unselected", true);
-        }
-
-        const unselectedLegend = d3.selectAll(".unselected").data();
-        const unselectedRowIds = this.data
-          .filter(item => unselectedLegend.includes(item[group]))
-          .map(item => item.rowID);
-
-        // For all elements with a rowID attribute:
-        d3.selectAll('[rowID]').each(function() {
-          const currentRowID = +d3.select(this).attr("rowID"); // Convert string to number
-          if (unselectedRowIds.includes(currentRowID)) {
-            d3.select(this).style("display", "none"); // Hide it
-          } else {
-            d3.select(this).style("display", ""); // Show it
-          }
-        });
-      });
-
-      if (adjustHeight && this.height === 0) {
-        var contentHeight = currentY + legendSize + legendPadding;
-        svgLegend.attr("height", contentHeight);
-        var viewBoxWidth = parentWidth;
-        svgLegend.attr("viewBox", `0 0 ${viewBoxWidth} ${contentHeight}`);
+      if (orientation === "horizontal") {
+        currentX += textLength + legendSize + 2 * legendPadding;
+      } else {
+        currentY += legendSize + legendPadding;
       }
+    })
+    .on("mouseover", (event, d) => {
+      const element = d3.select(event.currentTarget);
+      element.classed("hovered", true);
+    })
+    .on("mouseout", (event, d) => {
+      const element = d3.select(event.currentTarget);
+      element.classed("hovered", false);
+    })
+    .on("click", (event, d) => {
+      const element = d3.select(event.currentTarget);
+      // If it's currently highlighted, unhighlight it, else highlight it
+      if (element.classed("unselected")) {
+        element.classed("unselected", false);
+      } else {
+        element.classed("unselected", true);
+      }
+
+      const unselectedLegend = d3.selectAll(".unselected").data();
+      const unselectedRowIds = this.data
+        .filter(item => unselectedLegend.includes(item[group]))
+        .map(item => item.rowID);
+
+      // For all elements with a rowID attribute:
+      d3.selectAll('[rowID]').each(function () {
+        const currentRowID = +d3.select(this).attr("rowID"); // Convert string to number
+        if (unselectedRowIds.includes(currentRowID)) {
+          d3.select(this).style("display", "none"); // Hide it
+        } else {
+          d3.select(this).style("display", ""); // Show it
+        }
+      });
+    });
+
+  if (adjustHeight && this.height === 0) {
+    var contentHeight = currentY + legendSize + legendPadding;
+    svgLegend.attr("height", contentHeight);
+    var viewBoxWidth = parentWidth;
+    svgLegend.attr("viewBox", `0 0 ${viewBoxWidth} ${contentHeight}`);
+  }
 
   return this;
 };
 
-clusterContainer.prototype.genes = function(group, show = true, options = {}) {
+clusterContainer.prototype.genes = function (group, show = true, options = {}) {
 
-    if (!show) {
-        return this;
-    }
+  if (!show) {
+    return this;
+  }
 
-    if (!this.data) {
-        console.error('No data has been added to this cluster container. Please use the geneData() function before attempting to draw arrows.');
-        return this;
-    }
+  if (!this.data) {
+    console.error('No data has been added to this cluster container. Please use the geneData() function before attempting to draw arrows.');
+    return this;
+  }
 
-    const defaultOptions = {
-        x: 1,
-        y: 50,
-        stroke: "black",
-        strokeWidth: 1,
-        colorScheme: null,
-        customColors: null,
-        cursor: "default",
-        itemStyle: [],
-        arrowheadWidth: 10,
-        arrowheadHeight: 20,
-        arrowHeight: 10,
-        trackSpacing: 40
-    };
+  const defaultOptions = {
+    x: 1,
+    y: 50,
+    stroke: "black",
+    strokeWidth: 1,
+    colorScheme: null,
+    customColors: null,
+    cursor: "default",
+    itemStyle: [],
+    arrowheadWidth: 10,
+    arrowheadHeight: 20,
+    arrowHeight: 10,
+    trackSpacing: 40
+  };
 
-    const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
-    const { x, y, stroke, strokeWidth, colorScheme, customColors, cursor, itemStyle, arrowheadWidth, arrowheadHeight, arrowHeight, trackSpacing } = combinedOptions;
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
+  const { x, y, stroke, strokeWidth, colorScheme, customColors, cursor, itemStyle, arrowheadWidth, arrowheadHeight, arrowHeight, trackSpacing } = combinedOptions;
 
-    // Extract additional options that aren't in defaultOptions
-    const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
+  // Extract additional options that aren't in defaultOptions
+  const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
-    const uniqueGroups = [...new Set(this.dataAll.map(d => d[group]))];
+  const uniqueGroups = [...new Set(this.dataAll.map(d => d[group]))];
 
-    const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
+  const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
 
-    var g = this.svg.append("g")
-        .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+  var g = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
-    // Sort the data first by the minimum value of start and end.
-    this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
-    this.trackOffset = (arrowHeight + trackSpacing)
+  // Sort the data first by the minimum value of start and end.
+  this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
+  this.trackOffset = (arrowHeight + trackSpacing)
 
-    const getAttributesForIndex = (d, i) => {
-        const style = itemStyle.find(s => s.index === i) || {};
-        // Apply custom values from itemStyle or default if not provided
-        const currentArrowheadWidth = style.arrowheadWidth || arrowheadWidth;
-        const currentArrowheadHeight = style.arrowheadHeight || arrowheadHeight;
-        const currentArrowHeight = style.arrowHeight || arrowHeight;
-        const currentX = style.x || x;
-        const currentY = style.y || y;
-        // Calculate Y position based on geneTrack
-        const currentTrackOffset = d.geneTrack ? (d.geneTrack - 1) * trackSpacing : 0;
+  const getAttributesForIndex = (d, i) => {
+    const style = itemStyle.find(s => s.index === i) || {};
+    // Apply custom values from itemStyle or default if not provided
+    const currentArrowheadWidth = style.arrowheadWidth || arrowheadWidth;
+    const currentArrowheadHeight = style.arrowheadHeight || arrowheadHeight;
+    const currentArrowHeight = style.arrowHeight || arrowHeight;
+    const currentX = style.x || x;
+    const currentY = style.y || y;
+    // Calculate Y position based on geneTrack
+    const currentTrackOffset = d.geneTrack ? (d.geneTrack - 1) * trackSpacing : 0;
 
-        const yPos = this.yScale(currentY) - currentTrackOffset;
-        const xPos = this.reverse ? this.xScale(d.end) : this.xScale(d.start);
+    const yPos = this.yScale(currentY) - currentTrackOffset;
+    const xPos = this.reverse ? this.xScale(d.end) : this.xScale(d.start);
 
-        return { xPos, yPos, currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight };
-    };
+    return { xPos, yPos, currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight };
+  };
 
-    g.selectAll(".gene")
-        .data(this.data)
-        .enter()
-        .append("path")
-        .attr("d", (d, i) => {
+  g.selectAll(".gene")
+    .data(this.data)
+    .enter()
+    .append("path")
+    .attr("d", (d, i) => {
 
-            const { currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight } = getAttributesForIndex(d, i);
-            const geneLength = Math.abs(this.xScale(d.end) - this.xScale(d.start));
-            let shaftLength = geneLength - currentArrowheadWidth;
-            shaftLength = Math.max(0, shaftLength);
+      const { currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight } = getAttributesForIndex(d, i);
+      const geneLength = Math.abs(this.xScale(d.end) - this.xScale(d.start));
+      let shaftLength = geneLength - currentArrowheadWidth;
+      shaftLength = Math.max(0, shaftLength);
 
-            const shaftTop = (currentArrowheadHeight - currentArrowHeight) / 2;
-            const shaftBottom = shaftTop + currentArrowHeight;
+      const shaftTop = (currentArrowheadHeight - currentArrowHeight) / 2;
+      const shaftBottom = shaftTop + currentArrowHeight;
 
-            const shaftPath =
-            `M0 ${shaftTop}
+      const shaftPath =
+        `M0 ${shaftTop}
             L0 ${shaftBottom}
             L${shaftLength} ${shaftBottom}
             L${shaftLength} ${currentArrowheadHeight}
@@ -1991,32 +1991,32 @@ clusterContainer.prototype.genes = function(group, show = true, options = {}) {
             L${shaftLength} 0
             L${shaftLength} ${shaftTop} Z`;
 
-            return shaftPath;
-        })
-        .attr("transform", (d, i) => {
-            const { xPos, yPos, currentArrowheadHeight } = getAttributesForIndex(d, i);
-            const rotation = d.direction === 'forward' ? 0 : 180;
-            return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (currentArrowheadHeight / 2)})`;
-        })
-        .attr("fill", (d) => colorScale(d[group]))
-        .attr("class", "gene")
-        .attr("id", (d, i) => `${sanitizeId(d.cluster)}-gene-${i}`)
-        .attr("rowID", (d, i) => `${d["rowID"]}`)
-        .style("stroke-width", strokeWidth)
-        .style("stroke", stroke)
-        .style("cursor", cursor)
-        .each(function (d, i) {
-            const currentElement = d3.select(this);
+      return shaftPath;
+    })
+    .attr("transform", (d, i) => {
+      const { xPos, yPos, currentArrowheadHeight } = getAttributesForIndex(d, i);
+      const rotation = d.direction === 'forward' ? 0 : 180;
+      return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (currentArrowheadHeight / 2)})`;
+    })
+    .attr("fill", (d) => colorScale(d[group]))
+    .attr("class", "gene")
+    .attr("id", (d, i) => `${sanitizeId(d.cluster)}-gene-${i}`)
+    .attr("rowID", (d, i) => `${d["rowID"]}`)
+    .style("stroke-width", strokeWidth)
+    .style("stroke", stroke)
+    .style("cursor", cursor)
+    .each(function (d, i) {
+      const currentElement = d3.select(this);
 
-            // Set additional options as attributes
-            setStyleFromOptions(currentElement, additionalOptions);
+      // Set additional options as attributes
+      setStyleFromOptions(currentElement, additionalOptions);
 
-            // Override with itemStyle based on the index
-            applyStyleToElement(currentElement, itemStyle, i);
-        });
+      // Override with itemStyle based on the index
+      applyStyleToElement(currentElement, itemStyle, i);
+    });
 
-    // Update the reference
-    this.genes = g.selectAll(".gene");
+  // Update the reference
+  this.genes = g.selectAll(".gene");
 
-    return this;
+  return this;
 };

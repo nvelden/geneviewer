@@ -167,7 +167,7 @@ function computeSize(inputSize, containerSize) {
   return Math.floor(resultSize);
 }
 
-function adjustGeneLabels(clusterContainer, labelSelector, options = {}) {
+function adjustGeneLabels(container, labelSelector, options = {}) {
   // Default options
   const defaultOptions = {
     rotation: 65, // Rotation angle (in degrees)
@@ -179,7 +179,7 @@ function adjustGeneLabels(clusterContainer, labelSelector, options = {}) {
   const { rotation, dx, dy } = { ...defaultOptions, ...options };
 
   // Select all the labels based on the provided selector
-  var labels = clusterContainer.svg.selectAll(".label").nodes();
+  var labels = container.svg.selectAll(".label").nodes();
 
   // Iterate over each label
   for (var i = 0; i < labels.length - 1; i++) {
@@ -216,10 +216,10 @@ function adjustGeneLabels(clusterContainer, labelSelector, options = {}) {
       }
     }
   }
-  return clusterContainer;
+  return container;
 }
 
-function adjustSpecificLabel(clusterContainer, labelSelector, elementId, options = {}) {
+function adjustSpecificLabel(container, labelSelector, elementId, options = {}) {
   // Default options
   const defaultOptions = {
     rotation: 65, // Rotation angle (in degrees)
@@ -240,10 +240,10 @@ function adjustSpecificLabel(clusterContainer, labelSelector, elementId, options
   const { rotation, dx, dy, shiftAmount } = { ...defaultOptions, ...options };
 
   // Select all the labels based on the provided selector
-  var labels = clusterContainer.svg.selectAll(labelSelector).nodes();
+  var labels = container.svg.selectAll(labelSelector).nodes();
 
   // Select the specific label using the provided elementId
-  var specificLabel = clusterContainer.svg.select(`#${elementId}`).node();
+  var specificLabel = container.svg.select(`#${elementId}`).node();
   var specificLabelRect = specificLabel.getBoundingClientRect();
 
   // Check for overlap with other labels
@@ -275,7 +275,7 @@ function adjustSpecificLabel(clusterContainer, labelSelector, elementId, options
       }
     }
   }
-  return clusterContainer;
+  return container;
 }
 
 function camelToKebab(string) {
@@ -490,7 +490,11 @@ function parseAndStyleText(text, parentElement, fontOptions) {
   }
 }
 
+
+
 // CLuster
+
+/*
 
 function clusterContainer(svg, margin, width, height) {
   this.svg = svg;
@@ -498,12 +502,11 @@ function clusterContainer(svg, margin, width, height) {
   this.width = width;
   this.height = height;
 }
-
 function createClusterContainer(targetElementId, options = {}) {
 
   const defaultOptions = {
     id: "svg-container",
-    margin: { top: 0, right: "10%", bottom: 0, left: "10%" },
+    margin: { top: 0, right: "50px", bottom: 0, left: "50px" },
     style: {
       backgroundColor: "#0000"
     },
@@ -548,8 +551,66 @@ function createClusterContainer(targetElementId, options = {}) {
 
   return new clusterContainer(svg, computedMargin, width, height);
 }
+ */
 
-clusterContainer.prototype.theme = function (themeName) {
+ function container(svg, margin, width, height) {
+  this.svg = svg;
+  this.margin = margin;
+  this.width = width;
+  this.height = height;
+}
+
+ function createContainer(targetElementId, id, themeOptionsKey, options = {}) {
+
+  const defaultOptions = {
+    id: id || "svg-container",
+    margin: { top: 0, right: "50px", bottom: 0, left: "50px" },
+    style: {
+      backgroundColor: "#0000"
+    },
+    width: null,
+    height: null
+  };
+
+  // Merge default options and user-specified options
+  const combinedOptions = mergeOptions.call(this, defaultOptions, themeOptionsKey, options);
+  const { id: containerId, margin: originalMargin, style, width, height } = combinedOptions;
+
+  // Extract additional options that are not in defaultOptions
+  const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
+
+  // Compute margins without modifying the original margin object
+  const computedMargin = {
+    top: computeSize(originalMargin?.top ?? 0, height),
+    right: computeSize(originalMargin?.right ?? 0, width),
+    bottom: computeSize(originalMargin?.bottom ?? 0, height),
+    left: computeSize(originalMargin?.left ?? 0, width)
+  };
+
+  var svg = d3.select(targetElementId)
+    .append("svg")
+    .attr("id", getUniqueId(containerId))
+    .attr("width", width || "100%")
+    .attr("height", height || "100%")
+    .attr("preserveAspectRatio", "xMinYMin meet")
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .classed("GCVieweR-svg-content", true)
+    .style("box-sizing", "border-box")
+    .style("background-color", style.backgroundColor)
+    .each(function () {
+      const currentElement = d3.select(this);
+      setStyleFromOptions(currentElement, additionalOptionsStyle);
+    });
+
+  // Apply styles from the combined options
+  Object.entries(style).forEach(([key, value]) => {
+    svg.style(key, value);
+  });
+
+  return new container(svg, computedMargin, width, height);
+}
+
+container.prototype.theme = function (themeName) {
   // Make sure the theme exists
   if (!themes.hasOwnProperty(themeName)) {
     throw new Error(`Theme '${themeName}' does not exist.`);
@@ -564,7 +625,7 @@ clusterContainer.prototype.theme = function (themeName) {
   return this;
 };
 
-clusterContainer.prototype.geneData = function (data, clusterData) {
+container.prototype.geneData = function (data, clusterData) {
 
   // Needed to set color
   this.dataAll = data
@@ -586,7 +647,7 @@ clusterContainer.prototype.geneData = function (data, clusterData) {
   return this;
 };
 
-clusterContainer.prototype.scale = function (options = {}) {
+container.prototype.scale = function (options = {}) {
   // Verify that the data exists
   if (!this.data) {
     console.error('No data has been added to this cluster container.');
@@ -737,7 +798,7 @@ clusterContainer.prototype.scale = function (options = {}) {
   return this;
 };
 
-clusterContainer.prototype.title = function (title, subtitle, show = true, options = {}) {
+container.prototype.title = function (title, subtitle, show = true, options = {}) {
 
   // Return early if neither title nor subtitle is provided
   if (!title && !subtitle) {
@@ -789,7 +850,7 @@ clusterContainer.prototype.title = function (title, subtitle, show = true, optio
       textAnchor = "start";
       break;
     case "right":
-      xPos = this.width - x;
+      xPos = this.width - this.margin.left -  this.margin.right + x;
       textAnchor = "end";
       break;
     default:
@@ -797,9 +858,12 @@ clusterContainer.prototype.title = function (title, subtitle, show = true, optio
       textAnchor = "middle";
   }
 
+  var g = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+
   if (title) {
     // Add title to the SVG
-    this.svg.append("text")
+    g.append("text")
       .attr("x", xPos)
       .attr("y", y + (this.margin.top / 2))
       .attr("text-anchor", textAnchor)
@@ -818,7 +882,7 @@ clusterContainer.prototype.title = function (title, subtitle, show = true, optio
 
   if (subtitle) {
     // Add subtitle to the SVG
-    this.svg.append("text")
+    g.append("text")
       .attr("x", xPos)
       .attr("y", y + (this.margin.top / 2) + spacing)
       .attr("text-anchor", textAnchor)
@@ -838,7 +902,7 @@ clusterContainer.prototype.title = function (title, subtitle, show = true, optio
   return this;
 };
 
-clusterContainer.prototype.footer = function (title, subtitle, show = true, options = {}) {
+container.prototype.footer = function (title, subtitle, show = true, options = {}) {
 
   // Return early if neither title nor subtitle is provided
   if (!title && !subtitle) {
@@ -940,7 +1004,7 @@ clusterContainer.prototype.footer = function (title, subtitle, show = true, opti
   return this;
 };
 
-clusterContainer.prototype.clusterLabel = function (title, show = true, options = {}) {
+container.prototype.clusterLabel = function (title, show = true, options = {}) {
   if (!show) {
     return this;
   }
@@ -1031,7 +1095,7 @@ clusterContainer.prototype.clusterLabel = function (title, show = true, options 
   return this;
 };
 
-clusterContainer.prototype.sequence = function (show = true, options = {}) {
+container.prototype.sequence = function (show = true, options = {}) {
   if (!show) {
     return this;
   }
@@ -1127,7 +1191,7 @@ clusterContainer.prototype.sequence = function (show = true, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.coordinates = function (show = true, options = {}) {
+container.prototype.coordinates = function (show = true, options = {}) {
   if (!show) {
     return this;
   }
@@ -1301,7 +1365,7 @@ clusterContainer.prototype.coordinates = function (show = true, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
+container.prototype.scaleBar = function (show = true, options = {}) {
   if (!show) {
     return this;
   }
@@ -1396,7 +1460,7 @@ clusterContainer.prototype.scaleBar = function (show = true, options = {}) {
   return this;
 };
 
-clusterContainer.prototype.labels = function (label, show = true, options = {}) {
+container.prototype.labels = function (label, show = true, options = {}) {
 
   if (!show) {
     return this;
@@ -1541,7 +1605,7 @@ clusterContainer.prototype.labels = function (label, show = true, options = {}) 
   return this;
 };
 
-clusterContainer.prototype.tooltip = function (show = true, options = {}) {
+container.prototype.tooltip = function (show = true, options = {}) {
   if (!show) {
     return this;
   }
@@ -1705,210 +1769,7 @@ clusterContainer.prototype.tooltip = function (show = true, options = {}) {
   return this; // Return the instance for method chaining
 };
 
-function legendContainer(svg, margin, width, height) {
-  this.svg = svg;
-  this.margin = margin;
-  this.width = width;
-  this.height = height;
-}
-
-function createLegendContainer(targetElementId, options = {}) {
-
-  const defaultOptions = {
-    id: "svg-legend-container",
-    margin: { top: 0, right: 0, bottom: 0, left: 0 },
-    backgroundColor: "white",
-    width: null,
-    height: null
-  };
-
-  const mergedOptions = {
-    ...defaultOptions,
-    ...options,
-    margin: { ...defaultOptions.margin, ...options.margin }
-  };
-
-  const { id, backgroundColor, width, height, margin } = mergedOptions;
-
-  var svg = d3.select(targetElementId)
-    .append("svg")
-    .attr("id", getUniqueId(id))
-    .attr("width", "100%")
-    .attr("height", "100%")
-    .attr("preserveAspectRatio", "xMinYMin meet")
-    .attr("viewBox", `0 0 ${width} ${height}`)
-    .classed("GCVieweR-svg-content", true)
-    .style("background-color", backgroundColor);
-
-  return new legendContainer(svg, margin, width, height);
-}
-
-legendContainer.prototype.legendData = function (data) {
-
-  this.data = [...new Set(data)];
-
-  return this;
-
-};
-
-legendContainer.prototype.legend = function (group, show = true, options = {}) {
-  if (!show) {
-    return this;
-  }
-
-  const defaultOptions = {
-    x: 10,
-    y: 10,
-    width: null, // Default width set to null
-    orientation: "horizontal",
-    adjustHeight: true,
-    order: [],
-    legendOptions: {
-      cursor: "pointer",
-      colorScheme: null,
-      customColors: null
-    },
-    legendTextOptions: {
-      cursor: "pointer",
-      textAnchor: "start",
-      dy: ".35em",
-      fontSize: "12px",
-      fontFamily: "sans-serif"
-    }
-  };
-
-  const combinedOptions = mergeOptions.call(this, defaultOptions, 'legendOptions', options);
-  const { x, y, width, orientation, adjustHeight, order, legendOptions, legendTextOptions } = combinedOptions;
-
-  const additionalLegendOptions = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
-  const additionalLegendTextOptions = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
-
-  const svgLegend = this.svg;
-  const parentWidth = computeSize(width, svgLegend.node().getBoundingClientRect().width) ||
-    svgLegend.node().getBoundingClientRect().width;
-
-  var g = svgLegend.append("g")
-    .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
-
-  let uniqueGroups = [...new Set(this.data.map(d => d[group]))];
-
-  const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
-
-  if (order && order.length > 0) {
-    uniqueGroups = order
-      .filter(item => uniqueGroups.includes(item))
-      .concat(uniqueGroups.filter(item => !order.includes(item)));
-  }
-
-  if (!uniqueGroups.length) {
-    console.error(`Error: No labels provided and the group "${group}" does not exist in the data.`);
-    return;
-  }
-
-  const legendSize = parseFloat(legendTextOptions.fontSize);
-  const legendPadding = legendSize / 2;
-  let currentX = x;
-  let currentY = y;
-
-  g.selectAll(".legend")
-    .data(uniqueGroups)
-    .enter()
-    .append("g")
-    .attr("class", "legend")
-    .each((d, i, nodes) => {
-      const legendGroup = d3.select(nodes[i]);
-
-      const textLabel = legendGroup
-        .append("text")
-        .attr("class", "legend-label")
-        .attr("id", (d, i) => `legend-label-${i}`)
-        .attr("dy", legendTextOptions.dy)
-        .style("text-anchor", legendTextOptions.textAnchor)
-        .style("font-size", legendTextOptions.fontSize)
-        .style("font-family", legendTextOptions.fontFamily)
-        .style("cursor", legendTextOptions.cursor)
-        .text(d)
-        .each(function () {
-          const currentElement = d3.select(this);
-          setStyleFromOptions(currentElement, additionalLegendTextOptions);
-        });
-
-      const textLength = textLabel.node().getComputedTextLength();
-
-      if (currentX + textLength + legendSize + 2 * legendPadding > parentWidth) {
-        currentX = x;
-        currentY += legendSize + legendPadding;
-      }
-
-      textLabel
-        .attr("x", currentX + legendSize + legendPadding)
-        .attr("y", currentY + legendSize / 2);
-
-      const rect = legendGroup
-        .append("rect")
-        .attr("class", "legend-marker")
-        .attr("id", (d, i) => `legend-marker-${i}`)
-        .style("cursor", legendOptions.cursor)
-        .attr("x", currentX)
-        .attr("y", currentY)
-        .attr("width", legendSize)
-        .attr("height", legendSize)
-        .style("fill", colorScale(d))
-        .each(function () {
-          const currentElement = d3.select(this);
-          setStyleFromOptions(currentElement, additionalLegendOptions);
-        })
-
-      if (orientation === "horizontal") {
-        currentX += textLength + legendSize + 2 * legendPadding;
-      } else {
-        currentY += legendSize + legendPadding;
-      }
-    })
-    .on("mouseover", (event, d) => {
-      const element = d3.select(event.currentTarget);
-      element.classed("hovered", true);
-    })
-    .on("mouseout", (event, d) => {
-      const element = d3.select(event.currentTarget);
-      element.classed("hovered", false);
-    })
-    .on("click", (event, d) => {
-      const element = d3.select(event.currentTarget);
-      // If it's currently highlighted, unhighlight it, else highlight it
-      if (element.classed("unselected")) {
-        element.classed("unselected", false);
-      } else {
-        element.classed("unselected", true);
-      }
-
-      const unselectedLegend = d3.selectAll(".unselected").data();
-      const unselectedRowIds = this.data
-        .filter(item => unselectedLegend.includes(item[group]))
-        .map(item => item.rowID);
-
-      // For all elements with a rowID attribute:
-      d3.selectAll('[rowID]').each(function () {
-        const currentRowID = +d3.select(this).attr("rowID"); // Convert string to number
-        if (unselectedRowIds.includes(currentRowID)) {
-          d3.select(this).style("display", "none"); // Hide it
-        } else {
-          d3.select(this).style("display", ""); // Show it
-        }
-      });
-    });
-
-  if (adjustHeight && this.height === 0) {
-    var contentHeight = currentY + legendSize + legendPadding;
-    svgLegend.attr("height", contentHeight);
-    var viewBoxWidth = parentWidth;
-    svgLegend.attr("viewBox", `0 0 ${viewBoxWidth} ${contentHeight}`);
-  }
-
-  return this;
-};
-
-clusterContainer.prototype.genes = function (group, show = true, options = {}) {
+container.prototype.genes = function (group, show = true, options = {}) {
 
   if (!show) {
     return this;
@@ -2020,3 +1881,173 @@ clusterContainer.prototype.genes = function (group, show = true, options = {}) {
 
   return this;
 };
+
+container.prototype.legendData = function (data) {
+
+  this.data = [...new Set(data)];
+
+  return this;
+
+};
+
+container.prototype.legend = function (group, show = true, options = {}) {
+  if (!show) {
+    return this;
+  }
+
+  const defaultOptions = {
+    x: 0,
+    y: 0,
+    width: null, // Default width set to null
+    orientation: "horizontal",
+    adjustHeight: true,
+    order: [],
+    legendOptions: {
+      cursor: "pointer",
+      colorScheme: null,
+      customColors: null
+    },
+    legendTextOptions: {
+      cursor: "pointer",
+      textAnchor: "start",
+      dy: ".35em",
+      fontSize: "12px",
+      fontFamily: "sans-serif"
+    }
+  };
+
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'legendOptions', options);
+  const { x, y, width, orientation, adjustHeight, order, legendOptions, legendTextOptions } = combinedOptions;
+
+  const additionalLegendOptions = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
+  const additionalLegendTextOptions = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
+
+  const svgLegend = this.svg;
+  const parentWidth = computeSize(width, svgLegend.node().getBoundingClientRect().width) ||
+    svgLegend.node().getBoundingClientRect().width;
+
+  let uniqueGroups = [...new Set(this.data.map(d => d[group]))];
+
+  const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
+
+  if (order && order.length > 0) {
+    uniqueGroups = order
+      .filter(item => uniqueGroups.includes(item))
+      .concat(uniqueGroups.filter(item => !order.includes(item)));
+  }
+
+  if (!uniqueGroups.length) {
+    console.error(`Error: No labels provided and the group "${group}" does not exist in the data.`);
+    return;
+  }
+
+  const legendSize = parseFloat(legendTextOptions.fontSize);
+  const legendPadding = legendSize / 2;
+
+  let currentX = x;
+  let currentY = y;
+
+  var g = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+
+  g.selectAll(".legend")
+    .data(uniqueGroups)
+    .enter()
+    .append("g")
+    .attr("class", "legend")
+    .each((d, i, nodes) => {
+      const legendGroup = d3.select(nodes[i]);
+
+      const textLabel = legendGroup
+        .append("text")
+        .attr("class", "legend-label")
+        .attr("id", (d, i) => `legend-label-${i}`)
+        .attr("dy", legendTextOptions.dy)
+        .style("text-anchor", legendTextOptions.textAnchor)
+        .style("font-size", legendTextOptions.fontSize)
+        .style("font-family", legendTextOptions.fontFamily)
+        .style("cursor", legendTextOptions.cursor)
+        .text(d)
+        .each(function () {
+          const currentElement = d3.select(this);
+          setStyleFromOptions(currentElement, additionalLegendTextOptions);
+        });
+
+      const textLength = textLabel.node().getComputedTextLength();
+      const availableWidth = this.width - this.margin.left - this.margin.right;
+      const totalItemWidth = textLength + legendSize + 2 * legendPadding;
+
+      if (currentX + totalItemWidth > availableWidth) {
+        currentX = x;
+        currentY += legendSize + legendPadding;
+      }
+
+      textLabel
+        .attr("x", currentX + legendSize + legendPadding)
+        .attr("y", currentY + legendSize / 2);
+
+      const rect = legendGroup
+        .append("rect")
+        .attr("class", "legend-marker")
+        .attr("id", (d, i) => `legend-marker-${i}`)
+        .style("cursor", legendOptions.cursor)
+        .attr("x", currentX)
+        .attr("y", currentY)
+        .attr("width", legendSize)
+        .attr("height", legendSize)
+        .style("fill", colorScale(d))
+        .each(function () {
+          const currentElement = d3.select(this);
+          setStyleFromOptions(currentElement, additionalLegendOptions);
+        })
+
+      if (orientation === "horizontal") {
+        currentX += textLength + legendSize + 2 * legendPadding;
+      } else {
+        currentY += legendSize + legendPadding;
+      }
+    })
+    .on("mouseover", (event, d) => {
+      const element = d3.select(event.currentTarget);
+      element.classed("hovered", true);
+    })
+    .on("mouseout", (event, d) => {
+      const element = d3.select(event.currentTarget);
+      element.classed("hovered", false);
+    })
+    .on("click", (event, d) => {
+      const element = d3.select(event.currentTarget);
+      // If it's currently highlighted, unhighlight it, else highlight it
+      if (element.classed("unselected")) {
+        element.classed("unselected", false);
+      } else {
+        element.classed("unselected", true);
+      }
+
+      const unselectedLegend = d3.selectAll(".unselected").data();
+      const unselectedRowIds = this.data
+        .filter(item => unselectedLegend.includes(item[group]))
+        .map(item => item.rowID);
+
+      // For all elements with a rowID attribute:
+      d3.selectAll('[rowID]').each(function () {
+        const currentRowID = +d3.select(this).attr("rowID"); // Convert string to number
+        if (unselectedRowIds.includes(currentRowID)) {
+          d3.select(this).style("display", "none"); // Hide it
+        } else {
+          d3.select(this).style("display", ""); // Show it
+        }
+      });
+    });
+
+  if (adjustHeight && this.height === 0) {
+    var contentHeight = currentY + legendSize + legendPadding;
+    svgLegend.attr("height", contentHeight);
+    var viewBoxWidth = parentWidth;
+    svgLegend.attr("viewBox", `0 0 ${viewBoxWidth} ${contentHeight}`);
+  }
+
+  return this;
+};
+
+

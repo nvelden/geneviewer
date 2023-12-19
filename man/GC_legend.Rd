@@ -59,8 +59,8 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
   GC_legend(
     position = "top", #bottom
     orientation = "horizontal", #vertical
-    x = 10,
-    y = 10,
+    x = 0,
+    y = 0,
     width = NULL, # 100 / "100px" / 50\%
     adjustHeight = TRUE,
     backgroundColor = "#0000",

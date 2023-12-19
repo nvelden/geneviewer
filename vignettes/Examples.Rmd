@@ -348,11 +348,10 @@ GC_chart(erythromycin_cluster,
     ticksCount = 8
   ) %>%
   GC_legend(
-    x = 0,
     legendTextOptions = list(fontSize = "10px"),
     order = c(setdiff(sort(erythromycin_cluster$Functions), "Other"), "Other")
     
     ) %>%
   GC_color(customColors = colors) %>%
-  GC_grid(margin = list(left = 0, right =0, bottom = 15))
+  GC_grid(margin = list(left = 0, right = 0))
 ```

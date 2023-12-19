@@ -92,7 +92,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$clusterName <- clust
     x$series[[clust]]$data <- subset_data
 
-    x$series[[clust]]$grid <- list(margin = list(left = "50px", right = "50px", top = 0, bottom = 0), height = compute_size(height, length(clusters)), width = width)
+    x$series[[clust]]$grid <- list(height = compute_size(height, length(clusters)), width = width)
     x$series[[clust]]$style <- list(backgroundColor = background_color)
 
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
@@ -477,7 +477,8 @@ GC_grid <- function(
 
     # Update margins if provided
     if (!is.null(margin)) {
-      GC_chart$x$series[[cluster_name]]$grid$margin <- utils::modifyList(GC_chart$x$series[[cluster_name]]$grid$margin, margin)
+        default_margin <- GC_chart$x$series[[cluster_name]]$grid$margin
+        GC_chart$x$series[[cluster_name]]$grid$margin <- if (is.null(default_margin)) margin else utils::modifyList(default_margin, margin)
     }
 
     # Update width if provided
@@ -501,6 +502,11 @@ GC_grid <- function(
     }
   }
 
+  # Update Title and Legend margins
+  if(!is.null(margin)){
+  GC_chart$x$legend$margin <- if (is.null(default_margin)) margin else utils::modifyList(default_margin, margin)
+  GC_chart$x$title$margin <- if (is.null(default_margin)) margin else utils::modifyList(default_margin, margin)
+  }
   # Update total height of chart
   total_height <- 0
 
@@ -1459,8 +1465,8 @@ GC_color <- function(
 #'   GC_legend(
 #'     position = "top", #bottom
 #'     orientation = "horizontal", #vertical
-#'     x = 10,
-#'     y = 10,
+#'     x = 0,
+#'     y = 0,
 #'     width = NULL, # 100 / "100px" / 50%
 #'     adjustHeight = TRUE,
 #'     backgroundColor = "#0000",

@@ -850,12 +850,13 @@ container.prototype.title = function (title, subtitle, show = true, options = {}
       textAnchor = "start";
       break;
     case "right":
-      xPos = this.width - this.margin.left -  this.margin.right + x;
+      xPos = this.width - this.margin.left - this.margin.right + x;
       textAnchor = "end";
       break;
     default:
-      xPos = x + (this.width / 2);
-      textAnchor = "middle";
+    const effectiveWidth = this.width - this.margin.left - this.margin.right;
+    xPos = (effectiveWidth / 2) + x;
+    textAnchor = "middle";
   }
 
   var g = this.svg.append("g")
@@ -948,16 +949,17 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
   // Determine text align and anchor based on the provided align
   switch (align) {
     case "left":
-      xPos = x + 6;
+      xPos = x;
       textAnchor = "start";
       break;
     case "right":
-      xPos = this.width - x - 6;
+      xPos = this.width - this.margin.left - this.margin.right + x;
       textAnchor = "end";
       break;
     default:
-      xPos = (this.width / 2) + x;
-      textAnchor = "middle";
+    const effectiveWidth = this.width - this.margin.left - this.margin.right;
+    xPos = this.margin.left + (effectiveWidth / 2) + x;
+    textAnchor = "middle";
   }
 
 
@@ -1213,7 +1215,9 @@ container.prototype.coordinates = function (show = true, options = {}) {
       fill: "black",
       fontSize: "10px",
       fontFamily: "Arial",
-      cursor: "default"
+      cursor: "default",
+      x: 0,
+      y: 0
     }
   };
 
@@ -1300,6 +1304,8 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .style("text-anchor", "end")
     .attr("dx", "-.8em")
     .attr("dy", ".4em")
+    .attr("x", textStyle.x)
+    .attr("y", textStyle.y)
     .attr("transform", "rotate(" + (-rotate) + ")")
     .style("fill", textStyle.fill)
     .style("font-size", textStyle.fontSize)
@@ -1343,6 +1349,8 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .style("text-anchor", "start")
     .attr("dx", ".8em")
     .attr("dy", "-.15em")
+    .attr("x", textStyle.x)
+    .attr("y", textStyle.y)
     .attr("transform", "rotate(" + (-rotate) + ")")
     .style("fill", textStyle.fill)
     .style("font-size", textStyle.fontSize)

@@ -372,8 +372,8 @@ GC_chart(
     show = TRUE,
     position = "bottom", #top (left and right no supported for now)
     orientation = "horizontal", #vertical
-    x = 10,
-    y = 10,
+    x = 0,
+    y = 0,
     width = NULL,
     adjustHeight = TRUE,
     backgroundColor = "#0000",
@@ -406,7 +406,7 @@ GC_chart(
   cluster = "cluster",
   height = "200px") %>%
  GC_legend(
-    x = 50,
+    y = 10,
     position = "top",
     width = "60%",
     order = sort(unique(ophA_clusters$class)),
@@ -628,7 +628,8 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "150px") 
       strokeWidth = 1   
       # Any other CSS style for the tick
     )
-  )
+  ) %>% 
+  GC_legend(y = 10) # Increase space 
 ```
 
 ## Tooltip
@@ -670,7 +671,7 @@ GC_chart(
 
 ## Grid
 
-The `GC_grid()` function can be used to modify the grid of all or a specific cluster. In the below example the height and margins are adjusted for the second gene cluster.
+The `GC_grid()` function can be used to modify the grid of all or a specific cluster. In the below example the height and margins are adjusted for all clusters and subsequently adjusted for the first gene cluster.
 
 ```{r echo=TRUE, results='asis'}
 # With scale breaks
@@ -678,13 +679,14 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster",
          height = "200px" # Total height 
                           # since there are 2 clusters in the data 
                           # the height of each cluster will be 100px
-         ) %>% 
+         ) %>%
+  GC_grid(margin = list(left = 50, right = 50)) %>%
   GC_grid(
-    cluster = 2, # Set to NULL to adjust all clusters
-    height = "80px",
+    cluster = 1, 
+    height = "50px",
     margin = list(left = "5px", right = "5px", top = "0px", bottom = "0px")
   ) %>% 
-  GC_legend(FALSE)
+  GC_legend(TRUE)
 ```
 
 ## Saving Plots

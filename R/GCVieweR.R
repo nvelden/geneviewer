@@ -503,7 +503,7 @@ GC_grid <- function(
   }
 
   # Update Title and Legend margins
-  if(!is.null(margin)){
+  if(!is.null(margin) && is.null(cluster)){
   GC_chart$x$legend$margin <- if (is.null(default_margin)) margin else utils::modifyList(default_margin, margin)
   GC_chart$x$title$margin <- if (is.null(default_margin)) margin else utils::modifyList(default_margin, margin)
   }

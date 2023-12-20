@@ -51,8 +51,6 @@ GC_chart(gene_cluster, group = "class", height = "100px", width = "800px") %>%
 
 For additional examples and the corresponding code to create the plots, please visit the [Examples]() section.  
 
-<hr>
-
 <img src="man/figures/LacZ_operon.png" class="screenshot"/>
 
 <hr>
@@ -66,8 +64,6 @@ For additional examples and the corresponding code to create the plots, please v
 <hr>
 
 <img src="man/figures/human_hox_genes.png" class="screenshot"/>
-
-<hr>
 
 ## Issues
 

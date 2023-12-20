@@ -24,13 +24,14 @@ HTMLWidgets.widget({
           .classed("GCVieweR-container", true);
 
         var titleHeight = computeSize(titleOptions?.height, height)
+        var titleWidth = computeSize(titleOptions?.width, width)
 
         var title = createContainer(
           `#GCvieweR-title-container-${widgetId}`,
           "svg-container",
           "titleOptions",
           {
-            width: width,
+            width: titleWidth,
             height: titleHeight,
             backgroundColor: titleOptions?.backgroundColor ?? "#0000",
             margin: titleOptions?.margin
@@ -52,9 +53,9 @@ HTMLWidgets.widget({
 
         var legendContainer = createContainer(`#GCvieweR-legend-container-${widgetId}`,
           "svg-container",
-          "titleOptions",
+          "legendOptions",
           {
-            width: width,
+            width: computeSize(legendOptions?.width, width),
             height: legendHeight,
             backgroundColor: legendOptions?.backgroundColor ?? "#0000",
             margin: legendOptions.margin
@@ -79,22 +80,6 @@ HTMLWidgets.widget({
 
       clusters.forEach(function (clusterKey) {
 
-        // Compute margins
-        var margin = { top: 0, right: 0, bottom: 0, left: 0 }
-        var clusterMargins = series[clusterKey]["grid"].margin
-        var clusterHeight = computeSize(series[clusterKey]["grid"].height, el.clientHeight);
-        clusterHeight -= titleHeight ? (titleHeight / clusters.length) : 0;
-        clusterHeight -= legendHeight ? (legendHeight / clusters.length) : 0;
-
-        var clusterWidth = computeSize(series[clusterKey]["grid"].width, width)
-
-        margin = {
-            top: computeSize(clusterMargins?.top ?? 0, height),
-            right: computeSize(clusterMargins?.right ?? 0, width),
-            bottom: computeSize(clusterMargins?.bottom ?? 0, height),
-            left: computeSize(clusterMargins?.left ?? 0, width)
-          };
-
         var cluster = series[clusterKey],
             clusterStyle = cluster.style,
             clusterData = HTMLWidgets.dataframeToD3(series[clusterKey].data),
@@ -109,16 +94,24 @@ HTMLWidgets.widget({
             scaleBarOptions = cluster.scaleBar;
             tooltipOptions = cluster.tooltip;
 
-        //var clusterHeight = Math.floor(el.clientHeight - legendHeight);
+        // Calculate height and width
+        var clusterHeight = computeSize(series[clusterKey]["grid"].height, el.clientHeight);
+        clusterHeight -= titleHeight ? (titleHeight / clusters.length) : 0;
+        clusterHeight -= legendHeight ? (legendHeight / clusters.length) : 0;
+        var clusterWidth = computeSize(series[clusterKey]["grid"].width, width);
+        var clusterMargins = series[clusterKey]["grid"].margin;
+
         var clusterOptions = {
           width: clusterWidth,
           height: clusterHeight,
-          style: clusterStyle
+          style: clusterStyle,
+          margin: {
+            top: computeSize(clusterMargins?.top ?? 0, height),
+            right: computeSize(clusterMargins?.right ?? 50, width),
+            bottom: computeSize(clusterMargins?.bottom ?? 0, height),
+            left: computeSize(clusterMargins?.left ?? 50, width)
+          }
         };
-
-        if (clusterMargins && Object.keys(clusterMargins).length > 0) {
-          clusterOptions.margin = margin;
-        }
 
         var cluster = createContainer(`#GCvieweR-graph-container-${widgetId}`, "svg-container", 'clusterOptions',  clusterOptions)
           .theme("preset")
@@ -147,15 +140,16 @@ HTMLWidgets.widget({
 
         var legendContainer = createContainer(`#GCvieweR-legend-container-${widgetId}`,
           "svg-container",
-          "titleOptions",
+          "legendOptions",
           {
-            width: width,
+            width: computeSize(legendOptions?.width, width),
             height: legendHeight,
             backgroundColor: legendOptions?.backgroundColor ?? "#0000",
             margin: legendOptions.margin
           })
           .legendData(data)
           .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, legendOptions);
+
 
 
       }

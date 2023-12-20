@@ -62,8 +62,9 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   x$data <- data
   x$group <- group
   x$backgroundColor <- background_color
-  x$title <- list()
-  x$legend <- list(group = group, show = show_legend, position = "bottom", backgroundColor = background_color)
+  x$title <- list(width = width)
+  x$legend <- list(group = group, show = show_legend, position = "bottom",
+                   backgroundColor = background_color, width = width)
 
 
   if(is.null(cluster)){
@@ -198,28 +199,23 @@ GC_title <- function(
     ...
 ) {
 
-  # Capture ... arguments
-  dots <- list(...)
-
-  # Default options
-    options <- list(
+  # Capture arguments and filter out NULL or empty values
+  options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
       title = title,
       subtitle = subtitle,
       subtitleFont = subtitleFont,
       titleFont = titleFont,
       height = height,
-      show = show
-    )
+      show = show,
+      ...
+    ))
 
-    # Add arguments to options
-    if (length(dots) > 0) {
-      for (name in names(dots)) {
-        options[[name]] <- dots[[name]]
-      }
-    }
-
-    # Set title options for each cluster
+  # Merge new options with existing options
+  if (is.null(GC_chart$x$title)) {
     GC_chart$x$title <- options
+  } else {
+    GC_chart$x$title <- modifyList(GC_chart$x$title, options)
+  }
 
   return(GC_chart)
 }
@@ -885,13 +881,14 @@ GC_clusterLabel <- function(
     # Set clusterLabel options for each cluster
     GC_chart$x$series[[clusters[i]]]$clusterLabel <- options
 
-    # Set width for each cluster based on position
-    if (currentPosition == "left") {
-      GC_chart$x$series[[clusters[i]]]$grid$margin$left <- width[(i-1) %% length(width) + 1]
-    } else if (currentPosition == "right") {
-      GC_chart$x$series[[clusters[i]]]$grid$margin$right <- width[(i-1) %% length(width) + 1]
-    }
+  }
 
+  # Set width for each cluster based on position
+  if (currentPosition == "left") {
+    GC_chart <- GC_grid(GC_chart, margin = list(left = width[(i-1) %% length(width) + 1]))
+    #GC_chart$x$series[[clusters[i]]]$grid$margin$left <- width[(i-1) %% length(width) + 1]
+  } else if (currentPosition == "right") {
+    GC_chart <- GC_grid(GC_chart, margin = list(right = width[(i-1) %% length(width) + 1]))
   }
 
   return(GC_chart)

@@ -1411,7 +1411,7 @@ container.prototype.scaleBar = function (show = true, options = {}) {
   const additionalOptionsLabel = extractAdditionalOptions(labelStyle, defaultOptions.labelStyle);
 
   // Calculate the length of the scale bar in pixels
-  const scaleBarLength = this.xScale(scaleBarUnit) - this.xScale(0);
+  const scaleBarLength = Math.abs(this.xScale(scaleBarUnit) - this.xScale(0));
 
   // Create the group with the x offset applied
   const g = this.svg.append("g")

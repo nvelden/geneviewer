@@ -11,20 +11,20 @@
 
 ## GCVieweR
 
-**GCVieweR** is an R package designed for gene cluster visualizations. It allows side by side visualization of multiple clusters and has options to add a legend, labels, annotations, tooltips, customized scales, colors and much more.
+**GCVieweR** is an R package designed for drawing gene arrow maps. It allows side by side visualization of multiple gene clusters and has options to add a legend, labels, annotations, customized scales, colors, tooltips and much more.
 
 ## Installation
 
-You can install the development version of **GCVieweR** from [GitHub](https://github.com/) with:
+**GCVieweR** is still in the development stage and not yet released on CRAN. You can install the development version of **GCVieweR** from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("nvelden/GCVieweR")
 ```
 
-## Example
+## Usage
 
-The below example demonstrates using **GCVieweR** to plot a gene cluster on a genomic sequence, using the start and end positions of each gene. The genes are grouped by class. Additional functions are used to include a title, labels, legend, and a scale bar.
+The below example demonstrates using **GCVieweR** to plot a gene cluster on a genomic sequence, using the start and end positions of each gene. The genes are grouped by class and labels are added using the `GC_labels` function.
 
 ``` r
 library(GCVieweR)
@@ -40,12 +40,35 @@ gene_cluster <- data.frame(
 )
 
 # Chart
-GC_chart(gene_cluster, group = "class", height = "200px") %>%
-  GC_clusterTitle("omphalotin gene cluster") %>%
-  GC_labels("name") %>%
-  GC_legend(position = "bottom") %>%
-  GC_scaleBar() %>% 
-  GC_clusterLabel(title = "ophA")
+GC_chart(gene_cluster, group = "class", height = "100px", width = "800px") %>%
+  GC_labels("name")
 ```
 
 <img src="man/figures/ophA_gene_cluster.png" class="screenshot"/>
+
+
+## Examples
+
+For additional examples and the corresponding code to create the plots, please visit the [Examples]() section.  
+
+---
+
+<img src="man/figures/LacZ_operon.png" class="screenshot"/>
+
+---
+
+<img src="man/figures/ophA_clusters.png" class="screenshot"/>
+
+---
+
+<img src="man/figures/erythromycin_cluster.png" class="screenshot"/>
+
+---
+
+<img src="man/figures/human_hox_genes.png" class="screenshot"/>
+
+---
+
+## Issues
+
+If you encounter any issues or have feature requests, please open an [Issue](https://github.com/nvelden/GCVieweR/issues).    

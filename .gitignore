@@ -4,6 +4,7 @@
 .Ruserdata
 .Rprofile
 .DS_store
-renv
+renv/
 renv.lock
 inst/doc
+GCVieweR.Rproj

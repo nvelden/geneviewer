@@ -181,7 +181,6 @@ GC_chart(ophA_clusters,
          cluster = "cluster", 
          height = "420px"
          ) %>%
-  GC_title("OphA Gene Clusters", height = "30px") %>%
   GC_clusterTitle(
     title = c("<i>Omphalotus Olearius</i>", "<i>Dendrothele Bisporus</i>"), 
     titleFont = list(fontWeight = "normal")
@@ -189,9 +188,11 @@ GC_chart(ophA_clusters,
   GC_labels("name") %>%
   GC_clusterLabel(title = unique(ophA_clusters$cluster)) %>%
   GC_clusterFooter(
+    x = 100,
     title = c("Nr. of Genes: 7", "Nr. of Genes: 10"), 
     subtitle = c("Locus: 2522 - 21,484", "Locus 19,236 - 43,005")
-    )
+    ) %>%
+  GC_legend(position="top")
 ```
 
 To adjust the positioning of labels, the `x`, `y`, and `position` variables can be used. Note that in this example, `GC_labels()` is employed twice: initially, it sets labels uniformly for all gene clusters, and then it specifically adjusts the fourth and eight label (considering the index starts at 0) in cluster 2, to ensure there is no overlap.

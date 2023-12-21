@@ -1906,7 +1906,7 @@ container.prototype.legendData = function (data) {
 
 };
 
-container.prototype.legend = function (group, show = true, options = {}) {
+container.prototype.legend = function (group, show = true, parentId = null, options = {}) {
   if (!show) {
     return this;
   }
@@ -2045,15 +2045,27 @@ container.prototype.legend = function (group, show = true, options = {}) {
         .filter(item => unselectedLegend.includes(item[group]))
         .map(item => item.rowID);
 
-      // For all elements with a rowID attribute:
+      if (parentId && typeof parentId === 'string') {
+           // If parentId is not null and is a string, select within the parent
+          d3.select('#' + parentId).selectAll('[rowID]').each(function () {
+          const currentRowID = +d3.select(this).attr("rowID"); // Convert string to number
+      if (unselectedRowIds.includes(currentRowID)) {
+          d3.select(this).style("display", "none"); // Hide it
+      } else {
+          d3.select(this).style("display", ""); // Show it
+        }
+      });
+      } else {
+      // If parentId is null or not a string, select globally
       d3.selectAll('[rowID]').each(function () {
         const currentRowID = +d3.select(this).attr("rowID"); // Convert string to number
         if (unselectedRowIds.includes(currentRowID)) {
           d3.select(this).style("display", "none"); // Hide it
-        } else {
-          d3.select(this).style("display", ""); // Show it
-        }
+      } else {
+        d3.select(this).style("display", ""); // Show it
+      }
       });
+}
     });
 
   if (adjustHeight && this.height === 0) {

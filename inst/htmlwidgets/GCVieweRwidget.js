@@ -61,7 +61,7 @@ HTMLWidgets.widget({
             margin: legendOptions.margin
           })
           .legendData(data)
-          .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, legendOptions);
+          .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, el.id, legendOptions);
 
         var legendElement = d3.select(`#GCvieweR-legend-container-${widgetId}`).node();
         var legendDimensions = legendElement.getBoundingClientRect();
@@ -148,7 +148,7 @@ HTMLWidgets.widget({
             margin: legendOptions.margin
           })
           .legendData(data)
-          .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, legendOptions);
+          .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, el.id, legendOptions);
 
 
 

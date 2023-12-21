@@ -40,30 +40,30 @@ gene_cluster <- data.frame(
 )
 
 # Chart
-GC_chart(gene_cluster, group = "class", height = "100px", width = "800px") %>%
+GC_chart(gene_cluster, group = "class", height = "100px") %>%
   GC_labels("name")
 ```
 
-<img src="man/figures/ophA_gene_cluster.png" class="screenshot"/>
+<img src="man/figures/ophA_gene_cluster.png"/>
 
 
 ## Examples
 
 For additional examples and the corresponding code to create the plots, please visit the [Examples]() section.  
 
-<img src="man/figures/LacZ_operon.png" class="screenshot"/>
+<img src="man/figures/LacZ_operon.png"/>
 
 <hr>
 
-<img src="man/figures/ophA_clusters.png" class="screenshot"/>
+<img src="man/figures/ophA_clusters.png"/>
 
 <hr>
 
-<img src="man/figures/erythromycin_cluster.png" class="screenshot"/>
+<img src="man/figures/erythromycin_cluster.png"/>
 
 <hr>
 
-<img src="man/figures/human_hox_genes.png" class="screenshot"/>
+<img src="man/figures/human_hox_genes.png"/>
 
 ## Issues
 

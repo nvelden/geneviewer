@@ -11,7 +11,7 @@
 
 ## GCVieweR
 
-**GCVieweR** is an R package designed for drawing gene arrow maps. It allows side by side visualization of multiple gene clusters and has options to add a legend, labels, annotations, customized scales, colors, tooltips and much more. To learn more visit the [package website](https://nvelden.github.io/GCVieweR/articles/GCVieweR.html)
+**GCVieweR** is an R package designed for drawing gene arrow maps. It allows side by side visualization of multiple gene clusters and has options to add a legend, labels, annotations, customized scales, colors, tooltips and much more. To learn more visit the [package website](https://nvelden.github.io/GCVieweR/articles/GCVieweR.html).
 
 ## Installation
 

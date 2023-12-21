@@ -2,4 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+.Rprofile
+.DS_store
+renv
+renv.lock
 inst/doc

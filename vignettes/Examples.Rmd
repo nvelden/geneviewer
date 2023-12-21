@@ -49,7 +49,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   GC_coordinates(
     rotate = 0,
     tickValuesBottom = c(min(lacZ_operon$start), max(lacZ_operon$end)),
-    textStyle = list(fontSize = "10px", x = -25, y = 22),
+    textStyle = list(fontSize = "10px", x = -2.2, y = 1.2),
     tickStyle = list(lineLength = 10)
     ) %>%
   GC_legend(FALSE)
@@ -86,7 +86,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   GC_coordinates(
     rotate = 0,
     tickValuesBottom = c(min(lacZ_operon$start), max(lacZ_operon$end)),
-    textStyle = list(x = -25, y = 22, fontSize = "10px"),
+    textStyle = list(fontSize = "10px", x = -2.2, y = 1.2),
     tickStyle = list(lineLength = 10)
     ) %>%
   GC_legend(FALSE)
@@ -265,12 +265,11 @@ GC_chart(hs_dystrophin_transcripts,
     y = 25,
     ticksCount = 8,
     start = 1,
-    end = max(DP_transcripts$length),
+    end = max(hs_dystrophin_transcripts$length),
   ) %>%
   GC_clusterLabel(title = unique(hs_dystrophin_transcripts$transcript)) %>%
   GC_legend(
-    position = "top",
-    x = 25
+    position = "top"
   )
 ```
 </details>
@@ -302,8 +301,7 @@ GC_chart(hs_dystrophin_transcripts,
   ) %>%
   GC_clusterLabel(title = unique(hs_dystrophin_transcripts$transcript)) %>%
   GC_legend(
-    position = "top",
-    x = 25
+    position = "top"
   )
 ```
 

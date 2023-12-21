@@ -519,7 +519,7 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
 
 ## Coordinates
 
-Gene coordinates can be displayed with the `GC_coordinates()` function. When overlapping coordinates occur, they are, by default, shifted to the top axis for clearer visualization. By default the `overlapPercentage` parameter is set to 2%.
+Gene coordinates can be displayed with the `GC_coordinates()` function. When overlapping coordinates occur, they are, by default, shifted to the top axis for clearer visualization. By default the `overlapThreshold` parameter is set to 20.
 
 ```{r echo=TRUE, results='asis'}
 dbophA_cluster <- subset(ophA_clusters, cluster == "dbophA")
@@ -529,7 +529,7 @@ GC_chart(dbophA_cluster, group = "class",height = "100px") %>%
   rotate = -45,
   yPositionTop = 55,
   yPositionBottom = 45,
-  overlapPercentage = 2
+  overlapThreshold = 20
   ) %>%
   GC_legend(FALSE)
 ```

@@ -490,8 +490,6 @@ function parseAndStyleText(text, parentElement, fontOptions) {
   }
 }
 
-
-
 // CLuster
 
 /*
@@ -1200,11 +1198,11 @@ container.prototype.coordinates = function (show = true, options = {}) {
 
   const defaultOptions = {
     rotate: -45,
-    yPositionTop: 55,
-    yPositionBottom: 45,
+    yPositionTop: 53,
+    yPositionBottom: 48,
     tickValuesTop: null,
     tickValuesBottom: null,
-    overlapPercentage: 2,
+    overlapThreshold: 20,
     trackSpacing: 40,
     tickStyle: {
       stroke: "black",
@@ -1222,7 +1220,7 @@ container.prototype.coordinates = function (show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'coordinatesOptions', options);
-  const { rotate, tickValuesTop, yPositionTop, yPositionBottom, tickValuesBottom, trackSpacing, tickStyle, textStyle } = combinedOptions;
+  const { rotate, yPositionTop, yPositionBottom, tickValuesBottom, tickValuesTop, trackSpacing, tickStyle, textStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultOptions.tickStyle);
@@ -1266,18 +1264,32 @@ container.prototype.coordinates = function (show = true, options = {}) {
     allTickValues.sort((a, b) => a.value - b.value);
 
     // Calculate overlap and distribute tick values between top and bottom
-    const totalXValueRange = allTickValues[allTickValues.length - 1].value - allTickValues[0].value;
-    const tickValueThreshold = totalXValueRange * (combinedOptions.overlapPercentage / 100);
+    const totalXValueRange = this.xScale(allTickValues[allTickValues.length - 1].value) - this.xScale(allTickValues[0].value);
+    const tickValueThreshold = combinedOptions.overlapThreshold;
 
-    tickValuesBottomFinal = allTickValues.filter((tickObj, index, array) => {
-      if (index === 0) return true;
-      const diff = tickObj.value - array[index - 1].value;
-      if (diff < tickValueThreshold) {
-        tickValuesTopFinal.push(tickObj);
-        return false;
+    for (let i = 0; i < allTickValues.length; i++) {
+      if (i === 0) {
+      // First tick always goes to the bottom
+      tickValuesBottomFinal.push(allTickValues[i]);
+      continue;
+    }
+
+  const diff = this.xScale(allTickValues[i].value) - this.xScale(allTickValues[i - 1].value);
+
+  if (diff < tickValueThreshold) {
+    // If the difference exceeds the threshold, place this tick at the top
+    tickValuesTopFinal.push(allTickValues[i]);
+
+    // Place the next tick at the bottom, if it exists
+    if (i + 1 < allTickValues.length) {
+      tickValuesBottomFinal.push(allTickValues[i + 1]);
+      i++; // Skip the next index, as it's already processed
+    }
+    } else {
+    // Otherwise, place this tick at the bottom
+    tickValuesBottomFinal.push(allTickValues[i]);
       }
-      return true;
-    });
+    }
   }
 
   const self = this;
@@ -1299,22 +1311,20 @@ container.prototype.coordinates = function (show = true, options = {}) {
   xAxisTop.select(".domain").attr("stroke", "none");
 
   xAxisTop.selectAll("text")
-    .data(tickValuesTopFinal)
-    .attr("class", "coordinate")
-    .style("text-anchor", "end")
-    .attr("dx", "-.8em")
-    .attr("dy", ".4em")
-    .attr("x", textStyle.x)
-    .attr("y", textStyle.y)
-    .attr("transform", "rotate(" + (-rotate) + ")")
-    .style("fill", textStyle.fill)
-    .style("font-size", textStyle.fontSize)
-    .style("font-family", textStyle.fontFamily)
-    .style("cursor", textStyle.cursor)
-    .each(function () {
-      const currentElement = d3.select(this);
-      setStyleFromOptions(currentElement, additionalOptionsTextStyle);
-    });
+            .data(tickValuesTopFinal)
+            .attr("class", "coordinate")
+            .style("text-anchor", "end")
+            .attr("dx", `${-0.8 + textStyle.x}em`)
+            .attr("dy", `${0.4 + textStyle.y}em`)
+            .attr("transform", "rotate(" + (-rotate) + ")")
+            .style("fill", textStyle.fill)
+            .style("font-size", textStyle.fontSize)
+            .style("font-family", textStyle.fontFamily)
+            .style("cursor", textStyle.cursor)
+            .each(function() {
+                const currentElement = d3.select(this);
+                setStyleFromOptions(currentElement, additionalOptionsTextStyle);
+            });
 
   xAxisTop.selectAll(".tick line")
     .style("stroke", tickStyle.stroke)
@@ -1347,18 +1357,16 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .data(tickValuesBottomFinal)
     .attr("class", "coordinate")
     .style("text-anchor", "start")
-    .attr("dx", ".8em")
-    .attr("dy", "-.15em")
-    .attr("x", textStyle.x)
-    .attr("y", textStyle.y)
+    .attr("dx", `${0.8 + textStyle.x}em`)
+    .attr("dy", `${-0.15 + textStyle.y}em`)
     .attr("transform", "rotate(" + (-rotate) + ")")
     .style("fill", textStyle.fill)
     .style("font-size", textStyle.fontSize)
     .style("font-family", textStyle.fontFamily)
     .style("cursor", textStyle.cursor)
-    .each(function () {
+    .each(function() {
       const currentElement = d3.select(this);
-      setStyleFromOptions(currentElement, additionalOptionsTextStyle);
+            setStyleFromOptions(currentElement, additionalOptionsTextStyle);
     });
 
   xAxisBottom.selectAll(".tick line")

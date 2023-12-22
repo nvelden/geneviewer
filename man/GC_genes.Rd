@@ -69,7 +69,6 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
     arrowHeight = 10
    )
 
-
 # Change the appearance of a specific gene
 GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
 GC_genes(

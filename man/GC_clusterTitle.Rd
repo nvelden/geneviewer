@@ -81,6 +81,7 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "400px") \%>
       fontFamily = "sans-serif",
       cursor = "default",
       fill = "black"
+      # Any other CSS styles
     ),
     subtitleFont = list(
       fontSize = "14px",
@@ -90,6 +91,7 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "400px") \%>
       fontFamily = "sans-serif",
       cursor = "default",
       fill = "black"
+      # Any other CSS styles
     )
   )
 }

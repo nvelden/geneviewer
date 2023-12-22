@@ -17,6 +17,10 @@ magrittr::`%>%`
 #'   Default is unspecified.
 #' @param height Height specification for the chart, such as '400px' or 300.
 #'   Default is unspecified.
+#' @param style A list of CSS styles to be applied to the chart container. Each
+#'   element of the list should be a valid CSS property-value pair. For example,
+#'   list(backgroundColor = "white", border = "2px solid black").
+#'   Default is an empty list.
 #' @param background_color Background color for the chart,
 #' specified as a color code. Default is transparent.
 #' @param elementId Optional identifier string for the widget. Default is NULL.
@@ -36,7 +40,7 @@ magrittr::`%>%`
 #'
 #' @import htmlwidgets
 #' @export
-GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, width = "100%", height = "400px", background_color = "#0000", elementId = NULL){
+GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, width = "100%", height = "400px", style = list(), elementId = NULL){
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
@@ -61,10 +65,11 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 
   x$data <- data
   x$group <- group
-  x$backgroundColor <- background_color
-  x$title <- list(width = width)
+  x$style <- style
+  x$title$style <- list(width = "100%")
   x$legend <- list(group = group, show = show_legend, position = "bottom",
-                   backgroundColor = background_color, width = width)
+                   width = width)
+  x$legend$style <- list(width = "100%", backgroundColor = style$backgroundColor)
 
 
   if(is.null(cluster)){
@@ -93,12 +98,10 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$clusterName <- clust
     x$series[[clust]]$data <- subset_data
 
-    x$series[[clust]]$grid <- list(height = compute_size(height, length(clusters)), width = width)
-    x$series[[clust]]$style <- list(backgroundColor = background_color)
-
+    x$series[[clust]]$options <- list(height = compute_size(height, length(clusters)), width = width)
+    x$series[[clust]]$options$style <- list(width = "100%", backgroundColor = style$backgroundColor)
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
     x$series[[clust]]$labels <- list(group = group, show = TRUE)
-    x$series[[clust]]$cluster <- list()
     x$series[[clust]]$coordinates <- list(show = FALSE)
     x$series[[clust]]$scaleBar <- list()
     x$series[[clust]]$footer <- list()
@@ -130,6 +133,10 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 #' @param subtitle Character vector. Subtitles to set for the clusters.
 #' @param show Logical. Whether to display the title. Default is TRUE.
 #' @param height Character. Height for the title (e.g., "50px").
+#' @param style A list of CSS styles to be applied to the chart container. Each
+#'   element of the list should be a valid CSS property-value pair. For example,
+#'   list(backgroundColor = "white", border = "2px solid black").
+#'   Default is an empty list.
 #' @param titleFont List. Settings for the title font.
 #' @param subtitleFont List. Settings for the subtitle font.
 #' @param ... Additional customization arguments for title and subtitle.
@@ -167,6 +174,10 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 #'     y = 25, # height / 2
 #'     align = "center",
 #'     spacing = 20,
+#'     style = list(
+#'       backgroundColor = "#0000"
+#'       # Any other CSS styles
+#'     ),
 #'     titleFont = list(
 #'       fontSize = "16px",
 #'       fontStyle = "normal",
@@ -175,6 +186,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 #'       fontFamily = "sans-serif",
 #'       cursor = "default",
 #'       fill = "black"
+#'       # Any other CSS styles
 #'     ),
 #'     subtitleFont = list(
 #'       fontSize = "14px",
@@ -184,6 +196,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 #'       fontFamily = "sans-serif",
 #'       cursor = "default",
 #'       fill = "black"
+#'       # Any other CSS styles
 #'     )
 #'   )
 #'
@@ -192,6 +205,7 @@ GC_title <- function(
     GC_chart,
     title = NULL,
     subtitle = NULL,
+    style = list(),
     subtitleFont = list(),
     titleFont = list(),
     show = TRUE,
@@ -199,12 +213,17 @@ GC_title <- function(
     ...
 ) {
 
+  if (!show) {
+    return(GC_chart)
+  }
+
   # Capture arguments and filter out NULL or empty values
   options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
       title = title,
       subtitle = subtitle,
       subtitleFont = subtitleFont,
       titleFont = titleFont,
+      style = style,
       height = height,
       show = show,
       ...
@@ -276,6 +295,7 @@ GC_title <- function(
 #'       fontFamily = "sans-serif",
 #'       cursor = "default",
 #'       fill = "black"
+#'       # Any other CSS styles
 #'     ),
 #'     subtitleFont = list(
 #'       fontSize = "14px",
@@ -285,6 +305,7 @@ GC_title <- function(
 #'       fontFamily = "sans-serif",
 #'       cursor = "default",
 #'       fill = "black"
+#'       # Any other CSS styles
 #'     )
 #'   )
 #' @export
@@ -299,6 +320,10 @@ GC_clusterTitle <- function(
     cluster = NULL,
     ...
 ) {
+
+  if (!show) {
+    return(GC_chart)
+  }
 
   # Capture ... arguments
   dots <- list(...)
@@ -393,6 +418,10 @@ GC_sequence <- function(
     markerStyle = list(),
     ...
 ) {
+
+  if (!show) {
+    return(GC_chart)
+  }
 
   # Capture ... arguments
   dots <- list(...)
@@ -747,6 +776,10 @@ GC_scaleBar <- function(
     ...
 ) {
 
+  if (!show) {
+    return(GC_chart)
+  }
+
   # Capture ... arguments
   dots <- list(...)
 
@@ -852,6 +885,10 @@ GC_clusterLabel <- function(
     wrapOptions = list(),
     ...
 ) {
+
+  if (!show) {
+    return(GC_chart)
+  }
 
   # Capture ... arguments
   dots <- list(...)
@@ -974,6 +1011,10 @@ GC_clusterFooter <- function(
     ...
 ) {
 
+  if (!show) {
+    return(GC_chart)
+  }
+
   # Capture ... arguments
   dots <- list(...)
 
@@ -1087,6 +1128,10 @@ GC_labels <- function(
     itemStyle = list(),
     ...
 ) {
+
+  if (!show) {
+    return(GC_chart)
+  }
 
   if (is.logical(label) && length(label) == 1) {
     show <- label
@@ -1209,6 +1254,10 @@ GC_coordinates <- function(
     ...
 ) {
 
+  if (!show) {
+    return(GC_chart)
+  }
+
   # Capture ... arguments
   dots <- list(...)
 
@@ -1293,7 +1342,6 @@ GC_coordinates <- function(
 #'     arrowHeight = 10
 #'    )
 #'
-#'
 #' # Change the appearance of a specific gene
 #' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
 #' GC_genes(
@@ -1314,6 +1362,10 @@ GC_genes <- function(
     ...
 ) {
 
+  if (!show) {
+    return(GC_chart)
+  }
+
   if (is.logical(group) && length(group) == 1) {
     show <- group
     group <- NULL
@@ -1331,27 +1383,20 @@ GC_genes <- function(
     stop("group column not found in data")
   }
 
-  # Capture arguments
-  dots <- list(...)
-
   # Update the GC_chart object with title and options for each cluster
   clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(i in seq_along(clusters)){
 
     # Default options
-    options <- list(
+    options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
       group = group[(i-1) %% length(group) + 1],
       show = show[(i-1) %% length(show) + 1],
       colorScheme = colorScheme,
       customColors = customColors,
-      itemStyle = itemStyle
-    )
-
-    # Add ... arguments to defaultOptions
-    for(name in names(dots)) {
-      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
-    }
+      itemStyle = itemStyle,
+      ...
+    ))
 
     GC_chart$x$series[[clusters[i]]]$genes <- options
 
@@ -1442,6 +1487,10 @@ GC_color <- function(
 #' @param order Optional; list, specifies the order of the legend labels.
 #' @param position Character. Position of the legend, either "top" or "bottom".
 #' Default is "bottom".
+#' @param style A list of CSS styles to be applied to the chart container. Each
+#'   element of the list should be a valid CSS property-value pair. For example,
+#'   list(backgroundColor = "white", border = "2px solid black").
+#'   Default is an empty list.
 #' @param legendOptions List, additional options for the legend.
 #' @param legendTextOptions List, additional text options for the legend.
 #' @param ... Additional arguments to be passed to the legend configuration.
@@ -1469,6 +1518,10 @@ GC_color <- function(
 #'     backgroundColor = "#0000",
 #'     order = list(),
 #'     positions = "bottom",
+#'     style = list(
+#'       backgroundColor = "#0000"
+#'       # Any other CSS styles
+#'     ),
 #'     legendOptions = list(
 #'       cursor = "pointer",
 #'       colorScheme = NULL,
@@ -1494,10 +1547,15 @@ GC_legend <- function(
     backgroundColor = "#0000",
     order = list(),
     position = "bottom",
+    style = list(),
     legendOptions = list(),
     legendTextOptions = list(),
     ...
 ) {
+
+  if (!show) {
+    return(GC_chart)
+  }
 
   if (is.logical(group) && length(group) == 1) {
     show <- group
@@ -1523,6 +1581,7 @@ GC_legend <- function(
     backgroundColor = backgroundColor,
     order = order,
     position = position,
+    style = style,
     legendOptions = legendOptions,
     legendTextOptions = legendTextOptions,
     ...
@@ -1574,6 +1633,10 @@ GC_tooltip <- function(
     ...
 ) {
 
+  if (!show) {
+    return(GC_chart)
+  }
+
   if (is.logical(formatter) && length(formatter) == 1) {
     show <- formatter
   }
@@ -1609,9 +1672,14 @@ GC_tooltip <- function(
 #' This function can switch gene tracks off or adjust the spacing between tracks.
 #'
 #' @param GC_chart The gene chart object to be modified.
-#' @param track Logical, whether to include the gene track or not. If FALSE, the specified gene track is removed.
+#' @param track Logical, whether to include the gene track or not.
+#'              If FALSE, the specified gene track is removed.
 #' @param spacing Numeric, the spacing to be used between gene tracks.
-#' @param cluster Numeric or character, the specific cluster to filter genes by.
+#' @param cluster Numeric or character, specifies the cluster to filter genes by.
+#' @param style A list of CSS styles to be applied to the gene track.
+#'              Each element of the list should be a valid CSS property-value
+#'              pair. For example, list(backgroundColor = "red", color = "white").
+#' @param ... Additional arguments to be passed to the underlying functions.
 #'
 #' @return Returns the modified gene chart object.
 #'
@@ -1629,18 +1697,20 @@ GC_tooltip <- function(
 #'   GC_legend(FALSE)
 #'
 #' @export
-GC_track <- function(
+GC_cluster <- function(
     GC_chart,
     track = TRUE,
     spacing = 40,
-    cluster = NULL
+    cluster = NULL,
+    style = list(),
+    ...
 ) {
-
   # Update the GC_chart object with title and options for each cluster
   clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(i in seq_along(clusters)){
 
+    # Update Track
     if(!track){
     subset_data <- GC_chart$x$series[[i]]$data
       if("geneTrack" %in% names(subset_data)) {
@@ -1652,6 +1722,21 @@ GC_track <- function(
     GC_chart$x$series[[clusters[i]]]$genes$trackSpacing <- spacing
     GC_chart$x$series[[clusters[i]]]$labels$trackSpacing <- spacing
     GC_chart$x$series[[clusters[i]]]$coordinates$trackSpacing <- spacing
+
+    # Update Style
+    options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+      style = style,
+      ...
+    ))
+
+    # Merge new options with existing options
+    if (is.null(GC_chart$x$series[[clusters[i]]]$options)) {
+      GC_chart$x$series[[clusters[i]]]$options <- options
+    } else {
+      GC_chart$x$series[[clusters[i]]]$options <-
+        modifyList(GC_chart$x$series[[clusters[i]]]$options, options)
+    }
+
   }
 
   # Add flag that function has been called.

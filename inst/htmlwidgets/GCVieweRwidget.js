@@ -3,7 +3,9 @@ HTMLWidgets.widget({
   type: 'output',
 
   factory: function (el, width, height) {
-    var data,
+    var
+      style,
+      data,
       series,
       titleOptions,
       legendOptions;
@@ -14,6 +16,16 @@ HTMLWidgets.widget({
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
 
+      // Apply styles
+      if (style && typeof style === 'object' && Object.keys(style).length > 0) {
+          // Apply styles from the style object
+          for (var key in style) {
+              if (style.hasOwnProperty(key)) {
+                  el.style[key] = style[key];
+              }
+          }
+      }
+
       // Add Title
 
       if (titleOptions !== null && titleOptions?.height !== null && titleOptions?.show) {
@@ -23,26 +35,21 @@ HTMLWidgets.widget({
           .attr("id", `GCvieweR-title-container-${widgetId}`)
           .classed("GCVieweR-container", true);
 
-        var titleHeight = computeSize(titleOptions?.height, height)
-        var titleWidth = computeSize(titleOptions?.width, width)
+
+        titleOptions.width = el.clientWidth
+        titleOptions.height = computeSize(titleOptions.height, el.clientHeight)
 
         var title = createContainer(
           `#GCvieweR-title-container-${widgetId}`,
           "svg-container",
           "titleOptions",
-          {
-            width: titleWidth,
-            height: titleHeight,
-            backgroundColor: titleOptions?.backgroundColor ?? "#0000",
-            margin: titleOptions?.margin
-          })
+          titleOptions)
           .title(titleOptions?.title, titleOptions?.subtitle, titleOptions?.show ?? false, titleOptions)
-
       }
 
       // Add legend
 
-      var legendHeight = (legendOptions?.show === false) ? 0 : computeSize(legendOptions?.height, height);
+      var legendHeight = (legendOptions?.show === false) ? 0 : computeSize(legendOptions?.height, el.clientHeight);
 
       if (legendOptions?.group !== null && legendOptions?.show) {
 
@@ -51,15 +58,13 @@ HTMLWidgets.widget({
           .attr("id", `GCvieweR-legend-container-${widgetId}`)
           .classed("GCVieweR-container", true);
 
+        legendOptions.width = width
+        legendOptions.height = computeSize(legendOptions.height, el.clientHeight)
+
         var legendContainer = createContainer(`#GCvieweR-legend-container-${widgetId}`,
           "svg-container",
           "legendOptions",
-          {
-            width: computeSize(legendOptions?.width, width),
-            height: legendHeight,
-            backgroundColor: legendOptions?.backgroundColor ?? "#0000",
-            margin: legendOptions.margin
-          })
+          legendOptions)
           .legendData(data)
           .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, el.id, legendOptions);
 
@@ -75,13 +80,12 @@ HTMLWidgets.widget({
         .classed("GCVieweR-container", true);
 
       // Add Clusters
-
       var clusters = Object.keys(series);
 
       clusters.forEach(function (clusterKey) {
 
         var cluster = series[clusterKey],
-            clusterStyle = cluster.style,
+            clusterOptions = cluster.options,
             clusterData = HTMLWidgets.dataframeToD3(series[clusterKey].data),
             scaleOptions = cluster.scale,
             clusterTitleOptions = cluster.clusterTitle,
@@ -94,26 +98,13 @@ HTMLWidgets.widget({
             scaleBarOptions = cluster.scaleBar;
             tooltipOptions = cluster.tooltip;
 
-        // Calculate height and width
-        var clusterHeight = computeSize(series[clusterKey]["grid"].height, el.clientHeight);
-        clusterHeight -= titleHeight ? (titleHeight / clusters.length) : 0;
-        clusterHeight -= legendHeight ? (legendHeight / clusters.length) : 0;
-        var clusterWidth = computeSize(series[clusterKey]["grid"].width, width);
-        var clusterMargins = series[clusterKey]["grid"].margin;
+        var clonedClusterOptions = JSON.parse(JSON.stringify(clusterOptions));
+        clonedClusterOptions.height = computeSize(clonedClusterOptions.height, el.clientHeight)
+        clonedClusterOptions.height -= titleOptions.height ? (titleOptions.height / clusters.length) : 0;
+        clonedClusterOptions.height -= legendHeight ? (legendHeight / clusters.length) : 0;
+        clonedClusterOptions.width = el.clientWidth;
 
-        var clusterOptions = {
-          width: clusterWidth,
-          height: clusterHeight,
-          style: clusterStyle,
-          margin: {
-            top: computeSize(clusterMargins?.top ?? 0, height),
-            right: computeSize(clusterMargins?.right ?? 50, width),
-            bottom: computeSize(clusterMargins?.bottom ?? 0, height),
-            left: computeSize(clusterMargins?.left ?? 50, width)
-          }
-        };
-
-        var cluster = createContainer(`#GCvieweR-graph-container-${widgetId}`, "svg-container", 'clusterOptions',  clusterOptions)
+        var cluster = createContainer(`#GCvieweR-graph-container-${widgetId}`, "svg-container", 'clusterOptions',  clonedClusterOptions)
           .theme("preset")
           .title(clusterTitleOptions?.title, clusterTitleOptions?.subtitle, clusterTitleOptions?.show ?? false, clusterTitleOptions)
           .footer(footerOptions?.title, footerOptions?.subtitle, footerOptions?.show ?? false, footerOptions)
@@ -141,40 +132,9 @@ HTMLWidgets.widget({
         var legendContainer = createContainer(`#GCvieweR-legend-container-${widgetId}`,
           "svg-container",
           "legendOptions",
-          {
-            width: computeSize(legendOptions?.width, width),
-            height: legendHeight,
-            backgroundColor: legendOptions?.backgroundColor ?? "#0000",
-            margin: legendOptions.margin
-          })
+          legendOptions)
           .legendData(data)
           .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, el.id, legendOptions);
-
-
-
-      }
-
-      // Bottom Title
-      if (titleOptions?.position == "bottom" && titleOptions !== null && titleOptions?.height !== null && titleOptions?.show) {
-
-        d3.select(`#GCvieweR-title-container-${widgetId}`).remove();
-
-        var titleContainer = d3.select(el)
-          .append("div")
-          .attr("id", `GCvieweR-title-container-${widgetId}`)
-          .classed("GCVieweR-container", true);
-
-        var title = createContainer(
-          `#GCvieweR-title-container-${widgetId}`,
-          "svg-container",
-          "titleOptions",
-          {
-            width: width,
-            height: titleHeight,
-            backgroundColor: titleOptions?.backgroundColor ?? "#0000",
-            margin: titleOptions?.margin
-          })
-          .title(titleOptions?.title, titleOptions?.subtitle, titleOptions?.show ?? false, titleOptions)
 
       }
 
@@ -182,6 +142,7 @@ HTMLWidgets.widget({
 
     return {
       renderValue: function (input) {
+        style = input.style;
         data = HTMLWidgets.dataframeToD3(input.data);
         series = input.series;
         titleOptions = input.title;

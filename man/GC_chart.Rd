@@ -12,7 +12,7 @@ GC_chart(
   group = NULL,
   width = "100\%",
   height = "400px",
-  background_color = "#0000",
+  style = list(),
   elementId = NULL
 )
 }
@@ -35,10 +35,15 @@ Default is unspecified.}
 \item{height}{Height specification for the chart, such as '400px' or 300.
 Default is unspecified.}
 
-\item{background_color}{Background color for the chart,
-specified as a color code. Default is transparent.}
+\item{style}{A list of CSS styles to be applied to the chart container. Each
+element of the list should be a valid CSS property-value pair. For example,
+list(backgroundColor = "white", border = "2px solid black").
+Default is an empty list.}
 
 \item{elementId}{Optional identifier string for the widget. Default is NULL.}
+
+\item{background_color}{Background color for the chart,
+specified as a color code. Default is transparent.}
 }
 \value{
 A GC chart widget.

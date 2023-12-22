@@ -68,7 +68,7 @@ GC_coordinates(
   rotate = -45,
   yPositionTop = 55,
   yPositionBottom = 45,
-  overlapPercentage = 2,
+  overlapThreshold = 20,
   tickStyle = list(
   stroke = "black",
   strokeWidth = 1,

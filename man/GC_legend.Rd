@@ -11,6 +11,7 @@ GC_legend(
   backgroundColor = "#0000",
   order = list(),
   position = "bottom",
+  style = list(),
   legendOptions = list(),
   legendTextOptions = list(),
   ...
@@ -30,6 +31,11 @@ If NULL, groups are taken from the 'group' attribute of the 'GC_chart' object.}
 
 \item{position}{Character. Position of the legend, either "top" or "bottom".
 Default is "bottom".}
+
+\item{style}{A list of CSS styles to be applied to the chart container. Each
+element of the list should be a valid CSS property-value pair. For example,
+list(backgroundColor = "white", border = "2px solid black").
+Default is an empty list.}
 
 \item{legendOptions}{List, additional options for the legend.}
 
@@ -66,6 +72,10 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
     backgroundColor = "#0000",
     order = list(),
     positions = "bottom",
+    style = list(
+      backgroundColor = "#0000"
+      # Any other CSS styles
+    ),
     legendOptions = list(
       cursor = "pointer",
       colorScheme = NULL,

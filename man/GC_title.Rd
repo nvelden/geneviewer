@@ -8,6 +8,7 @@ GC_title(
   GC_chart,
   title = NULL,
   subtitle = NULL,
+  style = list(),
   subtitleFont = list(),
   titleFont = list(),
   show = TRUE,
@@ -21,6 +22,11 @@ GC_title(
 \item{title}{Character vector. Titles to set for the clusters.}
 
 \item{subtitle}{Character vector. Subtitles to set for the clusters.}
+
+\item{style}{A list of CSS styles to be applied to the chart container. Each
+element of the list should be a valid CSS property-value pair. For example,
+list(backgroundColor = "white", border = "2px solid black").
+Default is an empty list.}
 
 \item{subtitleFont}{List. Settings for the subtitle font.}
 
@@ -70,6 +76,10 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "400px") \%>
     y = 25, # height / 2
     align = "center",
     spacing = 20,
+    style = list(
+      backgroundColor = "#0000"
+      # Any other CSS styles
+    ),
     titleFont = list(
       fontSize = "16px",
       fontStyle = "normal",
@@ -78,6 +88,7 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "400px") \%>
       fontFamily = "sans-serif",
       cursor = "default",
       fill = "black"
+      # Any other CSS styles
     ),
     subtitleFont = list(
       fontSize = "14px",
@@ -87,6 +98,7 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "400px") \%>
       fontFamily = "sans-serif",
       cursor = "default",
       fill = "black"
+      # Any other CSS styles
     )
   )
 

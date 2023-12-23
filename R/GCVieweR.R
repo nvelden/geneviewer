@@ -510,8 +510,8 @@ GC_grid <- function(
 
     # Update margins if provided
     if (!is.null(margin)) {
-        default_margin <- GC_chart$x$series[[cluster_name]]$grid$margin
-        GC_chart$x$series[[cluster_name]]$grid$margin <- if (is.null(default_margin)) margin else utils::modifyList(default_margin, margin)
+        default_margin <- GC_chart$x$series[[cluster_name]]$options$margin
+        GC_chart$x$series[[cluster_name]]$options$margin <- if (is.null(default_margin)) margin else utils::modifyList(default_margin, margin)
     }
 
     # Update width if provided
@@ -520,7 +520,7 @@ GC_grid <- function(
       if (is.numeric(current_width)) {
         current_width <- paste0(current_width, "%")
       }
-      GC_chart$x$series[[cluster_name]]$grid$width <- current_width
+      GC_chart$x$series[[cluster_name]]$options$width <- current_width
     }
 
     # Update height if provided
@@ -528,9 +528,9 @@ GC_grid <- function(
       if(!is.null(cluster)){
       current_height <- height[(i-1) %% length(height) + 1]
       current_height <- get_relative_height(chart_height, current_height)
-      GC_chart$x$series[[cluster_name]]$grid$height <- current_height
+      GC_chart$x$series[[cluster_name]]$options$height <- current_height
       } else {
-        GC_chart$x$series[[cluster_name]]$grid$height <- compute_size(height, length(all_clusters))
+        GC_chart$x$series[[cluster_name]]$options$height <- compute_size(height, length(all_clusters))
       }
     }
   }
@@ -544,7 +544,7 @@ GC_grid <- function(
   total_height <- 0
 
   for(cluster_name in all_clusters) {
-    cluster_height <- GC_chart$x$series[[cluster_name]]$grid$height
+    cluster_height <- GC_chart$x$series[[cluster_name]]$options$height
     total_height <- total_height + get_relative_height(GC_chart$height, cluster_height)
   }
 

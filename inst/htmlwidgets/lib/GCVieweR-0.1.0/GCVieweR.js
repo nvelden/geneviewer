@@ -2014,7 +2014,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     svgLegend.attr("height", contentHeight);
     var viewBoxWidth = parentWidth;
     svgLegend.attr("viewBox", `0 0 ${viewBoxWidth} ${contentHeight}`);
-    g.attr("transform", `translate(${this.margin.left}, ${padding / 2})`);
+    g.attr("transform", `translate(${this.margin.left}, ${this.margin.top + padding / 2})`);
 
   }
 

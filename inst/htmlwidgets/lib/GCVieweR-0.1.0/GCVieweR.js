@@ -2008,10 +2008,14 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     });
 
   if (adjustHeight && this.height === 0) {
-    var contentHeight = currentY + legendSize + legendPadding;
+    var padding = 20
+    var contentHeight = currentY + legendSize + legendPadding + padding;
+
     svgLegend.attr("height", contentHeight);
     var viewBoxWidth = parentWidth;
     svgLegend.attr("viewBox", `0 0 ${viewBoxWidth} ${contentHeight}`);
+    g.attr("transform", `translate(${this.margin.left}, ${padding / 2})`);
+
   }
 
   return this;

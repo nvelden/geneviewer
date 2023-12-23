@@ -203,12 +203,12 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 #' @export
 GC_title <- function(
     GC_chart,
+    show = TRUE,
     title = NULL,
     subtitle = NULL,
     style = list(),
     subtitleFont = list(),
     titleFont = list(),
-    show = TRUE,
     height = "50px",
     ...
 ) {

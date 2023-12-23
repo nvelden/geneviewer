@@ -203,18 +203,26 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 #' @export
 GC_title <- function(
     GC_chart,
-    show = TRUE,
     title = NULL,
     subtitle = NULL,
     style = list(),
     subtitleFont = list(),
     titleFont = list(),
-    height = "50px",
+    show = TRUE,
+    height = NULL,
     ...
 ) {
 
-  if (!show) {
+  if (!show || is.null(title) && is.null(subtitle)) {
     return(GC_chart)
+  }
+
+  if (is.null(height)) {
+    if (!is.null(title) && !is.null(subtitle)) {
+      height <- 50
+    } else if (!is.null(title) || !is.null(subtitle)) {
+      height <- 30
+    }
   }
 
   # Capture arguments and filter out NULL or empty values

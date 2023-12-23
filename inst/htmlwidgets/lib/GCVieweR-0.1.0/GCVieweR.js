@@ -2008,7 +2008,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     });
 
   if (adjustHeight && this.height === 0) {
-    var padding = 20
+    var padding = 20;
     var contentHeight = currentY + legendSize + legendPadding + padding;
 
     svgLegend.attr("height", contentHeight);

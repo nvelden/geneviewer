@@ -505,10 +505,45 @@ GC_grid <- function(
   update_clusters <- getUpdatedClusters(GC_chart, cluster)
   chart_height <- GC_chart$height
 
+  # Update margins
+
+  if(!is.null(margin) && is.null(cluster)){
+
+    paddingTop <- get_relative_height(chart_height, margin[["top"]])
+    paddingBottom <- get_relative_height(chart_height, margin[["bottom"]])
+    margin[["top"]] <- NULL
+    margin[["bottom"]] <- NULL
+
+    # Update left and right margins
+    GC_chart$x$legend$margin <- if (is.null(GC_chart$x$legend$margin)) margin else utils::modifyList(GC_chart$x$legend$margin, margin)
+    GC_chart$x$title$margin <- if (is.null(GC_chart$x$title$margin)) margin else utils::modifyList(GC_chart$x$title$margin, margin)
+
+    # Update top and bottom margins
+    if(!is.null(paddingTop) && length(paddingTop) > 0){
+
+      GC_chart$x$style[["paddingTop"]] <- paste0(as.character(paddingTop), "px")
+      for (i in seq_along(all_clusters)) {
+        cluster_name <- update_clusters[i]
+        GC_chart$x$series[[cluster_name]]$options$height <- GC_chart$x$series[[cluster_name]]$options$height - (paddingTop / length(all_clusters))
+      }
+    }
+
+    if(!is.null(paddingBottom) && length(paddingBottom) > 0){
+
+      GC_chart$x$style[["paddingBottom"]] <- paste0(as.character(paddingBottom), "px")
+      for (i in seq_along(all_clusters)) {
+        cluster_name <- update_clusters[i]
+        GC_chart$x$series[[cluster_name]]$options$height <- GC_chart$x$series[[cluster_name]]$options$height - (paddingBottom / length(all_clusters))
+      }
+    }
+
+  }
+
+  # Udpate cluster dimensions
   for (i in seq_along(update_clusters)) {
     cluster_name <- update_clusters[i]
 
-    # Update margins if provided
+    # Update left and right margins if provided
     if (!is.null(margin)) {
         default_margin <- GC_chart$x$series[[cluster_name]]$options$margin
         GC_chart$x$series[[cluster_name]]$options$margin <- if (is.null(default_margin)) margin else utils::modifyList(default_margin, margin)
@@ -535,12 +570,7 @@ GC_grid <- function(
     }
   }
 
-  # Update Title and Legend margins
-  if(!is.null(margin) && is.null(cluster)){
-  GC_chart$x$legend$margin <- if (is.null(default_margin)) margin else utils::modifyList(default_margin, margin)
-  GC_chart$x$title$margin <- if (is.null(default_margin)) margin else utils::modifyList(default_margin, margin)
-  }
-  # Update total height of chart
+  #Update total height of chart
   total_height <- 0
 
   for(cluster_name in all_clusters) {
@@ -894,7 +924,7 @@ GC_clusterLabel <- function(
     ...
 ) {
 
-  if (!show) {
+  if (!show || is.null(title)) {
     return(GC_chart)
   }
 
@@ -1185,7 +1215,7 @@ GC_labels <- function(
 
   # Check if GC_track is called last
   if (!is.null(GC_chart$x$track_called) && GC_chart$x$track_called) {
-    warning("GC_track must be called after setting genes, labels or coordinates for proper effect.")
+    warning("Track must be called after setting genes, labels or coordinates for proper effect.")
   }
 
   return(GC_chart)
@@ -1725,6 +1755,7 @@ GC_cluster <- function(
         subset_data <- subset_data[, !(names(subset_data) %in% "geneTrack")]
         GC_chart$x$series[[i]]$data <- subset_data
       }
+    GC_chart$x$track_called <- TRUE
     }
 
     GC_chart$x$series[[clusters[i]]]$genes$trackSpacing <- spacing
@@ -1746,9 +1777,6 @@ GC_cluster <- function(
     }
 
   }
-
-  # Add flag that function has been called.
-  GC_chart$x$track_called <- TRUE
 
   return(GC_chart)
 }

@@ -4,7 +4,14 @@
 \alias{GC_grid}
 \title{Update Grid Display of a GC Chart Cluster}
 \usage{
-GC_grid(GC_chart, margin = NULL, width = NULL, height = NULL, cluster = NULL)
+GC_grid(
+  GC_chart,
+  margin = NULL,
+  width = NULL,
+  height = NULL,
+  direction = "column",
+  cluster = NULL
+)
 }
 \arguments{
 \item{GC_chart}{A GC chart object.}
@@ -15,6 +22,9 @@ GC_grid(GC_chart, margin = NULL, width = NULL, height = NULL, cluster = NULL)
 considered as percentage.}
 
 \item{height}{Numeric. Height of the grid.}
+
+\item{direction}{Character. Layout direction of the grid, either "column"
+(default) for vertical or "row" for horizontal.}
 
 \item{cluster}{Numeric or character vector. Clusters in the GC chart to update.}
 }

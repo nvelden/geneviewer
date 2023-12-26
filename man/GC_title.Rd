@@ -12,7 +12,7 @@ GC_title(
   subtitleFont = list(),
   titleFont = list(),
   show = TRUE,
-  height = "50px",
+  height = NULL,
   ...
 )
 }

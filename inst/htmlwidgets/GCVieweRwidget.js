@@ -4,6 +4,7 @@ HTMLWidgets.widget({
 
   factory: function (el, width, height) {
     var
+      graphContainer,
       style,
       data,
       series,
@@ -77,6 +78,7 @@ HTMLWidgets.widget({
       var graph = d3.select(el)
         .append("div")
         .attr("id", `GCvieweR-graph-container-${widgetId}`)
+        .style("flex-direction", graphContainer["direction"])
         .classed("GCVieweR-container", true);
 
       // Add Clusters
@@ -98,11 +100,13 @@ HTMLWidgets.widget({
             scaleBarOptions = cluster.scaleBar;
             tooltipOptions = cluster.tooltip;
 
+
+
         var clonedClusterOptions = JSON.parse(JSON.stringify(clusterOptions));
-        clonedClusterOptions.height = computeSize(clonedClusterOptions.height, el.clientHeight)
+        clonedClusterOptions.height = computeSize(clonedClusterOptions.height, el.clientHeight);
         clonedClusterOptions.height -= titleOptions.height ? (titleOptions.height / clusters.length) : 0;
         clonedClusterOptions.height -= legendHeight ? (legendHeight / clusters.length) : 0;
-        clonedClusterOptions.width = el.clientWidth;
+        clonedClusterOptions.width = computeSize(clonedClusterOptions.width, el.clientWidth);
 
         var cluster = createContainer(`#GCvieweR-graph-container-${widgetId}`, "svg-container", 'clusterOptions',  clonedClusterOptions)
           .theme("preset")
@@ -142,6 +146,7 @@ HTMLWidgets.widget({
 
     return {
       renderValue: function (input) {
+        graphContainer = input.graphContainer;
         style = input.style;
         data = HTMLWidgets.dataframeToD3(input.data);
         series = input.series;

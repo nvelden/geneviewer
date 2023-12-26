@@ -65,6 +65,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 
   x$data <- data
   x$group <- group
+  x$graphContainer$direction <- "column"
   x$style <- style
   x$title$style <- list(width = "100%")
   x$legend <- list(group = group, show = show_legend, position = "bottom",
@@ -98,7 +99,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$clusterName <- clust
     x$series[[clust]]$data <- subset_data
 
-    x$series[[clust]]$options <- list(height = compute_size(height, length(clusters)), width = width)
+    x$series[[clust]]$options <- list(height = "100%", width = width)
     x$series[[clust]]$options$style <- list(width = "100%", backgroundColor = style$backgroundColor)
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
     x$series[[clust]]$labels <- list(group = group, show = TRUE)
@@ -471,6 +472,8 @@ GC_sequence <- function(
 #' @param width Numeric or character. Width of the grid. If numeric, will be
 #' considered as percentage.
 #' @param height Numeric. Height of the grid.
+#' @param direction Character. Layout direction of the grid, either "column"
+#' (default) for vertical or "row" for horizontal.
 #' @param cluster Numeric or character vector. Clusters in the GC chart to update.
 #'
 #' @return Updated GC chart with new grid display settings.
@@ -498,6 +501,7 @@ GC_grid <- function(
     margin = NULL,
     width = NULL,
     height = NULL,
+    direction = "column",
     cluster = NULL
 ) {
 
@@ -505,12 +509,20 @@ GC_grid <- function(
   update_clusters <- getUpdatedClusters(GC_chart, cluster)
   chart_height <- GC_chart$height
 
-  # Update margins
+  if(!is.null(width) && is.null(cluster)){
+    GC_chart$width <- get_relative_height(GC_chart$width, width)
+  }
 
+  if(is.null(cluster) && direction == "row"){
+    GC_chart$x$graphContainer$direction <- "row"
+  }
+
+  # Update margins
   if(!is.null(margin) && is.null(cluster)){
 
-    paddingTop <- get_relative_height(chart_height, margin[["top"]])
-    paddingBottom <- get_relative_height(chart_height, margin[["bottom"]])
+    paddingTop <- if (!is.null(margin[["top"]])) get_relative_height(chart_height, margin[["top"]]) else 0
+    paddingBottom <- if (!is.null(margin[["bottom"]])) get_relative_height(chart_height, margin[["bottom"]]) else 0
+
     margin[["top"]] <- NULL
     margin[["bottom"]] <- NULL
 
@@ -519,20 +531,22 @@ GC_grid <- function(
     GC_chart$x$title$margin <- if (is.null(GC_chart$x$title$margin)) margin else utils::modifyList(GC_chart$x$title$margin, margin)
 
     # Update top and bottom margins
-    if(!is.null(paddingTop) && length(paddingTop) > 0){
+    if(paddingTop > 0){
 
       GC_chart$x$style[["paddingTop"]] <- paste0(as.character(paddingTop), "px")
       for (i in seq_along(all_clusters)) {
         cluster_name <- update_clusters[i]
-        GC_chart$x$series[[cluster_name]]$options$height <- GC_chart$x$series[[cluster_name]]$options$height - (paddingTop / length(all_clusters))
+        current_height <- get_relative_height(GC_chart$x$series[[cluster_name]]$options$height, GC_chart$x$series[[cluster_name]]$options$height)
+        GC_chart$x$series[[cluster_name]]$options$height <- current_height - (paddingTop / length(all_clusters))
       }
     }
 
-    if(!is.null(paddingBottom) && length(paddingBottom) > 0){
+    if(paddingBottom > 0){
 
       GC_chart$x$style[["paddingBottom"]] <- paste0(as.character(paddingBottom), "px")
       for (i in seq_along(all_clusters)) {
         cluster_name <- update_clusters[i]
+        current_height <- get_relative_height(GC_chart$x$series[[cluster_name]]$options$height, GC_chart$x$series[[cluster_name]]$options$height)
         GC_chart$x$series[[cluster_name]]$options$height <- GC_chart$x$series[[cluster_name]]$options$height - (paddingBottom / length(all_clusters))
       }
     }
@@ -550,11 +564,10 @@ GC_grid <- function(
     }
 
     # Update width if provided
-    if (!is.null(width)) {
+    if (!is.null(width) && !is.null(cluster)) {
       current_width <- width[(i-1) %% length(width) + 1]
-      if (is.numeric(current_width)) {
-        current_width <- paste0(current_width, "%")
-      }
+      current_width <- get_relative_height(GC_chart$width, current_width)
+      GC_chart$x$series[[cluster_name]]$options$style$width <- current_width
       GC_chart$x$series[[cluster_name]]$options$width <- current_width
     }
 
@@ -569,16 +582,6 @@ GC_grid <- function(
       }
     }
   }
-
-  #Update total height of chart
-  total_height <- 0
-
-  for(cluster_name in all_clusters) {
-    cluster_height <- GC_chart$x$series[[cluster_name]]$options$height
-    total_height <- total_height + get_relative_height(GC_chart$height, cluster_height)
-  }
-
-  GC_chart$height <- total_height
 
   return(GC_chart)
 }

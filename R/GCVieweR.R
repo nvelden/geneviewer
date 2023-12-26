@@ -99,7 +99,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$clusterName <- clust
     x$series[[clust]]$data <- subset_data
 
-    x$series[[clust]]$options <- list(height = "100%", width = width)
+    x$series[[clust]]$options <- list(height = get_relative_height(height, height) / length(clusters), width = width)
     x$series[[clust]]$options$style <- list(width = "100%", backgroundColor = style$backgroundColor)
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
     x$series[[clust]]$labels <- list(group = group, show = TRUE)

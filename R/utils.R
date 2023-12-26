@@ -257,6 +257,12 @@ compute_size <- function(value, length = 2) {
 #' @return Returns the calculated relative height.
 #' @noRd
 get_relative_height <- function(baseHeight, relativeHeight) {
+  # Check if both baseHeight and relativeHeight are in percentage
+  if(is.character(baseHeight) && grepl("%$", baseHeight) &&
+     is.character(relativeHeight) && grepl("%$", relativeHeight)) {
+    # Return relativeHeight as is
+    return(relativeHeight)
+  }
   # Convert baseHeight to numeric if it's in the format "400px"
   if(is.character(baseHeight) && grepl("px$", baseHeight)) {
     baseHeight <- as.numeric(sub("px", "", baseHeight))

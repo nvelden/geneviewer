@@ -45,7 +45,7 @@ genes_data <- data.frame(
 
 
 GC_chart(genes_data, group = "group", height = "150px") \%>\%
-  GC_track(spacing=30) \%>\%
+  GC_cluster(spacing=30) \%>\%
   GC_legend(FALSE)
 
 }

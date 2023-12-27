@@ -21,8 +21,6 @@ magrittr::`%>%`
 #'   element of the list should be a valid CSS property-value pair. For example,
 #'   list(backgroundColor = "white", border = "2px solid black").
 #'   Default is an empty list.
-#' @param background_color Background color for the chart,
-#' specified as a color code. Default is transparent.
 #' @param elementId Optional identifier string for the widget. Default is NULL.
 #'
 #' @return A GC chart widget.
@@ -1731,7 +1729,7 @@ GC_tooltip <- function(
 #'
 #'
 #' GC_chart(genes_data, group = "group", height = "150px") %>%
-#'   GC_track(spacing=30) %>%
+#'   GC_cluster(spacing=30) %>%
 #'   GC_legend(FALSE)
 #'
 #' @export

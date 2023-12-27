@@ -12,7 +12,7 @@ GC_chart(
   group = NULL,
   width = "100\%",
   height = "400px",
-  style = list(`padding-top` = "50px", `padding-bottom` = "50px"),
+  style = list(),
   elementId = NULL
 )
 }
@@ -41,9 +41,6 @@ list(backgroundColor = "white", border = "2px solid black").
 Default is an empty list.}
 
 \item{elementId}{Optional identifier string for the widget. Default is NULL.}
-
-\item{background_color}{Background color for the chart,
-specified as a color code. Default is transparent.}
 }
 \value{
 A GC chart widget.

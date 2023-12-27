@@ -490,67 +490,6 @@ function parseAndStyleText(text, parentElement, fontOptions) {
   }
 }
 
-// CLuster
-
-/*
-
-function clusterContainer(svg, margin, width, height) {
-  this.svg = svg;
-  this.margin = margin;
-  this.width = width;
-  this.height = height;
-}
-function createClusterContainer(targetElementId, options = {}) {
-
-  const defaultOptions = {
-    id: "svg-container",
-    margin: { top: 0, right: "50px", bottom: 0, left: "50px" },
-    style: {
-      backgroundColor: "#0000"
-    },
-    width: null,
-    height: null
-  };
-
-  // Merge default options and user-specified options
-  const combinedOptions = mergeOptions.call(this, defaultOptions, 'clusterOptions', options);
-  const { id, margin: originalMargin, style, width, height } = combinedOptions;
-
-  // Extract additional options that are not in defaultOptions
-  const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
-
-  // Compute margins without modifying the original margin object
-  const computedMargin = {
-    top: computeSize(originalMargin.top, height),
-    right: computeSize(originalMargin.right, width),
-    bottom: computeSize(originalMargin.bottom, height),
-    left: computeSize(originalMargin.left, width)
-  };
-
-  var svg = d3.select(targetElementId)
-    .append("svg")
-    .attr("id", getUniqueId(id))
-    .attr("width", width || "100%")
-    .attr("height", height || "100%")
-    .attr("preserveAspectRatio", "xMinYMin meet")
-    .attr("viewBox", `0 0 ${width || computedWidth} ${height || computedHeight}`)
-    .classed("GCVieweR-svg-content", true)
-    .style("box-sizing", "border-box")
-    .style("background-color", style.backgroundColor)
-    .each(function () {
-      const currentElement = d3.select(this);
-      setStyleFromOptions(currentElement, additionalOptionsStyle);
-    });
-
-  // Apply styles from the combined options
-  Object.entries(style).forEach(([key, value]) => {
-    svg.style(key, value);
-  });
-
-  return new clusterContainer(svg, computedMargin, width, height);
-}
- */
-
  function container(svg, margin, width, height) {
   this.svg = svg;
   this.margin = margin;
@@ -562,7 +501,7 @@ function createClusterContainer(targetElementId, options = {}) {
 
   const defaultOptions = {
     id: id || "svg-container",
-    margin: { top: 0, right: "50px", bottom: 0, left: "50px" },
+    margin: { top: 5, right: 50, bottom: 5, left: 50 },
     style: {
       backgroundColor: "#0000"
     },
@@ -1096,6 +1035,7 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
 };
 
 container.prototype.sequence = function (show = true, options = {}) {
+
   if (!show) {
     return this;
   }
@@ -2069,10 +2009,14 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     });
 
   if (adjustHeight && this.height === 0) {
-    var contentHeight = currentY + legendSize + legendPadding;
+    var padding = 20;
+    var contentHeight = currentY + legendSize + legendPadding + padding;
+
     svgLegend.attr("height", contentHeight);
     var viewBoxWidth = parentWidth;
     svgLegend.attr("viewBox", `0 0 ${viewBoxWidth} ${contentHeight}`);
+    g.attr("transform", `translate(${this.margin.left}, ${this.margin.top + padding / 2})`);
+
   }
 
   return this;

@@ -57,6 +57,27 @@ GC_chart(ophA_clusters,
          )
 ```
 
+### Styling
+
+To customize the overall appearance of the chart, you can use the style parameter, which accepts a list of CSS style properties. For styling specific elements individually, please refer to the corresponding functions listed below.
+
+```{r echo=TRUE, results='asis'}
+# Example data for two Gene clusters
+GC_chart(ophA_clusters, 
+         start = "start", 
+         end = "end", 
+         group = "class", 
+         cluster = "cluster", 
+         height = "200px",
+         style = list(
+           border = "1px solid black",
+           backgroundColor = "#FAEBD7"
+           # Any other CSS style
+           )
+         )
+```
+
+
 ## Shiny
 
 The `GC_chartOutput()` and `renderGC_chart()` functions enable you to visualize gene clusters within Shiny applications.
@@ -105,9 +126,9 @@ Customization functions are by default set to alter the styling of all gene clus
 In the below example the y position is adjusted for the first cluster shifting the labels below the cluster.
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "300px") %>%
-  GC_title(title = "ophA Gene Clusters", height = "30px") %>%
-  GC_labels(label = "name", cluster = "ophA", y = 20) %>%
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "350px") %>%
+  GC_title(title = "ophA Gene Clusters") %>%
+  GC_labels(label = "name", cluster = "ophA", y = 18) %>%
   GC_labels(label = "name", cluster = 2)
 ```
 
@@ -118,7 +139,7 @@ To apply styling to a particular item within a gene cluster, the `itemStyle` var
 In the example below, the 3rd label in the ophA cluster is styled with red color and bold font. The code also customizes labels in cluster 2, where the 5th label is similarly styled in red and bold, and the 4th label's position is adjusted.
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") %>%
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "300px") %>%
   GC_title(title = "ophA Gene Clusters", height = "30px") %>%
   GC_labels(label = "name", 
             cluster = "ophA", 
@@ -133,9 +154,104 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px") 
     itemStyle = 
               list(
                 list(index = 4, fill = "red", fontWeight = "bold"),
-                list(index = 3, y = 5, x = -5)
+                list(index = 3, y = 15, x = -5)
                 )
     )
+```
+
+## Cluster
+
+The `GC_cluster` function can be used to style and adjust the margins of specific clusters.
+
+In the below example we set a different background color for each cluster and decrease the left and right margins to 25px. Note that the margins of the title and legend are not adjusted. To adjust those as well it is easiest to use the [`GC_grid`](#grid) function which will adjust the margins of all elements at once.   
+
+```{r echo=TRUE, results='asis'}
+GC_chart(
+  ophA_clusters,
+  group = "class",
+  cluster = "cluster",
+  height = "300px" 
+  ) %>%
+  GC_title("Adjust margins of GC clusters", align = "left", height = "40px") %>%
+  GC_cluster(margin = list(left = 25, right = 25)) %>%
+  GC_cluster(cluster = 1, style = list(backgroundColor = "green")) %>%
+  GC_cluster(cluster = 2, style = list(backgroundColor = "red"))
+```
+
+### Track
+
+To prevent gene overlaps, genes are automatically separated into distinct tracks. With the `GC_cluster` function the track-based separation can be switched off or the spacing between tracks can be adjusted.
+
+In the below example the track is switched off for the first cluster and the spacing for the second cluster is increased from 40 to 50.
+
+**Note**: The `GC_cluster()` function must be called after setting genes, labels or coordinates for proper effect.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(
+  subset(human_hox_genes, cluster %in% c("HOXA", "HOXB")),
+  group = "name",
+  cluster = "cluster",
+  height = "300px" 
+  ) %>% 
+  GC_labels(label = "name") %>%
+  GC_labels(label = "name", 
+            cluster = 1, 
+            itemStyle = list(list(index = 2, x=-10))
+            ) %>%
+  GC_legend(FALSE) %>%
+  GC_cluster(track = FALSE, cluster = 1) %>%
+  GC_cluster(cluster = 2, spacing = 50)
+```
+
+## Grid {#grid}
+
+The `GC_grid()` function can be used to modify the grid of the chart or specific clusters. In the below example the top and bottom margins are increased and the left and right margins decreased from 50px which is the default to 25px. 
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, group = "class", cluster = "cluster",
+         style = list(backgroundColor = "red"),
+         height = "300px"
+         ) %>%
+  GC_title("Adjusting Margins of a GC_chart", align = "left", y = 15, style = list(backgroundColor = "yellow", align = "left")) %>%
+  GC_cluster(style = list(backgroundColor = "green")) %>%
+  GC_legend(TRUE, style = list(backgroundColor = "yellow")) %>%
+  GC_grid(margin = list(top = 50, bottom = 50, left = 25, right = 25))
+```
+
+Clusters can be shown side by side by setting the `direction` to `row` and adjusting the `width` of each cluster.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "250px") %>%
+  GC_grid(direction = "row", margin = list(left = 15, right = 15)) %>%
+  GC_clusterTitle(c("<i>Omphalotus Olearius</i>", "<i>Dendrothele Bisporus</i>")) %>%
+  GC_legend(position = "top") %>%
+  GC_grid(
+    cluster = c(1,2), 
+    width = "50%",
+    height = "50%"
+  )
+```
+
+## Saving Plots
+
+The `GCVieweR` package does not have build-in functionality for saving plots. However, plots can be saved to images and .pdf by using the `webshot2` package. To do this plots need to be saved to `.html` first after which `webshot2` can make a screenshot.
+
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+library(webshot2)
+
+# Generate plot with width and height specifications
+cluster_plot <- 
+  GC_chart(ophA_clusters, 
+           group = "class", 
+           cluster = "cluster",
+           width = "400px",
+           height = "250px")
+
+# Save plot to temp.html file
+htmlwidgets::saveWidget(cluster_plot, "temp.html", selfcontained = TRUE)
+
+# Save plot to .png (or .jpg, .jpeg, .webp, .pdf)
+webshot2::webshot("temp.html", "output.png", selector = ".GCVieweR")
 ```
 
 ## Genes
@@ -195,7 +311,7 @@ GC_chart(ophA_clusters,
   GC_legend(position="top")
 ```
 
-To adjust the positioning of labels, the `x`, `y`, and `position` variables can be used. Note that in this example, `GC_labels()` is employed twice: initially, it sets labels uniformly for all gene clusters, and then it specifically adjusts the fourth and eight label (considering the index starts at 0) in cluster 2, to ensure there is no overlap.
+To adjust the positioning of labels, the `x`, `y`, and `align` variables can be used. Note that in this example, `GC_labels()` is employed twice: initially, it sets labels uniformly for all gene clusters, and then it specifically adjusts the fourth and eight label (considering the index starts at 0) in cluster 2, to ensure there is no overlap.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") %>%
@@ -216,8 +332,7 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") 
   GC_clusterFooter(
     title = c("Nr. of Genes: 7", "Nr. of Genes: 10"), 
     subtitle = c("Locus: 2522 - 21,484", "Locus 19,236 - 43,005"), 
-    position = "center", 
-    y = -10
+    align = "center"
     )
 ```
 
@@ -225,10 +340,10 @@ To adjust the position or styling of specific labels one can use the `cluster` a
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") %>%
-  GC_labels("name", y = 30) %>%
+  GC_labels("name", y = 25) %>%
   GC_labels("name", 
             cluster = 2, 
-            y = 30,
+            y = 25,
             itemStyle = list(
               list(index = 3, y = 50, fill = "red"),
               list(index = 7, y = 50, fill = "red")
@@ -269,7 +384,7 @@ generate_GC_color_patches <- function(color_scheme_name, color_scheme_length) {
     GC_genes(colorScheme = color_scheme_name, arrowheadWidth = 0, arrowheadHeight = 25, arrowHeight = 25) %>%
     GC_legend(FALSE) %>%
     GC_tooltip(FALSE) %>%
-    GC_sequence(FALSE)
+    GC_sequence(show = FALSE)
 
   return(chart)
 }
@@ -375,10 +490,14 @@ GC_chart(
     orientation = "horizontal", #vertical
     x = 0,
     y = 0,
+    margin = list(top = 0, left = 50, bottom = 0,  right = 50),
     width = NULL,
     adjustHeight = TRUE,
-    backgroundColor = "#0000",
     order = list(),
+    style = list(
+      #backgroundColor = "#0000"
+      # Additional CSS styles
+    ),
     positions = "bottom",
     legendOptions = list(
       cursor = "pointer",
@@ -609,7 +728,7 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "150px") 
     scaleBarUnit = 1000,
     cluster = NULL,
     x = 0,
-    y = 10,
+    y = 0,
     labelStyle = list(
       labelPosition = "left",
       fontSize = "10px",
@@ -643,71 +762,4 @@ GC_chart(ophA_cluster, group = "class", height = "150px") %>%
     formatter = "<b>Gene: </b>{name}<br><b>Start:</b> {start}<br><b>End:</b> {end}",
   ) %>%
   GC_legend(FALSE)
-```
-
-## Track
-
-To prevent gene overlaps, genes are automatically separated into distinct tracks. With the `GC_track` function the track-based separation can be switched off or the spacing between tracks can be adjusted.
-
-In the below example the track is switched off for the first cluster and the spacing for the second cluster is increased from 40 to 50.
-
-**Note**: The `GC_track()` function must be called after setting genes, labels or coordinates for proper effect.
-
-```{r echo=TRUE, results='asis'}
-GC_chart(
-  subset(human_hox_genes, cluster %in% c("HOXA", "HOXB")),
-  group = "name",
-  cluster = "cluster",
-  height = "300px" 
-  ) %>% 
-  GC_labels(label = "name") %>%
-  GC_labels(label = "name", 
-            cluster = 1, 
-            itemStyle = list(list(index = 2, x=-10))
-            ) %>%
-  GC_legend(FALSE) %>%
-  GC_track(track = FALSE, cluster = 1) %>%
-  GC_track(cluster = 2, spacing = 50)
-```
-
-## Grid
-
-The `GC_grid()` function can be used to modify the grid of all or a specific cluster. In the below example the height and margins are adjusted for all clusters and subsequently adjusted for the first gene cluster.
-
-```{r echo=TRUE, results='asis'}
-# With scale breaks
-GC_chart(ophA_clusters, group = "class", cluster = "cluster",
-         height = "200px" # Total height 
-                          # since there are 2 clusters in the data 
-                          # the height of each cluster will be 100px
-         ) %>%
-  GC_grid(margin = list(left = 50, right = 50)) %>%
-  GC_grid(
-    cluster = 1, 
-    height = "50px",
-    margin = list(left = "5px", right = "5px", top = "0px", bottom = "0px")
-  ) %>% 
-  GC_legend(TRUE)
-```
-
-## Saving Plots
-
-The `GCVieweR` package does not have build-in functionality for saving plots. However, plots can be saved to images and .pdf by using the `webshot2` package. To do this plots need to be saved to `.html` first after which `webshot2` can make a screenshot.
-
-```{r echo=TRUE, eval=FALSE, warning=FALSE}
-library(webshot2)
-
-# Generate plot with width and height specifications
-cluster_plot <- 
-  GC_chart(ophA_clusters, 
-           group = "class", 
-           cluster = "cluster",
-           width = "400px",
-           height = "250px")
-
-# Save plot to temp.html file
-htmlwidgets::saveWidget(cluster_plot, "temp.html", selfcontained = TRUE)
-
-# Save plot to .png (or .jpg, .jpeg, .webp, .pdf)
-webshot2::webshot("temp.html", "output.png", selector = ".GCVieweR")
 ```

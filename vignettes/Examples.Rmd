@@ -195,7 +195,8 @@ GC_chart(
   ) %>% 
   GC_scale(
     cluster = c(3,4),
-    reverse = TRUE
+    reverse = TRUE,
+    hidden = TRUE
   ) %>%
   GC_labels(label = "name", 
             adjustLabels = FALSE,
@@ -204,7 +205,7 @@ GC_chart(
               list(index = 5, x = 8)
              )
            ) %>%
-  GC_track(spacing=30)
+  GC_cluster(spacing=30)
 ```
 </details>
 
@@ -237,7 +238,7 @@ GC_chart(
     hidden = TRUE,
     reverse = TRUE
   ) %>%
-  GC_track(spacing=30)
+  GC_cluster(spacing=30)
 ```
 
 ### *H. sapiens* Dystrophin transcript variants
@@ -328,7 +329,7 @@ GC_chart(erythromycin_cluster,
          group = "Functions") %>%
   GC_title(
     title = "Erythromycin A biosynthetic gene cluster from <i>Saccharopolyspora erythraea</i>",
-    height = "25px",
+    height = 40,
     align = "left"
     ) %>%
   GC_genes(
@@ -341,7 +342,7 @@ GC_chart(erythromycin_cluster,
                  <br>{Product}
                  <br>{start} - {end}({Strand})" 
   ) %>%
-  GC_track(track = FALSE) %>%
+  GC_cluster(track = FALSE) %>%
   GC_scale(
     start = 778000,
     end = 832000,
@@ -352,8 +353,7 @@ GC_chart(erythromycin_cluster,
     order = c(setdiff(sort(erythromycin_cluster$Functions), "Other"), "Other")
     
     ) %>%
-  GC_color(customColors = colors) %>%
-  GC_grid(margin = list(left = 0, right = 0))
+  GC_color(customColors = colors)
 ```
 </details>
 
@@ -378,7 +378,7 @@ GC_chart(erythromycin_cluster,
          group = "Functions") %>%
   GC_title(
     title = "Erythromycin A biosynthetic gene cluster from <i>Saccharopolyspora erythraea</i>",
-    height = "25px",
+    height = "40px",
     align = "left"
     ) %>%
   GC_genes(
@@ -391,7 +391,7 @@ GC_chart(erythromycin_cluster,
                  <br>{Product}
                  <br>{start} - {end}({Strand})" 
   ) %>%
-  GC_track(track = FALSE) %>%
+  GC_cluster(track = FALSE) %>%
   GC_scale(
     start = 778000,
     end = 832000,
@@ -402,6 +402,5 @@ GC_chart(erythromycin_cluster,
     order = c(setdiff(sort(erythromycin_cluster$Functions), "Other"), "Other")
     
     ) %>%
-  GC_color(customColors = colors) %>%
-  GC_grid(margin = list(left = 0, right = 0))
+  GC_color(customColors = colors) 
 ```

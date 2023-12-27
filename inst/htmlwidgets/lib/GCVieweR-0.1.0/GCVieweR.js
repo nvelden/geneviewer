@@ -1035,6 +1035,7 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
 };
 
 container.prototype.sequence = function (show = true, options = {}) {
+
   if (!show) {
     return this;
   }

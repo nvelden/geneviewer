@@ -12,7 +12,7 @@ GC_chart(
   group = NULL,
   width = "100\%",
   height = "400px",
-  style = list(),
+  style = list(`padding-top` = "50px", `padding-bottom` = "50px"),
   elementId = NULL
 )
 }

@@ -17,6 +17,8 @@ HTMLWidgets.widget({
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
 
+      el.style["height"] = "100%"
+
       // Apply styles
       if (style && typeof style === 'object' && Object.keys(style).length > 0) {
           // Apply styles from the style object

@@ -428,10 +428,6 @@ GC_sequence <- function(
     ...
 ) {
 
-  if (!show) {
-    return(GC_chart)
-  }
-
   # Capture ... arguments
   dots <- list(...)
 
@@ -534,6 +530,7 @@ GC_grid <- function(
     if(paddingTop > 0){
 
       GC_chart$x$style[["paddingTop"]] <- paste0(as.character(paddingTop), "px")
+      GC_chart$height <- "100%"
       for (i in seq_along(all_clusters)) {
         cluster_name <- update_clusters[i]
         current_height <- get_relative_height(GC_chart$x$series[[cluster_name]]$options$height, GC_chart$x$series[[cluster_name]]$options$height)
@@ -542,7 +539,7 @@ GC_grid <- function(
     }
 
     if(paddingBottom > 0){
-
+      GC_chart$height <- "100%"
       GC_chart$x$style[["paddingBottom"]] <- paste0(as.character(paddingBottom), "px")
       for (i in seq_along(all_clusters)) {
         cluster_name <- update_clusters[i]

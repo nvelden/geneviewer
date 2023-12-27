@@ -1,7 +1,7 @@
 Package: GCVieweR
 Type: Package
 Title: Gene Cluster Visualizations in R
-Version: 0.1.0
+Version: 0.1.1
 Author: Niels van der Velden
 Maintainer: Niels van der Velden <n.s.j.vandervelden@gmail.com>
 Description: 'GCVieweR' is an R package designed to plot gene arrow maps. 

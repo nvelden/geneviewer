@@ -107,6 +107,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$clusterLabel <- list()
     x$series[[clust]]$clusterTitle <- list()
     x$series[[clust]]$sequence <- list(show = TRUE)
+    x$series[[clust]]$annotations <- list()
     x$series[[clust]]$tooltip <- list(show = TRUE, formatter ="<b>Start:</b> {start} <br><b>end:</b> {end}")
   }
 
@@ -1632,6 +1633,82 @@ GC_legend <- function(
 
   return(GC_chart)
 }
+
+#' Add Annotations to a GC_chart
+#'
+#' This function adds annotations to specified clusters within a GC chart.
+#' Annotations can be of various types (e.g., text) and are positioned based on provided coordinates.
+#'
+#' @param GC_chart A GC chart object to which the annotations will be added.
+#' @param cluster Numeric or character vector specifying the clusters to which annotations should be added.
+#' @param type Character vector specifying the type of annotations to add. The default is "text".
+#' @param x Numeric vector specifying the x-coordinate for the annotation's position.
+#' @param y Numeric vector specifying the y-coordinate for the annotation's position.
+#' @param ... Additional parameters for customization of annotations, depending on the type.
+#'
+#' @return Updated GC chart object with added annotations.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 50, 90, 130, 170, 210),
+#'   end = c(40, 80, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 1, 2, 2, 2)
+#' )
+#'
+#' # Adding a text annotation to a GC chart
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "400px") %>%
+#'   GC_labels("name") %>%
+#'   GC_annotation(
+#'     cluster = 1,
+#'     type = "text",
+#'     x = 100,
+#'     y = 100,
+#'     label = "Example Annotation",
+#'     # Additional customization parameters...
+#'   )
+#'
+#' @export
+GC_annotation <- function(
+    GC_chart,
+    cluster = NULL,
+    type = "text",
+    x = 0,
+    y = 0,
+    ...
+) {
+
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
+
+  # Capture arguments and filter out NULL or empty values
+  options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+    type = type,
+    x = x,
+    y = y,
+    ...
+  ))
+
+  for(i in seq_along(clusters)){
+
+    # Capture arguments and filter out NULL or empty values
+    options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+      type = type,
+      x = x,
+      y = y,
+      ...
+    ))
+
+    GC_chart$x$series[[clusters[i]]]$annotations <- list(options)
+
+
+  }
+
+  return(GC_chart)
+}
+
+
 
 #' Set Tooltip for a Gene Chart
 #'

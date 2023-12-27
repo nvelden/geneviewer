@@ -2022,4 +2022,72 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   return this;
 };
 
+container.prototype.addAnnotations = function (annotations) {
+  if (!annotations || annotations.length === 0) {
+    return this;
+  }
 
+  var g = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+      console.log(annotations)
+  annotations.forEach(annotation => {
+
+    this.createAnnotation(g, annotation);
+  });
+
+  return this;
+};
+
+container.prototype.createAnnotation = function (group, options) {
+  switch (options.type) {
+    case 'text':
+      this.createTextAnnotation(group, options);
+      break;
+    // You can add cases for other types like 'arrow', 'shape', etc.
+    default:
+      console.warn('Unsupported annotation type:', options.type);
+  }
+};
+
+container.prototype.createTextAnnotation = function (group, options) {
+  // Define default styles for text annotations
+  const defaultOptions = {
+    x: 0,
+    y: 0,
+    text: '',
+    style: {
+      fontSize: "14px",
+      fontStyle: "normal",
+      fontWeight: "normal",
+      textDecoration: "none",
+      fontFamily: "sans-serif",
+      cursor: "default"
+    }
+  };
+
+  // Merge default options and user-specified options
+  const combinedOptions = mergeOptions.call(this, defaultOptions, "textAnnotationOptions", options);
+  const { x, y, text, style } = combinedOptions;
+  console.log(combinedOptions)
+  // Extract additional options that are not in defaultOptions
+  const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
+
+  // Define xScale and yScale
+  const xScale = d3.scaleLinear().domain([0, 100]).range([0, this.width - this.margin.left - this.margin.right]);
+
+  // Create the text element with merged styles
+  const textElement = group.append("text")
+    .attr("x", xScale(x))
+    .attr("y", this.yScale(y))
+    .style("font-size", style.fontSize)
+    .style("font-style", style.fontStyle)
+    .style("font-weight", style.fontWeight)
+    .style("text-decoration", style.textDecoration)
+    .style("font-family", style.fontFamily)
+    .style("cursor", style.cursor)
+      .each(function () {
+        const currentElement = d3.select(this);
+        parseAndStyleText(text, currentElement, style);
+        setStyleFromOptions(currentElement, additionalOptionsStyle);
+      });
+};

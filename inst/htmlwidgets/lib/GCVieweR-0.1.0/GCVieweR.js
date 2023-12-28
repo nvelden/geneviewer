@@ -2022,6 +2022,52 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   return this;
 };
 
+// Annotations
+
+container.prototype.trackMouse = function(track = true) {
+  if (!track) {
+    return this;
+  }
+
+  // Change cursor to crosshair
+  this.svg.style("cursor", "crosshair");
+
+  // Tooltip for displaying coordinates
+  const tooltip = d3.select("body").append("div")
+    .attr("class", "coordinate-tooltip")
+    .style("background-color", "rgba(255, 255, 255, 0.9)")
+    .style("padding", "8px")
+    .style("border-radius", "4px")
+    .style("border", "1px solid rgba(0,0,0,0.1)")
+    .style("box-shadow", "0 4px 6px rgba(0, 0, 0, 0.1)")
+    .style("pointer-events", "none")
+    .style("font-family", "Arial, sans-serif")
+    .style("font-size", "12px")
+    .style("color", "#333")
+    .style("line-height", "1.5")
+    .style("position", "absolute")
+    .style("visibility", "hidden")
+    .style("z-index", "1000");
+
+  const xScale = d3.scaleLinear().domain([0 + this.margin.left, this.width - this.margin.right]).range([0, 100]);
+  const yScale = d3.scaleLinear().domain([this.height - this.margin.bottom, 0 + this.margin.top]).range([0, 100]);
+
+  this.svg.on("mousemove", (event) => {
+    const [x, y] = d3.pointer(event);
+
+    tooltip.html(`X: ${xScale(x).toFixed(1)} <br>Y: ${yScale(y).toFixed(1)}`)
+      .style("visibility", "visible")
+      .style("left", (event.pageX + 10) + "px")
+      .style("top", (event.pageY - 10) + "px");
+  });
+
+  this.svg.on("mouseout", () => {
+    tooltip.style("visibility", "hidden");
+  });
+
+  return this;
+};
+
 container.prototype.addAnnotations = function (annotations) {
   if (!annotations || annotations.length === 0) {
     return this;
@@ -2029,9 +2075,7 @@ container.prototype.addAnnotations = function (annotations) {
 
   var g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
-      console.log(annotations)
   annotations.forEach(annotation => {
-
     this.createAnnotation(g, annotation);
   });
 
@@ -2039,11 +2083,17 @@ container.prototype.addAnnotations = function (annotations) {
 };
 
 container.prototype.createAnnotation = function (group, options) {
+
   switch (options.type) {
     case 'text':
       this.createTextAnnotation(group, options);
       break;
-    // You can add cases for other types like 'arrow', 'shape', etc.
+    case 'line':
+      this.createLineAnnotation(group, options);
+      break;
+    case 'symbol':
+      this.createSymbolAnnotation(group, options);
+      break;
     default:
       console.warn('Unsupported annotation type:', options.type);
   }
@@ -2056,7 +2106,7 @@ container.prototype.createTextAnnotation = function (group, options) {
     y: 0,
     text: '',
     style: {
-      fontSize: "14px",
+      fontSize: "12px",
       fontStyle: "normal",
       fontWeight: "normal",
       textDecoration: "none",
@@ -2068,7 +2118,7 @@ container.prototype.createTextAnnotation = function (group, options) {
   // Merge default options and user-specified options
   const combinedOptions = mergeOptions.call(this, defaultOptions, "textAnnotationOptions", options);
   const { x, y, text, style } = combinedOptions;
-  console.log(combinedOptions)
+
   // Extract additional options that are not in defaultOptions
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
 
@@ -2091,3 +2141,138 @@ container.prototype.createTextAnnotation = function (group, options) {
         setStyleFromOptions(currentElement, additionalOptionsStyle);
       });
 };
+
+container.prototype.createLineAnnotation = function (group, options) {
+  const defaultOptions = {
+    x1: 0,
+    y1: 0,
+    x2: 10,
+    y2: 10,
+    style: {
+      stroke: "black",
+      strokeWidth: 2
+    }
+  };
+
+  // Merge default options and user-specified options
+  const combinedOptions = mergeOptions.call(this, defaultOptions, "lineAnnotationOptions", options);
+  const { x1, y1, x2, y2, style } = combinedOptions;
+
+  // Extract additional options that are not in defaultOptions
+  const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
+
+  // Define xScale and yScale
+  const xScale = d3.scaleLinear().domain([0, 100]).range([0, this.width - this.margin.left - this.margin.right]);
+
+  // Create the line element with merged styles
+  const lineElement = group.append("line")
+    .attr("x1", xScale(x1))
+    .attr("y1", this.yScale(y1))
+    .attr("x2", xScale(x2))
+    .attr("y2", this.yScale(y2))
+    .style("stroke", style.stroke)
+    .style("stroke-width", style.strokeWidth)
+      .each(function () {
+        const currentElement = d3.select(this);
+        setStyleFromOptions(currentElement, additionalOptionsStyle);
+      });
+};
+
+container.prototype.createSymbolAnnotation = function(group, options) {
+  const defaultOptions = {
+    x: 0,
+    y: 0,
+    size: 64,
+    symbol: "circle",
+    style: {
+      fill: "black",
+      stroke: "black",
+      strokeWidth: 2
+    },
+    rotation: 0
+  };
+
+  // Merge default options and user-specified options
+  const combinedOptions = mergeOptions.call(this, defaultOptions, "symbolAnnotationOptions", options);
+  const { x, y, size, symbol, style, rotation } = combinedOptions;
+
+  // Extract additional options that are not in defaultOptions
+  const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
+
+  // Define xScale and yScale
+  const xScale = d3.scaleLinear().domain([0, 100]).range([0, this.width - this.margin.left - this.margin.right]);
+
+  // Symbol type mapping
+  const symbolTypes = {
+    'circle': d3.symbolCircle,
+    'cross': d3.symbolCross,
+    'diamond': d3.symbolDiamond,
+    'square': d3.symbolSquare,
+    'star': d3.symbolStar,
+    'triangle': d3.symbolTriangle,
+    'wye': d3.symbolWye
+  };
+
+  // Check if the symbol type is valid
+  if (!symbolTypes[symbol]) {
+    console.error(`Unsupported symbol type: ${symbol}`);
+    return;
+  }
+
+  // Create the symbol
+  const d3Symbol = d3.symbol().type(symbolTypes[symbol]).size(size);
+
+  // Create the symbol element with merged styles
+  const symbolElement = group.append("path")
+    .attr("d", d3Symbol)
+    .attr("transform", `translate(${xScale(x)}, ${this.yScale(y)}) rotate(${rotation})`)
+    .style("fill", style.fill)
+    .style("stroke", style.stroke)
+    .style("stroke-width", style.strokeWidth)
+    .each(function () {
+      const currentElement = d3.select(this);
+      setStyleFromOptions(currentElement, additionalOptionsStyle);
+    });
+
+  return group;
+};
+
+container.prototype.createSquareAnnotation = function(group, options) {
+  const defaultOptions = {
+    x: 0,
+    y: 0,
+    size: 10,
+    style: {
+      fill: "black",
+      stroke: "black",
+      strokeWidth: 2
+    },
+    rotation: 0
+  };
+
+  // Merge default options and user-specified options
+  const combinedOptions = mergeOptions.call(this, defaultOptions, "squareAnnotationOptions", options);
+  const { x, y, size, style, rotation } = combinedOptions;
+
+  // Extract additional options that are not in defaultOptions
+  const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
+
+  // Define xScale and yScale
+  const xScale = d3.scaleLinear().domain([0, 100]).range([0, this.width - this.margin.left - this.margin.right]);
+
+  // Create the square element with merged styles
+  const squareElement = group.append("rect")
+    .attr("width", size)
+    .attr("height", size)
+    .attr("transform", `translate(${xScale(x)}, ${this.yScale(y)}) rotate(${rotation}, ${0}, ${0})`)
+    .style("fill", style.fill)
+    .style("stroke", style.stroke)
+    .style("stroke-width", style.strokeWidth)
+    .each(function () {
+      const currentElement = d3.select(this);
+      setStyleFromOptions(currentElement, additionalOptionsStyle);
+    });
+
+  return group;
+};
+

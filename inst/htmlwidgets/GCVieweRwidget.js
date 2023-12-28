@@ -101,6 +101,7 @@ HTMLWidgets.widget({
             coordinateOptions = cluster.coordinates;
             scaleBarOptions = cluster.scaleBar;
             annotationOptions = cluster.annotations;
+            trackMouse = cluster.trackMouse;
             tooltipOptions = cluster.tooltip;
 
 
@@ -124,6 +125,7 @@ HTMLWidgets.widget({
           .labels(labelOptions?.label, labelOptions?.show ?? false, labelOptions)
           .scaleBar(scaleBarOptions?.show ?? false, scaleBarOptions)
           .addAnnotations(annotationOptions)
+          .trackMouse(trackMouse?.show ?? false)
           .tooltip(tooltipOptions?.show ?? false, tooltipOptions);
       });
 

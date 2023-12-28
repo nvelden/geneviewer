@@ -108,6 +108,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$clusterTitle <- list()
     x$series[[clust]]$sequence <- list(show = TRUE)
     x$series[[clust]]$annotations <- list()
+    x$series[[clust]]$trackMouse <- list(show = FALSE)
     x$series[[clust]]$tooltip <- list(show = TRUE, formatter ="<b>Start:</b> {start} <br><b>end:</b> {end}")
   }
 
@@ -1644,6 +1645,9 @@ GC_legend <- function(
 #' @param type Character vector specifying the type of annotations to add. The default is "text".
 #' @param x Numeric vector specifying the x-coordinate for the annotation's position.
 #' @param y Numeric vector specifying the y-coordinate for the annotation's position.
+#' @param style A list of CSS styles to be applied to the annotation.
+#'              Each element of the list should be a valid CSS property-value
+#'              pair. For example, list(fill = "black", fontSize = "12px").
 #' @param ... Additional parameters for customization of annotations, depending on the type.
 #'
 #' @return Updated GC chart object with added annotations.
@@ -1672,42 +1676,84 @@ GC_legend <- function(
 #' @export
 GC_annotation <- function(
     GC_chart,
-    cluster = NULL,
     type = "text",
-    x = 0,
-    y = 0,
+    style = list(),
+    cluster = NULL,
     ...
 ) {
 
   # Update the GC_chart object with title and options for each cluster
   clusters <- getUpdatedClusters(GC_chart, cluster)
 
-  # Capture arguments and filter out NULL or empty values
-  options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
-    type = type,
-    x = x,
-    y = y,
-    ...
-  ))
-
   for(i in seq_along(clusters)){
 
     # Capture arguments and filter out NULL or empty values
     options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
       type = type,
-      x = x,
-      y = y,
+      style = style,
       ...
     ))
 
-    GC_chart$x$series[[clusters[i]]]$annotations <- list(options)
+    currentAnnotations <- GC_chart$x$series[[clusters[i]]]$annotations
 
+    if(is.null(currentAnnotations) || length(currentAnnotations) == 0){
+      GC_chart$x$series[[clusters[i]]]$annotations <- list(options)
+    } else {
+      GC_chart$x$series[[clusters[i]]]$annotations <- c(currentAnnotations, list(options))
+    }
 
   }
 
   return(GC_chart)
 }
 
+#' Track Mouse Movement in a GC_chart
+#'
+#' This function enables or disables mouse tracking on specified clusters within
+#' a GC chart. When enabled, the x and y coordinates of the mouse are displayed
+#' which can be used to place annotations.
+#'
+#' @param GC_chart A GC chart object to which the annotations will be added.
+#' @param show Logical, specifies whether to track the mouse or not.
+#' @param cluster Numeric or character vector specifying the clusters to which
+#' annotations should be added.
+#' @return Updated GC chart object with mouse tracking settings.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 50, 90, 130, 170, 210),
+#'   end = c(40, 80, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 1, 2, 2, 2)
+#' )
+#'
+#' # Enable mouse tracking on all clusters
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "400px") %>%
+#' GC_chart <- GC_trackMouse(TRUE)
+#'
+#' # Enable mouse tracking on a specific cluster
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "400px") %>%
+#' GC_trackMouse(TRUE, cluster = 1)
+#'
+#' @export
+GC_trackMouse <- function(
+    GC_chart,
+    show = TRUE,
+    cluster = NULL
+) {
+
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
+
+  for(i in seq_along(clusters)){
+
+      GC_chart$x$series[[clusters[i]]]$trackMouse$show <- show
+
+  }
+
+  return(GC_chart)
+}
 
 
 #' Set Tooltip for a Gene Chart

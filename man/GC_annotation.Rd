@@ -4,7 +4,15 @@
 \alias{GC_annotation}
 \title{Add Annotations to a GC_chart}
 \usage{
-GC_annotation(GC_chart, cluster = NULL, type = "text", x = 0, y = 0, ...)
+GC_annotation(
+  GC_chart,
+  cluster = NULL,
+  type = "text",
+  x = 0,
+  y = 0,
+  style = list(),
+  ...
+)
 }
 \arguments{
 \item{GC_chart}{A GC chart object to which the annotations will be added.}
@@ -16,6 +24,10 @@ GC_annotation(GC_chart, cluster = NULL, type = "text", x = 0, y = 0, ...)
 \item{x}{Numeric vector specifying the x-coordinate for the annotation's position.}
 
 \item{y}{Numeric vector specifying the y-coordinate for the annotation's position.}
+
+\item{style}{A list of CSS styles to be applied to the annotation.
+Each element of the list should be a valid CSS property-value
+pair. For example, list(fill = "black", fontSize = "12px").}
 
 \item{...}{Additional parameters for customization of annotations, depending on the type.}
 }

@@ -611,7 +611,7 @@ GC_grid <- function(
 #' @param scale_break_padding Numeric value indicating the padding on either
 #'   side of a scale break. Default is 1.
 #' @param ticksCount Numeric value indicating the number of ticks on the scale.
-#'   Default is 20.
+#'   Default is 10.
 #' @param ticksFormat Character string indicating the format of the ticks.
 #'   Default is ",.0f".
 #' @param y Numeric value from 1 to 100 indicating the y-position of the x-axis.
@@ -647,7 +647,7 @@ GC_grid <- function(
 #'     scale_breaks = TRUE,
 #'     scale_break_threshold = 20,
 #'     scale_break_padding = 1,
-#'     ticksCount = 20,
+#'     ticksCount = 10,
 #'     ticksFormat = ",.0f",
 #'     y = NULL,
 #'     tickStyle =
@@ -686,7 +686,7 @@ GC_scale <- function(GC_chart,
                      scale_breaks = FALSE,
                      scale_break_threshold = 20,
                      scale_break_padding = 1,
-                     ticksCount = 20,
+                     ticksCount = 10,
                      ticksFormat = ",.0f",
                      tickStyle = list(),
                      textStyle = list(),
@@ -1786,7 +1786,7 @@ GC_trackMouse <- function(
 #' @export
 GC_tooltip <- function(
     GC_chart,
-    formatter = "<b>Start:</b> {start}<br><b>end:</b> {end}",
+    formatter = "<b>Start:</b> {start}<br><b>End:</b> {end}",
     show = TRUE,
     cluster = NULL,
     ...

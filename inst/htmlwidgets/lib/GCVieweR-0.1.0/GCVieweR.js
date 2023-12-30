@@ -600,7 +600,7 @@ container.prototype.scale = function (options = {}) {
     axisType: "bottom",
     breaks: [],
     tickValues: null,
-    ticksCount: 20,
+    ticksCount: 10,
     ticksFormat: ",.0f",
     y: null,
     tickStyle: {
@@ -1780,7 +1780,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
     const currentTrackOffset = d.geneTrack ? (d.geneTrack - 1) * trackSpacing : 0;
 
     const yPos = this.yScale(currentY) - currentTrackOffset;
-    const xPos = this.reverse ? this.xScale(d.end) : this.xScale(d.start);
+    const xPos = this.xScale(d.start);
 
     return { xPos, yPos, currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight };
   };
@@ -1812,7 +1812,9 @@ container.prototype.genes = function (group, show = true, options = {}) {
     })
     .attr("transform", (d, i) => {
       const { xPos, yPos, currentArrowheadHeight } = getAttributesForIndex(d, i);
-      const rotation = d.direction === 'forward' ? 0 : 180;
+      const rotation = this.reverse
+    ? (d.direction === 'forward' ? 180 : 0)
+    : (d.direction === 'forward' ? 0 : 180);
       return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (currentArrowheadHeight / 2)})`;
     })
     .attr("fill", (d) => colorScale(d[group]))
@@ -2031,6 +2033,9 @@ container.prototype.trackMouse = function(track = true) {
 
   // Change cursor to crosshair
   this.svg.style("cursor", "crosshair");
+    this.svg.selectAll("*").each(function() {
+    this.style.cssText += "cursor: crosshair !important;";
+  });
 
   // Tooltip for displaying coordinates
   const tooltip = d3.select("body").append("div")
@@ -2051,11 +2056,15 @@ container.prototype.trackMouse = function(track = true) {
 
   const xScale = d3.scaleLinear().domain([0 + this.margin.left, this.width - this.margin.right]).range([0, 100]);
   const yScale = d3.scaleLinear().domain([this.height - this.margin.bottom, 0 + this.margin.top]).range([0, 100]);
+  const linearScale = d3.scaleLinear().domain([0 - this.margin.left, this.width]).range([0, 100]);
 
   this.svg.on("mousemove", (event) => {
     const [x, y] = d3.pointer(event);
+    const adjustedX = x - this.margin.left
+    loci = Math.round(this.xScale.invert(adjustedX))
+    const format = d3.format(",");
 
-    tooltip.html(`X: ${xScale(x).toFixed(1)} <br>Y: ${yScale(y).toFixed(1)}`)
+    tooltip.html(`x: ${xScale(x).toFixed(1)} <br>y: ${yScale(y).toFixed(1)}<br>loci: ${format(loci)}`)
       .style("visibility", "visible")
       .style("left", (event.pageX + 10) + "px")
       .style("top", (event.pageY - 10) + "px");

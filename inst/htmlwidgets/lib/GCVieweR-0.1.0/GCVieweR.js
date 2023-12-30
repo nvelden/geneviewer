@@ -2448,7 +2448,7 @@ container.prototype.createRectangleAnnotation = function(group, options) {
 
 container.prototype.createPromoterAnnotation = function(group, options) {
   const defaultOptions = {
-    start: null,
+    position: null,
     x: 0,
     y: 50,
     direction: null,
@@ -2463,7 +2463,7 @@ container.prototype.createPromoterAnnotation = function(group, options) {
 
   // Merge default options and user-specified options
   const combinedOptions = mergeOptions.call(this, defaultOptions, "promoterAnnotationOptions", options);
-  let { start, x, y, direction, style, rotation, scale } = combinedOptions;
+  let { position, x, y, direction, style, rotation, scale } = combinedOptions;
 
   if (direction === null) {
     direction = this.reverse ? "reverse" : "forward";
@@ -2479,13 +2479,13 @@ container.prototype.createPromoterAnnotation = function(group, options) {
   // Choose the appropriate path based on direction
   const pathToUse = direction === "forward" ? mirroredPath : customPath;
 
-  // Handle single or multiple start values
-  const starts = Array.isArray(start) ? start : [start];
+  // Handle single or multiple position values
+  const positions = Array.isArray(position) ? position : [position];
 
-  starts.forEach(s => {
+  positions.forEach(s => {
     const xPosition = s !== null ? this.xScale(s) + x : this.xScale(this.minStart) + x;
 
-    // Create the symbol element for each start value
+    // Create the symbol element for each position value
     group.append("path")
       .attr("d", pathToUse)
       .attr("transform", `translate(${xPosition}, ${this.yScale(y)}) scale(${scale}) rotate(${rotation})`)
@@ -2503,7 +2503,7 @@ container.prototype.createPromoterAnnotation = function(group, options) {
 
 container.prototype.createTerminatorAnnotation = function(group, options) {
   const defaultOptions = {
-    start: null,
+    position: null,
     x: 0,
     y: 50,
     direction: null,
@@ -2518,7 +2518,7 @@ container.prototype.createTerminatorAnnotation = function(group, options) {
 
   // Merge default options and user-specified options
   const combinedOptions = mergeOptions.call(this, defaultOptions, "promoterAnnotationOptions", options);
-  let { start, x, y, direction, style, rotation, scale } = combinedOptions;
+  let { position, x, y, direction, style, rotation, scale } = combinedOptions;
 
   if (direction === null) {
     direction = this.reverse ? "reverse" : "forward";
@@ -2534,13 +2534,13 @@ container.prototype.createTerminatorAnnotation = function(group, options) {
   // Choose the appropriate path based on direction
   const pathToUse = direction === "forward" ? mirroredPath : customPath;
 
-  // Handle single or multiple start values
-  const starts = Array.isArray(start) ? start : [start];
+  // Handle single or multiple position values
+  const positions = Array.isArray(position) ? position : [position];
 
-  starts.forEach(s => {
+  positions.forEach(s => {
     const xPosition = s !== null ? this.xScale(s) + x : this.xScale(this.minStart) + x;
 
-    // Create the symbol element for each start value
+    // Create the symbol element for each position value
     group.append("path")
       .attr("d", pathToUse)
       .attr("transform", `translate(${xPosition}, ${this.yScale(y)}) scale(${scale}) rotate(${rotation})`)

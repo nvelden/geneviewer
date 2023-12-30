@@ -2109,6 +2109,9 @@ container.prototype.createAnnotation = function (group, options) {
     case 'promoter':
       this.createPromoterAnnotation(group, options);
       break;
+    case 'terminator':
+      this.createTerminatorAnnotation(group, options);
+      break;
     case 'rectangle':
       this.createRectangleAnnotation(group, options);
       break;
@@ -2445,9 +2448,10 @@ container.prototype.createRectangleAnnotation = function(group, options) {
 
 container.prototype.createPromoterAnnotation = function(group, options) {
   const defaultOptions = {
+    start: null,
     x: 0,
-    y: 0,
-    direction: "right",
+    y: 50,
+    direction: null,
     style: {
       fill: "none",
       stroke: "black",
@@ -2459,9 +2463,13 @@ container.prototype.createPromoterAnnotation = function(group, options) {
 
   // Merge default options and user-specified options
   const combinedOptions = mergeOptions.call(this, defaultOptions, "promoterAnnotationOptions", options);
-  const { x, y, direction, style, rotation, scale } = combinedOptions;
+  let { start, x, y, direction, style, rotation, scale } = combinedOptions;
 
-    // Extract additional options that are not in defaultOptions
+  if (direction === null) {
+    direction = this.reverse ? "reverse" : "forward";
+  }
+
+  // Extract additional options that are not in defaultOptions
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
 
   // Define the custom path and mirrored path
@@ -2469,22 +2477,81 @@ container.prototype.createPromoterAnnotation = function(group, options) {
   const mirroredPath = "M 8 -17.5 L 13 -14 l -5 3.5 M 13 -14 H 0 v 14";
 
   // Choose the appropriate path based on direction
-  const pathToUse = direction === "right" ? mirroredPath : customPath;
+  const pathToUse = direction === "forward" ? mirroredPath : customPath;
 
-  // Define xScale and yScale
-  const xScale = d3.scaleLinear().domain([0, 100]).range([0, this.width - this.margin.left - this.margin.right]);
+  // Handle single or multiple start values
+  const starts = Array.isArray(start) ? start : [start];
 
-  // Create the symbol element with merged styles and transformations
-  const symbolElement = group.append("path")
-    .attr("d", pathToUse)
-    .attr("transform", `translate(${xScale(x)}, ${this.yScale(y)}) scale(${scale}) rotate(${rotation})`)
-    .style("fill", style.fill)
-    .style("stroke", style.stroke)
-    .style("stroke-width", style.strokeWidth)
-    .each(function () {
-      const currentElement = d3.select(this);
-      setStyleFromOptions(currentElement, additionalOptionsStyle);
-    });
+  starts.forEach(s => {
+    const xPosition = s !== null ? this.xScale(s) + x : this.xScale(this.minStart) + x;
+
+    // Create the symbol element for each start value
+    group.append("path")
+      .attr("d", pathToUse)
+      .attr("transform", `translate(${xPosition}, ${this.yScale(y)}) scale(${scale}) rotate(${rotation})`)
+      .style("fill", style.fill)
+      .style("stroke", style.stroke)
+      .style("stroke-width", style.strokeWidth)
+      .each(function () {
+        const currentElement = d3.select(this);
+        setStyleFromOptions(currentElement, additionalOptionsStyle);
+      });
+  });
+
+  return group;
+};
+
+container.prototype.createTerminatorAnnotation = function(group, options) {
+  const defaultOptions = {
+    start: null,
+    x: 0,
+    y: 50,
+    direction: null,
+    style: {
+      fill: "none",
+      stroke: "black",
+      strokeWidth: 1
+    },
+    rotation: 0,
+    scale: 1
+  };
+
+  // Merge default options and user-specified options
+  const combinedOptions = mergeOptions.call(this, defaultOptions, "promoterAnnotationOptions", options);
+  let { start, x, y, direction, style, rotation, scale } = combinedOptions;
+
+  if (direction === null) {
+    direction = this.reverse ? "reverse" : "forward";
+  }
+
+  // Extract additional options that are not in defaultOptions
+  const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
+
+  // Define the custom path and mirrored path
+  const customPath = "M -8 17.5 L -13 14 l 5 -3.5 M -13 14 H 0 v -14";
+  const mirroredPath = "M 8 17.5 L 13 14 l -5 -3.5 M 13 14 L 0 14 v -14";
+
+  // Choose the appropriate path based on direction
+  const pathToUse = direction === "forward" ? mirroredPath : customPath;
+
+  // Handle single or multiple start values
+  const starts = Array.isArray(start) ? start : [start];
+
+  starts.forEach(s => {
+    const xPosition = s !== null ? this.xScale(s) + x : this.xScale(this.minStart) + x;
+
+    // Create the symbol element for each start value
+    group.append("path")
+      .attr("d", pathToUse)
+      .attr("transform", `translate(${xPosition}, ${this.yScale(y)}) scale(${scale}) rotate(${rotation})`)
+      .style("fill", style.fill)
+      .style("stroke", style.stroke)
+      .style("stroke-width", style.strokeWidth)
+      .each(function () {
+        const currentElement = d3.select(this);
+        setStyleFromOptions(currentElement, additionalOptionsStyle);
+      });
+  });
 
   return group;
 };

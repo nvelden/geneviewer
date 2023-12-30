@@ -2064,7 +2064,7 @@ container.prototype.trackMouse = function(track = true) {
     loci = Math.round(this.xScale.invert(adjustedX))
     const format = d3.format(",");
 
-    tooltip.html(`x: ${xScale(x).toFixed(1)} <br>y: ${yScale(y).toFixed(1)}<br>loci: ${format(loci)}`)
+    tooltip.html(`x: ${xScale(x).toFixed(1)} <br>y: ${yScale(y).toFixed(1)}<br>position: ${format(loci)}`)
       .style("visibility", "visible")
       .style("left", (event.pageX + 10) + "px")
       .style("top", (event.pageY - 10) + "px");

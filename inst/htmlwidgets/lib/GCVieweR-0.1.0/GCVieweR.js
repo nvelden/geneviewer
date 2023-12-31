@@ -2064,7 +2064,7 @@ container.prototype.trackMouse = function(track = true) {
     loci = Math.round(this.xScale.invert(adjustedX))
     const format = d3.format(",");
 
-    tooltip.html(`x: ${xScale(x).toFixed(1)} <br>y: ${yScale(y).toFixed(1)}<br>position: ${format(loci)}`)
+    tooltip.html(`x: ${xScale(x).toFixed(1)} <br>y: ${yScale(y).toFixed(1)}<br>pos: ${format(loci)}`)
       .style("visibility", "visible")
       .style("left", (event.pageX + 10) + "px")
       .style("top", (event.pageY - 10) + "px");
@@ -2127,10 +2127,10 @@ container.prototype.createTextAnnotation = function (group, options) {
   // Define default styles for text annotations
   const defaultOptions = {
     x: 0,
-    y: 0,
+    y: 60,
     text: '',
     style: {
-      fontSize: "12px",
+      fontSize: "10px",
       fontStyle: "normal",
       fontWeight: "normal",
       textDecoration: "none",
@@ -2141,136 +2141,182 @@ container.prototype.createTextAnnotation = function (group, options) {
 
   // Merge default options and user-specified options
   const combinedOptions = mergeOptions.call(this, defaultOptions, "textAnnotationOptions", options);
-  const { x, y, text, style } = combinedOptions;
+  let { x, y, text, style } = combinedOptions;
+
+  // Convert x, y, and text to arrays if they are not already
+  if (!Array.isArray(x)) x = [x];
+  if (!Array.isArray(y)) y = [y];
+  if (!Array.isArray(text)) text = [text];
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
 
-  // Define xScale and yScale
-  const xScale = d3.scaleLinear().domain([0, 100]).range([0, this.width - this.margin.left - this.margin.right]);
+  var group = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
-  // Create the text element with merged styles
-  const textElement = group.append("text")
-    .attr("x", xScale(x))
-    .attr("y", this.yScale(y))
-    .style("font-size", style.fontSize)
-    .style("font-style", style.fontStyle)
-    .style("font-weight", style.fontWeight)
-    .style("text-decoration", style.textDecoration)
-    .style("font-family", style.fontFamily)
-    .style("cursor", style.cursor)
+  // Iterate over each element in the arrays
+  for (let i = 0; i < Math.max(x.length, y.length, text.length); i++) {
+    const currentX = x[Math.min(i, x.length - 1)];
+    const currentY = y[Math.min(i, y.length - 1)];
+    const currentText = text[Math.min(i, text.length - 1)];
+
+    // Create the text element with merged styles for each set of values
+    group.append("text")
+      .attr("x", this.xScale(currentX))
+      .attr("y", this.yScale(currentY))
+      .style("font-size", style.fontSize)
+      .style("font-style", style.fontStyle)
+      .style("font-weight", style.fontWeight)
+      .style("text-decoration", style.textDecoration)
+      .style("font-family", style.fontFamily)
+      .style("cursor", style.cursor)
       .each(function () {
         const currentElement = d3.select(this);
-        parseAndStyleText(text, currentElement, style);
+        parseAndStyleText(currentText, currentElement, style);
         setStyleFromOptions(currentElement, additionalOptionsStyle);
       });
+  }
 };
 
 container.prototype.createLineAnnotation = function (group, options) {
   const defaultOptions = {
     x1: 0,
-    y1: 0,
-    x2: 10,
-    y2: 10,
+    y1: 70,
+    x2: 0,
+    y2: 50,
     style: {
       stroke: "black",
-      strokeWidth: 2
+      strokeWidth: 1
     }
   };
 
   // Merge default options and user-specified options
   const combinedOptions = mergeOptions.call(this, defaultOptions, "lineAnnotationOptions", options);
-  const { x1, y1, x2, y2, style } = combinedOptions;
+  let { x1, y1, x2, y2, style } = combinedOptions;
+
+  // Convert x1, y1, x2, y2 to arrays if they are not already
+  if (!Array.isArray(x1)) x1 = [x1];
+  if (!Array.isArray(y1)) y1 = [y1];
+  if (!Array.isArray(x2)) x2 = [x2];
+  if (!Array.isArray(y2)) y2 = [y2];
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
 
-  // Define xScale and yScale
-  const xScale = d3.scaleLinear().domain([0, 100]).range([0, this.width - this.margin.left - this.margin.right]);
+    var group = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
-  // Create the line element with merged styles
-  const lineElement = group.append("line")
-    .attr("x1", xScale(x1))
-    .attr("y1", this.yScale(y1))
-    .attr("x2", xScale(x2))
-    .attr("y2", this.yScale(y2))
-    .style("stroke", style.stroke)
-    .style("stroke-width", style.strokeWidth)
+  // Iterate over each set of line coordinates
+  for (let i = 0; i < Math.max(x1.length, y1.length, x2.length, y2.length); i++) {
+    const currentX1 = x1[Math.min(i, x1.length - 1)];
+    const currentY1 = y1[Math.min(i, y1.length - 1)];
+    const currentX2 = x2[Math.min(i, x2.length - 1)];
+    const currentY2 = y2[Math.min(i, y2.length - 1)];
+
+    // Create the line element with merged styles for each set of values
+    group.append("line")
+      .attr("x1", this.xScale(currentX1))
+      .attr("y1", this.yScale(currentY1))
+      .attr("x2", this.xScale(currentX2))
+      .attr("y2", this.yScale(currentY2))
+      .style("stroke", style.stroke)
+      .style("stroke-width", style.strokeWidth)
       .each(function () {
         const currentElement = d3.select(this);
         setStyleFromOptions(currentElement, additionalOptionsStyle);
       });
+  }
 };
 
 container.prototype.createArrowAnnotation = function (group, options) {
   const defaultOptions = {
-    x1: 0,
-    y1: 0,
-    x2: 10,
-    y2: 10,
-    arrowSize: 64,
+    x1: 1,
+    y1: 70,
+    x2: 1,
+    y2: 50,
+    arrowSize: 8,
     arrowStyle: {
       fill: "black",
     },
     lineStyle: {
       stroke: "black",
-      strokeWidth: 2
+      strokeWidth: 1
     }
   };
 
   // Merge default options and user-specified options
   const combinedOptions = mergeOptions.call(this, defaultOptions, "arrowAnnotationOptions", options);
-  const { x1, y1, x2, y2, arrowSize, arrowStyle, lineStyle } = combinedOptions;
+  let { x1, y1, x2, y2, arrowSize, arrowStyle, lineStyle } = combinedOptions;
+
+  // Convert x1, y1, x2, y2, and arrowSize to arrays if they are not already
+  if (!Array.isArray(x1)) x1 = [x1];
+  if (!Array.isArray(y1)) y1 = [y1];
+  if (!Array.isArray(x2)) x2 = [x2];
+  if (!Array.isArray(y2)) y2 = [y2];
+  if (!Array.isArray(arrowSize)) arrowSize = [arrowSize];
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsLine = extractAdditionalOptions(lineStyle, defaultOptions.lineStyle);
   const additionalOptionsArrow = extractAdditionalOptions(arrowStyle, defaultOptions.arrowStyle);
 
-  // Define xScale and yScale
-  const xScale = d3.scaleLinear().domain([0, 100]).range([0, this.width - this.margin.left - this.margin.right]);
+  var group = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
-  const lineElement = group.append("line")
-    .attr("x1", xScale(x1))
-    .attr("y1", this.yScale(y1))
-    .attr("x2", xScale(x2))
-    .attr("y2", this.yScale(y2))
-    .style("stroke", lineStyle.stroke)
-    .style("stroke-width", lineStyle.strokeWidth)
-    .each(function () {
-      const currentElement = d3.select(this);
-      setStyleFromOptions(currentElement, additionalOptionsLine);
-    });
+  // Iterate over each element in the arrays
+  for (let i = 0; i < Math.max(x1.length, y1.length, x2.length, y2.length, arrowSize.length); i++) {
+    const currentX1 = x1[Math.min(i, x1.length - 1)];
+    const currentY1 = y1[Math.min(i, y1.length - 1)];
+    const currentX2 = x2[Math.min(i, x2.length - 1)];
+    const currentY2 = y2[Math.min(i, y2.length - 1)];
+    const currentArrowSize = arrowSize[Math.min(i, arrowSize.length - 1)];
 
-    const arrowSymbol = d3.symbol().type(d3.symbolTriangle).size(arrowSize);
-
-    // Calculate rotation angle for the arrow
-    const angle = Math.atan2(this.yScale(y2) - this.yScale(y1), xScale(x2) - xScale(x1)) * (180 / Math.PI);
-
-    group.append("path")
-      .attr("d", arrowSymbol)
-      .attr("transform", `translate(${xScale(x2)}, ${this.yScale(y2)}) rotate(${angle + 90})`)
-      .style("fill", arrowStyle.fill)
+    // Create a marker for each line
+    this.svg.append("defs").append("marker")
+      .attr("id", `arrowhead-${i}-${currentX1}-${currentX2}`)
+      .attr("viewBox", "-0 -5 10 10")
+      .attr("refX", 5)
+      .attr("refY", 0)
+      .attr("orient", "auto")
+      .attr("markerWidth", currentArrowSize)
+      .attr("markerHeight", currentArrowSize)
+      .attr("xoverflow", "visible")
+      .append("path")
+      .attr("d", "M 0,-5 L 10 ,0 L 0,5")
+      .attr("fill", arrowStyle.fill)
       .each(function () {
-        const currentElement = d3.select(this);
-        setStyleFromOptions(currentElement, additionalOptionsArrow);
+        d3.select(this).style(additionalOptionsArrow);
       });
 
-  return group;
+    // Draw the line with the arrow marker for each set of values
+    group.append("line")
+      .attr("x1", this.xScale(currentX1))
+      .attr("y1", this.yScale(currentY1))
+      .attr("x2", this.xScale(currentX2))
+      .attr("y2", this.yScale(currentY2 + currentArrowSize / 2))
+      .attr("marker-end", `url(#arrowhead-${i}-${currentX1}-${currentX2})`)
+      .style("stroke", lineStyle.stroke)
+      .style("stroke-width", lineStyle.strokeWidth)
+      .each(function () {
+        const currentElement = d3.select(this);
+        setStyleFromOptions(currentElement, additionalOptionsLine);
+      });
+  }
 };
 
 container.prototype.createTextMarkerAnnotation = function (group, options) {
   const defaultOptions = {
-    x1: 0,
-    y1: 0,
-    x2: 10,
-    y2: 10,
+    x1: null,
+    y1: 66,
+    x2: null,
+    y2: 50,
+    position: 0,
     text: "",
     labelX: 0,
     labelY: 0,
-    showArrow: true,
-    arrowSize: 64,
+    showArrow: false,
+    arrowSize: 8,
     textStyle: {
-      fontSize: "12px",
+      fontSize: "10px",
       fontFamily: "sans-serif",
       fill: "black",
       textAnchor: "middle"
@@ -2280,27 +2326,47 @@ container.prototype.createTextMarkerAnnotation = function (group, options) {
     },
     lineStyle: {
       stroke: "black",
-      strokeWidth: 2
+      strokeWidth: 1
     }
   };
 
   // Merge default options and user-specified options
-  const combinedOptions = mergeOptions.call(this, defaultOptions, "lineAnnotationOptions", options);
-  const { x1, y1, x2, y2, text, labelX, labelY, showArrow, arrowSize, textStyle, arrowStyle, lineStyle } = combinedOptions;
+  const combinedOptions = mergeOptions.call(this, defaultOptions, "textMarkerAnnotationOptions", options);
+  let { textStyle, arrowStyle, lineStyle } = combinedOptions;
 
-  // Extract additional options that are not in defaultOptions
+  // Convert all options to arrays if not already
+  const keys = ['x1', 'y1', 'x2', 'y2', 'position', 'text', 'labelX', 'labelY', 'showArrow', 'arrowSize'];
+  keys.forEach(key => {
+    if (!Array.isArray(combinedOptions[key])) {
+      combinedOptions[key] = [combinedOptions[key]];
+    }
+  });
+
   const additionalOptionsLine = extractAdditionalOptions(lineStyle, defaultOptions.lineStyle);
-  const additionalOptionsText = extractAdditionalOptions(textStyle, defaultOptions.textStyle);
   const additionalOptionsArrow = extractAdditionalOptions(arrowStyle, defaultOptions.arrowStyle);
 
-  // Define xScale and yScale
-  const xScale = d3.scaleLinear().domain([0, 100]).range([0, this.width - this.margin.left - this.margin.right]);
+  // Calculate the maximum length across all arrays
+  const maxLength = Math.max(...keys.map(key => combinedOptions[key].length));
 
-  const lineElement = group.append("line")
-    .attr("x1", xScale(x1))
-    .attr("y1", this.yScale(y1))
-    .attr("x2", xScale(x2))
-    .attr("y2", this.yScale(y2))
+  for (let i = 0; i < maxLength; i++) {
+    let currentValues = {};
+    keys.forEach(key => {
+      currentValues[key] = combinedOptions[key][i % combinedOptions[key].length];
+    });
+
+    let offsetY2 = currentValues.showArrow ? currentValues.arrowSize / 2 : 0;
+    var group = this.svg.insert("g", ":first-child")
+      .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+
+  const currentX1 = Math.round(this.xScale(currentValues.x1 !== null ? currentValues.x1 : currentValues.position));
+  const currentX2 = Math.round(this.xScale(currentValues.x2 !== null ? currentValues.x2 : currentValues.position));
+
+  // Create line element
+  const line = group.append("line")
+    .attr("x1", currentX1)
+    .attr("y1", this.yScale(currentValues.y1))
+    .attr("x2", currentX2)
+    .attr("y2", this.yScale(currentValues.y2 + offsetY2))
     .style("stroke", lineStyle.stroke)
     .style("stroke-width", lineStyle.strokeWidth)
     .each(function () {
@@ -2308,45 +2374,55 @@ container.prototype.createTextMarkerAnnotation = function (group, options) {
       setStyleFromOptions(currentElement, additionalOptionsLine);
     });
 
-  if (showArrow) {
-    const arrowSymbol = d3.symbol().type(d3.symbolTriangle).size(arrowSize);
+  // Create a marker for each line with currentX1 and currentX2 in the ID
+  this.svg.append("defs").append("marker")
+    .attr("id", `arrowhead-marker-${i}-${currentX1}-${currentX2}`)
+    .attr("viewBox", "-0 -5 10 10")
+    .attr("refX", 5)
+    .attr("refY", 0)
+    .attr("orient", "auto")
+    .attr("markerWidth", currentValues.arrowSize)
+    .attr("markerHeight", currentValues.arrowSize)
+    .attr("xoverflow", "visible")
+    .append("path")
+    .attr("d", "M 0,-5 L 10 ,0 L 0,5")
+    .attr("fill", arrowStyle.fill)
+    .each(function () {
+      const currentElement = d3.select(this);
+      setStyleFromOptions(currentElement, additionalOptionsArrow);
+    });
+    // Add arrow marker to line if showArrow is true
+    if (currentValues.showArrow) {
+      line.attr("marker-end", `url(#arrowhead-marker-${i}-${currentX1}-${currentX2})`);
+    }
 
-    // Calculate rotation angle for the arrow
-    const angle = Math.atan2(this.yScale(y2) - this.yScale(y1), xScale(x2) - xScale(x1)) * (180 / Math.PI);
-
-    group.append("path")
-      .attr("d", arrowSymbol)
-      .attr("transform", `translate(${xScale(x2)}, ${this.yScale(y2)}) rotate(${angle + 90})`)
-      .style("fill", arrowStyle.fill)
-      .each(function () {
-        const currentElement = d3.select(this);
-        setStyleFromOptions(currentElement, additionalOptionsArrow);
-      });
-  }
-
-  if (text) {
-
-    group.append("text")
-      .attr("x", xScale(x1) + labelX)
-      .attr("y", this.yScale(y1) - 5 - labelY)
-      .style("text-anchor", textStyle.textAnchor)
-      .style("font-size", textStyle.fontSize)
-      .style("font-family", textStyle.fontFamily)
-      .style("fill", textStyle.fill)
-      .each(function () {
-        const currentElement = d3.select(this);
-        parseAndStyleText(text, currentElement, textStyle);
-        setStyleFromOptions(currentElement, additionalOptionsText);
-      });
+    // Create text element if text is provided
+    if (currentValues.text) {
+      group.append("text")
+        .attr("x", this.xScale(currentValues.x1 !== null ? currentValues.x1 : currentValues.position) + currentValues.labelX)
+        .attr("y", this.yScale(currentValues.y1) - 5 - currentValues.labelY)
+        .style("text-anchor", textStyle.textAnchor)
+        .style("font-size", textStyle.fontSize)
+        .style("font-family", textStyle.fontFamily)
+        .style("fill", textStyle.fill)
+        .each(function () {
+          const currentElement = d3.select(this);
+          parseAndStyleText(currentValues.text, currentElement, textStyle);
+          setStyleFromOptions(currentElement, extractAdditionalOptions(textStyle, defaultOptions.textStyle));
+        });
+    }
   }
 
   return group;
 };
 
+
+
+
 container.prototype.createSymbolAnnotation = function(group, options) {
   const defaultOptions = {
     x: 0,
-    y: 0,
+    y: 50,
     size: 64,
     symbol: "circle",
     style: {
@@ -2359,13 +2435,20 @@ container.prototype.createSymbolAnnotation = function(group, options) {
 
   // Merge default options and user-specified options
   const combinedOptions = mergeOptions.call(this, defaultOptions, "symbolAnnotationOptions", options);
-  const { x, y, size, symbol, style, rotation } = combinedOptions;
+  let { x, y, size, symbol, style, rotation } = combinedOptions;
+
+  // Convert x, y, symbol, and rotation to arrays if they are not already
+  if (!Array.isArray(x)) x = [x];
+  if (!Array.isArray(y)) y = [y];
+  if (!Array.isArray(symbol)) symbol = [symbol];
+  if (!Array.isArray(rotation)) rotation = [rotation];
+  if (!Array.isArray(size)) size = [size];
+
+  var group = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
-
-  // Define xScale and yScale
-  const xScale = d3.scaleLinear().domain([0, 100]).range([0, this.width - this.margin.left - this.margin.right]);
 
   // Symbol type mapping
   const symbolTypes = {
@@ -2378,26 +2461,35 @@ container.prototype.createSymbolAnnotation = function(group, options) {
     'wye': d3.symbolWye
   };
 
-  // Check if the symbol type is valid
-  if (!symbolTypes[symbol]) {
-    console.error(`Unsupported symbol type: ${symbol}`);
-    return;
+  // Iterate over each element in the arrays
+  for (let i = 0; i < Math.max(x.length, y.length, symbol.length, rotation.length); i++) {
+    const currentX = x[Math.min(i, x.length - 1)];
+    const currentY = y[Math.min(i, y.length - 1)];
+    const currentSymbol = symbol[Math.min(i, symbol.length - 1)];
+    const currentRotation = rotation[Math.min(i, rotation.length - 1)];
+    const currentSize = size[Math.min(i, size.length - 1)];
+
+    // Check if the symbol type is valid
+    if (!symbolTypes[currentSymbol]) {
+      console.error(`Unsupported symbol type: ${currentSymbol}`);
+      continue;
+    }
+
+    // Create the symbol
+    const d3Symbol = d3.symbol().type(symbolTypes[currentSymbol]).size(currentSize);
+
+    // Create the symbol element with merged styles for each set of values
+    group.append("path")
+      .attr("d", d3Symbol)
+      .attr("transform", `translate(${this.xScale(currentX)}, ${this.yScale(currentY)}) rotate(${currentRotation})`)
+      .style("fill", style.fill)
+      .style("stroke", style.stroke)
+      .style("stroke-width", style.strokeWidth)
+      .each(function () {
+        const currentElement = d3.select(this);
+        setStyleFromOptions(currentElement, additionalOptionsStyle);
+      });
   }
-
-  // Create the symbol
-  const d3Symbol = d3.symbol().type(symbolTypes[symbol]).size(size);
-
-  // Create the symbol element with merged styles
-  const symbolElement = group.append("path")
-    .attr("d", d3Symbol)
-    .attr("transform", `translate(${xScale(x)}, ${this.yScale(y)}) rotate(${rotation})`)
-    .style("fill", style.fill)
-    .style("stroke", style.stroke)
-    .style("stroke-width", style.strokeWidth)
-    .each(function () {
-      const currentElement = d3.select(this);
-      setStyleFromOptions(currentElement, additionalOptionsStyle);
-    });
 
   return group;
 };

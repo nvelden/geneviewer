@@ -31,6 +31,9 @@
     <loc>/reference/GCVieweR-shiny.html</loc>
   </url>
   <url>
+    <loc>/reference/GC_annotation.html</loc>
+  </url>
+  <url>
     <loc>/reference/GC_chart.html</loc>
   </url>
   <url>
@@ -86,6 +89,9 @@
   </url>
   <url>
     <loc>/reference/GC_track.html</loc>
+  </url>
+  <url>
+    <loc>/reference/GC_trackMouse.html</loc>
   </url>
   <url>
     <loc>/reference/cleanList.html</loc>

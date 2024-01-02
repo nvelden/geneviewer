@@ -100,6 +100,8 @@ HTMLWidgets.widget({
             geneOptions = cluster.genes,
             coordinateOptions = cluster.coordinates;
             scaleBarOptions = cluster.scaleBar;
+            annotationOptions = cluster.annotations;
+            trackMouse = cluster.trackMouse;
             tooltipOptions = cluster.tooltip;
 
 
@@ -122,6 +124,8 @@ HTMLWidgets.widget({
           .coordinates(coordinateOptions?.show ?? false, coordinateOptions)
           .labels(labelOptions?.label, labelOptions?.show ?? false, labelOptions)
           .scaleBar(scaleBarOptions?.show ?? false, scaleBarOptions)
+          .addAnnotations(annotationOptions)
+          .trackMouse(trackMouse?.show ?? false)
           .tooltip(tooltipOptions?.show ?? false, tooltipOptions);
       });
 

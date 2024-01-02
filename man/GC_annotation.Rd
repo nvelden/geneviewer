@@ -4,30 +4,14 @@
 \alias{GC_annotation}
 \title{Add Annotations to a GC_chart}
 \usage{
-GC_annotation(
-  GC_chart,
-  cluster = NULL,
-  type = "text",
-  x = 0,
-  y = 0,
-  style = list(),
-  ...
-)
+GC_annotation(GC_chart, type = "textAnnotation", cluster = NULL, ...)
 }
 \arguments{
 \item{GC_chart}{A GC chart object to which the annotations will be added.}
 
-\item{cluster}{Numeric or character vector specifying the clusters to which annotations should be added.}
-
 \item{type}{Character vector specifying the type of annotations to add. The default is "text".}
 
-\item{x}{Numeric vector specifying the x-coordinate for the annotation's position.}
-
-\item{y}{Numeric vector specifying the y-coordinate for the annotation's position.}
-
-\item{style}{A list of CSS styles to be applied to the annotation.
-Each element of the list should be a valid CSS property-value
-pair. For example, list(fill = "black", fontSize = "12px").}
+\item{cluster}{Numeric or character vector specifying the clusters to which annotations should be added.}
 
 \item{...}{Additional parameters for customization of annotations, depending on the type.}
 }
@@ -36,7 +20,9 @@ Updated GC chart object with added annotations.
 }
 \description{
 This function adds annotations to specified clusters within a GC chart.
-Annotations can be of various types (e.g., text) and are positioned based on provided coordinates.
+Annotations can be of various types and are positioned based on provided coordinates.
+The types of annotations available are: text, textMarker, line, arrow, symbol,
+rectangle, promoter, and terminator.
 }
 \examples{
 genes_data <- data.frame(
@@ -47,16 +33,41 @@ genes_data <- data.frame(
   cluster = c(1, 1, 1, 2, 2, 2)
 )
 
-# Adding a text annotation to a GC chart
-GC_chart(genes_data, cluster = "cluster", group = "group", height = "400px") \%>\%
-  GC_labels("name") \%>\%
+# Adding annotations to a GC chart
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "220px") \%>\%
   GC_annotation(
+    type = "textMarker",
     cluster = 1,
+    position = 24,
+    text = "Gene 1",
+    arrowSize = 8
+  ) \%>\%
+  GC_annotation(
     type = "text",
-    x = 100,
-    y = 100,
-    label = "Example Annotation",
-    # Additional customization parameters...
-  )
+    text = "feature 1",
+    x = 91,
+    y = 71
+  ) \%>\%
+  GC_annotation(
+    type = "symbol",
+    symbol = "triangle",
+    x = 95,
+    y = 64,
+    size = 10,
+    rotation = 180
+  ) \%>\%
+  GC_annotation(
+    type = "terminator",
+    position = 81
+  ) \%>\%
+  GC_annotation(
+    type = "promoter",
+    position = 49
+  ) \%>\%
+  # Convenience function to track mouse position on hoover
+  GC_trackMouse()
 
+}
+\seealso{
+\code{\link{GC_trackMouse}}
 }

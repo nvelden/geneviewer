@@ -2622,7 +2622,7 @@ container.prototype.createTerminatorAnnotation = function(group, options) {
   const mirroredPath = "M 8 17.5 L 13 14 l -5 -3.5 M 13 14 L 0 14 v -14";
 
   // Choose the appropriate path based on direction
-  const pathToUse = direction === "forward" ? mirroredPath : customPath;
+  const pathToUse = direction === "forward" ? customPath : mirroredPath;
 
   // Handle single or multiple position values
   const positions = Array.isArray(position) ? position : [position];

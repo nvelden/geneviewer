@@ -6,7 +6,7 @@
 \usage{
 GC_tooltip(
   GC_chart,
-  formatter = "<b>Start:</b> {start}<br><b>end:</b> {end}",
+  formatter = "<b>Start:</b> {start}<br><b>End:</b> {end}",
   show = TRUE,
   cluster = NULL,
   ...

@@ -18,7 +18,7 @@ GC_scale(
   scale_breaks = FALSE,
   scale_break_threshold = 20,
   scale_break_padding = 1,
-  ticksCount = 20,
+  ticksCount = 10,
   ticksFormat = ",.0f",
   tickStyle = list(),
   textStyle = list(),
@@ -66,7 +66,7 @@ percentage for determining scale breaks. Default is 20.}
 side of a scale break. Default is 1.}
 
 \item{ticksCount}{Numeric value indicating the number of ticks on the scale.
-Default is 20.}
+Default is 10.}
 
 \item{ticksFormat}{Character string indicating the format of the ticks.
 Default is ",.0f".}
@@ -109,7 +109,7 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
     scale_breaks = TRUE,
     scale_break_threshold = 20,
     scale_break_padding = 1,
-    ticksCount = 20,
+    ticksCount = 10,
     ticksFormat = ",.0f",
     y = NULL,
     tickStyle =

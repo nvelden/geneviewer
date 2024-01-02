@@ -2416,9 +2416,6 @@ container.prototype.createTextMarkerAnnotation = function (group, options) {
   return group;
 };
 
-
-
-
 container.prototype.createSymbolAnnotation = function(group, options) {
   const defaultOptions = {
     x: 0,
@@ -2496,8 +2493,7 @@ container.prototype.createSymbolAnnotation = function(group, options) {
 
 container.prototype.createRectangleAnnotation = function(group, options) {
   const defaultOptions = {
-    topLeft: { x: 1, y: 20 },
-    bottomRight: { x: 10, y: 1 },
+    position: [[0, 0], [10, 10]],
     style: {
       fill: "#0000",
       stroke: "black",
@@ -2508,25 +2504,29 @@ container.prototype.createRectangleAnnotation = function(group, options) {
 
   // Merge default options and user-specified options
   const combinedOptions = mergeOptions.call(this, defaultOptions, "rectangleAnnotationOptions", options);
-  const { topLeft, bottomRight, style, rotation } = combinedOptions;
+  const { position, style, rotation } = combinedOptions;
+
+  // Calculate x, y, width, and height from the position array
+  const x1 = Math.min(position[0][0], position[1][0]);
+  const x2 = Math.max(position[0][0], position[1][0]);
+  const y1 = Math.max(position[0][1], position[1][1]);
+  const y2 = Math.min(position[0][1], position[1][1]);
+  const width = Math.abs(x1 - x2);
+  const height = Math.abs(y2 - y1);
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
 
-    // Define xScale and yScale
-  const xScale = d3.scaleLinear().domain([0, 100]).range([0, this.width - this.margin.left - this.margin.right]);
-
-  // Calculate width and height based on corner coordinates
-  const width = xScale(bottomRight.x) - xScale(topLeft.x);
-  const height = this.yScale(bottomRight.y) - this.yScale(topLeft.y);
+  var group = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   // Create the rectangle element with merged styles
-  const rectangleElement = group.append("rect")
-    .attr("x", xScale(topLeft.x))
-    .attr("y", this.yScale(topLeft.y))
-    .attr("width", width)
-    .attr("height", height)
-    .attr("transform", `rotate(${rotation}, ${xScale(topLeft.x + width / 2)}, ${this.yScale(topLeft.y + height / 2)})`)
+  group.append("rect")
+    .attr("x", this.xScale(x1))
+    .attr("y", this.yScale(y1))
+    .attr("width", this.xScale(x2) - this.xScale(x1))
+    .attr("height", this.yScale(y2) - this.yScale(y1))
+    .attr("transform", `rotate(${rotation}, ${this.xScale(x1 + width / 2)}, ${this.yScale(y1 + height / 2)})`)
     .style("fill", style.fill)
     .style("stroke", style.stroke)
     .style("stroke-width", style.strokeWidth)
@@ -2534,8 +2534,6 @@ container.prototype.createRectangleAnnotation = function(group, options) {
       const currentElement = d3.select(this);
       setStyleFromOptions(currentElement, additionalOptionsStyle);
     });
-
-  return group;
 };
 
 container.prototype.createPromoterAnnotation = function(group, options) {

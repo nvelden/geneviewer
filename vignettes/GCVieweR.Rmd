@@ -232,28 +232,6 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "250px") 
   )
 ```
 
-## Saving Plots
-
-The `GCVieweR` package does not have build-in functionality for saving plots. However, plots can be saved to images and .pdf by using the `webshot2` package. To do this plots need to be saved to `.html` first after which `webshot2` can make a screenshot.
-
-```{r echo=TRUE, eval=FALSE, warning=FALSE}
-library(webshot2)
-
-# Generate plot with width and height specifications
-cluster_plot <- 
-  GC_chart(ophA_clusters, 
-           group = "class", 
-           cluster = "cluster",
-           width = "400px",
-           height = "250px")
-
-# Save plot to temp.html file
-htmlwidgets::saveWidget(cluster_plot, "temp.html", selfcontained = TRUE)
-
-# Save plot to .png (or .jpg, .jpeg, .webp, .pdf)
-webshot2::webshot("temp.html", "output.png", selector = ".GCVieweR")
-```
-
 ## Genes
 
 The `GC_genes()` function can be used to custom style the genes. In the below example the stroke and stroke width are altered but it can take any valid CSS style. The color coding is set according to the group in the `GC_chart()` function. Changing the color scheme is best done through the `GC_color()` function (see: [Colors section](#colors)) as this will uniformly change the colors in both the genes and legend. 
@@ -284,6 +262,36 @@ GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "150px") %
    ) %>%
    GC_legend(FALSE)
 ```
+
+## Sequence
+
+The sequence line in the `GC_sequence()` function is initially presented as a solid black line, but can be customized with the `sequenceStyle` option. Additionally, the `markerStyle` option allows adjusting the style of the break markers.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(
+  ophA_clusters, group = "class",
+  cluster = "cluster",
+  height = "150px") %>%
+  GC_sequence(
+    show = TRUE,
+    cluster = NULL,
+    y = 50,
+    sequenceStyle = list(
+      stroke = "grey",
+      strokeWidth = 1
+      # Any other CSS style
+    ),
+    markerStyle = list(
+      stroke = "grey",
+      strokeWidth = 1,
+      gap = 3,
+      tiltAmount = 5
+      # Any other CSS style
+    )
+  ) %>%
+  GC_legend(FALSE)
+```
+
 
 ## Labels
 
@@ -349,6 +357,221 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") 
               list(index = 7, y = 50, fill = "red")
               )
             )
+```
+
+## Annotations
+
+The `GC_annotation` function can be used to add annotations to specified clusters within a GC chart. The types of annotations available are: text, textMarker, line, arrow, symbol,
+rectangle, promoter, and terminator. 
+
+Annotations are placed by specifying the `type` followed by the type specific parameters. As shown in the below example multiple annotations of the same type can be placed by providing a list of values. The `GC_trackMouse()` function can be used to track the mouse coordinates while hoovering over the chart which makes it more easy to determine the `x` and `y` positions to place the annotation. 
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "300px") %>%
+  GC_annotation(
+    cluster = 1,
+    type = "text",
+    text = "Gene 1",
+    x = 2970,
+    y = 58
+  ) %>% 
+  GC_annotation(
+    cluster = 2,
+    type = "text",
+    text = c("Gene 1", "Gene 2", "Gene 3"),
+    x = c(19400, 22200, 25600),
+    y = 58
+  ) %>%
+  GC_legend(FALSE) %>%
+  GC_trackMouse()
+```
+
+### Text
+
+Below shows an example with all options to place a text annotation. The `text`, `x` and `y` variables can also take a list of values.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", cluster = "cluster", height = "150px") %>%
+  GC_annotation(
+    cluster = 1,
+    type = "text", 
+    text = "Gene 1",
+    x = 2970,
+    y = 58,
+    style = list(
+      fontSize = "10px",
+      fontStyle = "normal",
+      fontWeight = "normal",
+      textDecoration = "none",
+      fontFamily = "sans-serif",
+      cursor = "default"
+      # Any other CSS style
+    ) 
+  ) %>%
+  GC_legend(FALSE) %>%
+  GC_trackMouse()
+```
+
+### Text Marker
+
+Below shows an example with all options to place a text Marker. With the exception of the styles all other variables can also take a list of values. By default x1 and x2 are `NULL` and `position` is used for the horizontal placement.   
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", cluster = "cluster", height = "150px") %>%
+  GC_annotation(
+    cluster = 1,
+    type = "textMarker", 
+    text = "Gene 1",
+    x1 = NULL,
+    y1 = 66,
+    x2 = NULL,
+    y2 = 50,
+    position = 9300,
+    labelX = 0,
+    labelY = 0,
+    showArrow = FALSE,
+    arrowSize = 8,
+    textStyle = list(
+      fontSize = "10px",
+      fontFamily = "sans-serif",
+      fill = "black",
+      textAnchor = "middle"
+    ),
+    arrowStyle = list(
+      fill = "black"
+    ),
+    lineStyle = list(
+      stroke = "black",
+      strokeWidth = 1
+    )
+  ) %>%
+  GC_legend(FALSE) 
+```
+
+### Promoter / Terminator
+
+Below shows an example with all options to place a promoter. With the exception of the styles all other variables can also take a list of values.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", cluster = "cluster", height = "150px") %>%
+  GC_annotation(
+    cluster = 1,
+    type = "promoter", # terminator
+    x = 9300,
+    y = 50, 
+    direction = "forward", # reverse
+    style = list(
+      fill = "none",
+      stroke = "black",
+      strokeWidth = 1
+      # Any other CSS style
+    ),
+    rotation = 0,
+    scale = 1
+  ) %>% 
+  GC_legend(FALSE) %>%
+  GC_trackMouse()
+```
+
+### Symbol
+
+Below shows an example with all options to place a symbol. Supported symbols are circle, cross, diamond, square, star, triangle, wye. With the exception of the styles all other variables can also take a list of values.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", cluster = "cluster", height = "150px") %>%
+  GC_annotation(
+    cluster = 1,
+    type = "symbol", # circle/cross/diamond/square/star/triangle/wye
+    symbol = "circle", 
+    x = 9300,
+    y = 50, 
+    size = 64,
+    rotation = 0,
+    style = list(
+      fill = "black",
+      stroke = "black",
+      strokeWidth = 2
+      # Any other CSS style
+      )
+    ) %>% 
+  GC_legend(FALSE) %>%
+  GC_trackMouse()
+```
+
+### Arrow
+
+Below shows an example with all options to place an arrow. With the exception of the styles all other variables can also take a list of values.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", cluster = "cluster", height = "150px") %>%
+  GC_annotation(
+    cluster = 1,
+    type = "arrow",
+    x1 = 9300,
+    y1 = 70,
+    x2 = 9300,
+    y2 = 50,
+    arrowSize = 8,
+    arrowStyle = list(
+      fill = "black"
+      # Any other CSS style
+    ),
+    lineStyle = list(
+      stroke = "black",
+      strokeWidth = 1
+      # Any other CSS style
+    )
+   ) %>% 
+  GC_legend(FALSE) %>%
+  GC_trackMouse()
+```
+
+### Line
+
+Below shows an example with all options to place a line. With the exception of the styles all other variables can also take a list of values.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", cluster = "cluster", height = "150px") %>%
+  GC_annotation(
+    cluster = 1,
+    type = "line",
+    x1 = 9300,
+    y1 = 70,
+    x2 = 9300,
+    y2 = 50,
+    style = list(
+      stroke = "black",
+      strokeWidth = 1
+      # Any other CSS styles
+    )
+  ) %>% 
+  GC_legend(FALSE) %>%
+  GC_trackMouse()
+```
+
+### Square
+
+Below shows an example with all options to place a square. The `rotation` variable can also take a list of values.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", cluster = "cluster", height = "150px") %>%
+  GC_annotation(
+    cluster = 1,
+    type = "rectangle",
+    rotation = 0,
+    position = 
+      list(
+        list(c(9200, 60), c(11100, 40)),
+        list(c(11700, 60), c(12900, 40))
+        ),
+    style = list(
+      stroke = "black",
+      strokeWidth = 1
+      # Any other CSS styles
+    )
+  ) %>% 
+  GC_legend(FALSE) %>%
+  GC_trackMouse()
 ```
 
 ## Colors {#colors}
@@ -677,35 +900,6 @@ GC_chart(dbophA_cluster, group = "class",height = "100px") %>%
    GC_legend(FALSE)
 ```
 
-## Sequence
-
-The sequence line in the `GC_sequence()` function is initially presented as a solid black line, but can be customized with the `sequenceStyle` option. Additionally, the `markerStyle` option allows adjusting the style of the break markers.
-
-```{r echo=TRUE, results='asis'}
-GC_chart(
-  ophA_clusters, group = "class",
-  cluster = "cluster",
-  height = "150px") %>%
-  GC_sequence(
-    show = TRUE,
-    cluster = NULL,
-    y = 50,
-    sequenceStyle = list(
-      stroke = "grey",
-      strokeWidth = 1
-      # Any other CSS style
-    ),
-    markerStyle = list(
-      stroke = "grey",
-      strokeWidth = 1,
-      gap = 3,
-      tiltAmount = 5
-      # Any other CSS style
-    )
-  ) %>%
-  GC_legend(FALSE)
-```
-
 ## Scalebar
 
 A scalebar can be added to the gene cluster chart using `GC_scaleBar()`. This function, by default, displays a scale bar of 1000 base pairs (bp) labeled as "1kb".
@@ -763,3 +957,26 @@ GC_chart(ophA_cluster, group = "class", height = "150px") %>%
   ) %>%
   GC_legend(FALSE)
 ```
+
+## Saving Plots
+
+The `GCVieweR` package does not have build-in functionality for saving plots. However, plots can be saved to images and .pdf by using the `webshot2` package. To do this plots need to be saved to `.html` first after which `webshot2` can make a screenshot.
+
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+library(webshot2)
+
+# Generate plot with width and height specifications
+cluster_plot <- 
+  GC_chart(ophA_clusters, 
+           group = "class", 
+           cluster = "cluster",
+           width = "400px",
+           height = "250px")
+
+# Save plot to temp.html file
+htmlwidgets::saveWidget(cluster_plot, "temp.html", selfcontained = TRUE)
+
+# Save plot to .png (or .jpg, .jpeg, .webp, .pdf)
+webshot2::webshot("temp.html", "output.png", selector = ".GCVieweR")
+```
+

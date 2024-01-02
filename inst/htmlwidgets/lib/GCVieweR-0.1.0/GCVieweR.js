@@ -2064,7 +2064,7 @@ container.prototype.trackMouse = function(track = true) {
     loci = Math.round(this.xScale.invert(adjustedX))
     const format = d3.format(",");
 
-    tooltip.html(`x: ${xScale(x).toFixed(1)} <br>y: ${yScale(y).toFixed(1)}<br>pos: ${format(loci)}`)
+    tooltip.html(`x: ${format(loci)} <br>y: ${yScale(y).toFixed(1)}`)
       .style("visibility", "visible")
       .style("left", (event.pageX + 10) + "px")
       .style("top", (event.pageY - 10) + "px");
@@ -2493,26 +2493,24 @@ container.prototype.createSymbolAnnotation = function(group, options) {
 
 container.prototype.createRectangleAnnotation = function(group, options) {
   const defaultOptions = {
-    position: [[0, 0], [10, 10]],
+    position: [[[9300, 20], [9400, 50]]], // Default as a nested array for multiple rectangles
+    rotation: [0], // Array to support multiple rotations
     style: {
       fill: "#0000",
       stroke: "black",
       strokeWidth: 2
-    },
-    rotation: 0
+    }
   };
 
   // Merge default options and user-specified options
   const combinedOptions = mergeOptions.call(this, defaultOptions, "rectangleAnnotationOptions", options);
-  const { position, style, rotation } = combinedOptions;
+  let { position, style, rotation } = combinedOptions;
 
-  // Calculate x, y, width, and height from the position array
-  const x1 = Math.min(position[0][0], position[1][0]);
-  const x2 = Math.max(position[0][0], position[1][0]);
-  const y1 = Math.max(position[0][1], position[1][1]);
-  const y2 = Math.min(position[0][1], position[1][1]);
-  const width = Math.abs(x1 - x2);
-  const height = Math.abs(y2 - y1);
+  // Normalize position to be an array of arrays
+  if (!Array.isArray(position[0][0])) {
+    position = [position];
+  }
+  if (!Array.isArray(rotation)) rotation = [rotation];
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
@@ -2520,65 +2518,91 @@ container.prototype.createRectangleAnnotation = function(group, options) {
   var group = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
-  // Create the rectangle element with merged styles
-  group.append("rect")
-    .attr("x", this.xScale(x1))
-    .attr("y", this.yScale(y1))
-    .attr("width", this.xScale(x2) - this.xScale(x1))
-    .attr("height", this.yScale(y2) - this.yScale(y1))
-    .attr("transform", `rotate(${rotation}, ${this.xScale(x1 + width / 2)}, ${this.yScale(y1 + height / 2)})`)
-    .style("fill", style.fill)
-    .style("stroke", style.stroke)
-    .style("stroke-width", style.strokeWidth)
-    .each(function () {
-      const currentElement = d3.select(this);
-      setStyleFromOptions(currentElement, additionalOptionsStyle);
-    });
+  // Iterate over each element in the position and rotation arrays
+  const numRects = Math.max(position.length, rotation.length);
+  for (let i = 0; i < numRects; i++) {
+    const currentPos = position[Math.min(i, position.length - 1)];
+    const currentRot = rotation[Math.min(i, rotation.length - 1)];
+
+    // Calculate x, y, width, and height from the position array
+    const x1 = Math.min(currentPos[0][0], currentPos[1][0]);
+    const x2 = Math.max(currentPos[0][0], currentPos[1][0]);
+    const y1 = Math.max(currentPos[0][1], currentPos[1][1]);
+    const y2 = Math.min(currentPos[0][1], currentPos[1][1]);
+    const width = Math.abs(x1 - x2);
+    const height = Math.abs(y2 - y1);
+
+    // Create the rectangle element with merged styles
+    group.append("rect")
+      .attr("x", this.xScale(x1))
+      .attr("y", this.yScale(y1))
+      .attr("width", this.xScale(x2) - this.xScale(x1))
+      .attr("height", this.yScale(y2) - this.yScale(y1))
+      .attr("transform", `rotate(${currentRot}, ${this.xScale(x1 + width / 2)}, ${this.yScale(y1 + height / 2)})`)
+      .style("fill", style.fill)
+      .style("stroke", style.stroke)
+      .style("stroke-width", style.strokeWidth)
+      .each(function () {
+        const currentElement = d3.select(this);
+        setStyleFromOptions(currentElement, additionalOptionsStyle);
+      });
+  }
 };
 
 container.prototype.createPromoterAnnotation = function(group, options) {
+
   const defaultOptions = {
-    position: null,
     x: 0,
     y: 50,
-    direction: null,
+    direction: 'forward',
+    rotation: 0,
+    scale: 1,
     style: {
       fill: "none",
       stroke: "black",
       strokeWidth: 1
     },
-    rotation: 0,
-    scale: 1
   };
 
   // Merge default options and user-specified options
-  const combinedOptions = mergeOptions.call(this, defaultOptions, "promoterAnnotationOptions", options);
-  let { position, x, y, direction, style, rotation, scale } = combinedOptions;
+  const combinedOptions = mergeOptions.call(this, defaultOptions, "PromoterAnnotationOptions", options);
+  let { x, y, direction, rotation, scale, style } = combinedOptions;
 
-  if (direction === null) {
-    direction = this.reverse ? "reverse" : "forward";
-  }
-
-  // Extract additional options that are not in defaultOptions
+    // Extract additional options that are not in defaultOptions
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
 
-  // Define the custom path and mirrored path
-  const customPath = "M -8 -17.5 L -13 -14 l 5 3.5 M -13 -14 L 0 -14 v 14";
-  const mirroredPath = "M 8 -17.5 L 13 -14 l -5 3.5 M 13 -14 H 0 v 14";
+  if (!Array.isArray(x)) x = [x];
+  if (!Array.isArray(y)) y = [y];
+  if (!Array.isArray(direction)) direction = [direction];
+  if (!Array.isArray(rotation)) rotation = [rotation];
+  if (!Array.isArray(scale)) scale = [scale];
 
-  // Choose the appropriate path based on direction
-  const pathToUse = direction === "forward" ? mirroredPath : customPath;
+    // Define the custom path and mirrored path
+  const mirroredPath = "M -8 -17.5 L -13 -14 l 5 3.5 M -13 -14 L 0 -14 v 14";
+  const customPath = "M 8 -17.5 L 13 -14 l -5 3.5 M 13 -14 H 0 v 14";
 
-  // Handle single or multiple position values
-  const positions = Array.isArray(position) ? position : [position];
+  var group = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
-  positions.forEach(s => {
-    const xPosition = s !== null ? this.xScale(s) + x : this.xScale(this.minStart) + x;
+  // Iterate over each element in the arrays
+  for (let i = 0; i < Math.max(x.length, y.length, direction.length, rotation.length, scale.length); i++) {
+    console.log("triggered")
+    const currentX = x[Math.min(i, x.length - 1)];
+    const currentY = y[Math.min(i, y.length - 1)];
+    const currentDirection = direction[Math.min(i, direction.length - 1)];
+    const currentRotation = rotation[Math.min(i, rotation.length - 1)];
+    const currentScale = scale[Math.min(i, scale.length - 1)];
 
-    // Create the symbol element for each position value
+    // Choose the appropriate path based on direction
+    const pathToUse = currentDirection === "forward" ? customPath : mirroredPath;
+
+    // Calculate the x position
+    const xPosition = this.xScale(currentX);
+
+    // Create the symbol element for each set of values
     group.append("path")
       .attr("d", pathToUse)
-      .attr("transform", `translate(${xPosition}, ${this.yScale(y)}) scale(${scale}) rotate(${rotation})`)
+      .attr("transform", `translate(${xPosition}, ${this.yScale(currentY)}) scale(${currentScale}) rotate(${currentRotation})`)
       .style("fill", style.fill)
       .style("stroke", style.stroke)
       .style("stroke-width", style.strokeWidth)
@@ -2586,54 +2610,63 @@ container.prototype.createPromoterAnnotation = function(group, options) {
         const currentElement = d3.select(this);
         setStyleFromOptions(currentElement, additionalOptionsStyle);
       });
-  });
-
-  return group;
+  }
 };
 
 container.prototype.createTerminatorAnnotation = function(group, options) {
+
   const defaultOptions = {
-    position: null,
     x: 0,
     y: 50,
-    direction: null,
+    direction: 'forward',
+    rotation: 0,
+    scale: 1,
     style: {
       fill: "none",
       stroke: "black",
       strokeWidth: 1
     },
-    rotation: 0,
-    scale: 1
   };
 
   // Merge default options and user-specified options
-  const combinedOptions = mergeOptions.call(this, defaultOptions, "promoterAnnotationOptions", options);
-  let { position, x, y, direction, style, rotation, scale } = combinedOptions;
+  const combinedOptions = mergeOptions.call(this, defaultOptions, "terminatorAnnotationOptions", options);
+  let { x, y, direction, rotation, scale, style } = combinedOptions;
 
-  if (direction === null) {
-    direction = this.reverse ? "reverse" : "forward";
-  }
-
-  // Extract additional options that are not in defaultOptions
+    // Extract additional options that are not in defaultOptions
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
 
-  // Define the custom path and mirrored path
+  if (!Array.isArray(x)) x = [x];
+  if (!Array.isArray(y)) y = [y];
+  if (!Array.isArray(direction)) direction = [direction];
+  if (!Array.isArray(rotation)) rotation = [rotation];
+  if (!Array.isArray(scale)) scale = [scale];
+
+  // Define the custom paths
   const customPath = "M -8 17.5 L -13 14 l 5 -3.5 M -13 14 H 0 v -14";
   const mirroredPath = "M 8 17.5 L 13 14 l -5 -3.5 M 13 14 L 0 14 v -14";
 
-  // Choose the appropriate path based on direction
-  const pathToUse = direction === "forward" ? customPath : mirroredPath;
+  var group = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
-  // Handle single or multiple position values
-  const positions = Array.isArray(position) ? position : [position];
+  // Iterate over each element in the arrays
+  for (let i = 0; i < Math.max(x.length, y.length, direction.length, rotation.length, scale.length); i++) {
+    console.log("triggered")
+    const currentX = x[Math.min(i, x.length - 1)];
+    const currentY = y[Math.min(i, y.length - 1)];
+    const currentDirection = direction[Math.min(i, direction.length - 1)];
+    const currentRotation = rotation[Math.min(i, rotation.length - 1)];
+    const currentScale = scale[Math.min(i, scale.length - 1)];
 
-  positions.forEach(s => {
-    const xPosition = s !== null ? this.xScale(s) + x : this.xScale(this.minStart) + x;
+    // Choose the appropriate path based on direction
+    const pathToUse = currentDirection === "forward" ? customPath : mirroredPath;
 
-    // Create the symbol element for each position value
+    // Calculate the x position
+    const xPosition = this.xScale(currentX);
+
+    // Create the symbol element for each set of values
     group.append("path")
       .attr("d", pathToUse)
-      .attr("transform", `translate(${xPosition}, ${this.yScale(y)}) scale(${scale}) rotate(${rotation})`)
+      .attr("transform", `translate(${xPosition}, ${this.yScale(currentY)}) scale(${currentScale}) rotate(${currentRotation})`)
       .style("fill", style.fill)
       .style("stroke", style.stroke)
       .style("stroke-width", style.strokeWidth)
@@ -2641,7 +2674,5 @@ container.prototype.createTerminatorAnnotation = function(group, options) {
         const currentElement = d3.select(this);
         setStyleFromOptions(currentElement, additionalOptionsStyle);
       });
-  });
-
-  return group;
+  }
 };

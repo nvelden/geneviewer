@@ -58,11 +58,11 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "220px") \%>
   ) \%>\%
   GC_annotation(
     type = "terminator",
-    position = 81
+    x = 81
   ) \%>\%
   GC_annotation(
     type = "promoter",
-    position = 49
+    x = 49
   ) \%>\%
   # Convenience function to track mouse position on hoover
   GC_trackMouse()

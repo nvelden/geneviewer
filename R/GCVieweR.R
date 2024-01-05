@@ -63,6 +63,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 
   x$data <- data
   x$group <- group
+  x$cluster <- cluster
   x$graphContainer$direction <- "column"
   x$style <- style
   x$title$style <- list(width = "100%")
@@ -85,9 +86,9 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     } else {
       subset_data <- data[data[[cluster]] == clust, ]
     }
-
-    subset_data$start <- subset_data[[start]]
-    subset_data$end <- subset_data[[end]]
+    subset_data_tmp <- subset_data
+    subset_data$start <- subset_data_tmp[[start]]
+    subset_data$end <- subset_data_tmp[[end]]
 
     subset_data <- subset_data[with(subset_data, order(-pmax(start, end), abs(end - start))), ]
     subset_data <- add_gene_track(subset_data)
@@ -100,6 +101,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$options <- list(height = get_relative_height(height, height) / length(clusters), width = width)
     x$series[[clust]]$options$style <- list(width = "100%", backgroundColor = style$backgroundColor)
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
+    x$series[[clust]]$scale <- list()
     x$series[[clust]]$labels <- list(group = group, show = TRUE)
     x$series[[clust]]$coordinates <- list(show = FALSE)
     x$series[[clust]]$scaleBar <- list()
@@ -1845,7 +1847,8 @@ GC_tooltip <- function(
 
 #' Modify Gene Track
 #'
-#' This function can switch gene tracks off or adjust the spacing between tracks.
+#' This function can switch gene tracks off, adjust the spacing between tracks and
+#' alter the styling of specified clusters.
 #'
 #' @param GC_chart The gene chart object to be modified.
 #' @param track Logical, whether to include the gene track or not.
@@ -1917,4 +1920,85 @@ GC_cluster <- function(
   }
 
   return(GC_chart)
+}
+
+#' Align gene clusters
+#'
+#' This function aligns clusters based on a specified gene id.
+#'
+#' @param GC_chart A chart object containing genomic data along with clustering
+#' information.
+#' @param id_column The name of the column that contains the gene identifiers.
+#' @param id The specific identifier of the gene to be aligned.
+#' @param align The alignment method for the gene. Valid values are
+#' "left", "right", or "center". Defaults to "left".
+#'
+#' @return The modified `GC_chart` object with updated genomic coordinates.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 170, 210),
+#'   end = c(40, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5'),
+#'   group = c('A', 'B', 'C', 'C', 'A'),
+#'   cluster =  c(1, 1, 1, 2, 2)
+#' )
+#'
+#'
+#' GC_chart(genes_data, group = "group", cluster = "cluster", height = "150px") %>%
+#'   GC_align("group", "A", align = "left") %>%
+#'   GC_legend(FALSE)
+#'
+#' @export
+GC_align <- function(
+    GC_chart,
+    id_column,
+    id,
+    align = "left"
+){
+
+  if(is.null(GC_chart$x$cluster)){
+    warning("Could not align selected gene. Please define cluster in the GC_chart function.")
+    return(GC_chart)
+  }
+
+  if(!(id_column %in% colnames(GC_chart$x$data))){
+    warning(paste("Column", id_column, "not found in the data."))
+    return(GC_chart)
+  }
+
+  if(!(id %in% GC_chart$x$data[[id_column]])){
+    warning(paste("ID", id, "not found in the", id_column, "column."))
+    return(GC_chart)
+  }
+
+  # Swap start and stop for reverse genes
+  data <- GC_chart$x$data
+  cluster_column <- GC_chart$x$cluster
+
+  # Get reversed clusters
+  clusters <- unique(data[[cluster_column]])
+  reversed_clusters <- clusters[sapply(clusters, function(cl) {
+    if (!is.null(GC_chart$x$series[[cl]]$scale) && !is.null(GC_chart$x$series[[cl]]$scale$reverse)) {
+      return(GC_chart$x$series[[cl]]$scale$reverse == TRUE)
+    } else {
+      return(FALSE)
+    }
+  })]
+
+  swapped_indices <- data$start > data$end
+  data[swapped_indices, c("start", "end")] <- data[swapped_indices, c("end", "start")]
+
+  adjusted_range <- adjust_range(data, cluster_column, id_column, id, align = align, reversed_clusters)
+  update_clusters <- adjusted_range[[cluster_column]]
+
+  for (cluster in update_clusters) {
+    cluster_data <- adjusted_range[adjusted_range[[cluster_column]] == cluster, ]
+    # Set scale options for each cluster
+    GC_chart$x$series[[cluster]]$scale$start <- cluster_data$start
+    GC_chart$x$series[[cluster]]$scale$end <- cluster_data$end
+  }
+
+  return(GC_chart)
+
 }

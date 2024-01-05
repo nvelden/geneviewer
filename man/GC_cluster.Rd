@@ -33,7 +33,8 @@ pair. For example, list(backgroundColor = "red", color = "white").}
 Returns the modified gene chart object.
 }
 \description{
-This function can switch gene tracks off or adjust the spacing between tracks.
+This function can switch gene tracks off, adjust the spacing between tracks and
+alter the styling of specified clusters.
 }
 \examples{
 genes_data <- data.frame(

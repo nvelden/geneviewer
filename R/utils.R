@@ -353,11 +353,16 @@ add_gene_track <- function(data) {
 #' @param point A point between `xmin` and `xmax`.
 #' @param relative_position A number between 0 and 1 indicating the relative position
 #'   of `point` between `xmin` and `xmax`.
+#' @param reverse A logical value indicating whether the cluster is reversed or not
 #'
 #' @return The adjusted minimum x coordinate which is always less than or equal to
 #'   the original `xmin`.
 #' @noRd
-adjusted_xmin <- function(xmin, xmax, point, relative_position) {
+adjusted_xmin <- function(xmin, xmax, point, relative_position, reverse = FALSE) {
+
+  if(reverse){
+    relative_position <- 1 - relative_position
+  }
 
   if (relative_position <= 0 || relative_position >= 1) {
     return(xmin)
@@ -384,11 +389,15 @@ adjusted_xmin <- function(xmin, xmax, point, relative_position) {
 #' @param point A point between `xmin` and `xmax`.
 #' @param relative_position A number between 0 and 1 indicating the relative position
 #'   of `point` between `xmin` and `xmax`.
-#'
+#' @param reverse A logical value indicating whether the cluster is reversed or not
 #' @return The adjusted maximum x coordinate which is always greater than or equal to
 #'   the original `xmax`.
 #' @noRd
-adjusted_xmax <- function(xmin, xmax, point, relative_position) {
+adjusted_xmax <- function(xmin, xmax, point, relative_position, reverse = FALSE) {
+  if(reverse){
+    relative_position <- 1 - relative_position
+  }
+
   if (relative_position <= 0 || relative_position >= 1) {
     return(xmax)
   }
@@ -401,10 +410,46 @@ adjusted_xmax <- function(xmin, xmax, point, relative_position) {
   return(round(max(adjusted_xmax, xmax)))
 }
 
+#' Calculate Position and Offset within a Cluster
+#'
+#' This function determines the position and offset of a gene within a cluster based on
+#' the specified alignment (left, right, or center). It also accounts for the orientation
+#' of the cluster (normal or reversed) and adjusts the position accordingly. The offset
+#' is calculated as the difference between the gene's position and the cluster's start point.
+#'
+#' @param align A string indicating the align of the gene to consider for position calculation.
+#'   Valid values are "left", "right", or "center". The function will default to "left"
+#'   if an invalid align is provided.
+#' @param start The start coordinate of the gene.
+#' @param end The end coordinate of the gene.
+#' @param cluster_start The start coordinate of the cluster.
+#' @param reversed A logical value indicating whether the cluster is in a reversed orientation.
+#'
+#' @return A list containing two elements: `position`, which is the calculated position of the
+#'   gene within the cluster, and `offset`, which is the difference between the gene's position
+#'   and the cluster's start point.
+#' @noRd
+get_position_and_offset <- function(align, start, end, cluster_start, reversed) {
+  if ((align == "left" && !reversed) || (align == "right" && reversed)) {
+    position <- start
+  } else if ((align == "right" && !reversed) || (align == "left" && reversed)) {
+    position <- end
+  } else if (align == "center") {
+    position <- (start + end) / 2
+  } else {
+    warning("Alignment should be 'left', 'right', or 'center'. Defaulting to 'left'.")
+    position <- start
+  }
+
+  offset <- position - cluster_start
+
+  list(position = position, offset = offset)
+}
+
 #' Calculate Relative Positions of Genes within Clusters
 #'
 #' This function calculates the relative positions of genes within specified
-#' clusters. It considers the gene's position (start, end, or middle) within
+#' clusters. It considers the gene's position (start, end, or center) within
 #' the cluster and computes its relative position with respect to the cluster's
 #' start and end points. It also includes checks for gene uniqueness within
 #' clusters.
@@ -414,9 +459,11 @@ adjusted_xmax <- function(xmin, xmax, point, relative_position) {
 #' @param cluster The name of the column in `data` representing cluster identifiers.
 #' @param group The name of the column in `data` representing group identifiers.
 #' @param gene The specific gene name to filter on.
-#' @param side A string indicating the side of the gene to consider for
-#'   calculating relative position. Valid values are "left", "right", or "middle".
+#' @param align A string indicating the align of the gene to consider for
+#'   calculating relative position. Valid values are "left", "right", or "center".
 #'   Defaults to "left".
+#' @param reversed_clusters A vector of cluster names where the clusters are considered
+#'   to be in the reversed orientation.
 #'
 #' @return A dataframe with the original data plus two additional columns: 'position',
 #'   indicating the absolute position of the gene, and 'relative_position', indicating
@@ -424,7 +471,7 @@ adjusted_xmax <- function(xmin, xmax, point, relative_position) {
 #' @importFrom dplyr group_by summarise ungroup select left_join filter sym n
 #' @importFrom rlang .data
 #' @noRd
-calculate_relative_positions <- function(data, cluster, group, gene, side = "left") {
+calculate_relative_positions <- function(data, cluster, group, gene, align = "left", reversed_clusters) {
 
   gene_name <- gene
   cluster_column <- cluster
@@ -438,7 +485,7 @@ calculate_relative_positions <- function(data, cluster, group, gene, side = "lef
   data <- data %>%
     dplyr::select(!! dplyr::sym(cluster_column), !! dplyr::sym(group), .data$start, .data$end) %>%
     dplyr::left_join(cluster_min_max, by = cluster_column) %>%
-    dplyr::filter(data[[group]] == gene_name)
+    dplyr::filter(.data[[group]] == gene_name)
 
   # Check if gene is not unique in any cluster
   gene_counts <- data %>%
@@ -448,33 +495,35 @@ calculate_relative_positions <- function(data, cluster, group, gene, side = "lef
 
   if (any(gene_counts$count > 1)) {
     warning(paste("The selected gene", gene_name, "appears multiple times in some clusters.",
-                  "Please ensure to use a unique gene id."))
+                  "Please make sure to use a unique gene id."))
     return(NULL)
   }
 
-  if(side == "left"){
-    offset <- data$start - data$cluster_start
-    position <- data$start
-  } else if (side == "right"){
-    offset <- data$end - data$cluster_start
-    position <- data$end
-  } else if (side == "middle"){
-    offset <- ((data$end + data$start) / 2) - data$cluster_start
-    position <- (data$end + data$start) / 2
-  } else {
-    warning("Side parameter should be 'left', 'right', or 'middle'. Defaulting to 'left'.")
-    offset <- data$start - data$cluster_start
-    position <- data$start
-  }
-
-  # Filtering for the specified gene in the group column
-  filtered_data <- data %>%
+  # Add if cluster is reversed or not
+  data <- data %>%
     dplyr::mutate(
-      position = position,
-      relative_position = offset / (.data$cluster_end - .data$cluster_start)
+      reversed = !!sym(cluster_column) %in% reversed_clusters
     )
 
-  return(filtered_data)
+  # Filtering for the specified gene in the group column
+  data <- data %>%
+    rowwise() %>%
+    dplyr::mutate(
+      position = get_position_and_offset(
+        align,
+        .data$start,
+        .data$end,
+        .data$cluster_start,
+        .data$reversed)$position,
+      relative_position = get_position_and_offset(
+        align,
+        .data$start,
+        .data$end,
+        .data$cluster_start,
+        .data$reversed)$offset / (.data$cluster_end - .data$cluster_start)
+    )
+
+  return(data)
 }
 
 #' Adjust Gene Range Based on Mean Relative Position within a Cluster
@@ -489,16 +538,17 @@ calculate_relative_positions <- function(data, cluster, group, gene, side = "lef
 #' @param cluster The name of the column in `data` representing cluster identifiers.
 #' @param group The name of the column in `data` representing group identifiers.
 #' @param gene The specific gene name to filter on.
-#' @param side A string indicating the side of the gene to consider for calculating
-#'   relative position. Valid values are "left", "right", or "middle". Defaults to "left".
-#'
+#' @param align A string indicating the align of the gene to consider for calculating
+#'   relative position. Valid values are "left", "right", or "center". Defaults to "left".
+#' @param reversed_clusters A vector of cluster names where the clusters are considered
+#'   to be in the reversed orientation.
 #' @return A modified version of the input dataframe that includes two additional
 #'   columns: 'new_start' and 'new_end', representing the adjusted start and end positions
 #'   of each gene.
 #' @importFrom dplyr rowwise mutate
 #' @importFrom rlang .data
 #' @noRd
-adjust_range <- function(data, cluster, group, gene, side = "left"){
+adjust_range <- function(data, cluster, group, gene, align = "left", reversed_clusters = NULL){
 
   if (!(cluster %in% base::colnames(data))) {
     warning(paste("Selected gene coud not be aligned. Column", cluster, "does not exist in the data."))
@@ -521,7 +571,8 @@ adjust_range <- function(data, cluster, group, gene, side = "left"){
       cluster = cluster,
       group = group ,
       gene = gene,
-      side = side
+      align = align,
+      reversed_clusters = reversed_clusters
     )
 
   if(is.null(data)){
@@ -533,8 +584,8 @@ adjust_range <- function(data, cluster, group, gene, side = "left"){
   data <- data %>%
     dplyr::rowwise() %>%
     dplyr::mutate(
-      start = adjusted_xmin(.data$cluster_start, .data$cluster_end, .data$position, new_relative_position),
-      end = adjusted_xmax(.data$cluster_start, .data$cluster_end, .data$position, new_relative_position)
+      start = adjusted_xmin(.data$cluster_start, .data$cluster_end, .data$position, new_relative_position, reverse = .data$reversed),
+      end = adjusted_xmax(.data$cluster_start, .data$cluster_end, .data$position, new_relative_position, reverse = .data$reversed)
     )
 
   return(data)

@@ -212,7 +212,13 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster",
          style = list(backgroundColor = "red"),
          height = "300px"
          ) %>%
-  GC_title("Adjusting Margins of a GC_chart", align = "left", y = 15, style = list(backgroundColor = "yellow", align = "left")) %>%
+  GC_title(
+    "Adjusting Margins of a GC_chart", 
+    align = "left", 
+    y = 15, 
+    style = list(backgroundColor = "yellow", 
+                 align = "left")
+    ) %>%
   GC_cluster(style = list(backgroundColor = "green")) %>%
   GC_legend(TRUE, style = list(backgroundColor = "yellow")) %>%
   GC_grid(margin = list(top = 50, bottom = 50, left = 25, right = 25))
@@ -268,7 +274,7 @@ GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "150px") %
 The `GC_align()` function can be used to align a specific gene across clusters. In the example below, we specify the column that contains gene identifiers and then vertically align the gene across the clusters to the left. Please note that the gene identifier used for alignment must be the same across clusters but unique within each cluster.
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "130px") %>%
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "150px") %>%
    GC_align(
      id_column = "class", 
      id = "NTF2-like",

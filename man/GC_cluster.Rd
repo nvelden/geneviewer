@@ -6,8 +6,8 @@
 \usage{
 GC_cluster(
   GC_chart,
-  track = TRUE,
-  spacing = 40,
+  prevent_gene_overlap = FALSE,
+  overlap_spacing = 40,
   cluster = NULL,
   style = list(),
   ...
@@ -16,10 +16,10 @@ GC_cluster(
 \arguments{
 \item{GC_chart}{The gene chart object to be modified.}
 
-\item{track}{Logical, whether to include the gene track or not.
+\item{prevent_gene_overlap}{Logical, whether to include the gene track or not.
 If FALSE, the specified gene track is removed.}
 
-\item{spacing}{Numeric, the spacing to be used between gene tracks.}
+\item{overlap_spacing}{Numeric, the spacing to be used between overlapping genes.}
 
 \item{cluster}{Numeric or character, specifies the cluster to filter genes by.}
 
@@ -33,7 +33,7 @@ pair. For example, list(backgroundColor = "red", color = "white").}
 Returns the modified gene chart object.
 }
 \description{
-This function can switch gene tracks off, adjust the spacing between tracks and
+This function can switch prevention of gene overlap on, adjust the spacing between tracks and
 alter the styling of specified clusters.
 }
 \examples{

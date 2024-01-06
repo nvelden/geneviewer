@@ -90,8 +90,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     subset_data$start <- subset_data_tmp[[start]]
     subset_data$end <- subset_data_tmp[[end]]
 
-    subset_data <- subset_data[with(subset_data, order(-pmax(start, end), abs(end - start))), ]
-    subset_data <- add_gene_track(subset_data)
+    subset_data <- subset_data
     subset_data$cluster <- clust
 
     # Data
@@ -1216,8 +1215,8 @@ GC_labels <- function(
   }
 
   # Check if GC_track is called last
-  if (!is.null(GC_chart$x$track_called) && GC_chart$x$track_called) {
-    warning("Track must be called after setting genes, labels or coordinates for proper effect.")
+  if (!is.null(GC_chart$x$prevent_gene_overlap_called) && GC_chart$x$prevent_gene_overlap_called) {
+    warning("Prevention of gene overlap must be called after setting genes, labels or coordinates for proper effect.")
   }
 
   return(GC_chart)
@@ -1327,9 +1326,9 @@ GC_coordinates <- function(
 
   }
 
-  # Check if GC_track is called last
-  if (!is.null(GC_chart$x$track_called) && GC_chart$x$track_called) {
-    warning("GC_track must be called after setting genes, labels or coordinates for proper effect.")
+  # Check if prevent_gene_overlap is called last
+  if (!is.null(GC_chart$x$prevent_gene_overlap_called) && GC_chart$x$prevent_gene_overlap_called) {
+    warning("Prevention of gene overlap must be called after setting genes, labels or coordinates for proper effect.")
   }
 
   return(GC_chart)
@@ -1371,7 +1370,7 @@ GC_coordinates <- function(
 #'                         # "schemeAccent", "schemeTableau10")
 #'     customColors = NULL, # A vector of color names
 #'     prevent_overlap = FALSE,
-#'     track_spacing = 40,
+#'     gene_overlap_spacing = 40,
 #'     cluster = 1, # Specify a specific cluster
 #'     x = 1,
 #'     y = 50,
@@ -1401,10 +1400,6 @@ GC_genes <- function(
     itemStyle = list(),
     ...
 ) {
-
-  if (!show) {
-    return(GC_chart)
-  }
 
   if (is.logical(group) && length(group) == 1) {
     show <- group
@@ -1442,9 +1437,9 @@ GC_genes <- function(
 
   }
 
-  # Check if GC_track is called last
-  if (!is.null(GC_chart$x$track_called) && GC_chart$x$track_called) {
-    warning("GC_track must be called after setting genes, labels or coordinates for proper effect.")
+  # Check if prevent_gene_overlap is called last
+  if (!is.null(GC_chart$x$prevent_gene_overlap_called) && GC_chart$x$prevent_gene_overlap_called) {
+    warning("Preventing gene overlap must be called after setting genes, labels or coordinates for proper effect.")
   }
 
   return(GC_chart)
@@ -1847,13 +1842,13 @@ GC_tooltip <- function(
 
 #' Modify Gene Track
 #'
-#' This function can switch gene tracks off, adjust the spacing between tracks and
+#' This function can switch prevention of gene overlap on, adjust the spacing between tracks and
 #' alter the styling of specified clusters.
 #'
 #' @param GC_chart The gene chart object to be modified.
-#' @param track Logical, whether to include the gene track or not.
+#' @param prevent_gene_overlap Logical, whether to include the gene track or not.
 #'              If FALSE, the specified gene track is removed.
-#' @param spacing Numeric, the spacing to be used between gene tracks.
+#' @param overlap_spacing Numeric, the spacing to be used between overlapping genes.
 #' @param cluster Numeric or character, specifies the cluster to filter genes by.
 #' @param style A list of CSS styles to be applied to the gene track.
 #'              Each element of the list should be a valid CSS property-value
@@ -1878,8 +1873,8 @@ GC_tooltip <- function(
 #' @export
 GC_cluster <- function(
     GC_chart,
-    track = TRUE,
-    spacing = 40,
+    prevent_gene_overlap = FALSE,
+    overlap_spacing = 40,
     cluster = NULL,
     style = list(),
     ...
@@ -1889,19 +1884,22 @@ GC_cluster <- function(
 
   for(i in seq_along(clusters)){
 
-    # Update Track
-    if(!track){
-    subset_data <- GC_chart$x$series[[i]]$data
-      if("geneTrack" %in% names(subset_data)) {
-        subset_data <- subset_data[, !(names(subset_data) %in% "geneTrack")]
-        GC_chart$x$series[[i]]$data <- subset_data
+    data <- GC_chart$x$series[[clusters[i]]]$data
+    # Update prevent_gene_overlap
+    if(prevent_gene_overlap){
+      data <- data[with(data, order(-pmax(start, end), abs(end - start))), ]
+      data <- add_gene_track(data)
+      GC_chart$x$series[[clusters[i]]]$data <- data
+      GC_chart$x$series[[clusters[i]]]$genes$trackSpacing <- overlap_spacing
+      GC_chart$x$series[[clusters[i]]]$labels$trackSpacing <- overlap_spacing
+      GC_chart$x$series[[clusters[i]]]$coordinates$trackSpacing <- overlap_spacing
+      GC_chart$x$prevent_gene_overlap_called <- TRUE
+    } else{
+      if("geneTrack" %in% names(data)) {
+        data <- data[, !(names(data) %in% "geneTrack")]
+        GC_chart$x$series[[clusters[i]]]$data <- data
       }
-    GC_chart$x$track_called <- TRUE
     }
-
-    GC_chart$x$series[[clusters[i]]]$genes$trackSpacing <- spacing
-    GC_chart$x$series[[clusters[i]]]$labels$trackSpacing <- spacing
-    GC_chart$x$series[[clusters[i]]]$coordinates$trackSpacing <- spacing
 
     # Update Style
     options <- Filter(function(x) !is.null(x) && length(x) > 0, list(

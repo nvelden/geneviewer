@@ -205,7 +205,7 @@ GC_chart(
               list(index = 5, x = 8)
              )
            ) %>%
-  GC_cluster(spacing=30)
+  GC_cluster(overlap_spacing=30, prevent_gene_overlap = TRUE)
 ```
 </details>
 
@@ -238,7 +238,7 @@ GC_chart(
     hidden = TRUE,
     reverse = TRUE
   ) %>%
-  GC_cluster(spacing=30)
+  GC_cluster(overlap_spacing=30, prevent_gene_overlap = TRUE)
 ```
 
 ### *H. sapiens* Dystrophin transcript variants
@@ -342,7 +342,6 @@ GC_chart(erythromycin_cluster,
                  <br>{Product}
                  <br>{start} - {end}({Strand})" 
   ) %>%
-  GC_cluster(track = FALSE) %>%
   GC_scale(
     start = 778000,
     end = 832000,
@@ -391,7 +390,6 @@ GC_chart(erythromycin_cluster,
                  <br>{Product}
                  <br>{start} - {end}({Strand})" 
   ) %>%
-  GC_cluster(track = FALSE) %>%
   GC_scale(
     start = 778000,
     end = 832000,

@@ -263,6 +263,20 @@ GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "150px") %
    GC_legend(FALSE)
 ```
 
+## Gene alignment
+
+The `GC_align()` function can be used to align a specific gene across clusters. In the example below, we specify the column that contains gene identifiers and then vertically align the gene across the clusters to the left. Please note that the gene identifier used for alignment must be the same across clusters but unique within each cluster.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "130px") %>%
+   GC_align(
+     id_column = "class", 
+     id = "NTF2-like",
+     align = "left" # center / right
+     ) %>%
+   GC_legend(TRUE)
+```
+
 ## Sequence
 
 The sequence line in the `GC_sequence()` function is initially presented as a solid black line, but can be customized with the `sequenceStyle` option. Additionally, the `markerStyle` option allows adjusting the style of the break markers.
@@ -766,7 +780,6 @@ GC_chart(
 The `GC_scale()` function is utilized for adjusting the chart's scale. The visibility of the scale can be controlled by the hidden parameter, which, when set to TRUE, hides the axis. The `y` parameter can be used to adjust the horizontal position of the axis (1 at the bottom and 100 being the top). 
 
 ```{r echo=TRUE, results='asis'}
-# With scale breaks
 GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_scale(
     hidden = FALSE,

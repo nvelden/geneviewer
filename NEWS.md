@@ -1,3 +1,8 @@
+# GCVieweR 0.1.3
+
+### Enhancements:
+- Option to align a specified gene across clusters.
+
 # GCVieweR 0.1.2
 
 ### Enhancements:

@@ -282,6 +282,65 @@ get_relative_height <- function(baseHeight, relativeHeight) {
   }
 }
 
+
+#' Adjust strand orientation based on start and end positions
+#'
+#' This function adjusts the strand orientation of genomic data based on
+#' start and end positions. It ensures that if `strand` equals 1, `start`
+#' should be less than `end`, and if `strand` equals -1, `end` should be
+#' less than `start`. If this condition is not met, it swaps the values
+#' of `start` and `end`. The function also validates the `strand` values.
+#'
+#' @param data A dataframe containing genomic data with at least two columns:
+#'   `start` and `end`. The dataframe may also contain a `strand` column.
+#' @param strand Optional parameter to specify the column name containing
+#'   strand information. If NULL, the strand is determined based on start
+#'   and end positions.
+#'
+#' @return A modified version of the input dataframe with adjusted strand
+#'   orientations and potentially swapped start and end values.
+#' @examples
+#' example_data <- data.frame(start = c(3, 2, 5), end = c(2, 4, 6), strand = c(1, -1, 1))
+#' adjusted_data <- add_strand(example_data)
+#' print(adjusted_data)
+#' @noRd
+add_strand <- function(data, strand = NULL){
+
+  if (is.null(data) || nrow(data) == 0) {
+    return(NULL)
+  }
+
+  colnames_data <- colnames(data)
+  if (!("start" %in% colnames_data)) stop("start column not found in data")
+  if (!("end" %in% colnames_data)) stop("end column not found in data")
+
+  if(is.null(strand)){
+    data$strand <- ifelse(data$start < data$end, 1, -1)
+  } else {
+    if (!(strand %in% colnames_data)) stop("strand column not found in data")
+
+    forward <- c(1, "forward")
+    reverse <- c(-1, 0, "reverse")
+
+    if (!all(data[[strand]] %in% c(forward, reverse))) {
+      stop("Invalid strand values found. Valid values are 1/forward or -1/0/reverse.")
+    }
+
+    # Replace values in the strand column
+    data$strand <- ifelse(data[[strand]] %in% forward, "forward",
+                          ifelse(data[[strand]] %in% reverse, "reverse", data[[strand]]))
+
+    # Swap start and end if conditions are not met
+    swap_needed <- (data$strand == "forward" & data$start > data$end) | (data$strand == "reverse" & data$start < data$end)
+    data[swap_needed, c("start", "end")] <- data[swap_needed, c("end", "start")]
+
+
+  }
+
+  return(data)
+
+}
+
 #' Assign Tracks to Genes Based on Start and End Positions
 #'
 #' This function assigns tracks to genes in a dataset based on their start

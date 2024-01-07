@@ -13,6 +13,10 @@ magrittr::`%>%`
 #'   NULL.
 #' @param group Column name used for gene grouping to influence color
 #'   aesthetics.
+#' @param strand Optional column name that indicates strand orientation.
+#'   It should contain 1 or "forward" (for forward) and -1, 0 or "reverse"
+#'   (for reverse).
+#'   Default is NULL, meaning strand information is not used.
 #' @param width Width specification for the chart, such as '100\%' or 500.
 #'   Default is unspecified.
 #' @param height Height specification for the chart, such as '400px' or 300.
@@ -38,7 +42,7 @@ magrittr::`%>%`
 #'
 #' @import htmlwidgets
 #' @export
-GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, width = "100%", height = "400px", style = list(), elementId = NULL){
+GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, width = "100%", height = "400px", style = list(), elementId = NULL){
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
@@ -53,6 +57,9 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   if (!is.null(group) && !(group %in% colnames_data)) {
     stop("group column not found in data")
   }
+  if (!is.null(strand) && !(strand %in% colnames_data)) {
+    stop("strand column not found in data")
+  }
 
   x <- list()
 
@@ -60,6 +67,13 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 
   # Add rowID to data
   data$rowID <- seq_len(nrow(data))
+  # add start and end
+  data_tmp <- data
+  data$start <- data_tmp[[start]]
+  data$end <- data_tmp[[end]]
+
+  # Add strand if specified
+  data <- add_strand(data_tmp, strand)
 
   x$data <- data
   x$group <- group
@@ -86,11 +100,8 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     } else {
       subset_data <- data[data[[cluster]] == clust, ]
     }
-    subset_data_tmp <- subset_data
-    subset_data$start <- subset_data_tmp[[start]]
-    subset_data$end <- subset_data_tmp[[end]]
 
-    subset_data <- subset_data
+    # add cluster
     subset_data$cluster <- clust
 
     # Data

@@ -10,6 +10,7 @@ GC_chart(
   end = "end",
   cluster = NULL,
   group = NULL,
+  strand = NULL,
   width = "100\%",
   height = "400px",
   style = list(),
@@ -28,6 +29,11 @@ NULL.}
 
 \item{group}{Column name used for gene grouping to influence color
 aesthetics.}
+
+\item{strand}{Optional column name that indicates strand orientation.
+It should contain 1 or "forward" (for forward) and -1, 0 or "reverse"
+(for reverse).
+Default is NULL, meaning strand information is not used.}
 
 \item{width}{Width specification for the chart, such as '100\%' or 500.
 Default is unspecified.}

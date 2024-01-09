@@ -159,7 +159,7 @@ hox_gene_sets <- list(
 )
 
 get_gene_positions <- function(gene_list, cluster_name) {
-  result <- getBM(attributes = c('hgnc_symbol', 'chromosome_name', 'start_position', 'end_position'),
+  result <- getBM(attributes = c('hgnc_symbol', 'chromosome_name', 'strand', 'start_position', 'end_position'),
                   filters = 'hgnc_symbol',
                   values = gene_list,
                   mart = ensembl)
@@ -185,27 +185,23 @@ GC_chart(
   end = "end_position",
   group = "cluster",
   height = "400px",
+  strand = "strand",
   cluster = "cluster") %>%
   GC_sequence(y=45) %>%
   GC_legend(FALSE) %>%
-  GC_clusterLabel(title = unique(combined_hox_genes$cluster)) %>%
+  GC_clusterLabel(title = unique(human_hox_genes$cluster)) %>%
   GC_genes(arrowheadWidth = 3,
            arrowheadHeight = 10,
            arrowHeight = 10,
   ) %>% 
+  GC_labels(label = "name", fontSize = "10px", adjustLabels = FALSE) %>%
+  GC_labels(cluster = 2, label = "name", itemStyle = list(list(index = 5, x = -4))) %>%
   GC_scale(
-    cluster = c(3,4),
-    reverse = TRUE,
-    hidden = TRUE
+    cluster = c(1,2),
+    hidden = TRUE,
+    reverse = TRUE
   ) %>%
-  GC_labels(label = "name", 
-            adjustLabels = FALSE,
-            fontSize = 10,
-            itemStyle = list(
-              list(index = 5, x = 8)
-             )
-           ) %>%
-  GC_cluster(overlap_spacing=30, prevent_gene_overlap = TRUE)
+  GC_cluster(prevent_gene_overlap = TRUE, overlap_spacing=20)
 ```
 </details>
 
@@ -218,6 +214,7 @@ GC_chart(
   end = "end",
   group = "cluster",
   height = "400px",
+  strand = "strand",
   cluster = "cluster") %>%
   GC_sequence(y=45) %>%
   GC_legend(FALSE) %>%
@@ -226,19 +223,14 @@ GC_chart(
            arrowheadHeight = 10,
            arrowHeight = 10,
   ) %>% 
-  GC_labels(label = "name", 
-            adjustLabels = FALSE,
-            fontSize = 10,
-            itemStyle = list(
-              list(index = 5, x = 8)
-             )
-           ) %>%
+  GC_labels(label = "name", fontSize = "10px", adjustLabels = FALSE) %>%
+  GC_labels(cluster = 2, label = "name", itemStyle = list(list(index = 5, x = -4))) %>%
   GC_scale(
-    cluster = c(3,4),
+    cluster = c(1,2),
     hidden = TRUE,
     reverse = TRUE
   ) %>%
-  GC_cluster(overlap_spacing=30, prevent_gene_overlap = TRUE)
+  GC_cluster(prevent_gene_overlap = TRUE, overlap_spacing=20)
 ```
 
 ### *H. sapiens* Dystrophin transcript variants

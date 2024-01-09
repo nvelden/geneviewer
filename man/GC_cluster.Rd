@@ -6,8 +6,10 @@
 \usage{
 GC_cluster(
   GC_chart,
-  prevent_gene_overlap = FALSE,
-  overlap_spacing = 40,
+  separate_strands = NULL,
+  strand_spacing = NULL,
+  prevent_gene_overlap = NULL,
+  overlap_spacing = NULL,
   cluster = NULL,
   style = list(),
   ...
@@ -16,10 +18,17 @@ GC_cluster(
 \arguments{
 \item{GC_chart}{The gene chart object to be modified.}
 
-\item{prevent_gene_overlap}{Logical, whether to include the gene track or not.
-If FALSE, the specified gene track is removed.}
+\item{separate_strands}{Logical, indicating whether to vertically separate
+forward and reverse genes.}
 
-\item{overlap_spacing}{Numeric, the spacing to be used between overlapping genes.}
+\item{strand_spacing}{Numeric, specifies the spacing between genes on
+different strands. Used only if `separate_strands` is TRUE.}
+
+\item{prevent_gene_overlap}{Logical, indicating whether to vertically separate
+overlapping genes.}
+
+\item{overlap_spacing}{Numeric, specifies the spacing between overlapping genes
+Used only if `prevent_gene_overlap` is TRUE.}
 
 \item{cluster}{Numeric or character, specifies the cluster to filter genes by.}
 
@@ -33,20 +42,20 @@ pair. For example, list(backgroundColor = "red", color = "white").}
 Returns the modified gene chart object.
 }
 \description{
-This function can switch prevention of gene overlap on, adjust the spacing between tracks and
-alter the styling of specified clusters.
+This function can switch prevention of gene overlap on, adjust the spacing
+between tracks and alter the styling of specified clusters.
 }
 \examples{
 genes_data <- data.frame(
-  start = c(10, 20, 30, 170, 210),
-  end = c(200, 150, 180, 200, 240),
+  start = c(1, 10, 200, 220, 600),
+  end = c(10, 150, 180, 400, 400),
   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5'),
   group = c('A', 'A', 'A', 'A', 'A')
 )
 
 
 GC_chart(genes_data, group = "group", height = "150px") \%>\%
-  GC_cluster(spacing=30) \%>\%
+  GC_cluster(separate_strands=TRUE, strand_spacing = 0) \%>\%
   GC_legend(FALSE)
 
 }

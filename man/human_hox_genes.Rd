@@ -5,12 +5,13 @@
 \alias{human_hox_genes}
 \title{Human HOX Gene Cluster Data}
 \format{
-A data frame with 39 rows and 5 columns:
+A data frame with 39 rows and 6 columns:
 \describe{
   \item{symbol}{HGNC symbols for the HOX genes. A character vector.}
   \item{chromosome_name}{Chromosome number where each gene is located. A numeric vector.}
   \item{start}{Start positions of the genes on the chromosome. A numeric vector.}
   \item{end}{End positions of the genes on the chromosome. A numeric vector.}
+  \item{strand}{-1 for reverse and 1 for forward.}
   \item{cluster}{Cluster identification as a character vector,
   specifying the HOX gene cluster (HOXA, HOXB, HOXC, HOXD).}
   \item{name}{Simplified names for the HOX genes. A character vector.}

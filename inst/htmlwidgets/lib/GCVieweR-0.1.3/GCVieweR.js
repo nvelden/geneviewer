@@ -555,13 +555,17 @@ container.prototype.cluster = function (options = {}) {
   const defaultOptions = {
     separateStrands: false,
     strandSpacing: 1,
+    preventGeneOverlap: false,
+    overlapSpacing: 5
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'clusterOptions', options);
-  const { separateStrands, strandSpacing } = combinedOptions;
+  const { separateStrands, strandSpacing,  preventGeneOverlap, overlapSpacing} = combinedOptions;
 
   this.separateStrands = separateStrands;
   this.strandSpacing = strandSpacing;
+  this.preventGeneOverlap = preventGeneOverlap;
+  this.overlapSpacing = overlapSpacing;
 
   return this;
 };
@@ -1204,6 +1208,11 @@ container.prototype.coordinates = function (show = true, options = {}) {
       // Add strand property if it exists
       tickValueStart.strand = d.strand;
       tickValueStop.strand = d.strand;
+      // Add geneTrack property if it exists
+      if ('geneTrack' in d) {
+        tickValueStart.geneTrack = d.geneTrack;
+        tickValueStop.geneTrack = d.geneTrack;
+      }
 
 
       acc.push(tickValueStart);
@@ -1258,8 +1267,6 @@ container.prototype.coordinates = function (show = true, options = {}) {
   }
     }
 
-
-
   const self = this;
 
   // Create and configure the top axis
@@ -1272,8 +1279,8 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .attr("rowID", d => d.rowID)
     .attr("transform", function (d) {
       const xOffset = self.xScale(d.value);
-      var currentTrackOffset = self.separateStrands ? -self.trackOffset : 0;
-      return "translate(" + xOffset + "," + currentTrackOffset + ")";
+      var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * self.geneOverlapSpacing : 0;
+      return "translate(" + xOffset + "," + -currentOverlapSpacing + ")";
     });
 
   xAxisTop.select(".domain").attr("stroke", "none");
@@ -1315,8 +1322,8 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .attr("rowID", d => d.rowID)
     .attr("transform", function (d) {
        const xOffset = self.xScale(d.value);
-      var currentTrackOffset = self.separateStrands ? self.trackOffset : 0;
-      return "translate(" + xOffset + "," + currentTrackOffset + ")";
+       var currentOverlapSpacing = d.geneTrack ? -(d.geneTrack - 1) * self.geneOverlapSpacing : 0;
+      return "translate(" + xOffset + "," + currentOverlapSpacing + ")";
     });
 
   xAxisBottom.select(".domain").attr("stroke", "none");
@@ -1513,7 +1520,11 @@ container.prototype.labels = function (label, show = true, options = {}) {
     const currentDy = style.dy || dy;
     const currentRotate = style.rotate || rotate;
     var currentLabelAdjustmentOptions = style.labelAdjustmentOptions || labelAdjustmentOptions;
-        if (d.strand === "forward") {
+
+    if(!this.separateStrands){
+      currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
+    }
+    else if (d.strand === "forward") {
       currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
     } else {
       currentLabelAdjustmentOptions.rotation = Math.abs(currentLabelAdjustmentOptions.rotation);
@@ -1523,8 +1534,9 @@ container.prototype.labels = function (label, show = true, options = {}) {
 
     const xPos = this.xScale((d.start + d.end) / 2) + currentX;
 
-    const currentTrackOffset = d.strand == "forward" ? -this.trackOffset : this.trackOffset * 4;
-    const yPos = this.yScale(currentY) + currentTrackOffset;
+    const currentGeneStrandSpacing = d.strand == "forward" ? -this.geneStrandSpacing : this.geneStrandSpacing * 4;
+    var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
+    const yPos = this.yScale(currentY) + currentGeneStrandSpacing - currentOverlapSpacing;
 
     return {
       xPos,
@@ -1788,7 +1800,10 @@ container.prototype.genes = function (group, show = true, options = {}) {
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
 
-  this.trackOffset = this.separateStrands ? (arrowHeight + this.strandSpacing) : 0
+  const geneStrandSpacing = this.separateStrands ? (arrowHeight + this.strandSpacing) : 0;
+  const geneOverlapSpacing = (arrowHeight + this.overlapSpacing)
+  this.geneStrandSpacing = geneStrandSpacing;
+  this.geneOverlapSpacing = geneOverlapSpacing;
 
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
@@ -1799,8 +1814,10 @@ container.prototype.genes = function (group, show = true, options = {}) {
     const currentX = style.x || x;
     const currentY = style.y || y;
     // Calculate Y position based on geneTrack
-    const currentTrackOffset = d.strand == "forward" ? -this.trackOffset : this.trackOffset;
-    const yPos = this.yScale(currentY) + currentTrackOffset;
+    const currentGeneStrandSpacing = d.strand == "forward" ? -geneStrandSpacing : geneStrandSpacing;
+    var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * geneOverlapSpacing : 0;
+
+    const yPos = this.yScale(currentY) + currentGeneStrandSpacing - currentOverlapSpacing;
     const xPos = this.xScale(d.start);
 
     return { xPos, yPos, currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight };

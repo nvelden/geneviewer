@@ -73,7 +73,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   data$end <- data_tmp[[end]]
 
   # Add strand if specified
-  data <- add_strand(data_tmp, strand)
+  data <- add_strand(data, strand)
 
   x$data <- data
   x$group <- group
@@ -1200,29 +1200,25 @@ GC_labels <- function(
     stop("label column not found in data")
   }
 
-  # Capture ... arguments
-  dots <- list(...)
-
   # Update the GC_chart object with title and options for each cluster
   clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for(i in seq_along(clusters)){
 
-
     # Default options
-    options <- list(
+    options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
       label = label[(i-1) %% length(label) + 1],
       show = show[(i-1) %% length(show) + 1],
-      itemStyle = itemStyle
-    )
+      itemStyle = itemStyle,
+      ...
+    ))
 
-    # Add ... arguments to options
-    for(name in names(dots)) {
-      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+    # Merge new options with existing options
+    if (is.null(GC_chart$x$series[[clusters[i]]]$labels)) {
+      GC_chart$x$series[[clusters[i]]]$labels <- options
+    } else {
+      GC_chart$x$series[[clusters[i]]]$labels <- modifyList(GC_chart$x$series[[clusters[i]]]$labels, options)
     }
-    # Set labels options for each cluster
-    GC_chart$x$series[[clusters[i]]]$labels <- options
-
   }
 
   return(GC_chart)
@@ -1856,6 +1852,10 @@ GC_tooltip <- function(
 #' forward and reverse genes.
 #' @param strand_spacing Numeric, specifies the spacing between genes on
 #' different strands. Used only if `separate_strands` is TRUE.
+#' @param prevent_gene_overlap Logical, indicating whether to vertically separate
+#' overlapping genes.
+#' @param overlap_spacing Numeric, specifies the spacing between overlapping genes
+#' Used only if `prevent_gene_overlap` is TRUE.
 #' @param cluster Numeric or character, specifies the cluster to filter genes by.
 #' @param style A list of CSS styles to be applied to the gene track.
 #'              Each element of the list should be a valid CSS property-value
@@ -1882,14 +1882,32 @@ GC_cluster <- function(
     GC_chart,
     separate_strands = NULL,
     strand_spacing = NULL,
+    prevent_gene_overlap = NULL,
+    overlap_spacing=NULL,
     cluster = NULL,
     style = list(),
     ...
 ) {
+
+  if (!is.null(separate_strands) && !is.null(prevent_gene_overlap) &&
+      separate_strands == TRUE && prevent_gene_overlap == TRUE) {
+    warning("Setting both 'separate_strands' and 'prevent_gene_overlap' to TRUE is not supported. Resetting to NULL.")
+    separate_strands <- NULL
+    prevent_gene_overlap <- NULL
+  }
+
   # Update the GC_chart object with title and options for each cluster
   clusters <- getUpdatedClusters(GC_chart, cluster)
 
+
   for(i in seq_along(clusters)){
+
+  # Add gene track
+  if(!is.null(prevent_gene_overlap) && prevent_gene_overlap){
+    subset_data <- GC_chart$x$series[[i]]$data
+    subset_data <- subset_data[with(subset_data, order(-pmax(start, end), abs(end - start))), ]
+    GC_chart$x$series[[i]]$data <- add_gene_track(subset_data)
+  }
 
   # Update Style
   containerOptions <- Filter(function(x) !is.null(x) && length(x) > 0, list(
@@ -1908,6 +1926,8 @@ GC_cluster <- function(
   clusterOptions <- Filter(function(x) !is.null(x) && length(x) > 0, list(
     separateStrands = separate_strands,
     strandSpacing = strand_spacing,
+    subset_data = prevent_gene_overlap,
+    overlapSpacing=overlap_spacing,
     ...
   ))
 

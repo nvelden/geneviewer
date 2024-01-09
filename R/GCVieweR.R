@@ -107,9 +107,9 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     # Data
     x$series[[clust]]$clusterName <- clust
     x$series[[clust]]$data <- subset_data
-
-    x$series[[clust]]$options <- list(height = get_relative_height(height, height) / length(clusters), width = width)
-    x$series[[clust]]$options$style <- list(width = "100%", backgroundColor = style$backgroundColor)
+    x$series[[clust]]$cluster <- list()
+    x$series[[clust]]$container <- list(height = get_relative_height(height, height) / length(clusters), width = width)
+    x$series[[clust]]$container$style <- list(width = "100%", backgroundColor = style$backgroundColor)
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
     x$series[[clust]]$scale <- list()
     x$series[[clust]]$labels <- list(group = group, show = TRUE)
@@ -545,8 +545,8 @@ GC_grid <- function(
       GC_chart$height <- "100%"
       for (i in seq_along(all_clusters)) {
         cluster_name <- update_clusters[i]
-        current_height <- get_relative_height(GC_chart$x$series[[cluster_name]]$options$height, GC_chart$x$series[[cluster_name]]$options$height)
-        GC_chart$x$series[[cluster_name]]$options$height <- current_height - (paddingTop / length(all_clusters))
+        current_height <- get_relative_height(GC_chart$x$series[[cluster_name]]$container$height, GC_chart$x$series[[cluster_name]]$container$height)
+        GC_chart$x$series[[cluster_name]]$container$height <- current_height - (paddingTop / length(all_clusters))
       }
     }
 
@@ -555,8 +555,8 @@ GC_grid <- function(
       GC_chart$x$style[["paddingBottom"]] <- paste0(as.character(paddingBottom), "px")
       for (i in seq_along(all_clusters)) {
         cluster_name <- update_clusters[i]
-        current_height <- get_relative_height(GC_chart$x$series[[cluster_name]]$options$height, GC_chart$x$series[[cluster_name]]$options$height)
-        GC_chart$x$series[[cluster_name]]$options$height <- GC_chart$x$series[[cluster_name]]$options$height - (paddingBottom / length(all_clusters))
+        current_height <- get_relative_height(GC_chart$x$series[[cluster_name]]$container$height, GC_chart$x$series[[cluster_name]]$container$height)
+        GC_chart$x$series[[cluster_name]]$container$height <- GC_chart$x$series[[cluster_name]]$container$height - (paddingBottom / length(all_clusters))
       }
     }
 
@@ -568,16 +568,16 @@ GC_grid <- function(
 
     # Update left and right margins if provided
     if (!is.null(margin)) {
-        default_margin <- GC_chart$x$series[[cluster_name]]$options$margin
-        GC_chart$x$series[[cluster_name]]$options$margin <- if (is.null(default_margin)) margin else utils::modifyList(default_margin, margin)
+        default_margin <- GC_chart$x$series[[cluster_name]]$container$margin
+        GC_chart$x$series[[cluster_name]]$container$margin <- if (is.null(default_margin)) margin else utils::modifyList(default_margin, margin)
     }
 
     # Update width if provided
     if (!is.null(width) && !is.null(cluster)) {
       current_width <- width[(i-1) %% length(width) + 1]
       current_width <- get_relative_height(GC_chart$width, current_width)
-      GC_chart$x$series[[cluster_name]]$options$style$width <- current_width
-      GC_chart$x$series[[cluster_name]]$options$width <- current_width
+      GC_chart$x$series[[cluster_name]]$container$style$width <- current_width
+      GC_chart$x$series[[cluster_name]]$container$width <- current_width
     }
 
     # Update height if provided
@@ -585,9 +585,9 @@ GC_grid <- function(
       if(!is.null(cluster)){
       current_height <- height[(i-1) %% length(height) + 1]
       current_height <- get_relative_height(chart_height, current_height)
-      GC_chart$x$series[[cluster_name]]$options$height <- current_height
+      GC_chart$x$series[[cluster_name]]$container$height <- current_height
       } else {
-        GC_chart$x$series[[cluster_name]]$options$height <- compute_size(height, length(all_clusters))
+        GC_chart$x$series[[cluster_name]]$container$height <- compute_size(height, length(all_clusters))
       }
     }
   }
@@ -1225,11 +1225,6 @@ GC_labels <- function(
 
   }
 
-  # Check if GC_track is called last
-  if (!is.null(GC_chart$x$prevent_gene_overlap_called) && GC_chart$x$prevent_gene_overlap_called) {
-    warning("Prevention of gene overlap must be called after setting genes, labels or coordinates for proper effect.")
-  }
-
   return(GC_chart)
 }
 
@@ -1339,7 +1334,7 @@ GC_coordinates <- function(
 
   # Check if prevent_gene_overlap is called last
   if (!is.null(GC_chart$x$prevent_gene_overlap_called) && GC_chart$x$prevent_gene_overlap_called) {
-    warning("Prevention of gene overlap must be called after setting genes, labels or coordinates for proper effect.")
+    warning("Separating strands must be called after setting genes, labels or coordinates for proper effect.")
   }
 
   return(GC_chart)
@@ -1853,13 +1848,14 @@ GC_tooltip <- function(
 
 #' Modify Gene Track
 #'
-#' This function can switch prevention of gene overlap on, adjust the spacing between tracks and
-#' alter the styling of specified clusters.
+#' This function can switch prevention of gene overlap on, adjust the spacing
+#' between tracks and alter the styling of specified clusters.
 #'
 #' @param GC_chart The gene chart object to be modified.
-#' @param prevent_gene_overlap Logical, whether to include the gene track or not.
-#'              If FALSE, the specified gene track is removed.
-#' @param overlap_spacing Numeric, the spacing to be used between overlapping genes.
+#' @param separate_strands Logical, indicating whether to vertically separate
+#' forward and reverse genes.
+#' @param strand_spacing Numeric, specifies the spacing between genes on
+#' different strands. Used only if `separate_strands` is TRUE.
 #' @param cluster Numeric or character, specifies the cluster to filter genes by.
 #' @param style A list of CSS styles to be applied to the gene track.
 #'              Each element of the list should be a valid CSS property-value
@@ -1870,22 +1866,22 @@ GC_tooltip <- function(
 #'
 #' @examples
 #' genes_data <- data.frame(
-#'   start = c(10, 20, 30, 170, 210),
-#'   end = c(200, 150, 180, 200, 240),
+#'   start = c(1, 10, 200, 220, 600),
+#'   end = c(10, 150, 180, 400, 400),
 #'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5'),
 #'   group = c('A', 'A', 'A', 'A', 'A')
 #' )
 #'
 #'
 #' GC_chart(genes_data, group = "group", height = "150px") %>%
-#'   GC_cluster(spacing=30) %>%
+#'   GC_cluster(separate_strands=TRUE, strand_spacing = 0) %>%
 #'   GC_legend(FALSE)
 #'
 #' @export
 GC_cluster <- function(
     GC_chart,
-    prevent_gene_overlap = FALSE,
-    overlap_spacing = 40,
+    separate_strands = NULL,
+    strand_spacing = NULL,
     cluster = NULL,
     style = list(),
     ...
@@ -1895,36 +1891,33 @@ GC_cluster <- function(
 
   for(i in seq_along(clusters)){
 
-    data <- GC_chart$x$series[[clusters[i]]]$data
-    # Update prevent_gene_overlap
-    if(prevent_gene_overlap){
-      data <- data[with(data, order(-pmax(start, end), abs(end - start))), ]
-      data <- add_gene_track(data)
-      GC_chart$x$series[[clusters[i]]]$data <- data
-      GC_chart$x$series[[clusters[i]]]$genes$trackSpacing <- overlap_spacing
-      GC_chart$x$series[[clusters[i]]]$labels$trackSpacing <- overlap_spacing
-      GC_chart$x$series[[clusters[i]]]$coordinates$trackSpacing <- overlap_spacing
-      GC_chart$x$prevent_gene_overlap_called <- TRUE
-    } else{
-      if("geneTrack" %in% names(data)) {
-        data <- data[, !(names(data) %in% "geneTrack")]
-        GC_chart$x$series[[clusters[i]]]$data <- data
-      }
-    }
-
-    # Update Style
-    options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
-      style = style,
-      ...
+  # Update Style
+  containerOptions <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+      style = style
     ))
 
-    # Merge new options with existing options
-    if (is.null(GC_chart$x$series[[clusters[i]]]$options)) {
-      GC_chart$x$series[[clusters[i]]]$options <- options
-    } else {
-      GC_chart$x$series[[clusters[i]]]$options <-
-        modifyList(GC_chart$x$series[[clusters[i]]]$options, options)
-    }
+  # Merge new options with existing options
+  if (is.null(GC_chart$x$series[[clusters[i]]]$container$style)) {
+    GC_chart$x$series[[clusters[i]]]$container$style <- containerOptions
+  } else {
+    GC_chart$x$series[[clusters[i]]]$container$style <-
+      modifyList(GC_chart$x$series[[clusters[i]]]$container$style, containerOptions)
+  }
+
+  # Update cluster options
+  clusterOptions <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+    separateStrands = separate_strands,
+    strandSpacing = strand_spacing,
+    ...
+  ))
+
+  # Merge new options with existing options
+  if (is.null(GC_chart$x$series[[clusters[i]]]$cluster)) {
+    GC_chart$x$series[[clusters[i]]]$cluster <- clusterOptions
+  } else {
+    GC_chart$x$series[[clusters[i]]]$cluster <-
+      modifyList(GC_chart$x$series[[clusters[i]]]$cluster, clusterOptions)
+  }
 
   }
 

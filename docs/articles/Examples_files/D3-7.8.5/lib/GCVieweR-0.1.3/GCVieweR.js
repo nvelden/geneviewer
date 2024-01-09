@@ -573,11 +573,6 @@ container.prototype.geneData = function (data, clusterData) {
     // Convert cluster to string
     newItem.cluster = String(newItem.cluster);
 
-    newItem.direction = "forward";
-    if (newItem.start > newItem.end) {
-      newItem.direction = "reverse";
-    }
-
     return newItem;
   });
 
@@ -1813,8 +1808,8 @@ container.prototype.genes = function (group, show = true, options = {}) {
     .attr("transform", (d, i) => {
       const { xPos, yPos, currentArrowheadHeight } = getAttributesForIndex(d, i);
       const rotation = this.reverse
-    ? (d.direction === 'forward' ? 180 : 0)
-    : (d.direction === 'forward' ? 0 : 180);
+    ? (d.strand === 'forward' ? 180 : 0)
+    : (d.strand === 'forward' ? 0 : 180);
       return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (currentArrowheadHeight / 2)})`;
     })
     .attr("fill", (d) => colorScale(d[group]))

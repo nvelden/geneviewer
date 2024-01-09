@@ -315,7 +315,7 @@ add_strand <- function(data, strand = NULL){
   if (!("end" %in% colnames_data)) stop("end column not found in data")
 
   if(is.null(strand)){
-    data$strand <- ifelse(data$start < data$end, 1, -1)
+    data$strand <- ifelse(data$start < data$end, "forward", "reverse")
   } else {
     if (!(strand %in% colnames_data)) stop("strand column not found in data")
 

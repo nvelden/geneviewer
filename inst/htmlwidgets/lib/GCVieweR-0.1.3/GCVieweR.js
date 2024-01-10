@@ -1322,8 +1322,8 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .attr("rowID", d => d.rowID)
     .attr("transform", function (d) {
        const xOffset = self.xScale(d.value);
-       var currentOverlapSpacing = d.geneTrack ? -(d.geneTrack - 1) * self.geneOverlapSpacing : 0;
-      return "translate(" + xOffset + "," + currentOverlapSpacing + ")";
+      var currentOverlapSpacing = d.geneTrack ? -(d.geneTrack - 1) * self.geneOverlapSpacing : 0;
+      return "translate(" + xOffset + "," + -currentOverlapSpacing + ")";
     });
 
   xAxisBottom.select(".domain").attr("stroke", "none");
@@ -1800,10 +1800,8 @@ container.prototype.genes = function (group, show = true, options = {}) {
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
 
-  const geneStrandSpacing = this.separateStrands ? (arrowHeight + this.strandSpacing) : 0;
-  const geneOverlapSpacing = (arrowHeight + this.overlapSpacing)
-  this.geneStrandSpacing = geneStrandSpacing;
-  this.geneOverlapSpacing = geneOverlapSpacing;
+  this.geneStrandSpacing = this.separateStrands ? (arrowHeight + this.strandSpacing) : 0;
+  this.geneOverlapSpacing = (arrowHeight + this.overlapSpacing)
 
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
@@ -1814,8 +1812,8 @@ container.prototype.genes = function (group, show = true, options = {}) {
     const currentX = style.x || x;
     const currentY = style.y || y;
     // Calculate Y position based on geneTrack
-    const currentGeneStrandSpacing = d.strand == "forward" ? -geneStrandSpacing : geneStrandSpacing;
-    var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * geneOverlapSpacing : 0;
+    const currentGeneStrandSpacing = d.strand == "forward" ? -this.geneStrandSpacing : this.geneStrandSpacing;
+    var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
 
     const yPos = this.yScale(currentY) + currentGeneStrandSpacing - currentOverlapSpacing;
     const xPos = this.xScale(d.start);

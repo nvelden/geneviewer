@@ -180,7 +180,7 @@ GC_chart(
 
 ### Separation of Forward and Reverse strands
 
-Forward and reversestrands can be separated into distinct tracks. In the below example forward and reverse strands are separated for the second cluster. The vertical spacing is slightly increased (default = 0).
+Forward and reverse strands can be separated into distinct tracks. In the below example forward and reverse strands are separated for the second cluster. The vertical spacing is slightly increased (default = 0).
 
 **Note**: The `GC_cluster()` function must be called after setting genes, labels or coordinates for proper effect.
 
@@ -189,10 +189,34 @@ GC_chart(
   ophA_clusters,
   group = "name",
   cluster = "cluster",
-  height = "200px" 
+  height = "300px" 
   ) %>% 
   GC_labels() %>%
   GC_cluster(separate_strands = TRUE, strand_spacing = 3) %>%
+  GC_legend(FALSE)
+```
+
+### Prevent Gene Overlap
+
+To prevent gene overlaps, genes are automatically separated into distinct tracks. With the `GC_cluster` function the track-based separation can be switched off or the spacing between tracks can be adjusted.
+
+In the below example the track is switched off for the first cluster and the spacing for the second cluster is increased from 40 to 50.
+
+**Note**: Setting both separate_strands and prevent_gene_overlap to TRUE is not supported at the moment.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(
+  subset(human_hox_genes, cluster %in% c("HOXA", "HOXB")),
+  group = "name",
+  cluster = "cluster",
+  height = "300px" 
+  ) %>% 
+  GC_labels(label = "name", adjustLabels = FALSE) %>%
+  GC_labels(label = "name", 
+            cluster = 2, 
+            itemStyle = list(list(index = 5, x=10))
+            ) %>%
+  GC_cluster(prevent_gene_overlap = TRUE, overlap_spacing = 30) %>%
   GC_legend(FALSE)
 ```
 

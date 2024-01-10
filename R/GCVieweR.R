@@ -1927,7 +1927,7 @@ GC_cluster <- function(
     separateStrands = separate_strands,
     strandSpacing = strand_spacing,
     subset_data = prevent_gene_overlap,
-    overlapSpacing=overlap_spacing,
+    overlapSpacing = overlap_spacing,
     ...
   ))
 

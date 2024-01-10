@@ -549,6 +549,40 @@ function createContainer(targetElementId, id, themeOptionsKey, options = {}) {
   return new container(svg, computedMargin, width, height);
 }
 
+function addScalePadding(startValue, endValue, padding, to) {
+  let paddingValue;
+
+  // Check if padding is a percentage string
+  if (typeof padding === 'string' && padding.endsWith('%')) {
+    paddingValue = parseFloat(padding) / 100;
+  }
+  // Check if padding is a number between 0 and 100
+  else if (typeof padding === 'number' && padding >= 0 && padding <= 100) {
+    paddingValue = padding / 100;
+  }
+  // If padding is not in a valid format or range, log a warning and return the original value
+  else {
+    console.warn('Invalid padding format. Padding should be a percentage (as a string or a number between 0 and 100). No padding applied.');
+    return to === 'start' ? startValue : endValue;
+  }
+
+  // Calculate the total range
+  const totalRange = Math.abs(endValue - startValue);
+
+  // Calculate the actual padding value based on the total range
+  paddingValue = totalRange * paddingValue;
+
+  // Adjust the value based on whether we're padding the start or end
+  if (to === 'start') {
+    return startValue - paddingValue; // Subtract padding from the start
+  } else if (to === 'end') {
+    return endValue + paddingValue; // Add padding to the end
+  } else {
+    console.error('Invalid "to" parameter in addScalePadding. Must be "start" or "end".');
+    return to === 'start' ? startValue : endValue; // Return the original value if 'to' is neither
+  }
+}
+
 container.prototype.cluster = function (options = {}) {
 
   // Default options for title and subtitle
@@ -618,6 +652,7 @@ container.prototype.scale = function (options = {}) {
   const defaultScaleOptions = {
     start: null,
     end: null,
+    padding: 2,
     hidden: true,
     reverse: false,
     axisType: "bottom",
@@ -647,7 +682,7 @@ container.prototype.scale = function (options = {}) {
   const combinedOptions = mergeOptions.call(this, defaultScaleOptions, 'scaleOptions', options);
 
   // De-structure the combined options
-  const { start, end, hidden, breaks, tickValues, reverse, axisType, ticksCount, ticksFormat, y: initialY, tickStyle, textStyle, lineStyle } = combinedOptions;
+  const { start, end, padding, hidden, breaks, tickValues, reverse, axisType, ticksCount, ticksFormat, y: initialY, tickStyle, textStyle, lineStyle } = combinedOptions;
 
   // Determine y based on axisType and initialY
   const y = initialY !== null ? initialY : (axisType === 'bottom' ? 30 : 80);
@@ -678,6 +713,14 @@ container.prototype.scale = function (options = {}) {
   // Use provided start and end values if they exist, otherwise compute them from data
   this.minStart = start !== null ? start : d3.min(this.data, d => Math.min(d.start, d.end));
   this.maxEnd = end !== null ? end : d3.max(this.data, d => Math.max(d.start, d.end));
+
+  if(start == null){
+  this.minStart = addScalePadding(this.minStart, this.maxEnd, padding, to = "start")
+  }
+
+  if(end == null){
+  this.maxEnd = addScalePadding(this.minStart, this.maxEnd, padding, to = "end")
+  }
 
   // Create scales
   this.xScale = createDiscontinuousScale(this.minStart, this.maxEnd, this.width, this.margin, breaks, reverse);

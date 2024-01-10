@@ -222,11 +222,15 @@ function adjustGeneLabels(container, labelSelector, options = {}) {
 function adjustSpecificLabel(container, labelSelector, elementId, options = {}) {
   // Default options
   const defaultOptions = {
-    rotation: 65, // Rotation angle (in degrees)
-    shiftAmount: 15, // Amount to shift to the right
-    dx: "-0.8em", // Horizontal adjustment
-    dy: "0.15em", // Vertical adjustment
+    rotation: -65, // Rotation angle (in degrees)
+    offsetX: 0,
+    offsetY: 0,
+    dx: "0em", // Horizontal adjustment
+    dy: "0em", // Vertical adjustment
   };
+
+  // Merge default options with the provided options
+  const { rotation, offsetX, offsetY, dx, dy } = { ...defaultOptions, ...options };
 
   const overlapPercentage = (rect1, rect2) => {
     const x_overlap = Math.max(0, Math.min(rect1.right, rect2.right) - Math.max(rect1.left, rect2.left));
@@ -236,39 +240,37 @@ function adjustSpecificLabel(container, labelSelector, elementId, options = {}) 
     return (overlapArea / rect1Area) * 100;
   };
 
-  // Merge default options with the provided options
-  const { rotation, dx, dy, shiftAmount } = { ...defaultOptions, ...options };
-
   // Select all the labels based on the provided selector
   var labels = container.svg.selectAll(labelSelector).nodes();
 
   // Select the specific label using the provided elementId
   var specificLabel = container.svg.select(`#${elementId}`).node();
-  var specificLabelRect = specificLabel.getBoundingClientRect();
+
+  // Calculate the label's original center position
+  const bbox = specificLabel.getBBox();
+  var centerX = bbox.x + bbox.width / 2;
+  var centerY = bbox.y;
+
+  centerX += offsetX
+  centerY += (rotation < 0) ? bbox.height : bbox.height / 2;
+  centerY += offsetY;
 
   // Check for overlap with other labels
   for (var i = 0; i < labels.length; i++) {
     if (labels[i] !== specificLabel) { // Ensure we're not comparing the label with itself
       var labelRect = labels[i].getBoundingClientRect();
+      var specificLabelRect = specificLabel.getBoundingClientRect();
 
       // If the specific label overlaps with another label
       if (overlapPercentage(specificLabelRect, labelRect) > 0) {
-        const currentShiftAmount = (overlapPercentage(specificLabelRect, labelRect) > 80) ? shiftAmount : 0;
-
-        // Get the current x and y attributes of the specific label
-        var x = parseFloat(d3.select(specificLabel).attr('x'));
-        var y = parseFloat(d3.select(specificLabel).attr('y')) - 5;
-
-        // First shift the label
-        x += currentShiftAmount;
-
-        // Then, rotate the specific label
+        // Adjust the label rotation and position
         d3.select(specificLabel)
-          .style("text-anchor", "end")
+          .style("text-anchor", "start")
           .attr("dx", dx)
           .attr("dy", dy)
-          .attr("x", x)
-          .attr("transform", `rotate(${rotation}, ${x}, ${y})`);
+          .attr("x", centerX + offsetX)
+          .attr("y", centerY)
+          .attr("transform", `rotate(${rotation}, ${centerX}, ${centerY})`);
 
         // Break out of the loop once we've adjusted the specific label
         break;
@@ -490,14 +492,14 @@ function parseAndStyleText(text, parentElement, fontOptions) {
   }
 }
 
- function container(svg, margin, width, height) {
+function container(svg, margin, width, height) {
   this.svg = svg;
   this.margin = margin;
   this.width = width;
   this.height = height;
 }
 
- function createContainer(targetElementId, id, themeOptionsKey, options = {}) {
+function createContainer(targetElementId, id, themeOptionsKey, options = {}) {
 
   const defaultOptions = {
     id: id || "svg-container",
@@ -546,6 +548,27 @@ function parseAndStyleText(text, parentElement, fontOptions) {
 
   return new container(svg, computedMargin, width, height);
 }
+
+container.prototype.cluster = function (options = {}) {
+
+  // Default options for title and subtitle
+  const defaultOptions = {
+    separateStrands: false,
+    strandSpacing: 1,
+    preventGeneOverlap: false,
+    overlapSpacing: 5
+  };
+
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'clusterOptions', options);
+  const { separateStrands, strandSpacing,  preventGeneOverlap, overlapSpacing} = combinedOptions;
+
+  this.separateStrands = separateStrands;
+  this.strandSpacing = strandSpacing;
+  this.preventGeneOverlap = preventGeneOverlap;
+  this.overlapSpacing = overlapSpacing;
+
+  return this;
+};
 
 container.prototype.theme = function (themeName) {
   // Make sure the theme exists
@@ -1143,7 +1166,6 @@ container.prototype.coordinates = function (show = true, options = {}) {
     tickValuesTop: null,
     tickValuesBottom: null,
     overlapThreshold: 20,
-    trackSpacing: 40,
     tickStyle: {
       stroke: "black",
       strokeWidth: 1,
@@ -1160,7 +1182,7 @@ container.prototype.coordinates = function (show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'coordinatesOptions', options);
-  const { rotate, yPositionTop, yPositionBottom, tickValuesBottom, tickValuesTop, trackSpacing, tickStyle, textStyle } = combinedOptions;
+  const { rotate, yPositionTop, yPositionBottom, tickValuesBottom, tickValuesTop, tickStyle, textStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultOptions.tickStyle);
@@ -1183,12 +1205,15 @@ container.prototype.coordinates = function (show = true, options = {}) {
       // Define tickValueStart and tickValueStop
       let tickValueStart = { value: d.start, rowID: d.rowID };
       let tickValueStop = { value: d.end, rowID: d.rowID };
-
+      // Add strand property if it exists
+      tickValueStart.strand = d.strand;
+      tickValueStop.strand = d.strand;
       // Add geneTrack property if it exists
       if ('geneTrack' in d) {
         tickValueStart.geneTrack = d.geneTrack;
         tickValueStop.geneTrack = d.geneTrack;
       }
+
 
       acc.push(tickValueStart);
       acc.push(tickValueStop);
@@ -1203,7 +1228,16 @@ container.prototype.coordinates = function (show = true, options = {}) {
 
     allTickValues.sort((a, b) => a.value - b.value);
 
-    // Calculate overlap and distribute tick values between top and bottom
+    if (this.separateStrands) {
+      allTickValues.forEach(tickValue => {
+        if (tickValue.strand === "forward") {
+          tickValuesTopFinal.push(tickValue);
+        } else {
+          tickValuesBottomFinal.push(tickValue);
+        }
+      });
+    } else {
+         // Calculate overlap and distribute tick values between top and bottom
     const totalXValueRange = this.xScale(allTickValues[allTickValues.length - 1].value) - this.xScale(allTickValues[0].value);
     const tickValueThreshold = combinedOptions.overlapThreshold;
 
@@ -1231,6 +1265,7 @@ container.prototype.coordinates = function (show = true, options = {}) {
       }
     }
   }
+    }
 
   const self = this;
 
@@ -1244,8 +1279,8 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .attr("rowID", d => d.rowID)
     .attr("transform", function (d) {
       const xOffset = self.xScale(d.value);
-      currentTrackOffset = d.geneTrack ? -(d.geneTrack - 1) * trackSpacing : 0;
-      return "translate(" + xOffset + "," + currentTrackOffset + ")";
+      var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * self.geneOverlapSpacing : 0;
+      return "translate(" + xOffset + "," + -currentOverlapSpacing + ")";
     });
 
   xAxisTop.select(".domain").attr("stroke", "none");
@@ -1286,9 +1321,9 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .data(tickValuesBottomFinal)
     .attr("rowID", d => d.rowID)
     .attr("transform", function (d) {
-      const xOffset = self.xScale(d.value);
-      currentTrackOffset = d.geneTrack ? -(d.geneTrack - 1) * trackSpacing : 0;
-      return "translate(" + xOffset + "," + currentTrackOffset + ")";
+       const xOffset = self.xScale(d.value);
+      var currentOverlapSpacing = d.geneTrack ? -(d.geneTrack - 1) * self.geneOverlapSpacing : 0;
+      return "translate(" + xOffset + "," + -currentOverlapSpacing + ")";
     });
 
   xAxisBottom.select(".domain").attr("stroke", "none");
@@ -1437,7 +1472,6 @@ container.prototype.labels = function (label, show = true, options = {}) {
     start: null,
     end: null,
     adjustLabels: true,
-    trackSpacing: 40,
     fontSize: "12px",
     fontStyle: "italic",
     fontFamily: "sans-serif",
@@ -1445,10 +1479,12 @@ container.prototype.labels = function (label, show = true, options = {}) {
     cursor: "default",
     labelAdjustmentOptions: {
       rotation: 65,
-      dx: "-0.8em",
-      dy: "0.15em"
+      offsetX: 0,
+      offsetY: 0,
+      dx: "0em",
+      dy: "0em"
     },
-    itemStyle: [] // [{"index": 3,"y": 20}]
+      itemStyle: [] // [{"index": 3,"y": 20}]
   };
 
   // If theme options exist, use them as the default options
@@ -1457,7 +1493,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
   }
 
   const combinedOptions = { ...defaultOptions, ...options };
-  const { x, y, start, end, adjustLabels, trackSpacing, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor } = combinedOptions;
+  const { x, y, start, end, adjustLabels, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -1483,13 +1519,24 @@ container.prototype.labels = function (label, show = true, options = {}) {
     const currentDx = style.dx || dx;
     const currentDy = style.dy || dy;
     const currentRotate = style.rotate || rotate;
-    const currentLabelAdjustmentOptions = style.labelAdjustmentOptions || undefined;
+    var currentLabelAdjustmentOptions = style.labelAdjustmentOptions || labelAdjustmentOptions;
+
+    if(!this.separateStrands){
+      currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
+    }
+    else if (d.strand === "forward") {
+      currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
+    } else {
+      currentLabelAdjustmentOptions.rotation = Math.abs(currentLabelAdjustmentOptions.rotation);
+    }
+
     const currentAdjustLabels = style.adjustLabels !== undefined ? style.adjustLabels : adjustLabels;
 
     const xPos = this.xScale((d.start + d.end) / 2) + currentX;
 
-    const currentTrackOffset = d.geneTrack ? (d.geneTrack - 1) * trackSpacing : 0;
-    const yPos = this.yScale(currentY) - currentTrackOffset;
+    const currentGeneStrandSpacing = d.strand == "forward" ? -this.geneStrandSpacing : this.geneStrandSpacing * 4;
+    var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
+    const yPos = this.yScale(currentY) + currentGeneStrandSpacing - currentOverlapSpacing;
 
     return {
       xPos,
@@ -1539,19 +1586,6 @@ container.prototype.labels = function (label, show = true, options = {}) {
       setStyleFromOptions(currentElement, additionalOptions);
       // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
-
-      // Adjust labels if needed
-      if (attributes.labelAdjustmentOptions) {
-
-        const { rotation, dx, dy } = attributes.labelAdjustmentOptions;
-        const x = parseFloat(currentElement.attr('x'));
-        const y = parseFloat(currentElement.attr('y'));
-
-        currentElement
-          .attr("dx", dx)
-          .attr("dy", dy)
-          .attr("transform", `rotate(${rotation}, ${x}, ${y})`);
-      }
 
     });
 
@@ -1747,12 +1781,11 @@ container.prototype.genes = function (group, show = true, options = {}) {
     itemStyle: [],
     arrowheadWidth: 10,
     arrowheadHeight: 20,
-    arrowHeight: 10,
-    trackSpacing: 40
+    arrowHeight: 10
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
-  const { x, y, stroke, strokeWidth, colorScheme, customColors, cursor, itemStyle, arrowheadWidth, arrowheadHeight, arrowHeight, trackSpacing } = combinedOptions;
+  const { x, y, stroke, strokeWidth, colorScheme, customColors, cursor, itemStyle, arrowheadWidth, arrowheadHeight, arrowHeight } = combinedOptions;
 
   // Extract additional options that aren't in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -1766,7 +1799,9 @@ container.prototype.genes = function (group, show = true, options = {}) {
 
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
-  this.trackOffset = (arrowHeight + trackSpacing)
+
+  this.geneStrandSpacing = this.separateStrands ? (arrowHeight + this.strandSpacing) : 0;
+  this.geneOverlapSpacing = (arrowHeight + this.overlapSpacing)
 
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
@@ -1777,9 +1812,10 @@ container.prototype.genes = function (group, show = true, options = {}) {
     const currentX = style.x || x;
     const currentY = style.y || y;
     // Calculate Y position based on geneTrack
-    const currentTrackOffset = d.geneTrack ? (d.geneTrack - 1) * trackSpacing : 0;
+    const currentGeneStrandSpacing = d.strand == "forward" ? -this.geneStrandSpacing : this.geneStrandSpacing;
+    var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
 
-    const yPos = this.yScale(currentY) - currentTrackOffset;
+    const yPos = this.yScale(currentY) + currentGeneStrandSpacing - currentOverlapSpacing;
     const xPos = this.xScale(d.start);
 
     return { xPos, yPos, currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight };
@@ -2586,7 +2622,7 @@ container.prototype.createPromoterAnnotation = function(group, options) {
 
   // Iterate over each element in the arrays
   for (let i = 0; i < Math.max(x.length, y.length, direction.length, rotation.length, scale.length); i++) {
-    console.log("triggered")
+
     const currentX = x[Math.min(i, x.length - 1)];
     const currentY = y[Math.min(i, y.length - 1)];
     const currentDirection = direction[Math.min(i, direction.length - 1)];
@@ -2650,7 +2686,7 @@ container.prototype.createTerminatorAnnotation = function(group, options) {
 
   // Iterate over each element in the arrays
   for (let i = 0; i < Math.max(x.length, y.length, direction.length, rotation.length, scale.length); i++) {
-    console.log("triggered")
+
     const currentX = x[Math.min(i, x.length - 1)];
     const currentY = y[Math.min(i, y.length - 1)];
     const currentDirection = direction[Math.min(i, direction.length - 1)];

@@ -89,7 +89,8 @@ HTMLWidgets.widget({
       clusters.forEach(function (clusterKey) {
 
         var cluster = series[clusterKey],
-            clusterOptions = cluster.options,
+            containerOptions = cluster.container,
+            clusterOptions = cluster.cluster,
             clusterData = HTMLWidgets.dataframeToD3(series[clusterKey].data),
             scaleOptions = cluster.scale,
             clusterTitleOptions = cluster.clusterTitle,
@@ -104,15 +105,14 @@ HTMLWidgets.widget({
             trackMouse = cluster.trackMouse;
             tooltipOptions = cluster.tooltip;
 
+        var clonedContainerOptions = JSON.parse(JSON.stringify(containerOptions));
+        clonedContainerOptions.height = computeSize(clonedContainerOptions.height, el.clientHeight);
+        clonedContainerOptions.height -= titleOptions.height ? (titleOptions.height / clusters.length) : 0;
+        clonedContainerOptions.height -= legendHeight ? (legendHeight / clusters.length) : 0;
+        clonedContainerOptions.width = computeSize(clonedContainerOptions.width, el.clientWidth);
 
-
-        var clonedClusterOptions = JSON.parse(JSON.stringify(clusterOptions));
-        clonedClusterOptions.height = computeSize(clonedClusterOptions.height, el.clientHeight);
-        clonedClusterOptions.height -= titleOptions.height ? (titleOptions.height / clusters.length) : 0;
-        clonedClusterOptions.height -= legendHeight ? (legendHeight / clusters.length) : 0;
-        clonedClusterOptions.width = computeSize(clonedClusterOptions.width, el.clientWidth);
-
-        var cluster = createContainer(`#GCvieweR-graph-container-${widgetId}`, "svg-container", 'clusterOptions',  clonedClusterOptions)
+        var cluster = createContainer(`#GCvieweR-graph-container-${widgetId}`, "svg-container", 'containerOptions',  clonedContainerOptions)
+          .cluster(clusterOptions)
           .theme("preset")
           .title(clusterTitleOptions?.title, clusterTitleOptions?.subtitle, clusterTitleOptions?.show ?? false, clusterTitleOptions)
           .footer(footerOptions?.title, footerOptions?.subtitle, footerOptions?.show ?? false, footerOptions)

@@ -86,6 +86,12 @@ const themes = {
       color: "#333",
       lineHeight: "1.5"
     }
+  },
+  genome: {
+    labelsOptions: {
+      fontSize: "10px",
+      show: true
+    }
   }
 };
 

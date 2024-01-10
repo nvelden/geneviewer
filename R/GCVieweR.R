@@ -601,33 +601,36 @@ GC_grid <- function(
 #'
 #' @param GC_chart A GC chart object.
 #' @param cluster Numeric or character vector specifying clusters in the GC
-#'   chart to update.
+#' chart to update.
 #' @param start Numeric vector indicating the starting point for the scale.
-#'   Default is NULL.
+#' Default is NULL.
 #' @param end Numeric vector indicating the end point for the scale.
-#'   Default is NULL.
+#' Default is NULL.
+#' @param padding Numeric value or percentage string indicating the padding on
+#' either side of the scale. The value can be a number or a string in the
+#' format of '2\%'. Default is 2.
 #' @param hidden Logical flag indicating whether the axis is hidden. Default is
-#'   FALSE.
+#' FALSE.
 #' @param breaks List specifying settings for the scale breaks. Default is an
-#'   empty list ().
+#' empty list ().
 #' @param axisType Character string indicating the type of the axis ('top' or
-#'   'bottom'). Default is 'bottom'.
+#' bottom'). Default is 'bottom'.
 #' @param tickValues Numeric vector or NULL, custom tick values to be used at
-#'   the top of the cluster. If NULL, the default tick values are used.
+#' the top of the cluster. If NULL, the default tick values are used.
 #' @param reverse Logical flag indicating whether to reverse the scale for the
-#'   corresponding cluster. Default is FALSE.
+#' corresponding cluster. Default is FALSE.
 #' @param scale_breaks Logical flag indicating if scale breaks should be
-#'   employed. Default is FALSE.
+#' employed. Default is FALSE.
 #' @param scale_break_threshold Numeric value indicating the threshold
-#'   percentage for determining scale breaks. Default is 20.
+#' percentage for determining scale breaks. Default is 20.
 #' @param scale_break_padding Numeric value indicating the padding on either
-#'   side of a scale break. Default is 1.
+#' side of a scale break. Default is 1.
 #' @param ticksCount Numeric value indicating the number of ticks on the scale.
-#'   Default is 10.
+#' Default is 10.
 #' @param ticksFormat Character string indicating the format of the ticks.
-#'   Default is ",.0f".
+#' Default is ",.0f".
 #' @param y Numeric value from 1 to 100 indicating the y-position of the x-axis.
-#'   Default is NULL.
+#' Default is NULL.
 #' @param tickStyle List specifying the style for the ticks.
 #' @param textStyle List specifying the style for the tick text.
 #' @param lineStyle List specifying the style for the axis line.
@@ -648,6 +651,7 @@ GC_grid <- function(
 #'   GC_scale(
 #'     start = 1,
 #'     end = 2600,
+#'     padding = 2,
 #'     hidden = FALSE,
 #'     reverse = FALSE,
 #'     axisType = "bottom",
@@ -689,6 +693,7 @@ GC_scale <- function(GC_chart,
                      cluster = NULL,
                      start = NULL,
                      end = NULL,
+                     padding = 2,
                      hidden = FALSE,
                      breaks = list(),
                      tickValues = NULL,
@@ -733,6 +738,7 @@ GC_scale <- function(GC_chart,
     options <- list(
       start = start[start_idx],
       end = end[stop_idx],
+      padding = padding,
       hidden = hidden,
       breaks = breaks_data,
       tickValues = tickValues,

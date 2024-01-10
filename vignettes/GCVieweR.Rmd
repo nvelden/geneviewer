@@ -800,11 +800,12 @@ GC_chart(
 
 ## Scale
 
-The `GC_scale()` function is utilized for adjusting the chart's scale. The visibility of the scale can be controlled by the hidden parameter, which, when set to TRUE, hides the axis. The `y` parameter can be used to adjust the horizontal position of the axis (1 at the bottom and 100 being the top). 
+The `GC_scale()` function is utilized for adjusting the chart's scale. The padding parameter can be used to add extra space to start and end of the cluster. The visibility of the scale can be controlled by the hidden parameter, which, when set to TRUE, hides the axis. The `y` parameter can be used to adjust the horizontal position of the axis (1 at the bottom and 100 being the top). 
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_scale(
+    padding = 2,
     hidden = FALSE,
     axisType = "bottom",
     y = NULL) %>%
@@ -832,7 +833,7 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
 
 By default the minimum and maximum of the genes start and end positions are used to position the genes along the sequence. With the use of the `start` and `end` parameters, these values can be adjusted. Scale breaks can be added manually using the `breaks` parameter.
 
-In the provided example, adjustments are made to the `start` and `end` range to incorporate additional padding on both the left and right sides of the gene cluster. Additionally, a scale break is introduced to remove the extensive intergenic region that exists between gene 2 and gene 3.
+In the provided example the range is altered by providing custom `start` and `end` values. Additionally, a scale break is introduced to remove the extensive intergenic region that exists between gene 2 and gene 3.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(

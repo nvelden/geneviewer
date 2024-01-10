@@ -9,6 +9,7 @@ GC_scale(
   cluster = NULL,
   start = NULL,
   end = NULL,
+  padding = 2,
   hidden = FALSE,
   breaks = list(),
   tickValues = NULL,
@@ -38,6 +39,10 @@ Default is NULL.}
 \item{end}{Numeric vector indicating the end point for the scale.
 Default is NULL.}
 
+\item{padding}{Numeric value or percentage string indicating the padding on
+either side of the scale. The value can be a number or a string in the
+format of '2\%'. Default is 2.}
+
 \item{hidden}{Logical flag indicating whether the axis is hidden. Default is
 FALSE.}
 
@@ -51,7 +56,7 @@ the top of the cluster. If NULL, the default tick values are used.}
 corresponding cluster. Default is FALSE.}
 
 \item{axisType}{Character string indicating the type of the axis ('top' or
-'bottom'). Default is 'bottom'.}
+bottom'). Default is 'bottom'.}
 
 \item{y}{Numeric value from 1 to 100 indicating the y-position of the x-axis.
 Default is NULL.}
@@ -98,6 +103,7 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
   GC_scale(
     start = 1,
     end = 2600,
+    padding = 2,
     hidden = FALSE,
     reverse = FALSE,
     axisType = "bottom",

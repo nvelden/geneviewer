@@ -319,8 +319,8 @@ add_strand <- function(data, strand = NULL){
   } else {
     if (!(strand %in% colnames_data)) stop("strand column not found in data")
 
-    forward <- c(1, "forward")
-    reverse <- c(-1, 0, "reverse")
+    forward <- c(1, "forward", "+", "sense")
+    reverse <- c(-1, 0, "reverse", "-", "antisense")
 
     if (!all(data[[strand]] %in% c(forward, reverse))) {
       stop("Invalid strand values found. Valid values are 1/forward or -1/0/reverse.")

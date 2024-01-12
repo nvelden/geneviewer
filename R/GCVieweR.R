@@ -13,10 +13,10 @@ magrittr::`%>%`
 #'   NULL.
 #' @param group Column name used for gene grouping to influence color
 #'   aesthetics.
-#' @param strand Optional column name that indicates strand orientation.
-#'   It should contain 1 or "forward" (for forward) and -1, 0 or "reverse"
-#'   (for reverse).
-#'   Default is NULL, meaning strand information is not used.
+#' @param strand Optional column name indicating strand orientation.
+#'   Acceptable values include 1, 'forward', 'sense', or '+' to represent the
+#'   forward strand, and -1, 0, 'reverse', 'antisense', or '-' to represent
+#'   the reverse strand. Default is NULL, meaning strand information is not used.
 #' @param width Width specification for the chart, such as '100\%' or 500.
 #'   Default is unspecified.
 #' @param height Height specification for the chart, such as '400px' or 300.
@@ -2032,41 +2032,127 @@ GC_align <- function(
 
 }
 
+getLinks <-
+  function(GC_chart,
+           cluster = NULL,
+           group = NULL,
+           values1 = NULL,
+           values2 = NULL) {
+    data <- GC_chart$x$data
+
+    # Check if group column exists in the data
+    if (!is.null(group) && !(group %in% names(data))) {
+      stop(paste("Column", group, "not found in chart data."))
+      return(NULL)
+    }
+
+    cluster_column <- GC_chart$x$cluster
+    if (is.null(cluster_column)) {
+      stop("Please define cluster in the GC_chart function.")
+      return(NULL)
+    }
+
+    clusters <- getUpdatedClusters(GC_chart, cluster)
+    cluster_pairs <-
+      mapply(c, clusters[-length(clusters)], clusters[-1], SIMPLIFY = FALSE)
+    data <- subset(data, data[[cluster_column]] %in% clusters)
+
+    # Function to rename columns
+    rename_cols <- function(df, suffix) {
+      cols <- setdiff(names(df), "rowID")
+      names(df)[names(df) %in% cols] <- paste0(cols, suffix)
+      return(df)
+    }
+
+    all_merged_links <- NULL
+
+    # Process each cluster pair
+    for (pair in cluster_pairs) {
+      cluster1 <- data[data[[cluster_column]] == pair[1], ]
+      cluster2 <- data[data[[cluster_column]] == pair[2], ]
+
+      if (is.null(values1) || is.null(values2)) {
+        # Expand grid for all values and filter where groups are equal
+        links <- expand.grid(
+          cluster1 = pair[1],
+          cluster2 = pair[2],
+          rowID1 = cluster1$rowID,
+          rowID2 = cluster2$rowID
+        )
+        data1 <- rename_cols(cluster1, "1")
+        data2 <- rename_cols(cluster2, "2")
+
+        merged_data <-
+          merge(links, data1, by.x = "rowID1", by.y = "rowID")
+        merged_links <-
+          merge(merged_data, data2, by.x = "rowID2", by.y = "rowID")
+
+        # Filter where groups are equal
+        if (!is.null(group)) {
+          merged_links <-
+            merged_links[merged_links[[paste0(group, "1")]] == merged_links[[paste0(group, "2")]], ]
+        }
+
+        all_merged_links <- rbind(all_merged_links, merged_links)
+      } else {
+        # Process each value pair
+        if (!is.null(values1) &&
+            !is.null(values2) &&
+            length(values1) == length(values2)) {
+          for (i in seq_along(values1)) {
+            filtered_cluster1 <-
+              subset(cluster1, cluster1[[group]] == values1[i])
+            filtered_cluster2 <-
+              subset(cluster2, cluster2[[group]] == values2[i])
+
+            if (nrow(filtered_cluster1) == 0 ||
+                nrow(filtered_cluster2) == 0) {
+              next
+            }
+
+            links <- expand.grid(
+              cluster1 = pair[1],
+              cluster2 = pair[2],
+              rowID1 = filtered_cluster1$rowID,
+              rowID2 = filtered_cluster2$rowID
+            )
+
+            data1 <- rename_cols(filtered_cluster1, "1")
+            data2 <- rename_cols(filtered_cluster2, "2")
+
+            merged_data <-
+              merge(links, data1, by.x = "rowID1", by.y = "rowID")
+            merged_links <-
+              merge(merged_data,
+                    data2,
+                    by.x = "rowID2",
+                    by.y = "rowID")
+
+            all_merged_links <-
+              rbind(all_merged_links, merged_links)
+          }
+        }
+      }
+    }
+
+  if (nrow(all_merged_links) == 0) {
+    stop("No links found with the specified parameters.")
+    return(NULL)
+  }
+
+  return(all_merged_links)
+}
+
+
 GC_link <- function(
     GC_chart,
     links,
     curve = TRUE,
     style = list(),
-    normal_color = "skyblue",
-    inverted_color = "lime",
+    normal_color = "#969696",
+    inverted_color = "#d62728",
     ...
 ){
-
-  data <- GC_chart$x$data
-  links_colnames <- colnames(links)
-
-  # Check if link columns are in chart data
-  missing_names <- !unique(sub(".$", "", links_colnames[1:4])) %in% names(data)
-
-  if (any(missing_names)) {
-    warning("Could not add links. ", paste(links_colnames[missing_names], collapse = ", "), " column(s) not found in chart data.")
-    return(GC_chart)
-  }
-
-
-  data_selected <- select(data, cluster, sub(".$", "", links_colnames[3]), rowID)
-  # Add row
-  by1 <- setNames(c("cluster", sub(".$", "", links_colnames[3])), c("cluster1", links_colnames[3]))
-  by2 <- setNames(c("cluster", sub(".$", "", links_colnames[4])), c("cluster2", links_colnames[4]))
-
-  # Perform the joins
-  links_data <- links %>%
-    left_join(data_selected, by = by1) %>%
-    rename(rowID1 = rowID) %>%
-    left_join(data_selected, by = by2) %>%
-    rename(rowID2 = rowID)
-
-  links_data <- select(links_data, -links_colnames[3], -links_colnames[4])
 
   links_options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
     curve = curve,
@@ -2077,7 +2163,7 @@ GC_link <- function(
   ))
 
   links <- list(
-    data = links_data,
+    data = links,
     options = links_options
   )
 

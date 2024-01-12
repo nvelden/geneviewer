@@ -585,25 +585,43 @@ function addScalePadding(startValue, endValue, padding, to) {
 
 // Make links function
 
-function getLinkCoordinates(data){
-        const links = data.map(item => {
+function getLinkCoordinates(data) {
+    const links = data.map(item => {
         // Construct the selectors from the data
         const selector1 = `[cluster='${item.cluster1}'][rowID='${item.rowID1}']`;
         const selector2 = `[cluster='${item.cluster2}'][rowID='${item.rowID2}']`;
 
+        // Get the elements
+        const element1 = document.querySelector(selector1);
+        const element2 = document.querySelector(selector2);
+
+        // Check if elements exist
+        if (!element1 || !element2) {
+            console.error('Elements not found for selectors:', selector1, selector2);
+            return null;
+        }
+
         // Get the bounding rectangles of the elements
-        const element1 = document.querySelector(selector1).getBoundingClientRect();
-        const element2 = document.querySelector(selector2).getBoundingClientRect();
+        const rect1 = element1.getBoundingClientRect();
+        const rect2 = element2.getBoundingClientRect();
 
+        // Get strand direction
+        const element1Strand = element1.getAttribute('strand');
+        const element2Strand = element2.getAttribute('strand');
 
-        // Define the start and end points for the links
+        // Adjust coordinates based on strand direction
+        const startPointX1 = element1Strand === 'reverse' ? rect1.left : rect1.right;
+        const startPointX2 = element1Strand === 'reverse' ? rect1.right : rect1.left;
+        const endPointX1 = element2Strand === 'reverse' ? rect2.left : rect2.right;
+        const endPointX2 = element2Strand === 'reverse' ? rect2.right : rect2.left;
+
         return [
-        { startPoint: { x: element1.left, y: element1.bottom }, endPoint: { x: element2.left, y: element2.top } },
-        { startPoint: { x: element1.right, y: element1.bottom }, endPoint: { x: element2.right, y: element2.top } }
+            { startPoint: { x: startPointX1, y: rect1.bottom }, endPoint: { x: endPointX1, y: rect2.top }, strand:  element1Strand },
+            { startPoint: { x: startPointX2, y: rect1.bottom }, endPoint: { x: endPointX2, y: rect2.top }, strand: element2Strand }
         ];
     });
 
-    return links;
+    return links
 };
 
 function createLinkerPath(link1, link2, curve = false) {
@@ -665,12 +683,12 @@ function makeLinks(graphContainer, links) {
       const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
       const coordinates = getLinkCoordinates(HTMLWidgets.dataframeToD3(link.data));
 
-      const baseColor = d3.rgb(color)
+      coordinates.forEach(function(coordinate) {
 
-      var colorScale = d3.scaleSequential(t => d3.interpolateHsl(baseColor.brighter(1.5), baseColor)(t))
-            .domain([0, 100]);
+                const baseColor = coordinate[0].strand == coordinate[1].strand ? d3.rgb(normalColor) : d3.rgb(invertedColor)
+                var colorScale = d3.scaleSequential(t => d3.interpolateHsl(baseColor.brighter(1.5), baseColor)(t))
+                    .domain([0, 100]);
 
-        coordinates.forEach(function(coordinate) {
             lineSvg.append("path")
                 .attr("d", createLinkerPath(coordinate[0], coordinate[1], curve))
                 .style("fill", colorScale(100))
@@ -2004,16 +2022,15 @@ container.prototype.genes = function (group, show = true, options = {}) {
     .attr("rowID", (d, i) => `${d["rowID"]}`)
     .attr("start", (d, i) => `${d["start"]}`)
     .attr("end", (d, i) => `${d["end"]}`)
+    .attr("strand", (d, i) => `${d["strand"]}`)
     .attr("cluster", (d, i) => `${d["cluster"]}`)
     .style("stroke-width", strokeWidth)
     .style("stroke", stroke)
     .style("cursor", cursor)
     .each(function (d, i) {
       const currentElement = d3.select(this);
-
       // Set additional options as attributes
       setStyleFromOptions(currentElement, additionalOptions);
-
       // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
     });

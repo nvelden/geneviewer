@@ -7,6 +7,7 @@ HTMLWidgets.widget({
       graphContainer,
       style,
       data,
+      links,
       series,
       titleOptions,
       legendOptions;
@@ -14,6 +15,7 @@ HTMLWidgets.widget({
     var widgetId = el.id.split('-')[1];
 
     var draw = function (width, height) {
+
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
 
@@ -150,18 +152,31 @@ HTMLWidgets.widget({
 
     };
 
+    var addLinks = function(width, height) {
+
+    // Remove all existing links
+    const graphContainer = d3.select(`#GCvieweR-graph-container-${widgetId}`);
+    graphContainer.selectAll(".GeneLink").remove();
+
+    makeLinks(graphContainer, links);
+
+    };
+
     return {
       renderValue: function (input) {
         graphContainer = input.graphContainer;
         style = input.style;
         data = HTMLWidgets.dataframeToD3(input.data);
+        links = input.links;
         series = input.series;
         titleOptions = input.title;
         legendOptions = input.legend;
         draw(width, height);
+        addLinks(width, height);
       },
       resize: function (width, height) {
         draw(width, height);
+        addLinks(width, height);
       }
     };
   }

@@ -583,6 +583,108 @@ function addScalePadding(startValue, endValue, padding, to) {
   }
 }
 
+// Make links function
+
+function getLinkCoordinates(data){
+        const links = data.map(item => {
+        // Construct the selectors from the data
+        const selector1 = `[cluster='${item.cluster1}'][rowID='${item.rowID1}']`;
+        const selector2 = `[cluster='${item.cluster2}'][rowID='${item.rowID2}']`;
+
+        // Get the bounding rectangles of the elements
+        const element1 = document.querySelector(selector1).getBoundingClientRect();
+        const element2 = document.querySelector(selector2).getBoundingClientRect();
+
+
+        // Define the start and end points for the links
+        return [
+        { startPoint: { x: element1.left, y: element1.bottom }, endPoint: { x: element2.left, y: element2.top } },
+        { startPoint: { x: element1.right, y: element1.bottom }, endPoint: { x: element2.right, y: element2.top } }
+        ];
+    });
+
+    return links;
+};
+
+function createLinkerPath(link1, link2, curve = false) {
+  var path = d3.path();
+  if(curve){
+  var midY1 = (link1.startPoint.y + link1.endPoint.y) / 2;
+      path.moveTo(link1.startPoint.x, link1.startPoint.y);
+      path.bezierCurveTo(link1.startPoint.x, midY1, link1.endPoint.x, midY1, link1.endPoint.x, link1.endPoint.y);
+
+      // Line to second curve's end point
+      path.lineTo(link2.endPoint.x, link2.endPoint.y);
+
+      // Second Bezier curve in reverse
+      var midY2 = (link2.startPoint.y + link2.endPoint.y) / 2;
+      path.bezierCurveTo(link2.endPoint.x, midY2, link2.startPoint.x, midY2, link2.startPoint.x, link2.startPoint.y);
+
+
+  } else {
+        path.moveTo(link1.startPoint.x, link1.startPoint.y);
+        path.lineTo(link1.endPoint.x, link1.endPoint.y);
+        path.lineTo(link2.endPoint.x, link2.endPoint.y);
+        path.lineTo(link2.startPoint.x, link2.startPoint.y);
+
+
+  }
+  // Close the path
+  path.closePath();
+
+      return path.toString();
+};
+
+function makeLinks(graphContainer, links) {
+
+    // Default options for title and subtitle
+    const defaultOptions = {
+      curve: true,
+      invertedColor: "red",
+      normalColor: "blue",
+      color: "lightgrey",
+      style: {
+        stroke: "none",
+        fillOpacity: 0.8
+      }
+    };
+
+    var lineSvg = graphContainer.insert("svg", ":first-child")
+        .attr("width", window.innerWidth)
+        .attr("height", window.innerHeight)
+        .classed("GeneLink", true)
+        .style("z-index", -1)
+        .style("position", "absolute")
+        .style("top", 0)
+        .style("left", 0);
+
+    links.forEach(function(link) {
+
+      const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options);
+      const { curve, invertedColor, normalColor, color, style } = combinedOptions;
+      const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
+      const coordinates = getLinkCoordinates(HTMLWidgets.dataframeToD3(link.data));
+
+      const baseColor = d3.rgb(color)
+
+      var colorScale = d3.scaleSequential(t => d3.interpolateHsl(baseColor.brighter(1.5), baseColor)(t))
+            .domain([0, 100]);
+
+        coordinates.forEach(function(coordinate) {
+            lineSvg.append("path")
+                .attr("d", createLinkerPath(coordinate[0], coordinate[1], curve))
+                .style("fill", colorScale(100))
+                .style("stroke", style.stroke)
+                .style("fill-opacity", style.fillOpacity)
+                .classed("GeneLink", true)
+                .each(function () {
+                    const currentElement = d3.select(this);
+                    setStyleFromOptions(currentElement, additionalOptionsStyle);
+                });
+        });
+    });
+}
+
 container.prototype.cluster = function (options = {}) {
 
   // Default options for title and subtitle
@@ -1900,6 +2002,9 @@ container.prototype.genes = function (group, show = true, options = {}) {
     .attr("class", "gene")
     .attr("id", (d, i) => `${sanitizeId(d.cluster)}-gene-${i}`)
     .attr("rowID", (d, i) => `${d["rowID"]}`)
+    .attr("start", (d, i) => `${d["start"]}`)
+    .attr("end", (d, i) => `${d["end"]}`)
+    .attr("cluster", (d, i) => `${d["cluster"]}`)
     .style("stroke-width", strokeWidth)
     .style("stroke", stroke)
     .style("cursor", cursor)

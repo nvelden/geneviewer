@@ -76,6 +76,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   data <- add_strand(data, strand)
 
   x$data <- data
+  x$links <- NULL
   x$group <- group
   x$cluster <- cluster
   x$graphContainer$direction <- "column"
@@ -2030,3 +2031,68 @@ GC_align <- function(
   return(GC_chart)
 
 }
+
+GC_link <- function(
+    GC_chart,
+    links,
+    curve = TRUE,
+    style = list(),
+    normal_color = "skyblue",
+    inverted_color = "lime",
+    ...
+){
+
+  data <- GC_chart$x$data
+  links_colnames <- colnames(links)
+
+  # Check if link columns are in chart data
+  missing_names <- !unique(sub(".$", "", links_colnames[1:4])) %in% names(data)
+
+  if (any(missing_names)) {
+    warning("Could not add links. ", paste(links_colnames[missing_names], collapse = ", "), " column(s) not found in chart data.")
+    return(GC_chart)
+  }
+
+
+  data_selected <- select(data, cluster, sub(".$", "", links_colnames[3]), rowID)
+  # Add row
+  by1 <- setNames(c("cluster", sub(".$", "", links_colnames[3])), c("cluster1", links_colnames[3]))
+  by2 <- setNames(c("cluster", sub(".$", "", links_colnames[4])), c("cluster2", links_colnames[4]))
+
+  # Perform the joins
+  links_data <- links %>%
+    left_join(data_selected, by = by1) %>%
+    rename(rowID1 = rowID) %>%
+    left_join(data_selected, by = by2) %>%
+    rename(rowID2 = rowID)
+
+  links_data <- select(links_data, -links_colnames[3], -links_colnames[4])
+
+  links_options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+    curve = curve,
+    normalColor = normal_color,
+    invertedColor = inverted_color,
+    style = style,
+    ...
+  ))
+
+  links <- list(
+    data = links_data,
+    options = links_options
+  )
+
+  currentLinks <- GC_chart$x$links
+
+  if(is.null(currentLinks) || length(currentLinks) == 0){
+    GC_chart$x$links <- list(links)
+  } else {
+    GC_chart$x$links <- c(currentLinks, list(links))
+  }
+
+  return(GC_chart)
+
+}
+
+
+
+

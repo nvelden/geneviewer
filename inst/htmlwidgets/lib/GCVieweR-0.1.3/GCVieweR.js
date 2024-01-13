@@ -656,6 +656,9 @@ function createLinkerPath(link1, link2, curve = false) {
 
 function makeLinks(graphContainer, links) {
 
+    if (!links || links.length === 0) {
+        return;
+    }
     // Default options for title and subtitle
     const defaultOptions = {
       curve: true,

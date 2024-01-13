@@ -153,6 +153,9 @@ HTMLWidgets.widget({
 
     var addLinks = function(width, height) {
 
+     if (!links || links.length === 0) {
+        return;
+    }
     // Remove all existing links
     const graphContainer = d3.select(`#GCvieweR-graph-container-${widgetId}`);
     graphContainer.selectAll(".GeneLink").remove();

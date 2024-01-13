@@ -586,6 +586,7 @@ function addScalePadding(startValue, endValue, padding, to) {
 // Make links function
 
 function getLinkCoordinates(data) {
+
     const links = data.map(item => {
         // Construct the selectors from the data
         const selector1 = `[cluster='${item.cluster1}'][rowID='${item.rowID1}']`;

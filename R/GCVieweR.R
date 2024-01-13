@@ -2034,28 +2034,46 @@ GC_align <- function(
 
 getLinks <-
   function(GC_chart,
-           cluster = NULL,
-           group = NULL,
+           group,
            values1 = NULL,
-           values2 = NULL) {
-    data <- GC_chart$x$data
+           values2 = NULL,
+           cluster = NULL) {
 
+    data <- GC_chart$x$data
     # Check if group column exists in the data
-    if (!is.null(group) && !(group %in% names(data))) {
+    if (!(group %in% names(data))) {
       stop(paste("Column", group, "not found in chart data."))
       return(NULL)
     }
+
+    # Check if all values in values1 and values2 are present in the group column
+    if (!is.null(values1) && !all(values1 %in% data[[group]])) {
+      stop("Some values in 'values1' are not present in the group column.")
+      return(NULL)
+    }
+    if (!is.null(values2) && !all(values2 %in% data[[group]])) {
+      stop("Some values in 'values2' are not present in the group column.")
+      return(NULL)
+    }
+
+    if (!is.null(cluster) && length(cluster) < 2) {
+      stop("At least two clusters need to be provided.")
+      return(NULL)
+    }
+    clusters <- getUpdatedClusters(GC_chart, cluster)
 
     cluster_column <- GC_chart$x$cluster
     if (is.null(cluster_column)) {
       stop("Please define cluster in the GC_chart function.")
       return(NULL)
     }
+    # Rename cluster column
+    colnames(data)[colnames(data) == cluster_column] <- "cluster"
 
-    clusters <- getUpdatedClusters(GC_chart, cluster)
+
     cluster_pairs <-
       mapply(c, clusters[-length(clusters)], clusters[-1], SIMPLIFY = FALSE)
-    data <- subset(data, data[[cluster_column]] %in% clusters)
+    data <- subset(data, data$cluster %in% clusters)
 
     # Function to rename columns
     rename_cols <- function(df, suffix) {
@@ -2068,30 +2086,20 @@ getLinks <-
 
     # Process each cluster pair
     for (pair in cluster_pairs) {
-      cluster1 <- data[data[[cluster_column]] == pair[1], ]
-      cluster2 <- data[data[[cluster_column]] == pair[2], ]
+      cluster1 <- data[data$cluster == pair[1], ]
+      cluster2 <- data[data$cluster == pair[2], ]
 
       if (is.null(values1) || is.null(values2)) {
-        # Expand grid for all values and filter where groups are equal
-        links <- expand.grid(
-          cluster1 = pair[1],
-          cluster2 = pair[2],
-          rowID1 = cluster1$rowID,
-          rowID2 = cluster2$rowID
-        )
-        data1 <- rename_cols(cluster1, "1")
-        data2 <- rename_cols(cluster2, "2")
 
-        merged_data <-
-          merge(links, data1, by.x = "rowID1", by.y = "rowID")
-        merged_links <-
-          merge(merged_data, data2, by.x = "rowID2", by.y = "rowID")
+        # Filter for common group IDs
+        common_genes <- intersect(cluster1[[group]], cluster2[[group]])
+        cluster1 <- cluster1[cluster1[[group]] %in% common_genes, ]
+        cluster2 <- cluster2[cluster2[[group]] %in% common_genes, ]
 
-        # Filter where groups are equal
-        if (!is.null(group)) {
-          merged_links <-
-            merged_links[merged_links[[paste0(group, "1")]] == merged_links[[paste0(group, "2")]], ]
-        }
+        names(cluster1) <- paste0(names(cluster1), "1")
+        names(cluster2) <- paste0(names(cluster2), "2")
+
+        merged_links <- merge(cluster1, cluster2, by.x = paste0(group, "1"), by.y = paste0(group, "2"))
 
         all_merged_links <- rbind(all_merged_links, merged_links)
       } else {
@@ -2110,23 +2118,10 @@ getLinks <-
               next
             }
 
-            links <- expand.grid(
-              cluster1 = pair[1],
-              cluster2 = pair[2],
-              rowID1 = filtered_cluster1$rowID,
-              rowID2 = filtered_cluster2$rowID
-            )
+            names(filtered_cluster1) <- paste0(names(filtered_cluster1), "1")
+            names(filtered_cluster2) <- paste0(names(filtered_cluster2), "2")
 
-            data1 <- rename_cols(filtered_cluster1, "1")
-            data2 <- rename_cols(filtered_cluster2, "2")
-
-            merged_data <-
-              merge(links, data1, by.x = "rowID1", by.y = "rowID")
-            merged_links <-
-              merge(merged_data,
-                    data2,
-                    by.x = "rowID2",
-                    by.y = "rowID")
+            merged_links <- merge(filtered_cluster1, filtered_cluster2, by.x = paste0(group, "1"), by.y = paste0(group, "2"))
 
             all_merged_links <-
               rbind(all_merged_links, merged_links)

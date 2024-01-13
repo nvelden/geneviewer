@@ -1245,7 +1245,9 @@ GC_labels <- function(
 #'   the top of the cluster. If NULL, the default tick values are used.
 #' @param tickValuesBottom Numeric vector or NULL, custom tick values to be used
 #'   at the bottom of the cluster. If NULL, the default tick values are used.
-#' @param cluster Numeric or character, specifies the clusters to be affected by
+#' @param cluster Numeric or character vector or NULL; specifies which clusters
+#' to generate coordinates for.
+#'        If NULL, labels will be applied to all clusters. Default is NULL.
 #' @param tickStyle List, styling options for the ticks.
 #' @param textStyle List, styling options for the text.
 #'   the coordinate modifications. If NULL, applies to all clusters.
@@ -1849,7 +1851,7 @@ GC_tooltip <- function(
   return(GC_chart)
 }
 
-#' Modify Gene Track
+#' Modify Cluster Settings
 #'
 #' This function can switch prevention of gene overlap on, adjust the spacing
 #' between tracks and alter the styling of specified clusters.
@@ -1863,7 +1865,7 @@ GC_tooltip <- function(
 #' overlapping genes.
 #' @param overlap_spacing Numeric, specifies the spacing between overlapping genes
 #' Used only if `prevent_gene_overlap` is TRUE.
-#' @param cluster Numeric or character, specifies the cluster to filter genes by.
+#' @param cluster Optional; used to specify which clusters in the chart should have tooltips.
 #' @param style A list of CSS styles to be applied to the gene track.
 #'              Each element of the list should be a valid CSS property-value
 #'              pair. For example, list(backgroundColor = "red", color = "white").
@@ -2032,6 +2034,55 @@ GC_align <- function(
 
 }
 
+#' Get Links from GC Chart
+#'
+#' Processes a `GC_chart` object to create links between clusters. It creates
+#' links for all values in the group column or between values1 and values2 when
+#' specified.
+#'
+#' @param GC_chart Gene chart object.
+#' @param group The name of the column in the data to create value pairs from.
+#' @param values1 Optional vector of group values to generate links for.
+#' @param values2 Optional vector of group values to generate links for.
+#' @param cluster Numeric or character vector or NULL; specifies which clusters
+#' to generate links between.
+#' @return A data frame of links between clusters based on the group column.
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 170, 240, 250, 300, 340, 380, 420),
+#'   end = c(40, 120, 160, 200, 210, 270, 330, 370, 410, 450),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5',
+#'            'Gene 6', 'Gene 7', 'Gene 8', 'Gene 9', 'Gene 10'),
+#'   group = c('A', 'B', 'C', 'A', 'B', 'C', 'A', 'B', 'C', 'D'),
+#'   cluster = c(1, 1, 1, 2, 2, 2, 3, 3, 3, 3)
+#' )
+#' # Add links between all groups in each cluster
+#' chart <- GC_chart(genes_data, cluster = "cluster", height = "200px") %>% GC_labels(label = "group")
+#' links <- getLinks(chart, group = "group", values1 = "A", values2 = "B")
+#' chart %>% GC_links(links)
+#'
+#' # Add links between group A of cluster 1 and A and B of cluster 2
+#' chart <- GC_chart(genes_data, cluster = "cluster", height = "200px") %>% GC_labels(label = "group")
+#' links <- getLinks(chart, group = "group", values1 = c("A", "A"), values2 = c("B", "A"), cluster = c(1,2))
+#' chart %>% GC_links(links)
+#'
+#' # Style links
+#' chart <- GC_chart(genes_data, cluster = "cluster", height = "200px") %>% GC_labels(label = "group")
+#' links <- getLinks(chart, group = "group")
+#' chart %>%
+#'   GC_links(
+#'     links,
+#'     curve = FALSE,
+#'     normal_color = "#1f77b4",
+#'     inverted_color = "#d62728",
+#'     style = list(
+#'       stroke = "black",
+#'      strokeWidth = 0.5,
+#'       fillOpacity = 0.4
+#'       # Any other CSS style
+#'     )
+#'   )
+#' @export
 getLinks <-
   function(GC_chart,
            group,
@@ -2075,13 +2126,6 @@ getLinks <-
       mapply(c, clusters[-length(clusters)], clusters[-1], SIMPLIFY = FALSE)
     data <- subset(data, data$cluster %in% clusters)
 
-    # Function to rename columns
-    rename_cols <- function(df, suffix) {
-      cols <- setdiff(names(df), "rowID")
-      names(df)[names(df) %in% cols] <- paste0(cols, suffix)
-      return(df)
-    }
-
     all_merged_links <- NULL
 
     # Process each cluster pair
@@ -2109,9 +2153,9 @@ getLinks <-
             length(values1) == length(values2)) {
           for (i in seq_along(values1)) {
             filtered_cluster1 <-
-              subset(cluster1, cluster1[[group]] == values1[i])
+              cluster1[cluster1[[group]] == values1[i], ]
             filtered_cluster2 <-
-              subset(cluster2, cluster2[[group]] == values2[i])
+              cluster2[cluster2[[group]] == values2[i], ]
 
             if (nrow(filtered_cluster1) == 0 ||
                 nrow(filtered_cluster2) == 0) {
@@ -2120,8 +2164,12 @@ getLinks <-
 
             names(filtered_cluster1) <- paste0(names(filtered_cluster1), "1")
             names(filtered_cluster2) <- paste0(names(filtered_cluster2), "2")
+            filtered_cluster1$temp_key <- 1
+            filtered_cluster2$temp_key <- 1
 
-            merged_links <- merge(filtered_cluster1, filtered_cluster2, by.x = paste0(group, "1"), by.y = paste0(group, "2"))
+            merged_links <- merge(filtered_cluster1, filtered_cluster2, by.x = "temp_key", by.y = "temp_key")
+            merged_links <- select(merged_links, -temp_key)
+
 
             all_merged_links <-
               rbind(all_merged_links, merged_links)
@@ -2139,7 +2187,7 @@ getLinks <-
 }
 
 
-GC_link <- function(
+GC_links <- function(
     GC_chart,
     links,
     curve = TRUE,

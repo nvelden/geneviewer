@@ -84,7 +84,6 @@ HTMLWidgets.widget({
         .attr("id", `GCvieweR-graph-container-${widgetId}`)
         .style("flex-direction", graphContainer["direction"])
         .classed("GCVieweR-container", true);
-
       // Add Clusters
       var clusters = Object.keys(series);
 
@@ -119,7 +118,7 @@ HTMLWidgets.widget({
           .title(clusterTitleOptions?.title, clusterTitleOptions?.subtitle, clusterTitleOptions?.show ?? false, clusterTitleOptions)
           .footer(footerOptions?.title, footerOptions?.subtitle, footerOptions?.show ?? false, footerOptions)
           .clusterLabel(clusterLabelOptions?.title, clusterLabelOptions?.show ?? false, clusterLabelOptions)
-          .geneData(data, clusterData)  // Access data using the cluster key
+          .geneData(data, clusterData)
           .scale(scaleOptions)
           .sequence(sequenceOptions?.show ?? false, sequenceOptions)
           .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)

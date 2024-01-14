@@ -32,7 +32,9 @@ at the bottom of the cluster. If NULL, the default tick values are used.}
 \item{textStyle}{List, styling options for the text.
 the coordinate modifications. If NULL, applies to all clusters.}
 
-\item{cluster}{Numeric or character, specifies the clusters to be affected by}
+\item{cluster}{Numeric or character vector or NULL; specifies which clusters
+to generate coordinates for.
+       If NULL, labels will be applied to all clusters. Default is NULL.}
 
 \item{...}{Additional arguments to be passed to the coordinate options.}
 }

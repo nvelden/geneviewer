@@ -2037,57 +2037,26 @@ GC_align <- function(
 #' Get Links from GC Chart
 #'
 #' Processes a `GC_chart` object to create links between clusters. It creates
-#' links for all values in the group column or between values1 and values2 when
+#' links for all values in the group column or between value1 and value2 when
 #' specified.
 #'
 #' @param GC_chart Gene chart object.
 #' @param group The name of the column in the data to create value pairs from.
-#' @param values1 Optional vector of group values to generate links for.
-#' @param values2 Optional vector of group values to generate links for.
+#' @param value1 Optional vector of group values to generate links for.
+#' @param value2 Optional vector of group values to generate links for.
 #' @param cluster Numeric or character vector or NULL; specifies which clusters
 #' to generate links between.
 #' @return A data frame of links between clusters based on the group column.
 #' @examples
-#' genes_data <- data.frame(
-#'   start = c(10, 90, 130, 170, 240, 250, 300, 340, 380, 420),
-#'   end = c(40, 120, 160, 200, 210, 270, 330, 370, 410, 450),
-#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5',
-#'            'Gene 6', 'Gene 7', 'Gene 8', 'Gene 9', 'Gene 10'),
-#'   group = c('A', 'B', 'C', 'A', 'B', 'C', 'A', 'B', 'C', 'D'),
-#'   cluster = c(1, 1, 1, 2, 2, 2, 3, 3, 3, 3)
-#' )
-#' # Add links between all groups in each cluster
-#' chart <- GC_chart(genes_data, cluster = "cluster", height = "200px") %>% GC_labels(label = "group")
-#' links <- getLinks(chart, group = "group", values1 = "A", values2 = "B")
-#' chart %>% GC_links(links)
-#'
-#' # Add links between group A of cluster 1 and A and B of cluster 2
-#' chart <- GC_chart(genes_data, cluster = "cluster", height = "200px") %>% GC_labels(label = "group")
-#' links <- getLinks(chart, group = "group", values1 = c("A", "A"), values2 = c("B", "A"), cluster = c(1,2))
-#' chart %>% GC_links(links)
-#'
-#' # Style links
-#' chart <- GC_chart(genes_data, cluster = "cluster", height = "200px") %>% GC_labels(label = "group")
-#' links <- getLinks(chart, group = "group")
-#' chart %>%
-#'   GC_links(
-#'     links,
-#'     curve = FALSE,
-#'     normal_color = "#1f77b4",
-#'     inverted_color = "#d62728",
-#'     style = list(
-#'       stroke = "black",
-#'      strokeWidth = 0.5,
-#'       fillOpacity = 0.4
-#'       # Any other CSS style
-#'     )
-#'   )
+#' # See examples for the `GC_links` function for usage.
+#' @seealso
+#' * [GC_links()]
 #' @export
-getLinks <-
+get_links <-
   function(GC_chart,
            group,
-           values1 = NULL,
-           values2 = NULL,
+           value1 = NULL,
+           value2 = NULL,
            cluster = NULL) {
 
     data <- GC_chart$x$data
@@ -2097,13 +2066,13 @@ getLinks <-
       return(NULL)
     }
 
-    # Check if all values in values1 and values2 are present in the group column
-    if (!is.null(values1) && !all(values1 %in% data[[group]])) {
-      stop("Some values in 'values1' are not present in the group column.")
+    # Check if all values in value1 and value2 are present in the group column
+    if (!is.null(value1) && !all(value1 %in% data[[group]])) {
+      stop("Some values in 'value1' are not present in the group column.")
       return(NULL)
     }
-    if (!is.null(values2) && !all(values2 %in% data[[group]])) {
-      stop("Some values in 'values2' are not present in the group column.")
+    if (!is.null(value2) && !all(value2 %in% data[[group]])) {
+      stop("Some values in 'value2' are not present in the group column.")
       return(NULL)
     }
 
@@ -2133,7 +2102,7 @@ getLinks <-
       cluster1 <- data[data$cluster == pair[1], ]
       cluster2 <- data[data$cluster == pair[2], ]
 
-      if (is.null(values1) || is.null(values2)) {
+      if (is.null(value1) || is.null(value2)) {
 
         # Filter for common group IDs
         common_genes <- intersect(cluster1[[group]], cluster2[[group]])
@@ -2148,14 +2117,14 @@ getLinks <-
         all_merged_links <- rbind(all_merged_links, merged_links)
       } else {
         # Process each value pair
-        if (!is.null(values1) &&
-            !is.null(values2) &&
-            length(values1) == length(values2)) {
-          for (i in seq_along(values1)) {
+        if (!is.null(value1) &&
+            !is.null(value2) &&
+            length(value1) == length(value2)) {
+          for (i in seq_along(value1)) {
             filtered_cluster1 <-
-              cluster1[cluster1[[group]] == values1[i], ]
+              cluster1[cluster1[[group]] == value1[i], ]
             filtered_cluster2 <-
-              cluster2[cluster2[[group]] == values2[i], ]
+              cluster2[cluster2[[group]] == value2[i], ]
 
             if (nrow(filtered_cluster1) == 0 ||
                 nrow(filtered_cluster2) == 0) {
@@ -2168,7 +2137,7 @@ getLinks <-
             filtered_cluster2$temp_key <- 1
 
             merged_links <- merge(filtered_cluster1, filtered_cluster2, by.x = "temp_key", by.y = "temp_key")
-            merged_links <- select(merged_links, -temp_key)
+            merged_links$temp_key <- NULL
 
 
             all_merged_links <-
@@ -2186,14 +2155,70 @@ getLinks <-
   return(all_merged_links)
 }
 
-
+#' Add Links to GC Chart
+#'
+#' Add links generated by  `get_links` to a `GC_chart` object. Links are added
+#' to the graph by their respective rowIDs.
+#'
+#' @param GC_chart Gene chart object.
+#' @param links Data frame of links generated by `get_links()` to be added to
+#' the chart.
+#' @param curve Logical; if `TRUE`, links are curved, otherwise straight.
+#' @param style List of CSS styles to apply to the links.
+#' @param normal_color Color for the links in their normal state.
+#' @param inverted_color Color for inverted links.
+#' @param ... Additional arguments passed to the links.
+#' @return Modified `GC_chart` object with added links.
+#' # Add links between all groups in each cluster
+#' chart <- GC_chart(genes_data,
+#'                   cluster = "cluster",
+#'                   height = "200px") %>%
+#'                   GC_labels(label = "group")
+#' links <- get_links(chart, group = "group", value1 = "A", value2 = "B")
+#' chart %>% GC_links(links)
+#'
+#' # Add links between group A of cluster 1 and A and B of cluster 2
+#' chart <- GC_chart(genes_data,
+#'                   cluster = "cluster",
+#'                   height = "200px") %>%
+#'                   GC_labels(label = "group")
+#' links <- get_links(chart,
+#'                    group = "group",
+#'                    value1 = c("A", "A"),
+#'                    value2 = c("B", "A"),
+#'                    cluster = c(1,2))
+#' chart %>% GC_links(links)
+#'
+#' # Style links
+#' chart <- GC_chart(genes_data,
+#'                   cluster = "cluster",
+#'                   height = "200px"
+#'                   ) %>%
+#'                   GC_labels(label = "group")
+#' links <- get_links(chart, group = "group")
+#' chart %>%
+#'   GC_links(
+#'     links,
+#'     curve = FALSE,
+#'     normal_color = "#1f77b4",
+#'     inverted_color = "#d62728",
+#'     style = list(
+#'       stroke = "black",
+#'      strokeWidth = 0.5,
+#'       fillOpacity = 0.4
+#'       # Any other CSS style
+#'     )
+#'   )
+#' @seealso
+#' * [get_links()]
+#' @export
 GC_links <- function(
     GC_chart,
     links,
     curve = TRUE,
-    style = list(),
     normal_color = "#969696",
     inverted_color = "#d62728",
+    style = list(),
     ...
 ){
 

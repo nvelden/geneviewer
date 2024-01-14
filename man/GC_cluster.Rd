@@ -2,7 +2,7 @@
 % Please edit documentation in R/GCVieweR.R
 \name{GC_cluster}
 \alias{GC_cluster}
-\title{Modify Gene Track}
+\title{Modify Cluster Settings}
 \usage{
 GC_cluster(
   GC_chart,
@@ -30,7 +30,7 @@ overlapping genes.}
 \item{overlap_spacing}{Numeric, specifies the spacing between overlapping genes
 Used only if `prevent_gene_overlap` is TRUE.}
 
-\item{cluster}{Numeric or character, specifies the cluster to filter genes by.}
+\item{cluster}{Optional; used to specify which clusters in the chart should have tooltips.}
 
 \item{style}{A list of CSS styles to be applied to the gene track.
 Each element of the list should be a valid CSS property-value

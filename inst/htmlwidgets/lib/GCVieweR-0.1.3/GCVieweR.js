@@ -588,45 +588,47 @@ function addScalePadding(startValue, endValue, padding, to) {
 function getLinkCoordinates(data) {
 
     const links = data.map(item => {
-        // Construct the selectors from the data
-        const selector1 = `[cluster='${item.cluster1}'][rowID='${item.rowID1}']`;
-        const selector2 = `[cluster='${item.cluster2}'][rowID='${item.rowID2}']`;
 
-        // Get the elements
-        const element1 = document.querySelector(selector1);
-        const element2 = document.querySelector(selector2);
+      // Construct the selectors from the data
+      const selector1 = `.link-marker[cluster='${item.cluster1}'][linkID='${item.linkID}'][position='${item.start1}']`;
+      const selector2 = `.link-marker[cluster='${item.cluster2}'][linkID='${item.linkID}'][position='${item.start2}']`;
+      const selector3 = `.link-marker[cluster='${item.cluster1}'][linkID='${item.linkID}'][position='${item.end1}']`;
+      const selector4 = `.link-marker[cluster='${item.cluster2}'][linkID='${item.linkID}'][position='${item.end2}']`;
 
-        // Check if elements exist
-        if (!element1 || !element2) {
-            console.error('Elements not found for selectors:', selector1, selector2);
-            return null;
-        }
 
-        // Get the bounding rectangles of the elements
+      // Get the elements
+      const element1 = document.querySelector(selector1);
+      const element2 = document.querySelector(selector2);
+      const element3 = document.querySelector(selector3);
+      const element4 = document.querySelector(selector4);
+
+      // Check if elements exist
+      if (!element1 || !element2 || !element3 || !element4) {
+          console.error('Elements not found for selectors:', selector1, selector2, selector3, selector4);
+          return null;
+      }
+
         const rect1 = element1.getBoundingClientRect();
         const rect2 = element2.getBoundingClientRect();
+        const rect3 = element3.getBoundingClientRect();
+        const rect4 = element4.getBoundingClientRect();
 
-        // Get strand direction
-        const element1Strand = element1.getAttribute('strand');
-        const element2Strand = element2.getAttribute('strand');
-
-        // Adjust coordinates based on strand direction
-        const startPointX1 = element1Strand === 'reverse' ? rect1.left : rect1.right;
-        const startPointX2 = element1Strand === 'reverse' ? rect1.right : rect1.left;
-        const endPointX1 = element2Strand === 'reverse' ? rect2.left : rect2.right;
-        const endPointX2 = element2Strand === 'reverse' ? rect2.right : rect2.left;
+        // Determine the strand based on the x-coordinate positions
+        const strand1 = item.start1 <= item.end1 ? "forward" : "reverse";
+        const strand2 = item.start2 <= item.end2 ? "forward" : "reverse";
 
         return [
-            { startPoint: { x: startPointX1, y: rect1.bottom }, endPoint: { x: endPointX1, y: rect2.top }, strand:  element1Strand },
-            { startPoint: { x: startPointX2, y: rect1.bottom }, endPoint: { x: endPointX2, y: rect2.top }, strand: element2Strand }
+            { startPoint: { x: rect1.x, y: rect1.y }, endPoint: { x: rect2.x, y: rect2.y }, strand: strand1 },
+            { startPoint: { x: rect3.x, y: rect3.y }, endPoint: { x: rect4.x, y: rect4.y }, strand: strand2 }
         ];
     });
 
-    return links
+    return links.filter(link => link !== null);
 };
 
-function createLinkerPath(link1, link2, curve = false) {
+function createLinkerPath(link1, link2, curve = true) {
   var path = d3.path();
+
   if(curve){
   var midY1 = (link1.startPoint.y + link1.endPoint.y) / 2;
       path.moveTo(link1.startPoint.x, link1.startPoint.y);
@@ -645,8 +647,6 @@ function createLinkerPath(link1, link2, curve = false) {
         path.lineTo(link1.endPoint.x, link1.endPoint.y);
         path.lineTo(link2.endPoint.x, link2.endPoint.y);
         path.lineTo(link2.startPoint.x, link2.startPoint.y);
-
-
   }
   // Close the path
   path.closePath();
@@ -654,7 +654,7 @@ function createLinkerPath(link1, link2, curve = false) {
       return path.toString();
 };
 
-function makeLinks(graphContainer, links) {
+function makeLinks(graphContainer, links, clusters) {
 
     if (!links || links.length === 0) {
         return;
@@ -684,18 +684,20 @@ function makeLinks(graphContainer, links) {
 
       const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options);
       const { curve, invertedColor, normalColor, color, style } = combinedOptions;
+
       const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
       const coordinates = getLinkCoordinates(HTMLWidgets.dataframeToD3(link.data));
 
-      coordinates.forEach(function(coordinate) {
+      coordinates.forEach(function(coordinate, index) {
 
                 const baseColor = coordinate[0].strand == coordinate[1].strand ? d3.rgb(normalColor) : d3.rgb(invertedColor)
-                var colorScale = d3.scaleSequential(t => d3.interpolateHsl(baseColor.brighter(1.5), baseColor)(t))
+                var colorScale = d3.scaleSequential(t => d3.interpolate("#FFFFFF", baseColor)(t))
                     .domain([0, 100]);
+                const identity = link.data?.identity?.[index] ?? 100
 
             lineSvg.append("path")
                 .attr("d", createLinkerPath(coordinate[0], coordinate[1], curve))
-                .style("fill", colorScale(100))
+                .style("fill", colorScale(identity))
                 .style("stroke", style.stroke)
                 .style("fill-opacity", style.fillOpacity)
                 .classed("GeneLink", true)
@@ -706,6 +708,21 @@ function makeLinks(graphContainer, links) {
         });
     });
 }
+
+function getClusterLinks(data, cluster) {
+
+    if (!data || data.length === 0) {
+        return [];
+    }
+
+    const linksCluster1 = data.filter(item => item.cluster1 === cluster);
+    const linksCluster2 = data.filter(item => item.cluster2 === cluster);
+    const clusterLinks = linksCluster1.concat(linksCluster2);
+
+    return clusterLinks;
+}
+
+// Cluster functions
 
 container.prototype.cluster = function (options = {}) {
 
@@ -2227,6 +2244,66 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   }
 
   return this;
+};
+
+container.prototype.links = function (links, clusterKey) {
+
+    if (!links || links.length === 0) {
+        return this;
+    }
+
+    var group = this.svg.append("g")
+        .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+
+    const hasReverseStrand = this.data.some(item => item.strand === "reverse");
+    const clusterStrandSpacing = hasReverseStrand ? this.geneStrandSpacing * 1 : 0;
+
+    links.forEach(link => {
+        // Check if the link is relevant to cluster1
+        if (link.cluster1 === clusterKey) {
+            group.append("circle")
+                .attr("cx", this.xScale(link.start1))
+                .attr("cy", this.yScale(50) + clusterStrandSpacing)
+                .attr("position", link.start1)
+                .attr("r", 0)
+                .attr("cluster", clusterKey)
+                .attr("linkID", link.linkID)
+                .attr("class", "link-marker");
+
+            group.append("circle")
+                .attr("cx", this.xScale(link.end1))
+                .attr("cy", this.yScale(50) + clusterStrandSpacing)
+                .attr("position", link.end1)
+                .attr("class", "link-marker")
+                .attr("linkID", link.linkID)
+                .attr("cluster", clusterKey)
+                .attr("r", 0);
+        }
+
+        // Check if the link is relevant to cluster2
+        if (link.cluster2 === clusterKey) {
+
+            group.append("circle")
+                .attr("cx", this.xScale(link.start2))
+                .attr("cy", this.yScale(50) - clusterStrandSpacing)
+                .attr("position", link.start2)
+                .attr("class", "link-marker")
+                .attr("cluster", clusterKey)
+                .attr("linkID", link.linkID)
+                .attr("r", 0);
+
+            group.append("circle")
+                .attr("cx", this.xScale(link.end2))
+                .attr("cy", this.yScale(50) - clusterStrandSpacing)
+                .attr("position", link.end2)
+                .attr("class", "link-marker")
+                .attr("linkID", link.linkID)
+                .attr("cluster", clusterKey)
+                .attr("r", 0);
+        }
+    });
+
+    return this;
 };
 
 // Annotations

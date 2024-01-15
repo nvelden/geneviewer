@@ -42,8 +42,7 @@ magrittr::`%>%`
 #'
 #' @import htmlwidgets
 #' @export
-GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, width = "100%", height = "400px", style = list(), elementId = NULL){
-
+GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, width = "100%", height = "400px", style = list(), elementId = NULL) {
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
 
@@ -51,7 +50,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   colnames_data <- colnames(data)
   if (!(start %in% colnames_data)) stop("start column not found in data")
   if (!(end %in% colnames_data)) stop("end column not found in data")
-  if (!is.null(cluster) && !(cluster %in% colnames_data)){
+  if (!is.null(cluster) && !(cluster %in% colnames_data)) {
     stop("cluster column not found in data")
   }
   if (!is.null(group) && !(group %in% colnames_data)) {
@@ -63,7 +62,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 
   x <- list()
 
-  show_legend <- if(!is.null(group)) TRUE else FALSE
+  show_legend <- if (!is.null(group)) TRUE else FALSE
 
   # Add rowID to data
   data$rowID <- seq_len(nrow(data))
@@ -82,21 +81,22 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   x$graphContainer$direction <- "column"
   x$style <- style
   x$title$style <- list(width = "100%")
-  x$legend <- list(group = group, show = show_legend, position = "bottom",
-                   width = width)
+  x$legend <- list(
+    group = group, show = show_legend, position = "bottom",
+    width = width
+  )
   x$legend$style <- list(width = "100%", backgroundColor = style$backgroundColor)
 
 
-  if(is.null(cluster)){
+  if (is.null(cluster)) {
     clusters <- "cluster"
   } else {
     clusters <- unique(as.character(data[[cluster]]))
   }
 
-  for(clust in clusters){
-
+  for (clust in clusters) {
     # Subset data for the current cluster
-    if(is.null(cluster)){
+    if (is.null(cluster)) {
       subset_data <- data
     } else {
       subset_data <- data[data[[cluster]] == clust, ]
@@ -122,19 +122,18 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$sequence <- list(show = TRUE)
     x$series[[clust]]$annotations <- list()
     x$series[[clust]]$trackMouse <- list(show = FALSE)
-    x$series[[clust]]$tooltip <- list(show = TRUE, formatter ="<b>Start:</b> {start} <br><b>end:</b> {end}")
+    x$series[[clust]]$tooltip <- list(show = TRUE, formatter = "<b>Start:</b> {start} <br><b>end:</b> {end}")
   }
 
   # create the widget
   htmlwidgets::createWidget(
-    name = 'GCVieweR',
+    name = "GCVieweR",
     x,
     width = width,
     height = height,
-    package = 'GCVieweR',
+    package = "GCVieweR",
     elementId = elementId
   )
-
 }
 
 #' Add Title to a GC_chart
@@ -340,9 +339,7 @@ GC_clusterTitle <- function(
     show = TRUE,
     height = NULL,
     cluster = NULL,
-    ...
-) {
-
+    ...) {
   if (!show) {
     return(GC_chart)
   }
@@ -353,28 +350,26 @@ GC_clusterTitle <- function(
   # Update the GC_chart object with title and options for each cluster
   clusters <- getUpdatedClusters(GC_chart, cluster)
 
-  for(i in seq_along(clusters)){
-
+  for (i in seq_along(clusters)) {
     # Default options
     options <- list(
-      title = title[(i-1) %% length(title) + 1],
-      subtitle = subtitle[(i-1) %% length(subtitle) + 1],
+      title = title[(i - 1) %% length(title) + 1],
+      subtitle = subtitle[(i - 1) %% length(subtitle) + 1],
       subtitleFont = subtitleFont,
       titleFont = titleFont,
       show = show
     )
 
     # Add arguments to options
-    for(name in names(dots)) {
-      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+    for (name in names(dots)) {
+      options[[name]] <- dots[[name]][(i - 1) %% length(dots[[name]]) + 1]
     }
 
     # Set height for each cluster
-    GC_chart$x$series[[clusters[i]]]$grid$margin$top <- height[(i-1) %% length(height) + 1]
+    GC_chart$x$series[[clusters[i]]]$grid$margin$top <- height[(i - 1) %% length(height) + 1]
 
     # Set title options for each cluster
     GC_chart$x$series[[clusters[i]]]$clusterTitle <- options
-
   }
   return(GC_chart)
 }
@@ -1985,20 +1980,18 @@ GC_align <- function(
     GC_chart,
     id_column,
     id,
-    align = "left"
-){
-
-  if(is.null(GC_chart$x$cluster)){
+    align = "left") {
+  if (is.null(GC_chart$x$cluster)) {
     warning("Could not align selected gene. Please define cluster in the GC_chart function.")
     return(GC_chart)
   }
 
-  if(!(id_column %in% colnames(GC_chart$x$data))){
+  if (!(id_column %in% colnames(GC_chart$x$data))) {
     warning(paste("Column", id_column, "not found in the data."))
     return(GC_chart)
   }
 
-  if(!(id %in% GC_chart$x$data[[id_column]])){
+  if (!(id %in% GC_chart$x$data[[id_column]])) {
     warning(paste("ID", id, "not found in the", id_column, "column."))
     return(GC_chart)
   }
@@ -2031,7 +2024,6 @@ GC_align <- function(
   }
 
   return(GC_chart)
-
 }
 
 #' Get Links from GC Chart
@@ -2058,7 +2050,6 @@ get_links <-
            value1 = NULL,
            value2 = NULL,
            cluster = NULL) {
-
     data <- GC_chart$x$data
     # Check if group column exists in the data
     if (!(group %in% names(data))) {
@@ -2103,7 +2094,6 @@ get_links <-
       cluster2 <- data[data$cluster == pair[2], ]
 
       if (is.null(value1) || is.null(value2)) {
-
         # Filter for common group IDs
         common_genes <- intersect(cluster1[[group]], cluster2[[group]])
         cluster1 <- cluster1[cluster1[[group]] %in% common_genes, ]
@@ -2118,16 +2108,22 @@ get_links <-
       } else {
         # Process each value pair
         if (!is.null(value1) &&
-            !is.null(value2) &&
-            length(value1) == length(value2)) {
+          !is.null(value2) &&
+          length(value1) == length(value2)) {
           for (i in seq_along(value1)) {
+            if (!(value1[i] %in% cluster1[[group]])) {
+              temp <- value1[i]
+              value1[i] <- value2[i]
+              value2[i] <- temp
+            }
+
             filtered_cluster1 <-
               cluster1[cluster1[[group]] == value1[i], ]
             filtered_cluster2 <-
               cluster2[cluster2[[group]] == value2[i], ]
 
             if (nrow(filtered_cluster1) == 0 ||
-                nrow(filtered_cluster2) == 0) {
+              nrow(filtered_cluster2) == 0) {
               next
             }
 
@@ -2147,13 +2143,13 @@ get_links <-
       }
     }
 
-  if (nrow(all_merged_links) == 0) {
-    stop("No links found with the specified parameters.")
-    return(NULL)
-  }
+    if (is.null(all_merged_links) || nrow(all_merged_links) == 0) {
+      stop("No links found with the specified parameters.")
+      return(NULL)
+    }
 
-  return(all_merged_links)
-}
+    return(all_merged_links)
+  }
 
 #' Add Links to GC Chart
 #'
@@ -2170,6 +2166,14 @@ get_links <-
 #' @param ... Additional arguments passed to the links.
 #' @return Modified `GC_chart` object with added links.
 #' # Add links between all groups in each cluster
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 170, 240, 250, 300, 340, 380, 420),
+#'   end = c(40, 120, 160, 200, 210, 270, 330, 370, 410, 450),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5',
+#'            'Gene 6', 'Gene 7', 'Gene 8', 'Gene 9', 'Gene 10'),
+#'   group = c('A', 'B', 'C', 'A', 'B', 'C', 'A', 'B', 'C', 'D'),
+#'   cluster = c(1, 1, 1, 2, 2, 2, 3, 3, 3, 3)
+#' )
 #' chart <- GC_chart(genes_data,
 #'                   cluster = "cluster",
 #'                   height = "200px") %>%
@@ -2187,6 +2191,10 @@ get_links <-
 #'                    value1 = c("A", "A"),
 #'                    value2 = c("B", "A"),
 #'                    cluster = c(1,2))
+#' chart %>% GC_links(links)
+#'
+#' # Add identity to links
+#' links$identity <- c(10, 20, 40, 60, 80, 100)
 #' chart %>% GC_links(links)
 #'
 #' # Style links
@@ -2219,8 +2227,7 @@ GC_links <- function(
     normal_color = "#969696",
     inverted_color = "#d62728",
     style = list(),
-    ...
-){
+    ...) {
 
   links_options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
     curve = curve,
@@ -2230,21 +2237,30 @@ GC_links <- function(
     ...
   ))
 
-  links <- list(
-    data = links,
-    options = links_options
-  )
-
   currentLinks <- GC_chart$x$links
 
-  if(is.null(currentLinks) || length(currentLinks) == 0){
+  if (is.null(currentLinks) || length(currentLinks) == 0) {
+
+    links$linkID <- paste0("0-", (1:nrow(links)))
+
+    links <- list(
+      data = links,
+      options = links_options
+    )
+
     GC_chart$x$links <- list(links)
   } else {
+    links$linkID <- paste0(length(currentLinks), "-", (1:nrow(links)))
+
+    links <- list(
+      data = links,
+      options = links_options
+    )
+
     GC_chart$x$links <- c(currentLinks, list(links))
   }
 
   return(GC_chart)
-
 }
 
 

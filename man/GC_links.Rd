@@ -33,6 +33,14 @@ the chart.}
 \value{
 Modified `GC_chart` object with added links.
 # Add links between all groups in each cluster
+genes_data <- data.frame(
+  start = c(10, 90, 130, 170, 240, 250, 300, 340, 380, 420),
+  end = c(40, 120, 160, 200, 210, 270, 330, 370, 410, 450),
+  name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5',
+           'Gene 6', 'Gene 7', 'Gene 8', 'Gene 9', 'Gene 10'),
+  group = c('A', 'B', 'C', 'A', 'B', 'C', 'A', 'B', 'C', 'D'),
+  cluster = c(1, 1, 1, 2, 2, 2, 3, 3, 3, 3)
+)
 chart <- GC_chart(genes_data,
                   cluster = "cluster",
                   height = "200px") %>%
@@ -50,6 +58,10 @@ links <- get_links(chart,
                    value1 = c("A", "A"),
                    value2 = c("B", "A"),
                    cluster = c(1,2))
+chart %>% GC_links(links)
+
+# Add identity to links
+links$identity <- c(10, 20, 40, 60, 80, 100)
 chart %>% GC_links(links)
 
 # Style links

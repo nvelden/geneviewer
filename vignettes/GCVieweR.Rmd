@@ -300,6 +300,41 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "150px") 
    GC_legend(TRUE)
 ```
 
+## Links
+
+The `get_links` and `GC_links()` functions can be used to add links between genes. In the below example, we initially create a chart object. Subsequently, we generate links among all clusters. This is achieved by specifying a grouping column which will generate links for all value pairs between the different clusters.
+
+```{r echo=TRUE, results='asis'}
+# Generate chart object
+chart <- GC_chart(
+  ophA_clusters, 
+  cluster = "cluster", 
+  group = "class", 
+  height = "250px") %>%
+  GC_legend(FALSE)
+
+# Generate links
+links <- get_links(chart, group = "class")
+
+# Add links to chart
+chart %>% GC_links(links)
+```
+
+Using the `value1` and `value2` variables in the `get_links` function you can generate links between specific genes
+
+```{r echo=TRUE, results='asis'}
+# Generate links
+links <- get_links(
+            chart, group = "name", 
+            value1 = c("ophB1", "ophC"), 
+            value2 = c("dbophB1", "dbophC")
+            )
+
+# Add links to chart
+chart %>% GC_links(links) %>% GC_labels("name")
+```
+
+
 ## Sequence
 
 The sequence line in the `GC_sequence()` function is initially presented as a solid black line, but can be customized with the `sequenceStyle` option. Additionally, the `markerStyle` option allows adjusting the style of the break markers.

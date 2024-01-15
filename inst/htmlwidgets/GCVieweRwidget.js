@@ -84,8 +84,17 @@ HTMLWidgets.widget({
         .attr("id", `GCvieweR-graph-container-${widgetId}`)
         .style("flex-direction", graphContainer["direction"])
         .classed("GCVieweR-container", true);
+
       // Add Clusters
       var clusters = Object.keys(series);
+      // Add Links
+      if(links && links.length > 0){
+      var graphLinks = links.reduce((acc, entry) => {
+         const convertedData = HTMLWidgets.dataframeToD3(entry.data);
+        acc = acc.concat(convertedData);
+        return acc;
+      }, []);
+      }
 
       clusters.forEach(function (clusterKey) {
 
@@ -112,6 +121,8 @@ HTMLWidgets.widget({
         clonedContainerOptions.height -= legendHeight ? (legendHeight / clusters.length) : 0;
         clonedContainerOptions.width = computeSize(clonedContainerOptions.width, el.clientWidth);
 
+        var clusterLinks = getClusterLinks(graphLinks, clusterKey);
+
         var cluster = createContainer(`#GCvieweR-graph-container-${widgetId}`, "svg-container", 'containerOptions',  clonedContainerOptions)
           .cluster(clusterOptions)
           .theme("preset")
@@ -122,12 +133,14 @@ HTMLWidgets.widget({
           .scale(scaleOptions)
           .sequence(sequenceOptions?.show ?? false, sequenceOptions)
           .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)
+          .links(clusterLinks, clusterKey)
           .coordinates(coordinateOptions?.show ?? false, coordinateOptions)
           .labels(labelOptions?.label, labelOptions?.show ?? false, labelOptions)
           .scaleBar(scaleBarOptions?.show ?? false, scaleBarOptions)
           .addAnnotations(annotationOptions)
           .trackMouse(trackMouse?.show ?? false)
           .tooltip(tooltipOptions?.show ?? false, tooltipOptions);
+
       });
 
       // Bottom Legend
@@ -158,7 +171,7 @@ HTMLWidgets.widget({
     }
     // Remove all existing links
     const graphContainer = d3.select(`#GCvieweR-graph-container-${widgetId}`);
-    graphContainer.selectAll(".GeneLink").remove();
+    //graphContainer.selectAll(".link-marker").remove();
 
     makeLinks(graphContainer, links);
 

@@ -71,6 +71,10 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   data$start <- data_tmp[[start]]
   data$end <- data_tmp[[end]]
 
+  # Convert cluster to character
+  if(!is.null(cluster)){
+  data[[cluster]] <- as.character(data[[cluster]])
+  }
   # Add strand if specified
   data <- add_strand(data, strand)
 
@@ -2165,6 +2169,7 @@ get_links <-
 #' @param inverted_color Color for inverted links.
 #' @param ... Additional arguments passed to the links.
 #' @return Modified `GC_chart` object with added links.
+#' @examples
 #' # Add links between all groups in each cluster
 #' genes_data <- data.frame(
 #'   start = c(10, 90, 130, 170, 240, 250, 300, 340, 380, 420),
@@ -2194,7 +2199,7 @@ get_links <-
 #' chart %>% GC_links(links)
 #'
 #' # Add identity to links
-#' links$identity <- c(10, 20, 40, 60, 80, 100)
+#' links$identity <- c(10, 100)
 #' chart %>% GC_links(links)
 #'
 #' # Style links

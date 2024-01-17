@@ -13,6 +13,10 @@
   cursor: pointer !important;
 }
 
+.GCVieweR-svg-content {
+  z-index: 2;
+}
+
 /* Common styles */
 .legend .legend-marker,
 .legend .legend-label

@@ -583,6 +583,163 @@ function addScalePadding(startValue, endValue, padding, to) {
   }
 }
 
+// Make links function
+
+function getLinkCoordinates(graphContainer, data) {
+
+    const links = data.map(item => {
+        // Construct the selectors from the data
+        const selector1 = `.link-marker[cluster='${item.cluster1}'][linkID='${item.linkID}'][position='${item.start1}']`;
+        const selector2 = `.link-marker[cluster='${item.cluster2}'][linkID='${item.linkID}'][position='${item.start2}']`;
+        const selector3 = `.link-marker[cluster='${item.cluster1}'][linkID='${item.linkID}'][position='${item.end1}']`;
+        const selector4 = `.link-marker[cluster='${item.cluster2}'][linkID='${item.linkID}'][position='${item.end2}']`;
+
+        // Get the elements within graphContainer using D3
+        const element1 = graphContainer.select(selector1).node();
+        const element2 = graphContainer.select(selector2).node();
+        const element3 = graphContainer.select(selector3).node();
+        const element4 = graphContainer.select(selector4).node();
+
+        // Check if elements exist
+        if (!element1 || !element2 || !element3 || !element4) {
+            console.error('Elements not found for selectors:', selector1, selector2, selector3, selector4);
+            return null;
+        }
+
+        // Get bounding rectangles
+        const rect1 = element1.getBoundingClientRect();
+        const rect2 = element2.getBoundingClientRect();
+        const rect3 = element3.getBoundingClientRect();
+        const rect4 = element4.getBoundingClientRect();
+
+        // Adjust the coordinates relative to the graphContainer's position
+        const containerRect = graphContainer.node().getBoundingClientRect();
+        const adjustRect = rect => ({
+            x: rect.left - containerRect.left,
+            y: rect.top - containerRect.top
+        });
+
+        // Determine the strand based on the x-coordinate positions
+        const strand1 = item.start1 <= item.end1 ? "forward" : "reverse";
+        const strand2 = item.start2 <= item.end2 ? "forward" : "reverse";
+
+        return [
+            { startPoint: adjustRect(rect1), endPoint: adjustRect(rect2), strand: strand1 },
+            { startPoint: adjustRect(rect3), endPoint: adjustRect(rect4), strand: strand2 }
+        ];
+    });
+
+    return links.filter(link => link !== null);
+};
+
+function makeLinks(graphContainer, links, clusters) {
+
+    if (!links || links.length === 0) {
+        return;
+    }
+    // Default options for title and subtitle
+    const defaultOptions = {
+      curve: true,
+      invertedColor: "red",
+      normalColor: "blue",
+      color: "lightgrey",
+      style: {
+        stroke: "none",
+        fillOpacity: 0.8
+      }
+    };
+
+
+  const graphRect = graphContainer.node().getBoundingClientRect();
+      // Create a container div for the SVG
+    const svgContainer = graphContainer.insert("div", ":first-child")
+        .style("position", "relative")
+        .style("width", "100%")
+        .style("height", "100%");
+
+
+  // Create an SVG element inside graphContainer
+  var lineSvg = svgContainer.insert("svg", ":first-child")
+      .attr("width", graphRect.width)
+      .attr("height", graphRect.height)
+      .classed("GeneLink", true)
+      .style("position", "absolute")
+      .style("z-index", 1)
+      .style("left", `${graphContainer.left}px`)
+      .style("top", `${graphContainer.top}px`);
+
+
+    links.forEach(function(link) {
+
+      const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options);
+      const { curve, invertedColor, normalColor, color, style } = combinedOptions;
+      const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
+      const coordinates = getLinkCoordinates(graphContainer, HTMLWidgets.dataframeToD3(link.data));
+
+      coordinates.forEach(function(coordinate, index) {
+
+                const baseColor = coordinate[0].strand == coordinate[1].strand ? d3.rgb(normalColor) : d3.rgb(invertedColor)
+                var colorScale = d3.scaleSequential(t => d3.interpolate("#FFFFFF", baseColor)(t))
+                    .domain([0, 100]);
+                const identity = link.data?.identity?.[index] ?? 100
+
+            lineSvg.append("path")
+                .attr("d", createLinkerPath(coordinate[0], coordinate[1], curve))
+                .style("fill", colorScale(identity))
+                .style("stroke", style.stroke)
+                .style("fill-opacity", style.fillOpacity)
+                .classed("GeneLink", true)
+                .each(function () {
+                    const currentElement = d3.select(this);
+                    setStyleFromOptions(currentElement, additionalOptionsStyle);
+                });
+        });
+    });
+}
+
+function createLinkerPath(link1, link2, curve = true) {
+  var path = d3.path();
+
+  if(curve){
+  var midY1 = (link1.startPoint.y + link1.endPoint.y) / 2;
+      path.moveTo(link1.startPoint.x, link1.startPoint.y);
+      path.bezierCurveTo(link1.startPoint.x, midY1, link1.endPoint.x, midY1, link1.endPoint.x, link1.endPoint.y);
+
+      // Line to second curve's end point
+      path.lineTo(link2.endPoint.x, link2.endPoint.y);
+
+      // Second Bezier curve in reverse
+      var midY2 = (link2.startPoint.y + link2.endPoint.y) / 2;
+      path.bezierCurveTo(link2.endPoint.x, midY2, link2.startPoint.x, midY2, link2.startPoint.x, link2.startPoint.y);
+
+
+  } else {
+        path.moveTo(link1.startPoint.x, link1.startPoint.y);
+        path.lineTo(link1.endPoint.x, link1.endPoint.y);
+        path.lineTo(link2.endPoint.x, link2.endPoint.y);
+        path.lineTo(link2.startPoint.x, link2.startPoint.y);
+  }
+  // Close the path
+  path.closePath();
+
+      return path.toString();
+};
+
+function getClusterLinks(data, cluster) {
+
+    if (!data || data.length === 0) {
+        return [];
+    }
+
+    const linksCluster1 = data.filter(item => item.cluster1 === cluster);
+    const linksCluster2 = data.filter(item => item.cluster2 === cluster);
+    const clusterLinks = linksCluster1.concat(linksCluster2);
+
+    return clusterLinks;
+}
+
+// Cluster functions
+
 container.prototype.cluster = function (options = {}) {
 
   // Default options for title and subtitle
@@ -1900,15 +2057,17 @@ container.prototype.genes = function (group, show = true, options = {}) {
     .attr("class", "gene")
     .attr("id", (d, i) => `${sanitizeId(d.cluster)}-gene-${i}`)
     .attr("rowID", (d, i) => `${d["rowID"]}`)
+    .attr("start", (d, i) => `${d["start"]}`)
+    .attr("end", (d, i) => `${d["end"]}`)
+    .attr("strand", (d, i) => `${d["strand"]}`)
+    .attr("cluster", (d, i) => `${d["cluster"]}`)
     .style("stroke-width", strokeWidth)
     .style("stroke", stroke)
     .style("cursor", cursor)
     .each(function (d, i) {
       const currentElement = d3.select(this);
-
       // Set additional options as attributes
       setStyleFromOptions(currentElement, additionalOptions);
-
       // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
     });
@@ -2101,6 +2260,66 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   }
 
   return this;
+};
+
+container.prototype.links = function (links, clusterKey) {
+
+    if (!links || links.length === 0) {
+        return this;
+    }
+
+    var group = this.svg.append("g")
+        .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+
+    const hasReverseStrand = this.data.some(item => item.strand === "reverse");
+    const clusterStrandSpacing = hasReverseStrand ? this.geneStrandSpacing * 1 : 0;
+
+    links.forEach(link => {
+        // Check if the link is relevant to cluster1
+        if (link.cluster1 === clusterKey) {
+            group.append("circle")
+                .attr("cx", this.xScale(link.start1))
+                .attr("cy", this.yScale(50) + clusterStrandSpacing)
+                .attr("position", link.start1)
+                .attr("r", 0)
+                .attr("cluster", clusterKey)
+                .attr("linkID", link.linkID)
+                .attr("class", "link-marker");
+
+            group.append("circle")
+                .attr("cx", this.xScale(link.end1))
+                .attr("cy", this.yScale(50) + clusterStrandSpacing)
+                .attr("position", link.end1)
+                .attr("class", "link-marker")
+                .attr("linkID", link.linkID)
+                .attr("cluster", clusterKey)
+                .attr("r", 0);
+        }
+
+        // Check if the link is relevant to cluster2
+        if (link.cluster2 === clusterKey) {
+
+            group.append("circle")
+                .attr("cx", this.xScale(link.start2))
+                .attr("cy", this.yScale(50) - clusterStrandSpacing)
+                .attr("position", link.start2)
+                .attr("class", "link-marker")
+                .attr("cluster", clusterKey)
+                .attr("linkID", link.linkID)
+                .attr("r", 0);
+
+            group.append("circle")
+                .attr("cx", this.xScale(link.end2))
+                .attr("cy", this.yScale(50) - clusterStrandSpacing)
+                .attr("position", link.end2)
+                .attr("class", "link-marker")
+                .attr("linkID", link.linkID)
+                .attr("cluster", clusterKey)
+                .attr("r", 0);
+        }
+    });
+
+    return this;
 };
 
 // Annotations

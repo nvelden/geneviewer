@@ -10,6 +10,9 @@
     <loc>/LICENSE.html</loc>
   </url>
   <url>
+    <loc>/articles/Examples copy.html</loc>
+  </url>
+  <url>
     <loc>/articles/Examples.html</loc>
   </url>
   <url>
@@ -76,6 +79,9 @@
     <loc>/reference/GC_legend.html</loc>
   </url>
   <url>
+    <loc>/reference/GC_links.html</loc>
+  </url>
+  <url>
     <loc>/reference/GC_scale.html</loc>
   </url>
   <url>
@@ -107,6 +113,9 @@
   </url>
   <url>
     <loc>/reference/getUpdatedClusters.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_links.html</loc>
   </url>
   <url>
     <loc>/reference/get_scale_breaks.html</loc>

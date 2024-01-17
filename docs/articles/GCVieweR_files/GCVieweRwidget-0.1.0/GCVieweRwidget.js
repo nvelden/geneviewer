@@ -7,6 +7,7 @@ HTMLWidgets.widget({
       graphContainer,
       style,
       data,
+      links,
       series,
       titleOptions,
       legendOptions;
@@ -14,6 +15,7 @@ HTMLWidgets.widget({
     var widgetId = el.id.split('-')[1];
 
     var draw = function (width, height) {
+
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
 
@@ -85,6 +87,14 @@ HTMLWidgets.widget({
 
       // Add Clusters
       var clusters = Object.keys(series);
+      // Add Links
+      if(links && links.length > 0){
+      var graphLinks = links.reduce((acc, entry) => {
+         const convertedData = HTMLWidgets.dataframeToD3(entry.data);
+        acc = acc.concat(convertedData);
+        return acc;
+      }, []);
+      }
 
       clusters.forEach(function (clusterKey) {
 
@@ -111,22 +121,26 @@ HTMLWidgets.widget({
         clonedContainerOptions.height -= legendHeight ? (legendHeight / clusters.length) : 0;
         clonedContainerOptions.width = computeSize(clonedContainerOptions.width, el.clientWidth);
 
+        var clusterLinks = getClusterLinks(graphLinks, clusterKey);
+
         var cluster = createContainer(`#GCvieweR-graph-container-${widgetId}`, "svg-container", 'containerOptions',  clonedContainerOptions)
           .cluster(clusterOptions)
           .theme("preset")
           .title(clusterTitleOptions?.title, clusterTitleOptions?.subtitle, clusterTitleOptions?.show ?? false, clusterTitleOptions)
           .footer(footerOptions?.title, footerOptions?.subtitle, footerOptions?.show ?? false, footerOptions)
           .clusterLabel(clusterLabelOptions?.title, clusterLabelOptions?.show ?? false, clusterLabelOptions)
-          .geneData(data, clusterData)  // Access data using the cluster key
+          .geneData(data, clusterData)
           .scale(scaleOptions)
           .sequence(sequenceOptions?.show ?? false, sequenceOptions)
           .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)
+          .links(clusterLinks, clusterKey)
           .coordinates(coordinateOptions?.show ?? false, coordinateOptions)
           .labels(labelOptions?.label, labelOptions?.show ?? false, labelOptions)
           .scaleBar(scaleBarOptions?.show ?? false, scaleBarOptions)
           .addAnnotations(annotationOptions)
           .trackMouse(trackMouse?.show ?? false)
           .tooltip(tooltipOptions?.show ?? false, tooltipOptions);
+
       });
 
       // Bottom Legend
@@ -150,18 +164,34 @@ HTMLWidgets.widget({
 
     };
 
+    var addLinks = function(width, height) {
+
+     if (!links || links.length === 0) {
+        return;
+    }
+    // Remove all existing links
+    const graphContainer = d3.select(`#GCvieweR-graph-container-${widgetId}`);
+    //graphContainer.selectAll(".link-marker").remove();
+
+    makeLinks(graphContainer, links);
+
+    };
+
     return {
       renderValue: function (input) {
         graphContainer = input.graphContainer;
         style = input.style;
         data = HTMLWidgets.dataframeToD3(input.data);
+        links = input.links;
         series = input.series;
         titleOptions = input.title;
         legendOptions = input.legend;
         draw(width, height);
+        addLinks(width, height);
       },
       resize: function (width, height) {
         draw(width, height);
+        addLinks(width, height);
       }
     };
   }

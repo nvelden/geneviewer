@@ -351,7 +351,7 @@ links$identity <- c(40, 90)
 chart %>% GC_links(links, inverted_color = "#969696", curve = FALSE) %>% GC_legend(TRUE)
 ```
 
-The links are connected based on the cluster1, cluster2 and start1, end1 and end2 values. Which allows you to specific your own boundaries that are not necessary at the start and end of genes.
+The links are connected based on the cluster1, cluster2, start1, start2, end1 and end2 values. Which allows you to specify your own boundaries that are not necessary at the start and end of genes.
 
 ```{r echo=TRUE, results='asis'}
 # Generate links

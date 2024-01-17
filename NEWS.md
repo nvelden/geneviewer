@@ -1,15 +1,15 @@
-# GCVieweR 0.1.3
+# geneviewer 0.1.3
 
 ### Enhancements:
 - Option to align a specified gene across clusters.
 
-# GCVieweR 0.1.2
+# geneviewer 0.1.2
 
 ### Enhancements:
 - Options to add text, line, arrow, rectangle, symbol, terminator and 
 promoter annotations to a GC_chart.
 
-# GCVieweR 0.1.1
+# geneviewer 0.1.1
 
 ### Enhancements:
 - Introduced customizable margin settings for charts, clusters, titles, and legends.
@@ -19,6 +19,6 @@ promoter annotations to a GC_chart.
 improvements.
 
 
-# GCVieweR 0.1.0
+# geneviewer 0.1.0
 
 * Initial Beta release.

@@ -1,10 +1,10 @@
-.GCVieweR-container {
+.geneviewer-container {
   display: flex;
   flex-direction: column; /* or row, depending on the desired layout */
   align-content: stretch;
 }
 
-.GCVieweR-svg-content {
+.geneviewer-svg-content {
   flex: 1 1 auto; /* This makes the SVGs grow and shrink as needed */
   min-height: 0; /* This may be needed for correct sizing in some browsers */
 }
@@ -13,7 +13,7 @@
   cursor: pointer !important;
 }
 
-.GCVieweR-svg-content {
+.geneviewer-svg-content {
   z-index: 2;
 }
 

@@ -131,11 +131,11 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 
   # create the widget
   htmlwidgets::createWidget(
-    name = "GCVieweR",
+    name = "geneviewer",
     x,
     width = width,
     height = height,
-    package = "GCVieweR",
+    package = "geneviewer",
     elementId = elementId
   )
 }

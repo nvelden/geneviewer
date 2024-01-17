@@ -10,13 +10,10 @@
     <loc>/LICENSE.html</loc>
   </url>
   <url>
-    <loc>/articles/Examples copy.html</loc>
-  </url>
-  <url>
     <loc>/articles/Examples.html</loc>
   </url>
   <url>
-    <loc>/articles/GCVieweR.html</loc>
+    <loc>/articles/geneviewer.html</loc>
   </url>
   <url>
     <loc>/articles/index.html</loc>
@@ -29,9 +26,6 @@
   </url>
   <url>
     <loc>/news/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/GCVieweR-shiny.html</loc>
   </url>
   <url>
     <loc>/reference/GC_align.html</loc>
@@ -61,16 +55,10 @@
     <loc>/reference/GC_coordinates.html</loc>
   </url>
   <url>
-    <loc>/reference/GC_footer.html</loc>
-  </url>
-  <url>
     <loc>/reference/GC_genes.html</loc>
   </url>
   <url>
     <loc>/reference/GC_grid.html</loc>
-  </url>
-  <url>
-    <loc>/reference/GC_item.html</loc>
   </url>
   <url>
     <loc>/reference/GC_labels.html</loc>
@@ -97,31 +85,16 @@
     <loc>/reference/GC_tooltip.html</loc>
   </url>
   <url>
-    <loc>/reference/GC_track.html</loc>
-  </url>
-  <url>
     <loc>/reference/GC_trackMouse.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cleanList.html</loc>
-  </url>
-  <url>
-    <loc>/reference/divide_dimension_value.html</loc>
   </url>
   <url>
     <loc>/reference/erythromycin_cluster.html</loc>
   </url>
   <url>
-    <loc>/reference/getUpdatedClusters.html</loc>
+    <loc>/reference/geneviewer-shiny.html</loc>
   </url>
   <url>
     <loc>/reference/get_links.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_scale_breaks.html</loc>
-  </url>
-  <url>
-    <loc>/reference/hello.html</loc>
   </url>
   <url>
     <loc>/reference/hs_dystrophin_transcripts.html</loc>
@@ -137,8 +110,5 @@
   </url>
   <url>
     <loc>/reference/reexports.html</loc>
-  </url>
-  <url>
-    <loc>/reference/select_column_or_return.html</loc>
   </url>
 </urlset>

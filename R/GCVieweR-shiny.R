@@ -1,6 +1,6 @@
-#' Shiny bindings for GCVieweR
+#' Shiny bindings for geneviewer
 #'
-#' Output and render functions for using GCVieweR within Shiny applications and
+#' Output and render functions for using geneviewer within Shiny applications and
 #' interactive Rmd documents.
 #'
 #' @param outputId Output variable to read from.
@@ -14,12 +14,12 @@
 #' @param quoted Is expr a quoted expression (with quote())? This is useful if
 #'   you want to save an expression in a variable.
 #' @return GC_chart widget that can be placed in the UI.
-#' @name GCVieweR-shiny
+#' @name geneviewer-shiny
 #'
 #' @examples
 #' if (interactive()) {
 #'   library(shiny)
-#'   library(GCVieweR)
+#'   library(geneviewer)
 #'
 #'   ui <- fluidPage(
 #'     titlePanel("Omphalotin Gene Cluster Visualization"),
@@ -49,10 +49,10 @@
 #' @importFrom htmlwidgets shinyWidgetOutput shinyRenderWidget
 #' @export
 GC_chartOutput <- function(outputId, width = '100%', height = '400px'){
-  htmlwidgets::shinyWidgetOutput(outputId, 'GCVieweR', width, height, package = 'GCVieweR')
+  htmlwidgets::shinyWidgetOutput(outputId, 'geneviewer', width, height, package = 'geneviewer')
 }
 
-#' @rdname GCVieweR-shiny
+#' @rdname geneviewer-shiny
 #' @export
 renderGC_chart <- function(expr, env = parent.frame(), quoted = FALSE) {
   if (!quoted) { expr <- substitute(expr) } # force quoted

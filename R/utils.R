@@ -48,13 +48,13 @@ select_column_or_return <- function(data, x) {
   stop("x must be a symbol representing a column, or a vector.")
 }
 
-#' Get clusters to update from GCVieweR Object
+#' Get clusters to update from geneviewer Object
 #'
-#' This function retrieves the clusters to be updated from a GCVieweR object
+#' This function retrieves the clusters to be updated from a geneviewer object
 #' based on the provided cluster argument. The function checks if the cluster
 #' argument is valid and returns the corresponding clusters.
 #'
-#' @param GCVieweR An object containing the series of clusters.
+#' @param geneviewer An object containing the series of clusters.
 #' @param cluster A numeric vector or character vector specifying the clusters
 #'   to be retrieved. If NULL (default), all clusters are returned.
 #'
@@ -62,10 +62,10 @@ select_column_or_return <- function(data, x) {
 #'
 #'
 #' @noRd
-getUpdatedClusters <- function(GCVieweR, cluster) {
+getUpdatedClusters <- function(geneviewer, cluster) {
 
   # Get the names of the clusters
-  clusters <- names(GCVieweR$x$series)
+  clusters <- names(geneviewer$x$series)
 
   # If cluster is NULL, update all clusters
   if (is.null(cluster)) {

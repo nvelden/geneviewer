@@ -1,6 +1,6 @@
 # Name of your package
 package:
-  name: GCVieweR
+  name: geneviewer
   title: Interactive Gene Cluster Visualization in R
   description: This package provides a streamlined tool for visualizing gene clusters in R.
 

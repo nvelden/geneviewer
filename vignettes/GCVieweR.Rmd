@@ -320,20 +320,54 @@ links <- get_links(chart, group = "class")
 chart %>% GC_links(links)
 ```
 
-Using the `value1` and `value2` variables in the `get_links` function you can generate links between specific genes
+Using the `value1` and `value2` variables in the `get_links` function you can generate links between specific genes. In case there are more than 2 clusters you can use the `cluster` variable which allows to specify the clusters to generate links for.  
 
 ```{r echo=TRUE, results='asis'}
 # Generate links
 links <- get_links(
             chart, group = "name", 
             value1 = c("ophB1", "ophC"), 
-            value2 = c("dbophB1", "dbophC")
+            value2 = c("dbophB1", "dbophC"),
+            cluster = c(1,2)
             )
 
 # Add links to chart
 chart %>% GC_links(links) %>% GC_labels("name")
 ```
 
+After generating the links one can add an extra column with identity values. 
+
+```{r echo=TRUE, results='asis'}
+# Generate links
+links <- get_links(
+            chart, group = "class", 
+            value1 = c("Methyltransferase", "Prolyloligopeptidase"), 
+            value2 = c("Methyltransferase", "Prolyloligopeptidase")
+            )
+set.seed(123)
+links$identity <- c(40, 90)
+
+# Add links to chart
+chart %>% GC_links(links, inverted_color = "#969696", curve = FALSE) %>% GC_legend(TRUE)
+```
+
+The links are connected based on the cluster1, cluster2 and start1, end1 and end2 values. Which allows you to specific your own boundaries that are not necessary at the start and end of genes.
+
+```{r echo=TRUE, results='asis'}
+# Generate links
+links <- data.frame(
+  start1 = c(30156, 36331),
+  end1 = c(32392, 37262),
+  cluster1 = c("dbophA", "dbophA"),
+  start2 = c(5286, 15046),
+  end2 = c(9536, 16016),
+  cluster2 = c("ophA", "ophA"),
+  identity = c(40, 90)
+)
+
+# Add links to chart
+chart %>% GC_links(links, inverted_color = "#969696", curve = FALSE) %>% GC_legend(TRUE)
+```
 
 ## Sequence
 

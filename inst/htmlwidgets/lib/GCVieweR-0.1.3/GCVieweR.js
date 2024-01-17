@@ -606,7 +606,7 @@ function getLinkCoordinates(graphContainer, data) {
             return null;
         }
 
-                // Get bounding rectangles
+        // Get bounding rectangles
         const rect1 = element1.getBoundingClientRect();
         const rect2 = element2.getBoundingClientRect();
         const rect3 = element3.getBoundingClientRect();
@@ -632,34 +632,6 @@ function getLinkCoordinates(graphContainer, data) {
     return links.filter(link => link !== null);
 };
 
-function createLinkerPath(link1, link2, curve = true) {
-  var path = d3.path();
-
-  if(curve){
-  var midY1 = (link1.startPoint.y + link1.endPoint.y) / 2;
-      path.moveTo(link1.startPoint.x, link1.startPoint.y);
-      path.bezierCurveTo(link1.startPoint.x, midY1, link1.endPoint.x, midY1, link1.endPoint.x, link1.endPoint.y);
-
-      // Line to second curve's end point
-      path.lineTo(link2.endPoint.x, link2.endPoint.y);
-
-      // Second Bezier curve in reverse
-      var midY2 = (link2.startPoint.y + link2.endPoint.y) / 2;
-      path.bezierCurveTo(link2.endPoint.x, midY2, link2.startPoint.x, midY2, link2.startPoint.x, link2.startPoint.y);
-
-
-  } else {
-        path.moveTo(link1.startPoint.x, link1.startPoint.y);
-        path.lineTo(link1.endPoint.x, link1.endPoint.y);
-        path.lineTo(link2.endPoint.x, link2.endPoint.y);
-        path.lineTo(link2.startPoint.x, link2.startPoint.y);
-  }
-  // Close the path
-  path.closePath();
-
-      return path.toString();
-};
-
 function makeLinks(graphContainer, links, clusters) {
 
     if (!links || links.length === 0) {
@@ -679,16 +651,23 @@ function makeLinks(graphContainer, links, clusters) {
 
 
   const graphRect = graphContainer.node().getBoundingClientRect();
+      // Create a container div for the SVG
+    const svgContainer = graphContainer.insert("div", ":first-child")
+        .style("position", "relative")
+        .style("width", "100%")
+        .style("height", "100%");
+
 
   // Create an SVG element inside graphContainer
-  var lineSvg = graphContainer.insert("svg", ":first-child")
+  var lineSvg = svgContainer.insert("svg", ":first-child")
       .attr("width", graphRect.width)
       .attr("height", graphRect.height)
       .classed("GeneLink", true)
       .style("position", "absolute")
       .style("z-index", -1)
-      .style("left", `${graphRect.left}px`)
-      .style("top", `${graphRect.top}px`);
+      .style("left", `${graphContainer.left}px`)
+      .style("top", `${graphContainer.top}px`);
+
 
     links.forEach(function(link) {
 
@@ -717,6 +696,34 @@ function makeLinks(graphContainer, links, clusters) {
         });
     });
 }
+
+function createLinkerPath(link1, link2, curve = true) {
+  var path = d3.path();
+
+  if(curve){
+  var midY1 = (link1.startPoint.y + link1.endPoint.y) / 2;
+      path.moveTo(link1.startPoint.x, link1.startPoint.y);
+      path.bezierCurveTo(link1.startPoint.x, midY1, link1.endPoint.x, midY1, link1.endPoint.x, link1.endPoint.y);
+
+      // Line to second curve's end point
+      path.lineTo(link2.endPoint.x, link2.endPoint.y);
+
+      // Second Bezier curve in reverse
+      var midY2 = (link2.startPoint.y + link2.endPoint.y) / 2;
+      path.bezierCurveTo(link2.endPoint.x, midY2, link2.startPoint.x, midY2, link2.startPoint.x, link2.startPoint.y);
+
+
+  } else {
+        path.moveTo(link1.startPoint.x, link1.startPoint.y);
+        path.lineTo(link1.endPoint.x, link1.endPoint.y);
+        path.lineTo(link2.endPoint.x, link2.endPoint.y);
+        path.lineTo(link2.startPoint.x, link2.startPoint.y);
+  }
+  // Close the path
+  path.closePath();
+
+      return path.toString();
+};
 
 function getClusterLinks(data, cluster) {
 

@@ -585,41 +585,47 @@ function addScalePadding(startValue, endValue, padding, to) {
 
 // Make links function
 
-function getLinkCoordinates(data) {
+function getLinkCoordinates(graphContainer, data) {
 
     const links = data.map(item => {
+        // Construct the selectors from the data
+        const selector1 = `.link-marker[cluster='${item.cluster1}'][linkID='${item.linkID}'][position='${item.start1}']`;
+        const selector2 = `.link-marker[cluster='${item.cluster2}'][linkID='${item.linkID}'][position='${item.start2}']`;
+        const selector3 = `.link-marker[cluster='${item.cluster1}'][linkID='${item.linkID}'][position='${item.end1}']`;
+        const selector4 = `.link-marker[cluster='${item.cluster2}'][linkID='${item.linkID}'][position='${item.end2}']`;
 
-      // Construct the selectors from the data
-      const selector1 = `.link-marker[cluster='${item.cluster1}'][linkID='${item.linkID}'][position='${item.start1}']`;
-      const selector2 = `.link-marker[cluster='${item.cluster2}'][linkID='${item.linkID}'][position='${item.start2}']`;
-      const selector3 = `.link-marker[cluster='${item.cluster1}'][linkID='${item.linkID}'][position='${item.end1}']`;
-      const selector4 = `.link-marker[cluster='${item.cluster2}'][linkID='${item.linkID}'][position='${item.end2}']`;
+        // Get the elements within graphContainer using D3
+        const element1 = graphContainer.select(selector1).node();
+        const element2 = graphContainer.select(selector2).node();
+        const element3 = graphContainer.select(selector3).node();
+        const element4 = graphContainer.select(selector4).node();
 
+        // Check if elements exist
+        if (!element1 || !element2 || !element3 || !element4) {
+            console.error('Elements not found for selectors:', selector1, selector2, selector3, selector4);
+            return null;
+        }
 
-      // Get the elements
-      const element1 = document.querySelector(selector1);
-      const element2 = document.querySelector(selector2);
-      const element3 = document.querySelector(selector3);
-      const element4 = document.querySelector(selector4);
-
-      // Check if elements exist
-      if (!element1 || !element2 || !element3 || !element4) {
-          console.error('Elements not found for selectors:', selector1, selector2, selector3, selector4);
-          return null;
-      }
-
+                // Get bounding rectangles
         const rect1 = element1.getBoundingClientRect();
         const rect2 = element2.getBoundingClientRect();
         const rect3 = element3.getBoundingClientRect();
         const rect4 = element4.getBoundingClientRect();
+
+        // Adjust the coordinates relative to the graphContainer's position
+        const containerRect = graphContainer.node().getBoundingClientRect();
+        const adjustRect = rect => ({
+            x: rect.left - containerRect.left,
+            y: rect.top - containerRect.top
+        });
 
         // Determine the strand based on the x-coordinate positions
         const strand1 = item.start1 <= item.end1 ? "forward" : "reverse";
         const strand2 = item.start2 <= item.end2 ? "forward" : "reverse";
 
         return [
-            { startPoint: { x: rect1.x, y: rect1.y }, endPoint: { x: rect2.x, y: rect2.y }, strand: strand1 },
-            { startPoint: { x: rect3.x, y: rect3.y }, endPoint: { x: rect4.x, y: rect4.y }, strand: strand2 }
+            { startPoint: adjustRect(rect1), endPoint: adjustRect(rect2), strand: strand1 },
+            { startPoint: adjustRect(rect3), endPoint: adjustRect(rect4), strand: strand2 }
         ];
     });
 
@@ -671,22 +677,25 @@ function makeLinks(graphContainer, links, clusters) {
       }
     };
 
-    var lineSvg = graphContainer.insert("svg", ":first-child")
-        .attr("width", window.innerWidth)
-        .attr("height", window.innerHeight)
-        .classed("GeneLink", true)
-        .style("z-index", -1)
-        .style("position", "absolute")
-        .style("top", 0)
-        .style("left", 0);
+
+  const graphRect = graphContainer.node().getBoundingClientRect();
+
+  // Create an SVG element inside graphContainer
+  var lineSvg = graphContainer.insert("svg", ":first-child")
+      .attr("width", graphRect.width)
+      .attr("height", graphRect.height)
+      .classed("GeneLink", true)
+      .style("position", "absolute")
+      .style("z-index", -1)
+      .style("left", `${graphRect.left}px`)
+      .style("top", `${graphRect.top}px`);
 
     links.forEach(function(link) {
 
       const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options);
       const { curve, invertedColor, normalColor, color, style } = combinedOptions;
-
       const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
-      const coordinates = getLinkCoordinates(HTMLWidgets.dataframeToD3(link.data));
+      const coordinates = getLinkCoordinates(graphContainer, HTMLWidgets.dataframeToD3(link.data));
 
       coordinates.forEach(function(coordinate, index) {
 

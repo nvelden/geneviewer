@@ -1,3 +1,9 @@
+# geneviewer 0.1.4
+
+### Enhancements:
+- Add option to add gene links.
+- Change package name from GCVieweR to geneviewer.
+
 # geneviewer 0.1.3
 
 ### Enhancements:

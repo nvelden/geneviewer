@@ -746,6 +746,11 @@ gbk_process_features <- function(lines, key){
 
   key_values["region"] <- region
 
+  # remove spaces from translation
+  if(!is.null(key_values["translation"])){
+    key_values["translation"] <- gsub("[^a-zA-Z]", "", key_values["translation"])
+  }
+
 
   return(key_values)
 }

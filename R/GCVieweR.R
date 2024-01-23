@@ -2496,3 +2496,32 @@ read_gbk <- function(file, sections = NULL, features = NULL, origin = TRUE) {
 
   return(section_values)
 }
+
+gbk_features_to_df <- function(list, feature = "CDS", keys = NULL, process_region = TRUE){
+
+  feature_list <- list[["FEATURES"]][[feature]]
+
+  df <- bind_rows(lapply(feature_list, function(x) {
+    # If keys are defined, subset x to include only the specified keys
+    if (!is.null(keys)) {
+      x <- x[keys]
+    }
+    # Convert named character vectors to a dataframe
+    data.frame(t(x), stringsAsFactors = FALSE)
+  }))
+
+  # Remove columns that are entirely NA
+  df <- df[, colSums(is.na(df)) < nrow(df)]
+
+  if(process_region && !is.null(df$region)){
+    df$strand <- ifelse(is.na(df$region), NA,
+                        ifelse(grepl("\\(", df$region),
+                               trimws(sub("\\(.*", "", df$region)),
+                               "forward"))
+
+    df$start <- as.numeric(sub("^.*?(\\d+)\\.\\..*$", "\\1", df$region))
+    df$end <- as.numeric(gsub("^.*\\.\\.([0-9]+)\\)?.*$", "\\1", df$region))
+  }
+
+  return(df)
+}

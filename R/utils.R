@@ -320,7 +320,7 @@ add_strand <- function(data, strand = NULL){
     if (!(strand %in% colnames_data)) stop("strand column not found in data")
 
     forward <- c(1, "forward", "+", "sense")
-    reverse <- c(-1, 0, "reverse", "-", "antisense")
+    reverse <- c(-1, 0, "reverse", "-", "antisense", "complement")
 
     if (!all(data[[strand]] %in% c(forward, reverse))) {
       stop("Invalid strand values found. Valid values are 1/forward or -1/0/reverse.")
@@ -648,4 +648,142 @@ adjust_range <- function(data, cluster, group, gene, align = "left", reversed_cl
     )
 
   return(data)
+}
+
+#' @noRd
+gbk_get_section_keys <- function(lines) {
+  pattern <- "^ {0,2}([A-Za-z]+)(?=\\s|$)"
+
+
+  matches <- regmatches(lines, gregexpr(pattern, lines, perl = TRUE))
+  keys <- sapply(matches, function(x) if(length(x) > 0) x[1] else NA)
+  keys <- unique(keys[!is.na(keys)])
+  keys <- trimws(keys)
+  return(keys)
+}
+#' @noRd
+gbk_get_sections <- function(lines, keys) {
+
+  # Find all section starts
+  all_section_starts <- which(grepl("^ {0,2}([^ ]+)(?=\\s|$)", lines, perl = TRUE))
+
+  # Initialize a list to store the content of each section
+  sections <- list()
+
+  # Calculate the end of each section and extract content
+  for (i in 1:length(keys)) {
+    # Find the start of the current section
+    section_starts <- which(grepl(paste0("^\\s{0,2}", keys[i]), lines, perl = TRUE))
+
+    # If the section is found, process it
+    if (length(section_starts) > 0) {
+      # Find the next section start after the current section start, or end of lines
+      next_starts <- all_section_starts[all_section_starts > section_starts[1]]
+      section_end <- if (length(next_starts) > 0) next_starts[1] - 1 else length(lines)
+
+      # Extract the lines of the current section
+      section_lines <- lines[section_starts[1]:section_end]
+
+      if(keys[i] == "FEATURES"){
+        section_text <- section_lines
+      } else {
+        # Combine lines into a single string
+        section_text <- paste(section_lines, collapse = "\n")
+        # Clean and process the section text
+        section_text <- gsub(paste0("^\\s{0,2}", keys[i], "\\s+"), "", section_text)
+        section_text <- gsub("\\s+", " ", section_text)
+        section_text <- trimws(section_text)
+      }
+
+      # Store the section text in the list
+      sections[[keys[i]]] <- section_text
+    }
+  }
+
+  if(!is.null(sections[["ORIGIN"]])){
+    sections[["ORIGIN"]] <- gsub("[^a-zA-Z]", "", sections[["ORIGIN"]])
+  }
+
+  # Return the list of sections
+  return(sections)
+}
+#' @noRd
+gbk_get_value_keys <- function(key, feature_string){
+
+  # Extract keys
+  key_pattern <- "(?<=/)([^/=]+)(?==)"
+  key_matches <- gregexpr(key_pattern, feature_string, perl=TRUE)
+  keys <- unlist(regmatches(feature_string, key_matches))
+
+  # Extract values
+  value_pattern <- "(?<=\\=)[^/]+(?=\\/|$)"
+  value_matches <- gregexpr(value_pattern, feature_string, perl=TRUE)
+  values <- unlist(regmatches(feature_string, value_matches))
+  values <- gsub("^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", "", values)
+
+  # Combine keys and values into a named vector
+  key_values <- setNames(values, keys)
+
+  # Extract region based on the key
+  # Fix the regex pattern and extraction process
+  region_pattern <- sprintf(".*?%s\\s+(.*?)\\s*\\/.*", key)
+  region <- sub(region_pattern, "\\1", feature_string)
+
+  # If the pattern isn't found, sub returns the original string, so check for that
+  if (region == feature_string) {
+    region <- NA
+  }
+
+  key_values["region"] <- region
+
+
+  return(key_values)
+}
+#' @noRd
+gbk_get_features <- function(lines, key) {
+
+  # Find the starts of the sections
+  section_starts <- which(grepl(paste0("^\\s*", key), lines))
+
+  # If the section is not found, return NULL
+  if (length(section_starts) == 0) {
+    return(NULL)
+  }
+
+  # Find all potential section start lines
+  all_section_starts <- which(grepl("^ {5}[a-zA-Z]", lines))
+
+  # Initialize a list to store the content of each section
+  sections_content <- vector("list", length(section_starts))
+
+  # Calculate the end of each section
+  for (i in 1:length(section_starts)) {
+    # Find the next section start after the current section start
+    next_starts <- all_section_starts[all_section_starts > section_starts[i]]
+    if (length(next_starts) > 0) {
+      section_end <- next_starts[1] - 1
+    } else {
+      section_end <- length(lines)
+    }
+
+    # Extract the lines of the current section
+    section_lines <- lines[section_starts[i]:section_end]
+
+    # Combine lines into a single string
+    section_text <- paste(section_lines, collapse = "\n")
+
+    # Store the section text in the list
+    sections_content[[i]] <- section_text
+  }
+
+  # Process the extracted sections
+  sections_content <- lapply(sections_content, function(section) {
+
+    section <- gsub("\\s+", " ", section)
+    section <- trimws(section)
+    section <- get_value_keys(key, section)
+  })
+
+  # Return the list of sections
+  return(sections_content)
 }

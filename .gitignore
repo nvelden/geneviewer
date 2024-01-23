@@ -5,6 +5,8 @@
 .Rprofile
 .DS_store
 renv/
+fasta_files/
+genbank_files/
 renv.lock
 inst/doc
 geneviewer.Rproj

@@ -32,7 +32,7 @@ aesthetics.}
 
 \item{strand}{Optional column name indicating strand orientation.
 Acceptable values include 1, 'forward', 'sense', or '+' to represent the
-forward strand, and -1, 0, 'reverse', 'antisense', or '-' to represent
+forward strand, and -1, 0, 'reverse', 'antisense', "complement" or '-' to represent
 the reverse strand. Default is NULL, meaning strand information is not used.}
 
 \item{width}{Width specification for the chart, such as '100\%' or 500.

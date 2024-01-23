@@ -661,6 +661,15 @@ gbk_get_section_keys <- function(lines) {
   keys <- trimws(keys)
   return(keys)
 }
+
+#' @noRd
+gbk_get_feature_keys <- function(lines){
+  pattern <- "^ {5}[a-zA-Z]\\w*"
+  matched_lines <- grep(pattern, lines, value = TRUE)
+  keys <- sub("^ {5}(\\S+).*", "\\1", matched_lines)
+  return(unique(keys))
+}
+
 #' @noRd
 gbk_get_sections <- function(lines, keys) {
 
@@ -707,18 +716,19 @@ gbk_get_sections <- function(lines, keys) {
   # Return the list of sections
   return(sections)
 }
+
 #' @noRd
-gbk_get_value_keys <- function(key, feature_string){
+gbk_process_features <- function(lines, key){
 
   # Extract keys
   key_pattern <- "(?<=/)([^/=]+)(?==)"
-  key_matches <- gregexpr(key_pattern, feature_string, perl=TRUE)
-  keys <- unlist(regmatches(feature_string, key_matches))
+  key_matches <- gregexpr(key_pattern, lines, perl=TRUE)
+  keys <- unlist(regmatches(lines, key_matches))
 
   # Extract values
   value_pattern <- "(?<=\\=)[^/]+(?=\\/|$)"
-  value_matches <- gregexpr(value_pattern, feature_string, perl=TRUE)
-  values <- unlist(regmatches(feature_string, value_matches))
+  value_matches <- gregexpr(value_pattern, lines, perl=TRUE)
+  values <- unlist(regmatches(lines, value_matches))
   values <- gsub("^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", "", values)
 
   # Combine keys and values into a named vector
@@ -727,10 +737,10 @@ gbk_get_value_keys <- function(key, feature_string){
   # Extract region based on the key
   # Fix the regex pattern and extraction process
   region_pattern <- sprintf(".*?%s\\s+(.*?)\\s*\\/.*", key)
-  region <- sub(region_pattern, "\\1", feature_string)
+  region <- sub(region_pattern, "\\1", lines)
 
   # If the pattern isn't found, sub returns the original string, so check for that
-  if (region == feature_string) {
+  if (region == lines) {
     region <- NA
   }
 
@@ -739,6 +749,7 @@ gbk_get_value_keys <- function(key, feature_string){
 
   return(key_values)
 }
+
 #' @noRd
 gbk_get_features <- function(lines, key) {
 
@@ -781,7 +792,7 @@ gbk_get_features <- function(lines, key) {
 
     section <- gsub("\\s+", " ", section)
     section <- trimws(section)
-    section <- get_value_keys(key, section)
+    section <- gbk_process_features(section, key)
   })
 
   # Return the list of sections

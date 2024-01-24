@@ -13,6 +13,9 @@
     <loc>/articles/Examples.html</loc>
   </url>
   <url>
+    <loc>/articles/GenBank.html</loc>
+  </url>
+  <url>
     <loc>/articles/geneviewer.html</loc>
   </url>
   <url>
@@ -91,6 +94,9 @@
     <loc>/reference/erythromycin_cluster.html</loc>
   </url>
   <url>
+    <loc>/reference/gbk_features_to_df.html</loc>
+  </url>
+  <url>
     <loc>/reference/geneviewer-shiny.html</loc>
   </url>
   <url>
@@ -107,6 +113,12 @@
   </url>
   <url>
     <loc>/reference/ophA_clusters.html</loc>
+  </url>
+  <url>
+    <loc>/reference/read_fasta.html</loc>
+  </url>
+  <url>
+    <loc>/reference/read_gbk.html</loc>
   </url>
   <url>
     <loc>/reference/reexports.html</loc>

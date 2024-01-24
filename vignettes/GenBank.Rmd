@@ -16,9 +16,13 @@ knitr::opts_chunk$set(
 )
 ```
 
-This tutorial demonstrates creating gene cluster visualizations from GeneBank files using `geneviewer`. You can obtain GeneBank files containing genomic data from a variety of platforms such as [NCBI](https://www.ncbi.nlm.nih.gov/genbank/), [Ensembl](https://www.ensembl.org/), [UCSC](https://genome.ucsc.edu/), [antiSMASH](https://antismash.secondarymetabolites.org/#!/start) and [MIBiG](https://mibig.secondarymetabolites.org/). While `geneviewer` is designed to handle GeneBank files from these sources (please report any compatibility issues on [Github](https://github.com/nvelden/geneviewer/issues), this tutorial specifically aims to replicate a gene cluster visualization found on the [MIBiG](https://mibig.secondarymetabolites.org/) website. 
+### Intro
 
-The GenBank files from [MIBiG](https://mibig.secondarymetabolites.org/) include additional details, enabling us to categorize and color-code different genes, which we will use to reproduce the visualizations they show on the website. Begin by downloading the GeneBank file from the [MIBiG](https://mibig.secondarymetabolites.org/) website for gene cluster [BGC0000001](https://mibig.secondarymetabolites.org/repository/BGC0000001/index.html#r1c1). Simply click the "Download GenBank file" link and save the file.
+This tutorial demonstrates creating gene cluster visualizations from GeneBank files using `geneviewer`. You can obtain GeneBank files containing genomic data from a variety of platforms such as [NCBI](https://www.ncbi.nlm.nih.gov/genbank/), [Ensembl](https://www.ensembl.org/), [UCSC](https://genome.ucsc.edu/), [antiSMASH](https://antismash.secondarymetabolites.org/#!/start) and [MIBiG](https://mibig.secondarymetabolites.org/). While `geneviewer` is designed to handle GeneBank files from these sources (please report any compatibility issues on [Github](https://github.com/nvelden/geneviewer/issues)), this tutorial specifically aims to replicate a gene cluster visualization found on the [MIBiG](https://mibig.secondarymetabolites.org/) website. 
+
+### Loading GenBank file
+
+The GenBank files from [MIBiG](https://mibig.secondarymetabolites.org/) include additional details, enabling us to color-code genes by function, which we will use to reproduce the visualizations they show on the website. Begin by downloading the GeneBank file from the [MIBiG](https://mibig.secondarymetabolites.org/) website for gene cluster [BGC0000001](https://mibig.secondarymetabolites.org/repository/BGC0000001/index.html#r1c1). Simply click the "Download GenBank file" link and save the file.
 
 We can load the file into R using the `read_gbk` function from `geneviewer`. This will create a list containing all the sections and features found in the GenBank file. 
 
@@ -37,8 +41,7 @@ file_path <- "~/Documents/2023 github/geneviewer/genbank_files/BGC0000001.gbk"
 gbk <- read_gbk(file_path)
 ```
 
-
-We can inspect the .gbk using the View pane in Rstudio (use `View(gbk)`) or by simply opening the .gbk file in a text editor. For the visualization we are interested in the start and end position of each gene as well as their identifiers and function. We can find these under FEATURES > CDS. Lets print the first CDS to see what information it contains.   
+We can inspect the .gbk using the View pane in Rstudio (use `View(gbk)`) or by simply opening the .gbk file in a text editor. For the visualization we are interested in the start and end position of each gene as well as their identifiers and functions. We can find these under FEATURES > CDS. Lets print the first CDS to see what information it contains.   
 
 ```{r echo=TRUE, results='hide'}
 CDS_1 <- gbk[["BGC0000001"]][["FEATURES"]][["CDS"]][[1]] 
@@ -69,6 +72,8 @@ cds_df <- gbk_features_to_df(
 cds_df$region <- NULL
 kable(head(cds_df))
 ```
+
+### Cluster Visualization
 
 We can see that there are some NA values in the gene_kind column so we will replace those with "other". After we have done that we are ready to make the cluster visualization.
 
@@ -124,3 +129,5 @@ chart %>%
     "
   )
 ```
+
+See the example section to see how to further customize cluster charts.

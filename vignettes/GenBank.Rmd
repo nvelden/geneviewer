@@ -9,7 +9,7 @@ vignette: >
 
 ```{r, include = FALSE}
 library(knitr)
-library(genviewer)
+library(geneviewer)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"

@@ -77,7 +77,7 @@ kable(head(cds_df))
 
 We can see that there are some NA values in the gene_kind column so we will replace those with "other". After we have done that we are ready to make the cluster visualization.
 
-```{r echo = TRUE, results='asis'}
+```{r echo = FALSE, results='asis'}
 # replace NA with "other" for gene_kind
 cds_df$gene_kind[is.na(cds_df$gene_kind)] <- "other"
 
@@ -95,7 +95,7 @@ chart
 
 To make the chart more similar to the one we find on the [MIBiG](https://mibig.secondarymetabolites.org/) website we can add a title, alter the coloring and appearance of the genes and add a scale. In addition, we alter the tooltip to display the gene, product and region on hoover. 
 
-```{r echo = TRUE, results='asis'}
+```{r echo = FALSE, results='asis'}
 colors <- list(
   "biosynthetic" = "#810E15", 
   "biosynthetic-additional" = "#F16D75", 

@@ -1,29 +1,38 @@
 #' Read Data from GeneBank Files
 #'
-#' This function reads data from GeneBank files. It allows selective extraction
-#' of information by specifying sections and features.
+#' This function reads data from a single GeneBank file or directorty with
+#' GenBank files. It allows selective extraction of information by specifying
+#' sections and features.
 #'
 #' @param path A string representing the file path to the target GeneBank (.gbk)
-#'        file or directory.
-#' @param sections An optional vector of strings representing the names of specific sections
-#'        within the GeneBank file to extract (e.g., "LOCUS", "DEFINITION", "ACCESSION", "VERSION").
-#'        If `NULL` (the default), the function extracts all available sections.
-#' @param features An optional vector of strings indicating specific feature types
-#'        to extract from the FEATURES section of the GeneBank file (e.g., "CDS", "gene", "mRNA").
-#'        If `NULL` (the default), the function extracts all feature types
-#'        present in the FEATURES section.
+#'   file or directory.
+#' @param sections An optional vector of strings representing the names of
+#'   specific sections within the GeneBank file to extract (e.g., "LOCUS",
+#'   "DEFINITION", "ACCESSION", "VERSION"). If `NULL` (the default), the
+#'   function extracts all available sections.
+#' @param features An optional vector of strings indicating specific feature
+#'   types to extract from the FEATURES section of the GeneBank file (e.g.,
+#'   "CDS", "gene", "mRNA"). If `NULL` (the default), the function extracts all
+#'   feature types present in the FEATURES section.
 #' @param origin A boolean flag; when set to `TRUE` (the default), the origin
-#'        sequence data is included in the output.
-#' @return A list containing the contents of the specified sections and features of the GeneBank file.
-#'         Each section and feature is returned as a separate list element.
+#'   sequence data is included in the output.
+#' @return A list containing the contents of the specified sections and features
+#'   of the GeneBank file. Each section and feature is returned as a separate
+#'   list element.
 #'
 #' @examples
 #' \dontrun{
 #' # Read all data from a GeneBank file
 #' gbk_data <- read_gbk("path/to/genebank_file.gbk")
 #'
+#' # Read all data from a directory of GeneBank files
+#' gbk_data <- read_gbk("path/to/genebank/directory")
+#'
 #' # Read only specific sections from a GeneBank file
-#' gbk_data <- read_gbk("path/to/genebank_file.gbk", sections = c("LOCUS", "DEFINITION"))
+#' gbk_data <- read_gbk(
+#'   "path/to/genebank_file.gbk",
+#'   sections = c("LOCUS", "DEFINITION")
+#' )
 #'
 #' # Read specific features from the FEATURES section of a GeneBank file
 #' gbk_data <- read_gbk("path/to/genebank_file.gbk", features = c("gene", "CDS"))
@@ -66,19 +75,20 @@ read_gbk <- function(path, sections = NULL, features = NULL, origin = TRUE) {
 #' and converts selected features into a data frame. It supports processing
 #' multiple gene clusters.
 #'
-#' @param gbk_list A list of lists where each sub-list contains GeneBank features
-#'        for a specific gene cluster. Each sub-list is expected to have a named list
-#'        of features, with each feature being a character vector.
-#' @param feature A string specifying the feature type to extract from each gene cluster's
-#'        FEATURE list (e.g., "CDS" or "gene"). Defaults to "CDS".
-#' @param keys An optional vector of strings representing specific keys within the
-#'        feature to retain in the final data frame. If `NULL` (the default), all keys
-#'        within the specified feature are included.
-#' @param process_region A boolean flag; when set to `TRUE` (the default), special processing
-#'        is performed on the 'region' key (if present) to extract 'strand', 'start',
-#'        and 'end' information.
-#' @return A data frame where each row corresponds to a feature from the input list.
-#'         The data frame includes a 'cluster' column indicating the source gbk file.
+#' @param gbk_list A list of lists where each sub-list contains GeneBank
+#'   features for a specific gene cluster. Each sub-list is expected to have a
+#'   named list of features, with each feature being a character vector.
+#' @param feature A string specifying the feature type to extract from each gene
+#'   cluster's FEATURE list (e.g., "CDS" or "gene"). Defaults to "CDS".
+#' @param keys An optional vector of strings representing specific keys within
+#'   the feature to retain in the final data frame. If `NULL` (the default), all
+#'   keys within the specified feature are included.
+#' @param process_region A boolean flag; when set to `TRUE` (the default),
+#'   special processing is performed on the 'region' key (if present) to extract
+#'   'strand', 'start', and 'end' information.
+#' @return A data frame where each row corresponds to a feature from the input
+#'   list. The data frame includes a 'cluster' column indicating the source gbk
+#'   file.
 #'
 #' @examples
 #' \dontrun{

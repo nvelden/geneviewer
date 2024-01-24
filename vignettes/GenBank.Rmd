@@ -1,0 +1,126 @@
+---
+title: "Loading Gene Clusters From Genbank Files"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Loading Gene Clusters From Genbank Files}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+library(geneviewer)
+library(knitr)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This tutorial demonstrates creating gene cluster visualizations from GeneBank files using `geneviewer`. You can obtain GeneBank files containing genomic data from a variety of platforms such as [NCBI](https://www.ncbi.nlm.nih.gov/genbank/), [Ensembl](https://www.ensembl.org/), [UCSC](https://genome.ucsc.edu/), [antiSMASH](https://antismash.secondarymetabolites.org/#!/start) and [MIBiG](https://mibig.secondarymetabolites.org/). While `geneviewer` is designed to handle GeneBank files from these sources (please report any compatibility issues on [Github](https://github.com/nvelden/geneviewer/issues), this tutorial specifically aims to replicate a gene cluster visualization found on the [MIBiG](https://mibig.secondarymetabolites.org/) website. 
+
+The GenBank files from [MIBiG](https://mibig.secondarymetabolites.org/) include additional details, enabling us to categorize and color-code different genes, which we will use to reproduce the visualizations they show on the website. Begin by downloading the GeneBank file from the [MIBiG](https://mibig.secondarymetabolites.org/) website for gene cluster [BGC0000001](https://mibig.secondarymetabolites.org/repository/BGC0000001/index.html#r1c1). Simply click the "Download GenBank file" link and save the file.
+
+We can load the file into R using the `read_gbk` function from `geneviewer`. This will create a list containing all the sections and features found in the GenBank file. 
+
+```{r eval=FALSE, results='hide'}
+library(geneviewer)
+# change the path to where you have saved the file
+file_path <- "~/path/to/file/BGC0000001.gbk"
+gbk <- read_gbk(file_path)
+View(gbk) # Inspect the list in Rstudio
+```
+
+```{r echo = FALSE, results='asis'}
+library(geneviewer)
+# change the path to where you have saved the file
+file_path <- "~/Documents/2023 github/geneviewer/genbank_files/BGC0000001.gbk"
+gbk <- read_gbk(file_path)
+```
+
+
+We can inspect the .gbk using the View pane in Rstudio (use `View(gbk)`) or by simply opening the .gbk file in a text editor. For the visualization we are interested in the start and end position of each gene as well as their identifiers and function. We can find these under FEATURES > CDS. Lets print the first CDS to see what information it contains.   
+
+```{r echo=TRUE, results='hide'}
+CDS_1 <- gbk[["BGC0000001"]][["FEATURES"]][["CDS"]][[1]] 
+df <- data.frame(values = CDS_1)
+df
+```
+
+```{r echo = FALSE, results='asis'}
+CDS_1 <- gbk[["BGC0000001"]][["FEATURES"]][["CDS"]][[1]] 
+df <- data.frame(values = CDS_1)
+df["translation", "values"] <- substr(df["translation", "values"], 1, 40)
+rownames(df) <- names(CDS_1)
+kable(df)
+```
+
+We can bind the information of each CDS into a data.frame using the `gbk_features_to_df` function. In the below code we define the feature and the keys we are interested in and bind it into a data.frame. We set process_region to `TRUE` which will extract the strand, start and end from the region key.
+
+```{r echo=TRUE, results='hide'}
+cds_df <- gbk_features_to_df(
+  gbk, 
+  feature = "CDS",
+  keys = c("region", "gene", "protein_id", "gene_kind", "product"), 
+  process_region = TRUE
+  )
+```
+
+```{r echo = FALSE, results='asis'}
+cds_df$region <- NULL
+kable(head(cds_df))
+```
+
+We can see that there are some NA values in the gene_kind column so we will replace those with "other". After we have done that we are ready to make the cluster visualization.
+
+```{r echo = TRUE, results='asis'}
+# replace NA with "other" for gene_kind
+cds_df$gene_kind[is.na(cds_df$gene_kind)] <- "other"
+
+# Make the cluster chart
+chart <- GC_chart(
+  cds_df,
+  start = "start",
+  end = "end",
+  group = "gene_kind",
+  strand = "strand",
+  height = "130px"
+)
+chart
+```
+
+To make the chart more similar to the one we find on the [MIBiG](https://mibig.secondarymetabolites.org/) website we can add a title, alter the coloring and appearance of the genes and add a scale. In addition, we alter the tooltip to display the gene, product and region on hoover. 
+
+```{r echo = TRUE, results='asis'}
+colors <- list(
+  "biosynthetic" = "#810E15", 
+  "biosynthetic-additional" = "#F16D75", 
+  "transport" = "#6495ED",
+  "regulatory" = "#2E8B57", 
+  "other" = "#808080"
+)
+
+chart %>%
+  GC_genes(
+    arrowheadWidth = 10,
+    arrowheadHeight = 15,
+    arrowHeight = 15
+  ) %>%
+  GC_title(
+    "BGC0000001: abyssomicin C biosynthetic gene cluster
+    from <i>Verrucosispora maris</i> AB-18-032",
+    align = "left",
+    titleFont = list(
+      fontSize = "12px"
+    )
+    ) %>%
+  GC_scale() %>%
+  GC_color(customColors = colors) %>%
+  GC_legend(order = names(colors)) %>%
+  GC_tooltip(
+    formatter = "
+    <b>Gene:</b> {gene}<br>
+    <b>Product:</b> {product}<br>
+    <b>Region:</b>{start} - {end}
+    "
+  )
+```

@@ -145,8 +145,8 @@ gbk_features_to_df <- function(gbk_list, feature = "CDS", keys = NULL, process_r
                                  trimws(sub("\\(.*", "", df$region)),
                                  "forward"))
 
-      df$start <- as.numeric(sub("^.*?(\\d+)\\.\\..*$", "\\1", df$region))
-      df$end <- as.numeric(gsub("^.*\\.\\.([0-9]+)\\)?.*$", "\\1", df$region))
+      df$start <- as.numeric(sub("[^0-9]*(\\d+)\\.\\..*$", "\\1", df$region))
+      df$end <- as.numeric(gsub(".*\\.\\.[^0-9]*([0-9]+).*", "\\1", df$region))
     }
 
     # Append the df to df_list

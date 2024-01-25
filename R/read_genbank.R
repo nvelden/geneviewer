@@ -101,6 +101,7 @@ read_gbk <- function(path, sections = NULL, features = NULL, origin = TRUE) {
 #' # To disable special processing of the 'region' key
 #' df <- gbk_features_to_df(gbk, process_region = FALSE)
 #' }
+#' @importFrom dplyr bind_rows
 #' @export
 gbk_features_to_df <- function(gbk_list, feature = "CDS", keys = NULL, process_region = TRUE) {
 
@@ -118,7 +119,7 @@ gbk_features_to_df <- function(gbk_list, feature = "CDS", keys = NULL, process_r
 
     feature_list <- list_item[["FEATURES"]][[feature]]
 
-    df <- bind_rows(lapply(feature_list, function(x) {
+    df <- dplyr::bind_rows(lapply(feature_list, function(x) {
       # If keys are defined, subset x to include only the specified keys
       if (!is.null(keys)) {
         x <- x[keys]
@@ -154,7 +155,7 @@ gbk_features_to_df <- function(gbk_list, feature = "CDS", keys = NULL, process_r
   }
 
   # Combine all dataframes into one
-  combined_df <- bind_rows(df_list)
+  combined_df <- dplyr::bind_rows(df_list)
   return(combined_df)
 }
 
@@ -169,7 +170,6 @@ gbk_get_feature_keys <- function(lines){
 #' @noRd
 gbk_get_section_keys <- function(lines) {
   pattern <- "^ {0,2}([A-Za-z]+)(?=\\s|$)"
-
 
   matches <- regmatches(lines, gregexpr(pattern, lines, perl = TRUE))
   keys <- sapply(matches, function(x) if(length(x) > 0) x[1] else NA)

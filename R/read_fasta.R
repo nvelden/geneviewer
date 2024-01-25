@@ -1,19 +1,30 @@
-#' Read Protein Sequences from FASTA Files
+#'Read Protein Sequences from FASTA Files
 #'
-#' This function reads protein sequences from the specified FASTA file or all
-#' FASTA files within a directory, extracts relevant information from the headers,
-#' and returns a consolidated data frame of sequences and their metadata.
-#' The Biostrings function is required to run this function.
+#'This function reads protein sequences from the specified FASTA file or all
+#'FASTA files within a directory. It specifically looks for metadata in the
+#'FASTA headers enclosed in square brackets `[]`, with key-value pairs separated
+#'by an equals sign `=`. For example, from the header '>protein1 [gene=scnD]
+#'[protein=ScnD]', it extracts 'gene' as the key and 'scnD' as its value, and
+#'similarly for other key-value pairs.
 #'
-#' @param fasta_path Path to the FASTA file or directory containing FASTA files.
-#' @param sequence Logical; if `TRUE`, the protein sequences are included in the returned data frame.
-#' @param file_extension Extension of the FASTA files to be read from the directory (default is 'fasta').
-#' @return A data frame with columns for each piece of information extracted from the FASTA headers.
+#'The Biostrings package is required to run this function.
 #'
-#' @importFrom dplyr bind_rows select
-#' @importFrom tidyr pivot_wider
-#' @importFrom tools file_path_sans_ext
-#' @importFrom rlang .data
+#'
+#'@param fasta_path Path to the FASTA file or directory containing FASTA files.
+#'@param keys An optional vector of strings representing specific keys within
+#'  the fasta header to retain in the final data frame. If `NULL` (the default),
+#'  all keys within the specified feature are included.
+#'@param sequence Logical; if `TRUE`, the protein sequences are included in the
+#'  returned data frame.
+#'@param file_extension Extension of the FASTA files to be read from the
+#'  directory (default is 'fasta').
+#'@return A data frame with columns for each piece of information extracted from
+#'  the FASTA headers.
+#'
+#'@importFrom dplyr bind_rows select any_of
+#'@importFrom tidyr pivot_wider
+#'@importFrom tools file_path_sans_ext
+#'@importFrom rlang .data
 #' @examples
 #' \dontrun{
 #' # Read sequences from a single FASTA file
@@ -25,8 +36,8 @@
 #' # Read sequences and include the protein sequences in the output
 #' sequences_df <- read_fasta("path/to/directory/", sequence = TRUE)
 #'}
-#' @export
-read_fasta <- function(fasta_path, sequence = TRUE, file_extension = "fasta") {
+#'@export
+read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension = "fasta") {
 
   # Check if Biostrings package is installed
   if (!requireNamespace("Biostrings", quietly = TRUE)) {
@@ -71,6 +82,20 @@ read_fasta <- function(fasta_path, sequence = TRUE, file_extension = "fasta") {
       # Find matches
       matches <- gregexpr("\\[.*?\\]", fasta_headers, perl = TRUE)
 
+      no_matches <- which(sapply(matches, function(x) any(x == -1)))
+
+      if (nrow(sequence_data) == length(no_matches)) {
+        warning(sprintf("No keys found in '%s'. Make sure the fasta headers are in the right format. Skipping file.", cluster_name))
+        next
+      }
+
+      if(length(no_matches) > 0){
+        warning(sprintf("No keys found in '%s' for seq(s) at index(es): %s. They will be removed.", cluster_name, toString(no_matches)))
+        sequence_data <- sequence_data[-no_matches, , drop = FALSE]
+        fasta_headers <- fasta_headers[-no_matches]
+        matches <- matches[-no_matches]
+      }
+
       # Extract matched strings
       extracted_info <- regmatches(fasta_headers, matches)
 
@@ -92,8 +117,7 @@ read_fasta <- function(fasta_path, sequence = TRUE, file_extension = "fasta") {
       df[df == "NA"] <- NA
 
       if (sequence) {
-        sequences <- as.character(sequence_set)
-        df$sequence <- sequences
+        df$sequence <- sequence_data$x
       }
 
       # Check if 'location' column exists and then extract start and end positions
@@ -120,6 +144,17 @@ read_fasta <- function(fasta_path, sequence = TRUE, file_extension = "fasta") {
 
       # Add the cluster name as a new column to the data frame
       df$cluster <- cluster_name
+
+      if(!is.null(keys)){
+
+        missing_keys <- setdiff(keys, colnames(df))
+
+        if(length(missing_keys) > 0) {
+          warning("The following keys are not column names in the dataframe: ", paste(missing_keys, collapse = ", "), ".")
+        }
+
+        df <- df %>% dplyr::select(dplyr::any_of(keys))
+      }
 
       # Add the data frame for the current file to the list
       all_dfs[[file_path]] <- df

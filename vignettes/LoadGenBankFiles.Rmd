@@ -22,7 +22,7 @@ This tutorial demonstrates creating gene cluster visualizations from GenBank fil
 
 ### Materials 
 
-The .gbk files can be downloaded directly from the [MIBiG](https://mibig.secondarymetabolites.org/) website following the below instructions or directly from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Loading%20GenBank%20files) repository.
+The .gbk files can be downloaded from the [MIBiG](https://mibig.secondarymetabolites.org/) website following the below instructions or directly from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Loading%20GenBank%20files) repository.
 
 ### Loading GenBank file
 

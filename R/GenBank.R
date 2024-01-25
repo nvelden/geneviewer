@@ -328,8 +328,11 @@ process_gbk <- function(file, sections = NULL, features = NULL, origin = TRUE) {
   }
 
   # Get sections
+  if(!is.null(section_keys) && length(section_keys) > 0){
   section_values <- gbk_get_sections(lines, section_keys)
-
+  } else {
+  section_values <- list()
+  }
   # Get actual feature keys from the FEATURES section of the file
   actual_feature_keys <- gbk_get_feature_keys(section_values[["FEATURES"]])
 

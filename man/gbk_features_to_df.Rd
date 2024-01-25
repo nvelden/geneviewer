@@ -2,7 +2,7 @@
 % Please edit documentation in R/GenBank.R
 \name{gbk_features_to_df}
 \alias{gbk_features_to_df}
-\title{Convert GeneBank Features to Data Frame}
+\title{Convert GenBank Features to Data Frame}
 \usage{
 gbk_features_to_df(
   gbk_list,
@@ -12,7 +12,7 @@ gbk_features_to_df(
 )
 }
 \arguments{
-\item{gbk_list}{A list of lists where each sub-list contains GeneBank
+\item{gbk_list}{A list of lists where each sub-list contains GenBank
 features for a specific gene cluster. Each sub-list is expected to have a
 named list of features, with each feature being a character vector.}
 
@@ -33,13 +33,13 @@ A data frame where each row corresponds to a feature from the input
   file.
 }
 \description{
-This function processes a list of GeneBank features (loaded by read_gbk())
+This function processes a list of GenBank features (loaded by read_gbk())
 and converts selected features into a data frame. It supports processing
 multiple gene clusters.
 }
 \examples{
 \dontrun{
-gbk <- read_gbk("path/to/genebank_file.gbk")
+gbk <- read_gbk("path/to/genbank_file.gbk")
 df <- gbk_features_to_df(gbk)
 
 # To extract only specific keys within the "CDS" feature

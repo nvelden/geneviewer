@@ -22,7 +22,7 @@ This tutorial demonstrates creating gene cluster visualizations from GenBank fil
 
 ### Loading GenBank file
 
-The GenBank files from [MIBiG](https://mibig.secondarymetabolites.org/) include additional details, enabling us to color-code genes by function, which we will use to reproduce the visualizations they show on the website. Begin by downloading the GenBank file from the [MIBiG](https://mibig.secondarymetabolites.org/) website for gene cluster [BGC0000001](https://mibig.secondarymetabolites.org/repository/BGC0000001/index.html#r1c1). Simply click the "Download GenBank file" link and save the file.
+The GenBank files from [MIBiG](https://mibig.secondarymetabolites.org/) include additional details, enabling us to color-code genes by function, which we will use to reproduce the visualizations they show on the website. Begin by downloading a GenBank file from the [MIBiG](https://mibig.secondarymetabolites.org/) website. For the below tutorial we will use the genbank file for gene cluster [BGC0000001](https://mibig.secondarymetabolites.org/repository/BGC0000001/index.html#r1c1). Simply click the "Download GenBank file" link and save the file.
 
 We can load the file into R using the `read_gbk` function from `geneviewer`. This will create a list containing all the sections and features found in the GenBank file. 
 
@@ -130,4 +130,92 @@ chart %>%
   )
 ```
 
-See the example section to see how to further customize cluster charts.
+### Loading Multiple GenBank files
+
+The above functions to read and transfom .gbk files can also be used to load multiple .gbk files from a folder and shown the clusters side by side. To demonstrate this we can go to the cluster page for [BGC0000001](https://mibig.secondarymetabolites.org/repository/BGC0000001/index.html#r1c1) and navigate to the "KnownClusterBlast" page. Click on the homologous clusters and download the .gbk files for [BGC0001694](https://mibig.secondarymetabolites.org/repository/BGC0001694/index.html#r1c1), [BGC0001492](https://mibig.secondarymetabolites.org/repository/BGC0001492/index.html#r1c1), [BGC0001288](https://mibig.secondarymetabolites.org/repository/BGC0001288/index.html#r1c1) and [BGC0000133](https://mibig.secondarymetabolites.org/repository/BGC0000133/index.html#r1c1).  
+
+We place all the.gbk files in the same directory and can load them all together as we have done previously.
+
+```{r eval=FALSE, results='hide'}
+library(geneviewer)
+# change the path to the folder containing the .gbk files
+folder_path <- "~/path/to/folder/"
+gbk <- read_gbk(folder_path)
+View(gbk) # Inspect the list in Rstudio
+```
+
+```{r echo = FALSE, results='asis'}
+library(geneviewer)
+# change the path to the folder containing the .gbk files
+folder_path <- "~/Documents/2023 github/geneviewer/genbank_files/"
+gbk_list <- read_gbk(folder_path)
+```
+
+We now have a list of our .gbk files containing the different sections and features. As before we can use the `gbk_features_to_df` function to make a data.frame of the features. This time besides the CDS we also make a data.frame of the source such that we can add the Organism name and genomic region as title for each cluster.
+
+```{r echo=TRUE, results='hide'}
+cds_clusters_df <- gbk_features_to_df(
+  gbk_list, 
+  feature = "CDS",
+  keys = c("region", "gene", "protein_id", "gene_kind", "product"), 
+  process_region = TRUE
+  )
+source_clusters_df <- gbk_features_to_df(gbk_list, feature = "source")
+```
+
+```{r echo = FALSE, results='asis'}
+cds_clusters_df$region <- NULL
+kable(head(cds_df))
+```
+
+We can now plot the graph but this time we specify the "cluster" column as identifier to distinguish the clusters and add cluster labels and titles.
+
+```{r echo = TRUE, results='asis'}
+# replace NA with "other" for gene_kind
+cds_clusters_df$gene_kind[is.na(cds_clusters_df$gene_kind)] <- "other"
+
+colors <- list(
+  "biosynthetic" = "#810E15", 
+  "biosynthetic-additional" = "#F16D75", 
+  "transport" = "#6495ED",
+  "regulatory" = "#2E8B57", 
+  "other" = "#808080"
+)
+
+# Make the cluster chart
+GC_chart(
+  cds_clusters_df,
+  start = "start",
+  end = "end",
+  group = "gene_kind",
+  strand = "strand",
+  cluster = "cluster",
+  height = "450px"
+) %>%
+    GC_clusterTitle(
+    y = 15,  
+    title = paste0("<i>", source_clusters_df$organism, "</i>: ", source_clusters_df$region),
+    align = "left",
+    titleFont = list(
+      fontSize = "12px"
+    )
+    ) %>%
+  GC_clusterLabel(names(gbk_list)) %>%
+  GC_genes(
+    arrowheadWidth = 10,
+    arrowheadHeight = 15,
+    arrowHeight = 15
+  ) %>%
+  GC_scaleBar(title = "1kb", scaleBarUnit = 1000) %>%
+  GC_color(customColors = colors) %>%
+  GC_legend(order = names(colors)) %>%
+  GC_tooltip(
+    formatter = "
+    <b>Gene:</b> {gene}<br>
+    <b>ProteinID:</b> {protein_id}<br>
+    <b>Product:</b> {product}<br>
+    <b>Region:</b>{start} - {end}
+    "
+  )
+```
+

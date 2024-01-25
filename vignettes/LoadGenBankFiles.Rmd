@@ -18,7 +18,11 @@ knitr::opts_chunk$set(
 
 ### Intro
 
-This tutorial demonstrates creating gene cluster visualizations from GenBank files using `geneviewer`. You can obtain GenBank files containing genomic data from a variety of platforms such as [NCBI](https://www.ncbi.nlm.nih.gov/genbank/), [Ensembl](https://www.ensembl.org/), [UCSC](https://genome.ucsc.edu/), [antiSMASH](https://antismash.secondarymetabolites.org/#!/start) and [MIBiG](https://mibig.secondarymetabolites.org/). While `geneviewer` is designed to handle GenBank files from these sources (please report any compatibility issues on [Github](https://github.com/nvelden/geneviewer/issues)), this tutorial specifically aims to replicate a gene cluster visualization found on the [MIBiG](https://mibig.secondarymetabolites.org/) website. 
+This tutorial demonstrates creating gene cluster visualizations from GenBank files using `geneviewer`. You can obtain GenBank files containing genomic data from a variety of platforms such as [NCBI](https://www.ncbi.nlm.nih.gov/genbank/), [Ensembl](https://www.ensembl.org/), [UCSC](https://genome.ucsc.edu/), [antiSMASH](https://antismash.secondarymetabolites.org/#!/start) and [MIBiG](https://mibig.secondarymetabolites.org/). While `geneviewer` is designed to handle GenBank files from these sources (please report any compatibility issues on [Github](https://github.com/nvelden/geneviewer/issues)), this tutorial specifically aims to replicate a gene cluster visualization found on the [MIBiG](https://mibig.secondarymetabolites.org/) website.
+
+### Materials 
+
+The .gbk files can be downloaded directly from the [MIBiG](https://mibig.secondarymetabolites.org/) website following the below instructions or directly from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Loading%20GenBank%20files) repository.
 
 ### Loading GenBank file
 

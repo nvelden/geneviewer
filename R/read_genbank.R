@@ -167,6 +167,18 @@ gbk_get_feature_keys <- function(lines){
 }
 
 #' @noRd
+gbk_get_section_keys <- function(lines) {
+  pattern <- "^ {0,2}([A-Za-z]+)(?=\\s|$)"
+
+
+  matches <- regmatches(lines, gregexpr(pattern, lines, perl = TRUE))
+  keys <- sapply(matches, function(x) if(length(x) > 0) x[1] else NA)
+  keys <- unique(keys[!is.na(keys)])
+  keys <- trimws(keys)
+  return(keys)
+}
+
+#' @noRd
 gbk_get_sections <- function(lines, keys) {
 
   # Find all section starts
@@ -353,3 +365,5 @@ process_gbk <- function(file, sections = NULL, features = NULL, origin = TRUE) {
 
   return(section_values)
 }
+
+

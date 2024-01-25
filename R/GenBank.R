@@ -1,44 +1,44 @@
-#' Read Data from GeneBank Files
+#' Read Data from GenBank Files
 #'
-#' This function reads data from a single GeneBank file or directorty with
+#' This function reads data from a single GenBank file or directorty with
 #' GenBank files. It allows selective extraction of information by specifying
 #' sections and features.
 #'
-#' @param path A string representing the file path to the target GeneBank (.gbk)
+#' @param path A string representing the file path to the target GenBank (.gbk)
 #'   file or directory.
 #' @param sections An optional vector of strings representing the names of
-#'   specific sections within the GeneBank file to extract (e.g., "LOCUS",
+#'   specific sections within the GenBank file to extract (e.g., "LOCUS",
 #'   "DEFINITION", "ACCESSION", "VERSION"). If `NULL` (the default), the
 #'   function extracts all available sections.
 #' @param features An optional vector of strings indicating specific feature
-#'   types to extract from the FEATURES section of the GeneBank file (e.g.,
+#'   types to extract from the FEATURES section of the GenBank file (e.g.,
 #'   "CDS", "gene", "mRNA"). If `NULL` (the default), the function extracts all
 #'   feature types present in the FEATURES section.
 #' @param origin A boolean flag; when set to `TRUE` (the default), the origin
 #'   sequence data is included in the output.
 #' @return A list containing the contents of the specified sections and features
-#'   of the GeneBank file. Each section and feature is returned as a separate
+#'   of the GenBank file. Each section and feature is returned as a separate
 #'   list element.
 #'
 #' @examples
 #' \dontrun{
-#' # Read all data from a GeneBank file
-#' gbk_data <- read_gbk("path/to/genebank_file.gbk")
+#' # Read all data from a GenBank file
+#' gbk_data <- read_gbk("path/to/genbank_file.gbk")
 #'
-#' # Read all data from a directory of GeneBank files
-#' gbk_data <- read_gbk("path/to/genebank/directory")
+#' # Read all data from a directory of GenBank files
+#' gbk_data <- read_gbk("path/to/genbank/directory")
 #'
-#' # Read only specific sections from a GeneBank file
+#' # Read only specific sections from a GenBank file
 #' gbk_data <- read_gbk(
-#'   "path/to/genebank_file.gbk",
+#'   "path/to/genbank_file.gbk",
 #'   sections = c("LOCUS", "DEFINITION")
 #' )
 #'
-#' # Read specific features from the FEATURES section of a GeneBank file
-#' gbk_data <- read_gbk("path/to/genebank_file.gbk", features = c("gene", "CDS"))
+#' # Read specific features from the FEATURES section of a GenBank file
+#' gbk_data <- read_gbk("path/to/genbank_file.gbk", features = c("gene", "CDS"))
 #'
 #' # Read data without the origin sequence
-#' gbk_data <- read_gbk("path/to/genebank_file.gbk", origin = FALSE)
+#' gbk_data <- read_gbk("path/to/genbank_file.gbk", origin = FALSE)
 #' }
 #' @export
 read_gbk <- function(path, sections = NULL, features = NULL, origin = TRUE) {
@@ -69,13 +69,13 @@ read_gbk <- function(path, sections = NULL, features = NULL, origin = TRUE) {
   return(results)
 }
 
-#' Convert GeneBank Features to Data Frame
+#' Convert GenBank Features to Data Frame
 #'
-#' This function processes a list of GeneBank features (loaded by read_gbk())
+#' This function processes a list of GenBank features (loaded by read_gbk())
 #' and converts selected features into a data frame. It supports processing
 #' multiple gene clusters.
 #'
-#' @param gbk_list A list of lists where each sub-list contains GeneBank
+#' @param gbk_list A list of lists where each sub-list contains GenBank
 #'   features for a specific gene cluster. Each sub-list is expected to have a
 #'   named list of features, with each feature being a character vector.
 #' @param feature A string specifying the feature type to extract from each gene
@@ -92,7 +92,7 @@ read_gbk <- function(path, sections = NULL, features = NULL, origin = TRUE) {
 #'
 #' @examples
 #' \dontrun{
-#' gbk <- read_gbk("path/to/genebank_file.gbk")
+#' gbk <- read_gbk("path/to/genbank_file.gbk")
 #' df <- gbk_features_to_df(gbk)
 #'
 #' # To extract only specific keys within the "CDS" feature

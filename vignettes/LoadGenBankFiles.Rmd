@@ -18,11 +18,11 @@ knitr::opts_chunk$set(
 
 ### Intro
 
-This tutorial demonstrates creating gene cluster visualizations from GeneBank files using `geneviewer`. You can obtain GeneBank files containing genomic data from a variety of platforms such as [NCBI](https://www.ncbi.nlm.nih.gov/genbank/), [Ensembl](https://www.ensembl.org/), [UCSC](https://genome.ucsc.edu/), [antiSMASH](https://antismash.secondarymetabolites.org/#!/start) and [MIBiG](https://mibig.secondarymetabolites.org/). While `geneviewer` is designed to handle GeneBank files from these sources (please report any compatibility issues on [Github](https://github.com/nvelden/geneviewer/issues)), this tutorial specifically aims to replicate a gene cluster visualization found on the [MIBiG](https://mibig.secondarymetabolites.org/) website. 
+This tutorial demonstrates creating gene cluster visualizations from GenBank files using `geneviewer`. You can obtain GenBank files containing genomic data from a variety of platforms such as [NCBI](https://www.ncbi.nlm.nih.gov/genbank/), [Ensembl](https://www.ensembl.org/), [UCSC](https://genome.ucsc.edu/), [antiSMASH](https://antismash.secondarymetabolites.org/#!/start) and [MIBiG](https://mibig.secondarymetabolites.org/). While `geneviewer` is designed to handle GenBank files from these sources (please report any compatibility issues on [Github](https://github.com/nvelden/geneviewer/issues)), this tutorial specifically aims to replicate a gene cluster visualization found on the [MIBiG](https://mibig.secondarymetabolites.org/) website. 
 
 ### Loading GenBank file
 
-The GenBank files from [MIBiG](https://mibig.secondarymetabolites.org/) include additional details, enabling us to color-code genes by function, which we will use to reproduce the visualizations they show on the website. Begin by downloading the GeneBank file from the [MIBiG](https://mibig.secondarymetabolites.org/) website for gene cluster [BGC0000001](https://mibig.secondarymetabolites.org/repository/BGC0000001/index.html#r1c1). Simply click the "Download GenBank file" link and save the file.
+The GenBank files from [MIBiG](https://mibig.secondarymetabolites.org/) include additional details, enabling us to color-code genes by function, which we will use to reproduce the visualizations they show on the website. Begin by downloading the GenBank file from the [MIBiG](https://mibig.secondarymetabolites.org/) website for gene cluster [BGC0000001](https://mibig.secondarymetabolites.org/repository/BGC0000001/index.html#r1c1). Simply click the "Download GenBank file" link and save the file.
 
 We can load the file into R using the `read_gbk` function from `geneviewer`. This will create a list containing all the sections and features found in the GenBank file. 
 

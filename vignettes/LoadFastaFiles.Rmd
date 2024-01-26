@@ -1,0 +1,207 @@
+---
+title: "Loading Gene Clusters From FASTA Files"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Loading Gene Clusters From FASTA Files}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+library(knitr)
+library(geneviewer)
+library(UniProt.ws)
+library(dplyr)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+### Intro
+
+This tutorial demonstrates creating gene cluster visualizations from FASTA files using `geneviewer`. For guidance on importing clusters from GenBank files see: [link](https://nvelden.github.io/geneviewer/articles/LoadGenBankFiles.html). `geneviewer` parses FASTA headers to extract key-value pairs, denoted by =.  For instance, in the below FASTA header it identifies 'protein' as 'putative phosphoenolpyruvate synthase' and similarly processes other pairs. The 'location' tag is crucial because it allows the extraction of 'start', 'end', and 'strand' information for each gene.
+
+```text
+>lcl|HQ3864.1_prot_ADX475.1_1 protein=putative phosphoenolpyruvate synthase protein_id=ADX66475.1 location=complement(<1..2247) gbkey=CDS
+MRATGLVRGRAAKRFGRAGGAGDAIGQCRATGHDCLGGSAMIEQYVWDLHEVDETQVAVVGGKGAHLGGL
+SRIEGIRVPAGFCVTTDAFRRIMAEAPSIDDGLDQLSRLNPDDREAIRTLSAQIRRTIEGIAIPGDLAAA
+ITRALARLGEHAACAVRSSATAEDLPTASFAGQQDTYLNVVGPTAILQHVSRCWASLFTERAVTYRQRNG
+```
+
+### Materials 
+
+The FASTA files uses for the tutorial were originally downloaded from the [NCBI](https://www.ncbi.nlm.nih.gov/nuccore) website but can be downloaded directly from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Loading%20FASTA%20files) repository.
+
+### Loading FASTA files
+
+The example FASTA files used for this tutorial are each from a different organism and holds the genes of a cluster that produces a polyene antifungal agent. Download the files and place them under the same folder. We can read the files into R using the `read_fasta` function from `geneviewer`. The function uses the `Biostrings` library so we will need to load this as well. The function will parse all the FASTA headers and create a data.frame from the extracted information. We have set sequence to `FALSE` since we do not need the sequences to create the cluster visualization. 
+
+```{r eval=FALSE, results='hide'}
+library(geneviewer)
+# if (!require("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+# 
+# BiocManager::install("Biostrings")
+library(Biostrings)
+
+# change the path to the folder where you have saved the file
+file_path <- "~/path/to/folder/"
+fasta_df <- read_fasta(file_path, sequence = FALSE)
+View(fasta_df) # Inspect the data.frame in Rstudio
+```
+
+```{r echo = FALSE, results='asis'}
+library(geneviewer)
+# change the path to where you have saved the file
+file_path <- "~/Documents/2023 github/geneviewer/fasta_files/"
+fasta_df <- read_fasta(file_path, sequence = FALSE)
+```
+
+The data.frame holds the protein IDs, start, end and strand information for each gene. In addition there is the cluster column that tells us from which file each gene is coming. 
+
+```{r echo = FALSE, results='asis'}
+kable(head(fasta_df))
+```
+
+### Cluster Visualization
+
+Using the data.frame we created from the FASTA files we can now easily make the cluster visualization. 
+
+```{r echo = TRUE, results='asis'}
+# Make the cluster chart
+chart <- GC_chart(
+  fasta_df,
+  start = "start",
+  end = "end",
+  strand = "strand",
+  cluster = "cluster",
+  height = "400px"
+) %>% 
+  GC_clusterLabel(unique(fasta_df$cluster))
+chart
+```
+
+### Uniprot Keywords
+
+We can get additional information for each gene using the `Uniprot.ws` package. We make the connection to the database using the `UniProt.ws` function. Using `keytypes(up)` we can see all the keys we can use to query the database and with `columns(up)` we can see all the different fields we can get in return. Our gene IDs are EMBL-GenBank-DDBJ_CDS identifiers. For this tutorial we want to return the keywords associated with each gene such that we can use it to group the genes based on their function.
+
+```{r eval=FALSE, results='asis'}
+library(UniProt.ws)
+
+up <- UniProt.ws()
+
+keytypes(up)
+columns(up)
+
+keywords <- UniProt.ws::select(
+  up, 
+  column = c("keyword"), 
+  keys = fasta_df$protein_id, 
+  keytype = "EMBL-GenBank-DDBJ_CDS"
+  )
+```
+
+This will return a data.frame with our original identifiers, uniprotIDs and the keywords associated to each gene.
+
+```{r echo = FALSE, results='asis', warning=FALSE}
+up <- UniProt.ws()
+keywords <- UniProt.ws::select(up, column = c("keyword"), keys = fasta_df$protein_id, keytype = "EMBL-GenBank-DDBJ_CDS")
+kable(head(keywords))
+```
+
+We now do a bit of data wrangling with the help of the `dplyr` package performing the following steps:
+
+-   We split the keywords for each gene on ";"
+-   Count the occurrence of each keyword
+-   For each gene keep only the highest occurring keyword
+-   Replace any keyword that has less then 10 occurrences to "Other"
+-   Bind the keywords to our fasta_df by protein ID
+-   Replace any genes without keyword to Other
+-   Select only the columns we need for our visualization
+
+```{r eval=FALSE, results='hide'}
+library(dplyr)
+
+keywords_count <- keywords %>%
+  # Separate the Keywords into different rows
+  tidyr::separate_rows(Keywords, sep = ";") %>%
+  # Replace NA values with 'Other'
+  mutate(Keywords = replace(Keywords, is.na(Keywords), "Other")) %>%
+  # Add a Count column that counts each Keyword
+  add_count(Keywords)
+
+# Keep top ranking keywords for each protein ID
+keywords_count <- keywords_count %>%
+  group_by(From) %>%
+  filter(rank(-n, ties.method = "first") == 1) %>%
+  ungroup()
+
+# Replace any keyword that has a count less then 10 with "Other"
+keywords_count <- keywords_count %>%
+  mutate(Keywords = ifelse(n < 10, "Other", Keywords))
+
+# Bind Keywords back to fasta_df
+fasta_df_with_keywords <- 
+  left_join(fasta_df, keywords_count, by = c("protein_id" = "From")) %>% 
+  mutate(Keywords = replace(Keywords, is.na(Keywords), "Other")) %>%
+  select(cluster, start, end, strand, protein_id, protein, Keywords, n)
+```
+
+```{r echo = FALSE, results='asis'}
+keywords_count <- keywords %>%
+  # Separate the Keywords into different rows
+  tidyr::separate_rows(Keywords, sep = ";") %>%
+  # Replace NA values with 'Other'
+  mutate(Keywords = replace(Keywords, is.na(Keywords), "Other")) %>%
+  # Add a Count column that counts each Keyword
+  add_count(Keywords)
+
+# Keep top ranking keywords for each protein ID
+keywords_count <- keywords_count %>%
+  group_by(From) %>%
+  filter(rank(-n, ties.method = "first") == 1) %>%
+  ungroup()
+
+# Replace any keyword that has a count less then 10 with "Other"
+keywords_count <- keywords_count %>%
+  mutate(Keywords = ifelse(n < 10, "Other", Keywords))
+
+# Bind Keywords back to fasta_df
+fasta_df_with_keywords <- 
+  left_join(fasta_df, keywords_count, by = c("protein_id" = "From")) %>% 
+  mutate(Keywords = replace(Keywords, is.na(Keywords), "Other")) %>%
+  select(cluster, start, end, strand, protein_id, protein, Keywords, n)
+
+
+kable(head(fasta_df_with_keywords))
+```
+
+We can now make our visual again but use the keywords to group the genes. We alter the order of the legend such that it is in alphabetical order and the Other group is placed last and finally we customize the tooltip to also show the protein Id on hoover.
+
+```{r echo = TRUE, results='asis'}
+
+key_legend <- c(setdiff(sort(unique(fasta_df_with_keywords$Keywords)), "Other"), "Other")
+
+# Make the cluster chart
+chart <- GC_chart(
+  fasta_df_with_keywords,
+  start = "start",
+  end = "end",
+  strand = "strand",
+  group = "Keywords",
+  cluster = "cluster",
+  height = "400px"
+) %>% 
+  GC_clusterLabel(unique(fasta_df$cluster)) %>%
+  GC_legend(order = key_legend) %>%
+  GC_tooltip(
+    formatter = "
+    <b>ProteinID:</b> {protein_id}<br>
+    <b>Region:</b> {start} - {end}
+    "
+  )
+chart
+```
+
+For further customization options like setting a title, altering the colors adding gene links and much more see Get Started and Examples.

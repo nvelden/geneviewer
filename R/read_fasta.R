@@ -2,10 +2,10 @@
 #'
 #'This function reads protein sequences from the specified FASTA file or all
 #'FASTA files within a directory. It specifically looks for metadata in the
-#'FASTA headers enclosed in square brackets `[]`, with key-value pairs separated
-#'by an equals sign `=`. For example, from the header '>protein1 [gene=scnD]
-#'[protein=ScnD]', it extracts 'gene' as the key and 'scnD' as its value, and
-#'similarly for other key-value pairs.
+#'FASTA headers with key-value pairs separated by an equals sign `=`. For
+#'example, from the header '>protein1 [gene=scnD] [protein=ScnD]', it extracts
+#''gene' as the key and 'scnD' as its value, and similarly for other key-value
+#'pairs.
 #'
 #'The Biostrings package is required to run this function.
 #'
@@ -80,7 +80,9 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
       fasta_headers <- row.names(sequence_data)
 
       # Find matches
-      matches <- gregexpr("\\[.*?\\]", fasta_headers, perl = TRUE)
+      # matches <- gregexpr("\\[.*?\\]", fasta_headers, perl = TRUE)
+
+      matches <- gregexpr("(\\w+)=(\\S+)", fasta_headers, perl = TRUE)
 
       no_matches <- which(sapply(matches, function(x) any(x == -1)))
 

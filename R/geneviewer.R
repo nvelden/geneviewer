@@ -179,7 +179,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 #' )
 #'
 #' # Customizing title style
-#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "400px") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "500px") %>%
 #'   GC_labels("name") %>%
 #'   GC_title(
 #'     title = "Cluster 1 Data",
@@ -309,7 +309,7 @@ GC_title <- function(
 #'     show = TRUE,
 #'     cluster = 1,
 #'     x = 0,
-#'     y = 0,
+#'     y = 5,
 #'     align = "center",
 #'     spacing = 20,
 #'     titleFont = list(
@@ -1026,7 +1026,7 @@ GC_clusterLabel <- function(
 #' )
 #'
 #' # Add a simple footer with subtitle to all clusters
-#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "300px") %>%
 #'   GC_clusterFooter(
 #'     title = "Cluster Footer",
 #'     subtitle = "Cluster subtitle"

@@ -12,3 +12,5 @@
 ^README\.Rmd$
 ^\.github$
 ^vignettes/Examples\.Rmd$
+^vignettes/LoadFastaFiles\.Rmd$
+^vignettes/LoadGenBankFiles\.Rmd$

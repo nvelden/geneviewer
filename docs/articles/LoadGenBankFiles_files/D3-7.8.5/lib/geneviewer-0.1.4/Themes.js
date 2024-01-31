@@ -106,3 +106,87 @@ function getMarker(markerName, xPos, yPos, size, height = null) {
             return ""; // Default empty path
     }
 }
+
+function getGenePath(marker, length, markerSize, options = {}) {
+    const sizeDefaults = {
+        small: { scale: 0.75 },
+        medium: { scale: 1 },
+        large: { scale: 1.25 }
+    };
+
+    const markerDefaults = {
+        arrow: { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 15 },
+        boxarrow: { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 30 },
+        box: { arrowheadWidth: 0, arrowheadHeight: 30, markerHeight: 30  },
+        rbox: { arrowheadWidth: 0, arrowheadHeight: 30, markerHeight: 30, cornerRadius: 5 },
+        cbox:  { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 30 },
+        // Add other marker types if needed
+    };
+
+    const sizeOptions = sizeDefaults[markerSize] || sizeDefaults.medium;
+    const markerOptions = markerDefaults[marker] || {};
+
+    const combinedOptions = mergeOptions(markerOptions, "genePathOptions", options);
+
+    // Scale the dimensions based on size
+    const { arrowheadWidth, arrowheadHeight, markerHeight, cornerRadius } = combinedOptions;
+    const scaledArrowheadWidth = arrowheadWidth * sizeOptions.scale;
+    const scaledArrowheadHeight = arrowheadHeight * sizeOptions.scale;
+    const scaledMarkerHeight = markerHeight * sizeOptions.scale;
+
+    let shaftLength = length - scaledArrowheadWidth;
+    shaftLength = Math.max(0, shaftLength);
+    const shaftTop = (scaledArrowheadHeight - scaledMarkerHeight) / 2;
+    const shaftBottom = shaftTop + scaledMarkerHeight;
+
+    let path;
+    let height = Math.max(scaledMarkerHeight, scaledArrowheadHeight);
+    let effectiveCornerRadius;
+
+    switch (marker) {
+        case "arrow":
+        case "boxarrow":
+        case "box":
+
+            path = `M0 ${shaftTop}
+                L0 ${shaftBottom}
+                L${shaftLength} ${shaftBottom}
+                L${shaftLength} ${scaledArrowheadHeight}
+                L${length} ${(scaledArrowheadHeight / 2)}
+                L${shaftLength} 0
+                L${shaftLength} ${shaftTop} Z`;
+            break;
+        case "rbox":
+            effectiveCornerRadius = Math.min(cornerRadius, scaledMarkerHeight / 2, length / 2);
+            height = scaledMarkerHeight;
+
+            path = `M ${effectiveCornerRadius},0
+                     H ${length - effectiveCornerRadius}
+                     A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 ${length},${effectiveCornerRadius}
+                     V ${scaledMarkerHeight - effectiveCornerRadius}
+                     A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 ${length - effectiveCornerRadius},${scaledMarkerHeight}
+                     H ${effectiveCornerRadius}
+                     A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 0,${scaledMarkerHeight - effectiveCornerRadius}
+                     V ${effectiveCornerRadius}
+                     A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 ${effectiveCornerRadius},0
+                     Z`;
+            break;
+          case "cbox":
+            effectiveCornerRadius = Math.min(scaledMarkerHeight / 2, length / 2);
+            height = scaledMarkerHeight;
+
+            path = `M ${effectiveCornerRadius} 0
+                 L ${length - effectiveCornerRadius} 0
+                 Q ${length} ${scaledMarkerHeight / 2} ${length - effectiveCornerRadius} ${scaledMarkerHeight}
+                 L ${effectiveCornerRadius} ${scaledMarkerHeight}
+                 Q 0 ${scaledMarkerHeight / 2} ${effectiveCornerRadius} 0
+                 Z`;
+            break;
+        default:
+            console.warn(`Marker type '${marker}' not recognized.`);
+            path = "";
+    }
+
+    return { path, length, scaledArrowheadWidth, scaledArrowheadHeight, height };
+}
+

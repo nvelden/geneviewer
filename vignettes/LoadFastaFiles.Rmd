@@ -89,7 +89,7 @@ We can get additional information for each gene using the `Uniprot.ws` package. 
 ```{r eval=FALSE, results='asis'}
 library(UniProt.ws)
 
-up <- UniProt.ws()
+up <- UniProt.ws::UniProt.ws()
 
 keytypes(up)
 columns(up)
@@ -105,7 +105,7 @@ keywords <- UniProt.ws::select(
 This will return a data.frame with our original identifiers, uniprotIDs and the keywords associated to each gene.
 
 ```{r echo = FALSE, results='asis', warning=FALSE}
-up <- UniProt.ws()
+up <- UniProt.ws::UniProt.ws()
 keywords <- UniProt.ws::select(up, column = c("keyword"), keys = fasta_df$protein_id, keytype = "EMBL-GenBank-DDBJ_CDS")
 kable(head(keywords))
 ```

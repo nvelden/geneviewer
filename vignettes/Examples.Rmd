@@ -80,7 +80,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   ) %>%
   GC_clusterFooter(
     align = "center",
-    y = -40,
+    y = -30,
     subtitle = "<i>Escherichia coli</i> str. K-12 substr. MG1655" 
   ) %>%
   GC_coordinates(
@@ -191,9 +191,11 @@ GC_chart(
   GC_sequence(y=45) %>%
   GC_legend(FALSE) %>%
   GC_clusterLabel(title = unique(human_hox_genes$cluster)) %>%
-  GC_genes(arrowheadWidth = 3,
-           arrowheadHeight = 10,
-           arrowHeight = 10,
+  GC_genes(
+    marker = "boxarrow",
+    markerHeight = 10,
+    arrowheadHeight = 10,
+    arrowheadWidth = 3
   ) %>% 
   GC_labels(label = "name", fontSize = "10px", adjustLabels = FALSE) %>%
   GC_labels(cluster = 2, label = "name", itemStyle = list(list(index = 5, x = -4))) %>%
@@ -220,9 +222,11 @@ GC_chart(
   GC_sequence(y=45) %>%
   GC_legend(FALSE) %>%
   GC_clusterLabel(title = unique(human_hox_genes$cluster)) %>%
-  GC_genes(arrowheadWidth = 3,
-           arrowheadHeight = 10,
-           arrowHeight = 10,
+  GC_genes(
+    marker = "boxarrow",
+    markerHeight = 10,
+    arrowheadHeight = 10,
+    arrowheadWidth = 3
   ) %>% 
   GC_labels(label = "name", fontSize = "10px", adjustLabels = FALSE) %>%
   GC_labels(cluster = 2, label = "name", itemStyle = list(list(index = 5, x = -4))) %>%
@@ -318,7 +322,7 @@ colors <- list(
 GC_chart(erythromycin_cluster, 
          start = "Start",
          end = "End",
-         height = "150px",
+         height = "160px",
          group = "Functions") %>%
   GC_title(
     title = "Erythromycin A biosynthetic gene cluster from <i>Saccharopolyspora erythraea</i>",
@@ -326,9 +330,8 @@ GC_chart(erythromycin_cluster,
     align = "left"
     ) %>%
   GC_genes(
-    arrowheadWidth = 5,
-    arrowheadHeight = 20,
-    arrowHeight = 20
+    marker = "boxarrow",
+    marker_size = "small"
   ) %>%
   GC_tooltip(
     formatter = "<b>{Identifiers}</b>
@@ -366,7 +369,7 @@ colors <- list(
 GC_chart(erythromycin_cluster, 
          start = "Start",
          end = "End",
-         height = "150px",
+         height = "160px",
          group = "Functions") %>%
   GC_title(
     title = "Erythromycin A biosynthetic gene cluster from <i>Saccharopolyspora erythraea</i>",
@@ -374,9 +377,8 @@ GC_chart(erythromycin_cluster,
     align = "left"
     ) %>%
   GC_genes(
-    arrowheadWidth = 5,
-    arrowheadHeight = 20,
-    arrowHeight = 20
+    marker = "boxarrow",
+    marker_size = "small"
   ) %>%
   GC_tooltip(
     formatter = "<b>{Identifiers}</b>

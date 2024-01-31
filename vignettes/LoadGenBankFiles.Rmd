@@ -110,9 +110,8 @@ colors <- list(
 
 chart %>%
   GC_genes(
-    arrowheadWidth = 10,
-    arrowheadHeight = 15,
-    arrowHeight = 15
+    marker = "boxarrow",
+    marker_size = "small"
   ) %>%
   GC_title(
     "BGC0000001: abyssomicin C biosynthetic gene cluster
@@ -203,9 +202,8 @@ GC_chart(
     ) %>%
   GC_clusterLabel(names(gbk_list)) %>%
   GC_genes(
-    arrowheadWidth = 10,
-    arrowheadHeight = 15,
-    arrowHeight = 15
+    marker = "boxarrow",
+    marker_size = "small"
   ) %>%
   GC_scaleBar(title = "1kb", scaleBarUnit = 1000) %>%
   GC_color(customColors = colors) %>%

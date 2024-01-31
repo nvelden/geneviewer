@@ -159,6 +159,7 @@ hox_gene_sets <- list(
 )
 
 get_gene_positions <- function(gene_list, cluster_name) {
+
   result <- getBM(attributes = c('hgnc_symbol', 'chromosome_name', 'strand', 'start_position', 'end_position'),
                   filters = 'hgnc_symbol',
                   values = gene_list,
@@ -167,7 +168,7 @@ get_gene_positions <- function(gene_list, cluster_name) {
 }
 
 # Apply get_gene_positions to each gene set
-hox_gene_positions <- lapply(names(hox_gene_sets), function(cluster_name) {
+hox_gene_positions <- base::lapply(names(hox_gene_sets), function(cluster_name) {
   get_gene_positions(hox_gene_sets[[cluster_name]], cluster_name)
 })
 
@@ -394,3 +395,5 @@ GC_chart(erythromycin_cluster,
     ) %>%
   GC_color(customColors = colors) 
 ```
+
+

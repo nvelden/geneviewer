@@ -194,15 +194,12 @@ GC_chart(
   group = "gene_kind",
   strand = "strand",
   cluster = "cluster",
-  height = "450px"
+  height = "500px"
 ) %>%
     GC_clusterTitle(
     y = 15,  
     title = paste0("<i>", source_clusters_df$organism, "</i>: ", source_clusters_df$region),
-    align = "left",
-    titleFont = list(
-      fontSize = "12px"
-    )
+    align = "left"
     ) %>%
   GC_clusterLabel(names(gbk_list)) %>%
   GC_genes(

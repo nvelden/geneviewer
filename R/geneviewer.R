@@ -1353,16 +1353,23 @@ GC_coordinates <- function(
 
 #' Modify Gene Characteristics within a Chart
 #'
-#' This function updates a gene chart with specific characteristics for genes based on the given parameters.
-#' It can show/hide genes, apply a color scheme, assign custom colors, filter by cluster, and accept additional options.
+#' This function updates a gene chart with specific characteristics for genes
+#' based on the given parameters. It can show/hide genes, apply a color scheme,
+#' assign custom colors, filter by cluster, and accept additional options.
 #'
 #' @param GC_chart The gene chart object to be modified.
-#' @param group Character or NULL, groups to show or hide in the chart. If NULL, the group is taken from the chart object.
+#' @param group Character or NULL, groups to show or hide in the chart. If NULL,
+#'   the group is taken from the chart object.
+#' @param marker Character or NULL, type of marker to represent genes on the chart.
+#' Allowed values are 'arrow', 'boxarrow', 'box', 'cbox', and 'rbox'.
+#' @param marker_size Character or NULL, size category of the marker
+#' ('small', 'medium', 'large').
 #' @param show Logical, whether to show the genes or not.
 #' @param colorScheme Character or NULL, the name of the color scheme to use.
 #' @param customColors List or NULL, custom colors to apply to the genes.
 #' @param cluster Numeric or character, the specific cluster to filter genes by.
-#' @param itemStyle List, a list of styles to apply to individual items in the chart.
+#' @param itemStyle List, a list of styles to apply to individual items in the
+#'   chart.
 #' @param ... Additional arguments to be passed to the gene options.
 #'
 #' @return Returns the modified gene chart object.
@@ -1381,6 +1388,8 @@ GC_coordinates <- function(
 #'   GC_genes(
 #'     group = "group",
 #'     show = TRUE,
+#'     marker = "arrow",
+#'     marker_size = "medium",
 #'     colorScheme = NULL, # One of D3.js build in colorSchemes
 #'                         # (eg. "schemeCategory10",
 #'                         # "schemeAccent", "schemeTableau10")
@@ -1392,9 +1401,10 @@ GC_coordinates <- function(
 #'     y = 50,
 #'     stroke = "black",
 #'     strokeWidth = 1,
-#'     arrowheadWidth = 10,
-#'     arrowheadHeight = 20,
-#'     arrowHeight = 10
+#'     arrowheadWidth = NULL,
+#'     arrowheadHeight = NULL,
+#'     arrowHeight = NULL,
+#'     markerHeight = NULL # overwrites marker_size
 #'    )
 #'
 #' # Change the appearance of a specific gene
@@ -1409,6 +1419,8 @@ GC_coordinates <- function(
 GC_genes <- function(
     GC_chart,
     group = NULL,
+    marker = NULL,
+    marker_size = NULL,
     show = TRUE,
     colorScheme = NULL,
     customColors = NULL,
@@ -1422,7 +1434,7 @@ GC_genes <- function(
     group <- NULL
   }
 
-  if (is.null(group) && is.null(GC_chart$x$group)){
+  if (is.null(group) && is.null(GC_chart$x$group) && is.null(marker)){
     stop("Please define a group")
   }
 
@@ -1442,6 +1454,8 @@ GC_genes <- function(
     # Default options
     options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
       group = group[(i-1) %% length(group) + 1],
+      marker = marker[(i-1) %% length(marker) + 1],
+      markerSize = marker_size,
       show = show[(i-1) %% length(show) + 1],
       colorScheme = colorScheme,
       customColors = customColors,

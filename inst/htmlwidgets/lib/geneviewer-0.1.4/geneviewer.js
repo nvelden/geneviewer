@@ -745,7 +745,7 @@ container.prototype.cluster = function (options = {}) {
   // Default options for title and subtitle
   const defaultOptions = {
     separateStrands: false,
-    strandSpacing: 1,
+    strandSpacing: 0,
     preventGeneOverlap: false,
     overlapSpacing: 5
   };
@@ -1978,14 +1978,17 @@ container.prototype.genes = function (group, show = true, options = {}) {
     colorScheme: null,
     customColors: null,
     cursor: "default",
+    marker: "arrow",
+    markerSize: "medium",
     itemStyle: [],
-    arrowheadWidth: 10,
-    arrowheadHeight: 20,
-    arrowHeight: 10
+    arrowheadWidth: null,
+    arrowheadHeight: null,
+    markerHeight: null,
+    cornerRadius: null
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
-  const { x, y, stroke, strokeWidth, colorScheme, customColors, cursor, itemStyle, arrowheadWidth, arrowheadHeight, arrowHeight } = combinedOptions;
+  const { x, y, stroke, strokeWidth, colorScheme, customColors, cursor, itemStyle } = combinedOptions;
 
   // Extract additional options that aren't in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -2000,25 +2003,45 @@ container.prototype.genes = function (group, show = true, options = {}) {
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
 
-  this.geneStrandSpacing = this.separateStrands ? (arrowHeight + this.strandSpacing) : 0;
-  this.geneOverlapSpacing = (arrowHeight + this.overlapSpacing)
-
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
     // Apply custom values from itemStyle or default if not provided
-    const currentArrowheadWidth = style.arrowheadWidth || arrowheadWidth;
-    const currentArrowheadHeight = style.arrowheadHeight || arrowheadHeight;
-    const currentArrowHeight = style.arrowHeight || arrowHeight;
+    //const currentArrowheadWidth = style.arrowheadWidth || arrowheadWidth;
+    //const currentArrowheadHeight = style.arrowheadHeight || arrowheadHeight;
+    //const currentArrowHeight = style.arrowHeight || arrowHeight;
+    const geneLength = Math.abs(this.xScale(d.end) - this.xScale(d.start));
     const currentX = style.x || x;
     const currentY = style.y || y;
+    const marker = style.marker || combinedOptions.marker;
+    const markerSize = style.markerSize || combinedOptions.markerSize;
+
+
+    // GenePath
+    const  { path, arrowheadWidth, arrowheadHeight, height }  = getGenePath(
+        marker,
+        geneLength,
+        markerSize,
+        options = {
+          arrowheadWidth: style.arrowheadWidth || combinedOptions.arrowheadWidth,
+          arrowheadHeight: style.arrowheadHeight || combinedOptions.arrowheadHeight,
+          markerHeight: style.markerHeight || combinedOptions.markerHeight,
+          cornerRadius: style.cornerRadius || combinedOptions.cornerRadius
+        }
+      )
+
+    this.geneStrandSpacing = this.separateStrands ? (height / 2 + this.strandSpacing) : 0;
+    this.geneOverlapSpacing = (height + this.overlapSpacing)
+
     // Calculate Y position based on geneTrack
-    const currentGeneStrandSpacing = d.strand == "forward" ? -this.geneStrandSpacing : this.geneStrandSpacing;
+    const currentGeneStrandSpacing = (d.strand == "forward" && this.geneStrandSpacing !== 0)
+                                 ? -this.geneStrandSpacing
+                                 : this.geneStrandSpacing;
     var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
 
-    const yPos = this.yScale(currentY) + currentGeneStrandSpacing - currentOverlapSpacing;
+    const yPos = this.yScale(currentY) - currentGeneStrandSpacing + currentOverlapSpacing;
     const xPos = this.xScale(d.start);
 
-    return { xPos, yPos, currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight };
+    return { xPos, yPos, path, arrowheadWidth, arrowheadHeight, height };
   };
 
   g.selectAll(".gene")
@@ -2026,32 +2049,14 @@ container.prototype.genes = function (group, show = true, options = {}) {
     .enter()
     .append("path")
     .attr("d", (d, i) => {
-
-      const { currentArrowheadWidth, currentArrowheadHeight, currentArrowHeight } = getAttributesForIndex(d, i);
-      const geneLength = Math.abs(this.xScale(d.end) - this.xScale(d.start));
-      let shaftLength = geneLength - currentArrowheadWidth;
-      shaftLength = Math.max(0, shaftLength);
-
-      const shaftTop = (currentArrowheadHeight - currentArrowHeight) / 2;
-      const shaftBottom = shaftTop + currentArrowHeight;
-
-      const shaftPath =
-        `M0 ${shaftTop}
-            L0 ${shaftBottom}
-            L${shaftLength} ${shaftBottom}
-            L${shaftLength} ${currentArrowheadHeight}
-            L${geneLength} ${(currentArrowheadHeight / 2)}
-            L${shaftLength} 0
-            L${shaftLength} ${shaftTop} Z`;
-
-      return shaftPath;
+      return getAttributesForIndex(d, i).path;
     })
     .attr("transform", (d, i) => {
-      const { xPos, yPos, currentArrowheadHeight } = getAttributesForIndex(d, i);
+      const { xPos, yPos, arrowheadHeight, height } = getAttributesForIndex(d, i);
       const rotation = this.reverse
     ? (d.direction === 'forward' ? 180 : 0)
     : (d.direction === 'forward' ? 0 : 180);
-      return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (currentArrowheadHeight / 2)})`;
+      return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (height / 2 )})`;
     })
     .attr("fill", (d) => colorScale(d[group]))
     .attr("class", "gene")

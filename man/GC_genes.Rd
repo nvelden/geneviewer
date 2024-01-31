@@ -7,6 +7,8 @@
 GC_genes(
   GC_chart,
   group = NULL,
+  marker = NULL,
+  marker_size = NULL,
   show = TRUE,
   colorScheme = NULL,
   customColors = NULL,
@@ -18,7 +20,14 @@ GC_genes(
 \arguments{
 \item{GC_chart}{The gene chart object to be modified.}
 
-\item{group}{Character or NULL, groups to show or hide in the chart. If NULL, the group is taken from the chart object.}
+\item{group}{Character or NULL, groups to show or hide in the chart. If NULL,
+the group is taken from the chart object.}
+
+\item{marker}{Character or NULL, type of marker to represent genes on the chart.
+Allowed values are 'arrow', 'boxarrow', 'box', 'cbox', and 'rbox'.}
+
+\item{marker_size}{Character or NULL, size category of the marker
+('small', 'medium', 'large').}
 
 \item{show}{Logical, whether to show the genes or not.}
 
@@ -28,7 +37,8 @@ GC_genes(
 
 \item{cluster}{Numeric or character, the specific cluster to filter genes by.}
 
-\item{itemStyle}{List, a list of styles to apply to individual items in the chart.}
+\item{itemStyle}{List, a list of styles to apply to individual items in the
+chart.}
 
 \item{...}{Additional arguments to be passed to the gene options.}
 }
@@ -36,8 +46,9 @@ GC_genes(
 Returns the modified gene chart object.
 }
 \description{
-This function updates a gene chart with specific characteristics for genes based on the given parameters.
-It can show/hide genes, apply a color scheme, assign custom colors, filter by cluster, and accept additional options.
+This function updates a gene chart with specific characteristics for genes
+based on the given parameters. It can show/hide genes, apply a color scheme,
+assign custom colors, filter by cluster, and accept additional options.
 }
 \examples{
 genes_data <- data.frame(
@@ -53,6 +64,8 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
   GC_genes(
     group = "group",
     show = TRUE,
+    marker = "arrow",
+    marker_size = "medium",
     colorScheme = NULL, # One of D3.js build in colorSchemes
                         # (eg. "schemeCategory10",
                         # "schemeAccent", "schemeTableau10")
@@ -64,9 +77,10 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
     y = 50,
     stroke = "black",
     strokeWidth = 1,
-    arrowheadWidth = 10,
-    arrowheadHeight = 20,
-    arrowHeight = 10
+    arrowheadWidth = NULL,
+    arrowheadHeight = NULL,
+    arrowHeight = NULL,
+    markerHeight = NULL # overwrites marker_size
    )
 
 # Change the appearance of a specific gene

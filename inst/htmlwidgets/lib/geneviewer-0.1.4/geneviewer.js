@@ -1665,8 +1665,8 @@ container.prototype.labels = function (label, show = true, options = {}) {
 
   const defaultOptions = {
     x: 0,
-    y: 50,
-    dy: "-1.2em",
+    y: 55,
+    dy: "0em",
     dx: "0em",
     rotate: 0,
     start: null,
@@ -1732,11 +1732,14 @@ container.prototype.labels = function (label, show = true, options = {}) {
 
     const currentAdjustLabels = style.adjustLabels !== undefined ? style.adjustLabels : adjustLabels;
 
-    const xPos = this.xScale((d.start + d.end) / 2) + currentX;
-
-    const currentGeneStrandSpacing = d.strand == "forward" ? -this.geneStrandSpacing : this.geneStrandSpacing * 4;
+      // Calculate Y position based on geneTrack
+    const currentGeneStrandSpacing = (d.strand == "forward" && this.geneStrandSpacing !== 0)
+                                 ? -this.geneStrandSpacing
+                                 : this.geneStrandSpacing;
     var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
-    const yPos = this.yScale(currentY) + currentGeneStrandSpacing - currentOverlapSpacing;
+
+    const yPos = this.yScale(currentY) - (this.markerHeight / 2) - currentGeneStrandSpacing + currentOverlapSpacing;
+    const xPos = this.xScale((d.start + d.end) / 2) + currentX;
 
     return {
       xPos,
@@ -2005,10 +2008,6 @@ container.prototype.genes = function (group, show = true, options = {}) {
 
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
-    // Apply custom values from itemStyle or default if not provided
-    //const currentArrowheadWidth = style.arrowheadWidth || arrowheadWidth;
-    //const currentArrowheadHeight = style.arrowheadHeight || arrowheadHeight;
-    //const currentArrowHeight = style.arrowHeight || arrowHeight;
     const geneLength = Math.abs(this.xScale(d.end) - this.xScale(d.start));
     const currentX = style.x || x;
     const currentY = style.y || y;
@@ -2029,6 +2028,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
         }
       )
 
+    this.markerHeight = height
     this.geneStrandSpacing = this.separateStrands ? (height / 2 + this.strandSpacing) : 0;
     this.geneOverlapSpacing = (height + this.overlapSpacing)
 

@@ -154,7 +154,7 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "300px") 
     itemStyle = 
               list(
                 list(index = 4, fill = "red", fontWeight = "bold"),
-                list(index = 3, y = 15, x = -5)
+                list(index = 3, y = 10, x = -5)
                 )
     )
 ```
@@ -271,19 +271,56 @@ GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "150px") %
    GC_legend()
 ```
 
-By default the genes are displayed as arrows. To alter there appearance one can use the `arrowheadWidth`, `arrowheadHeight` and `arrowHeight` variables. In addition the positioning of the genes can be altered using the `x` and `y` variables.
+By default the genes are displayed as arrows. To alter there appearance one can use the `marker` and `marker_size` variables. Beside the default arrow marker one can use boxarrow, box, rbox and cbox. You can set each marker to small, medium (default) or large.  
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "150px") %>%
+GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "100px") %>%
+  GC_genes(marker = "arrow", marker_size = "small") %>%
+  GC_clusterLabel("arrow") %>% 
+  GC_legend(FALSE)
+```
+
+```{r echo=FALSE, results='asis'}
+GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "100px") %>%
+  GC_genes(marker = "boxarrow", marker_size = "small") %>%
+  GC_clusterLabel("boxarrow") %>% 
+  GC_legend(FALSE)
+```
+
+```{r echo=FALSE, results='asis'}
+GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "100px") %>%
+  GC_genes(marker = "box", marker_size = "small") %>%
+  GC_clusterLabel("box") %>% 
+  GC_legend(FALSE)
+```
+
+```{r echo=FALSE, results='asis'}
+GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "100px") %>%
+  GC_genes(marker = "cbox", marker_size = "small") %>%
+  GC_clusterLabel("cbox") %>% 
+  GC_legend(FALSE)
+```
+
+```{r echo=FALSE, results='asis'}
+GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "100px") %>%
+  GC_genes(marker = "rbox", marker_size = "small") %>%
+  GC_clusterLabel("rbox") %>% 
+  GC_legend(FALSE)
+```
+
+For finer control one can use the `markerHeight` variable which will overwrite the `marker_size` variable.  In addition you can change the position of the markers using the `x` and `y` variables. In case of the arrow and boxarrow markers you can also alter the arrowhead using the  `arrowheadWidth` and `arrowheadHeight` variables.  
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "100px") %>%
   GC_genes(
-    x = 0,
     y = 55,
-    strokeWidth = 1, 
-    arrowheadWidth = 15, # 10
-    arrowheadHeight = 15, # 20
-    arrowHeight = 15 # 10
-   ) %>%
-   GC_legend(FALSE)
+    marker = "arrow", 
+    markerHeight = 10,
+    arrowheadHeight = 15,
+    arrowheadWidth = 15
+    ) %>%
+  GC_clusterLabel("customized arrows") %>% 
+  GC_legend(FALSE)
 ```
 
 ## Gene alignment
@@ -409,7 +446,7 @@ GC_chart(ophA_clusters,
          end = "end", 
          group = "class", 
          cluster = "cluster", 
-         height = "420px"
+         height = "450px"
          ) %>%
   GC_clusterTitle(
     title = c("<i>Omphalotus Olearius</i>", "<i>Dendrothele Bisporus</i>"), 
@@ -433,14 +470,14 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") 
     c("<i>Omphalotus Olearius</i>", "<i>Dendrothele Bisporus</i>"), 
     position = "left", 
     x = 20) %>%
-  GC_labels("name", y = 25) %>%
+  GC_labels("name", y = 20) %>%
   GC_labels("name", 
             cluster = 2, 
-            y = 25, 
+            y = 20, 
             itemStyle = 
               list(
-                list(index = 3, y = 50),
-                list(index = 7, y = 50)
+                list(index = 3, y = 52),
+                list(index = 7, y = 52)
                 )
             ) %>%
   GC_clusterFooter(
@@ -454,13 +491,13 @@ To adjust the position or styling of specific labels one can use the `cluster` a
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") %>%
-  GC_labels("name", y = 25) %>%
+  GC_labels("name", y = 20) %>%
   GC_labels("name", 
             cluster = 2, 
-            y = 25,
+            y = 20,
             itemStyle = list(
-              list(index = 3, y = 50, fill = "red"),
-              list(index = 7, y = 50, fill = "red")
+              list(index = 3, y = 52, fill = "red"),
+              list(index = 7, y = 52, fill = "red")
               )
             )
 ```
@@ -479,14 +516,14 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "300px") 
     type = "text",
     text = "Gene 1",
     x = 2970,
-    y = 58
+    y = 60
   ) %>% 
   GC_annotation(
     cluster = 2,
     type = "text",
     text = c("Gene 1", "Gene 2", "Gene 3"),
     x = c(19400, 22200, 25600),
-    y = 58
+    y = 60
   ) %>%
   GC_legend(FALSE) %>%
   GC_trackMouse()
@@ -710,7 +747,7 @@ generate_GC_color_patches <- function(color_scheme_name, color_scheme_length) {
   )
 
   chart <- GC_chart(color_array, group = "group", height = "30px", width = 300) %>%
-    GC_genes(colorScheme = color_scheme_name, arrowheadWidth = 0, arrowheadHeight = 25, arrowHeight = 25) %>%
+    GC_genes(colorScheme = color_scheme_name, marker = "box") %>%
     GC_legend(FALSE) %>%
     GC_tooltip(FALSE) %>%
     GC_sequence(show = FALSE)

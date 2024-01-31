@@ -1442,7 +1442,7 @@ GC_genes <- function(
     group <- GC_chart$x$group
   }
 
-  if (!(group %in% names(GC_chart$x$data))) {
+  if (!is.null(group) && !(group %in% names(GC_chart$x$data))) {
     stop("group column not found in data")
   }
 

@@ -414,6 +414,8 @@ GC_clusterTitle <- function(
 #' GC_chart(genes_data, cluster="cluster", group = "group", height = "200px") %>%
 #'   GC_scale(hidden = TRUE, scale_breaks = TRUE) %>%
 #'   GC_sequence(
+#'     start = NULL,
+#'     end = NULL,
 #'     sequenceStyle = list(
 #'       stroke = "blue",
 #'       strokeWidth = 1

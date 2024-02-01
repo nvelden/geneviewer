@@ -1,7 +1,7 @@
 # geneviewer 0.1.5
 
 ### Enhancements:
-- Add preset markers for genes: arrow, boxarrow, box, cboc and rbox.
+- Add preset markers for genes: arrow, boxarrow, box, cbox and rbox.
 - Add options to load cluster information from GenBank and FASTA files.
 
 # geneviewer 0.1.4

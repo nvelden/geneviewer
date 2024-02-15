@@ -242,6 +242,8 @@ protein_blast <- function(data, clusters, id_column, query, identity) {
 #'@param query The name of the query cluster to be used for BLAST comparisons.
 #'@param identity Minimum identity threshold for BLAST hits to be considered
 #'  significant. Defaults to 0.3.
+#'@param lables A named list where names are gene identifiers to be replaced, and
+#'  values are the new names. Default is NULL.
 #'@param ... Additional arguments passed to the `protein_blast` function.
 #'
 #'@return Returns the modified GC_chart object with updated BLAST analysis data.
@@ -270,6 +272,7 @@ GC_blast <- function(
     id_column,
     query,
     identity = 0.3,
+    labels = NULL,
     ...) {
 
   data <- GC_chart$x$data
@@ -300,6 +303,13 @@ GC_blast <- function(
   }
 
   data <- protein_blast(data, clusters, id_column, query, identity)
+
+  # Rename 'BlastP' column values based on 'names' argument
+  if (!is.null(labels) && "BlastP" %in% colnames(data)) {
+    for (label in names(labels)) {
+      data$BlastP[data$BlastP == label] <- labels[[label]]
+    }
+  }
 
   # Update chart data
   GC_chart$x$data <- data

@@ -2261,7 +2261,7 @@ GC_links <- function(
     style = list(),
     ...) {
 
-  links_data <- get_links(GC_chart, group, value1 = NULL, value2 = NULL, cluster = cluster)
+  links_data <- get_links(GC_chart, group, value1 = value1, value2 = value2, cluster = cluster)
 
   # Rename columns
   if("identity2" %in% names(links_data)){

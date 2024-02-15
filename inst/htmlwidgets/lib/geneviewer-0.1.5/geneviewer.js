@@ -350,26 +350,26 @@ function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
 function getColorScale(colorScheme, customColors, uniqueGroups) {
   let colorScale;
 
+  uniqueGroups = uniqueGroups.filter(color => color !== null);
+
   // Check if customColors is an object and not an array
   if (customColors && typeof customColors === 'object' && !Array.isArray(customColors)) {
     // Find groups without a corresponding color in customColors
     const unmappedGroups = uniqueGroups.filter(group => !(group in customColors));
     // Issue a warning if there are unmapped groups
     if (unmappedGroups.length > 0) {
-      console.warn(`Warning: No color mapping found for the following groups, defaulting to black: ${unmappedGroups.join(', ')}`);
+      console.warn(`Warning: No color mapping found for the following groups, defaulting to white: ${unmappedGroups.join(', ')}`);
     }
-
-
     // Create a color scale based on the customColors object
     colorScale = d3.scaleOrdinal()
       .domain(uniqueGroups)
-      .range(uniqueGroups.map(group => customColors[group] || "black"));
+      .range(uniqueGroups.map(group => customColors[group] || "#FFF"));
   } else if (colorScheme) {
     if (!d3[colorScheme]) {
-      console.warn(`Warning: The color scheme "${colorScheme}" does not exist. Defaulting to black.`);
+      console.warn(`Warning: The color scheme "${colorScheme}" does not exist. Defaulting to white.`);
       colorScale = d3.scaleOrdinal()
         .domain(uniqueGroups)
-        .range(uniqueGroups.map(() => "black")); // Set all colors to black
+        .range(uniqueGroups.map(() => "#FFF"));
     } else {
       colorScale = d3.scaleOrdinal(d3[colorScheme])
         .domain(uniqueGroups);
@@ -381,9 +381,11 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
   } else if (customColors && customColors.length > 0) {
     colorScale = d3.scaleOrdinal()
       .domain(uniqueGroups)
+      .unknown("#FFF")
       .range(customColors);
   } else {
     colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+      .unknown("#FFF")
       .domain(uniqueGroups);
   }
 
@@ -2128,6 +2130,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     svgLegend.node().getBoundingClientRect().width;
 
   let uniqueGroups = [...new Set(this.data.map(d => d[group]))];
+  uniqueGroups = uniqueGroups.filter(color => color !== null);
 
   const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
 

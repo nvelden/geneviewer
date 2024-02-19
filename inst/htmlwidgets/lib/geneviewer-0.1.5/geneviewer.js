@@ -263,6 +263,7 @@ function adjustSpecificLabel(container, labelSelector, elementId, options = {}) 
 
       // If the specific label overlaps with another label
       if (overlapPercentage(specificLabelRect, labelRect) > 0) {
+
         // Adjust the label rotation and position
         d3.select(specificLabel)
           .style("text-anchor", "start")
@@ -624,10 +625,12 @@ function getLinkCoordinates(graphContainer, data) {
         // Determine the strand based on the x-coordinate positions
         const strand1 = item.start1 <= item.end1 ? "forward" : "reverse";
         const strand2 = item.start2 <= item.end2 ? "forward" : "reverse";
+        const groupColor1 = element1.getAttribute("groupColor")
+        const groupColor2 = element2.getAttribute("groupColor")
 
         return [
-            { startPoint: adjustRect(rect1), endPoint: adjustRect(rect2), strand: strand1 },
-            { startPoint: adjustRect(rect3), endPoint: adjustRect(rect4), strand: strand2 }
+            { startPoint: adjustRect(rect1), endPoint: adjustRect(rect2), strand: strand1, groupColor: groupColor1 },
+            { startPoint: adjustRect(rect3), endPoint: adjustRect(rect4), strand: strand2, groupColor: groupColor2 }
         ];
     });
 
@@ -644,13 +647,22 @@ function makeLinks(graphContainer, links, clusters) {
       curve: true,
       invertedColor: "red",
       normalColor: "blue",
+      useGroupColors: false,
       color: "lightgrey",
-      style: {
+      identityLabel: true,
+      linkStyle: {
         stroke: "none",
         fillOpacity: 0.8
+      },
+      labelStyle: {
+        fontSize: "12px",
+        fontStyle: "normal",
+        fontFamily: "sans-serif",
+        cursor: "default",
+        textAnchor: "middle",
+        alignmentBaseline: "middle"
       }
     };
-
 
   const graphRect = graphContainer.node().getBoundingClientRect();
       // Create a container div for the SVG
@@ -671,32 +683,77 @@ function makeLinks(graphContainer, links, clusters) {
       .style("top", `${graphContainer.top}px`);
 
 
+
     links.forEach(function(link) {
 
-      const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options);
-      const { curve, invertedColor, normalColor, color, style } = combinedOptions;
-      const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
-      const coordinates = getLinkCoordinates(graphContainer, HTMLWidgets.dataframeToD3(link.data));
+        const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options)
+        const { curve, invertedColor, normalColor, useGroupColors, color, linkStyle, labelStyle, identityLabel } = combinedOptions;
 
+        const additionalOptionsLinkStyle = extractAdditionalOptions(linkStyle, defaultOptions.linkStyle);
+        const additionalOptionsLabelStyle = extractAdditionalOptions(labelStyle, defaultOptions.labelStyle);
+
+        const linkData = HTMLWidgets.dataframeToD3(link.data)
+        const coordinates = getLinkCoordinates(graphContainer, linkData);
+
+      // Add svg paths
       coordinates.forEach(function(coordinate, index) {
 
                 const baseColor = coordinate[0].strand == coordinate[1].strand ? d3.rgb(normalColor) : d3.rgb(invertedColor)
                 var colorScale = d3.scaleSequential(t => d3.interpolate("#FFFFFF", baseColor)(t))
                     .domain([0, 100]);
                 const identity = link.data?.identity?.[index] ?? 100
+                const linkColor = useGroupColors ? coordinate[0].groupColor : colorScale(identity)
 
             lineSvg.append("path")
                 .attr("d", createLinkerPath(coordinate[0], coordinate[1], curve))
-                .style("fill", colorScale(identity))
-                .style("stroke", style.stroke)
-                .style("fill-opacity", style.fillOpacity)
+                .style("fill", linkColor)
+                .style("stroke", linkStyle.stroke)
+                .style("fill-opacity", linkStyle.fillOpacity)
                 .classed("GeneLink", true)
                 .each(function () {
                     const currentElement = d3.select(this);
-                    setStyleFromOptions(currentElement, additionalOptionsStyle);
+                    setStyleFromOptions(currentElement, additionalOptionsLinkStyle);
                 });
-        });
+
+      // Add identity label
+      linkData.forEach(function(data, index){
+
+        const linkLabelselector = `.link-text[cluster='${data.cluster2}'][linkID='${data.linkID}']`;
+        const labelContainer = graphContainer.select(linkLabelselector);
+
+        if (identityLabel) {
+            let currentX = labelContainer.attr("x");
+                let currentY = labelContainer.attr("y");
+
+                if (additionalOptionsLabelStyle.x !== undefined) {
+                    currentX = parseFloat(currentX) + parseFloat(additionalOptionsLabelStyle.x);
+                }
+                if (additionalOptionsLabelStyle.y !== undefined) {
+                    currentY = parseFloat(currentY) + parseFloat(additionalOptionsLabelStyle.y);
+                }
+
+        labelContainer
+            .attr("x", currentX)
+            .attr("y", currentY)
+            .style("font-size", labelStyle.fontSize)
+            .style("font-style", labelStyle.fontStyle)
+            .style("font-family", labelStyle.fontFamily)
+            .style("cursor", labelStyle.cursor)
+            .attr("text-anchor", labelStyle.textAnchor)
+            .attr("alignment-baseline", labelStyle.alignmentBaseline)
+            .each(function () {
+                const currentElement = d3.select(this);
+                setStyleFromOptions(currentElement, additionalOptionsLabelStyle);
+            });
+        } else { // If identityLabel is FALSE, remove the labelContainer
+          labelContainer.remove();
+        }
+
+      });
+
     });
+  });
+
 }
 
 function createLinkerPath(link1, link2, curve = true) {
@@ -1722,16 +1779,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
     const currentDy = style.dy || dy;
     const currentRotate = style.rotate || rotate;
     var currentLabelAdjustmentOptions = style.labelAdjustmentOptions || labelAdjustmentOptions;
-
-    if(!this.separateStrands){
       currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
-    }
-    else if (d.strand === "forward") {
-      currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
-    } else {
-      currentLabelAdjustmentOptions.rotation = Math.abs(currentLabelAdjustmentOptions.rotation);
-    }
-
     const currentAdjustLabels = style.adjustLabels !== undefined ? style.adjustLabels : adjustLabels;
 
       // Calculate Y position based on geneTrack
@@ -2001,6 +2049,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
   const uniqueGroups = [...new Set(this.dataAll.map(d => d[group]))];
 
   const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
+  this.genesColorScale = colorScale;
 
   var g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
@@ -2030,9 +2079,9 @@ container.prototype.genes = function (group, show = true, options = {}) {
         }
       )
 
-    this.markerHeight = height
+    this.markerHeight = height;
     this.geneStrandSpacing = this.separateStrands ? (height / 2 + this.strandSpacing) : 0;
-    this.geneOverlapSpacing = (height + this.overlapSpacing)
+    this.geneOverlapSpacing = (height + this.overlapSpacing);
 
     // Calculate Y position based on geneTrack
     const currentGeneStrandSpacing = (d.strand == "forward" && this.geneStrandSpacing !== 0)
@@ -2270,11 +2319,23 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   return this;
 };
 
-container.prototype.links = function (links, clusterKey) {
+container.prototype.links = function (links, clusterKey, options = {}) {
+
+  const defaultOptions = {
+    y: 50,
+    cursor: "pointer",
+    fontSize: "12px",
+    fontFamily: "sans-serif",
+  };
 
     if (!links || links.length === 0) {
         return this;
     }
+
+    const combinedOptions = mergeOptions.call(this, defaultOptions, 'linkOptions', options);
+    const { x, y, cursor, fontSize, fontFamily } = combinedOptions;
+
+    const additionalOptions = extractAdditionalOptions(options, defaultOptions);
 
     var group = this.svg.append("g")
         .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
@@ -2283,25 +2344,29 @@ container.prototype.links = function (links, clusterKey) {
     const clusterStrandSpacing = hasReverseStrand ? this.geneStrandSpacing * 1 : 0;
 
     links.forEach(link => {
+
         // Check if the link is relevant to cluster1
         if (link.cluster1 === clusterKey) {
             group.append("circle")
                 .attr("cx", this.xScale(link.start1))
-                .attr("cy", this.yScale(50) + clusterStrandSpacing)
+                .attr("cy", this.yScale(y) + clusterStrandSpacing)
                 .attr("position", link.start1)
                 .attr("r", 0)
                 .attr("cluster", clusterKey)
+                .attr("groupColor", this.genesColorScale(link.group1))
                 .attr("linkID", link.linkID)
                 .attr("class", "link-marker");
 
             group.append("circle")
                 .attr("cx", this.xScale(link.end1))
-                .attr("cy", this.yScale(50) + clusterStrandSpacing)
+                .attr("cy", this.yScale(y) + clusterStrandSpacing)
                 .attr("position", link.end1)
                 .attr("class", "link-marker")
+                .attr("groupColor", this.genesColorScale(link.group1))
                 .attr("linkID", link.linkID)
                 .attr("cluster", clusterKey)
                 .attr("r", 0);
+
         }
 
         // Check if the link is relevant to cluster2
@@ -2309,21 +2374,39 @@ container.prototype.links = function (links, clusterKey) {
 
             group.append("circle")
                 .attr("cx", this.xScale(link.start2))
-                .attr("cy", this.yScale(50) - clusterStrandSpacing)
+                .attr("cy", this.yScale(y) - clusterStrandSpacing)
                 .attr("position", link.start2)
                 .attr("class", "link-marker")
                 .attr("cluster", clusterKey)
+                .attr("groupColor", this.genesColorScale(link.group2))
                 .attr("linkID", link.linkID)
                 .attr("r", 0);
 
             group.append("circle")
                 .attr("cx", this.xScale(link.end2))
-                .attr("cy", this.yScale(50) - clusterStrandSpacing)
+                .attr("cy", this.yScale(y) - clusterStrandSpacing)
                 .attr("position", link.end2)
                 .attr("class", "link-marker")
                 .attr("linkID", link.linkID)
                 .attr("cluster", clusterKey)
+                .attr("groupColor", this.genesColorScale(link.group2))
                 .attr("r", 0);
+
+            if(link.identity){
+
+            const yPos = this.yScale(45) + (this.markerHeight / 2) + clusterStrandSpacing;
+            const xPos = this.xScale((link.start2 + link.end2) / 2);
+
+            group.append("text")
+                .attr("class", "link-text")
+                .attr("x", xPos)
+                .attr("y", yPos)
+                .text(parseFloat(link.identity.toFixed(1)) + "%")
+                .attr("linkID", link.linkID)
+                .attr("cluster", clusterKey);
+
+            }
+
         }
     });
 

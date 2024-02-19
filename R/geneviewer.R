@@ -2256,9 +2256,13 @@ GC_links <- function(
     value2 = NULL,
     cluster = NULL,
     curve = TRUE,
+    identity = TRUE,
+    identity_label = TRUE,
     normal_color = "#969696",
     inverted_color = "#d62728",
-    style = list(),
+    use_group_colors = FALSE,
+    linkStyle = list(),
+    labelStyle = list(),
     ...) {
 
   links_data <- get_links(GC_chart, group, value1 = value1, value2 = value2, cluster = cluster)
@@ -2267,19 +2271,25 @@ GC_links <- function(
   if("identity2" %in% names(links_data)){
     names(links_data)[names(links_data) == "identity2"] <- "identity"
   }
-
   if("similarity2" %in% names(links_data)){
     names(links_data)[names(links_data) == "similarity2"] <- "similarity"
   }
+  names(links_data)[names(links_data) == paste0(group, "1")] <- "group1"
+  names(links_data)[names(links_data) == paste0(group, "2")] <- "group2"
 
-  link_columns <- c("cluster1", "start1", "end1", "cluster2", "start2", "end2", "identity", "similarity")
+  link_columns <- c("cluster1", "group1", "start1", "end1",
+                    "cluster2", "group2", "start2", "end2", "identity", "similarity")
   links_data <- links_data[, link_columns[link_columns %in% names(links_data)], drop = FALSE]
 
   links_options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
     curve = curve,
+    identity = identity,
+    identityLabel = identity_label,
     normalColor = normal_color,
     invertedColor = inverted_color,
-    style = style,
+    useGroupColors = use_group_colors,
+    linkStyle = linkStyle,
+    labelStyle = labelStyle,
     ...
   ))
 

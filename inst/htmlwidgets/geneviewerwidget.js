@@ -122,6 +122,10 @@ HTMLWidgets.widget({
         clonedContainerOptions.width = computeSize(clonedContainerOptions.width, el.clientWidth);
 
         var clusterLinks = getClusterLinks(graphLinks, clusterKey);
+        var linksOptions = {};
+        if (Array.isArray(links) && links.length > 0 && links[0].options) {
+        linksOptions = links[0].options;
+        }
 
         var cluster = createContainer(`#geneviewer-graph-container-${widgetId}`, "svg-container", 'containerOptions',  clonedContainerOptions)
           .cluster(clusterOptions)
@@ -133,7 +137,7 @@ HTMLWidgets.widget({
           .scale(scaleOptions)
           .sequence(sequenceOptions?.show ?? false, sequenceOptions)
           .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)
-          .links(clusterLinks, clusterKey)
+          .links(clusterLinks, clusterKey,  linksOptions)
           .coordinates(coordinateOptions?.show ?? false, coordinateOptions)
           .labels(labelOptions?.label, labelOptions?.show ?? false, labelOptions)
           .scaleBar(scaleBarOptions?.show ?? false, scaleBarOptions)

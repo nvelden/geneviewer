@@ -23,16 +23,22 @@ get_protein_combinations <- function(data, cluster_pair) {
   cluster1_data <- subset(data, cluster == cluster_pair[1])
   cluster2_data <- subset(data, cluster == cluster_pair[2])
 
+  # Sort and add order column
+  cluster1_data <- cluster1_data[order(pmin(cluster1_data$start, cluster1_data$end)), ]
+  cluster2_data <- cluster2_data[order(pmin(cluster2_data$start, cluster2_data$end)), ]
+  cluster1_data$order <- seq_along(cluster1_data$rowID)
+  cluster2_data$order <- seq_along(cluster2_data$rowID)
+
   protein_combinations <- expand.grid(rowID.x= cluster1_data$rowID,
                                       rowID.y = cluster2_data$rowID,
                                       stringsAsFactors = FALSE)
 
   # Merge translations for Query
-  protein_combinations <- merge(protein_combinations, cluster1_data[, c("rowID", "translation")],
+  protein_combinations <- merge(protein_combinations, cluster1_data[, c("rowID", "translation", "order")],
                                 by.x = "rowID.x", by.y = "rowID", all.x = TRUE, suffixes = c("1","2"))
 
   # Merge translations for Target
-  protein_combinations <- merge(protein_combinations, cluster2_data[, c("rowID", "translation")],
+  protein_combinations <- merge(protein_combinations, cluster2_data[, c("rowID", "translation", "order")],
                                 by.x = "rowID.y", by.y = "rowID", all.x = TRUE, suffixes = c("1","2"))
 
   # Add cluster names
@@ -131,6 +137,53 @@ compute_identity <- function(patterns, subjects) {
   return(results_df)
 }
 
+
+get_synteny_genes <- function(numbers) {
+  # Step 1: Sort the vector
+  sorted_numbers <- sort(numbers)
+
+  # Step 2: Get all unique numbers
+  unique_numbers <- unique(sorted_numbers)
+
+  # Step 3: Find numbers that are part of a subsequent number pair
+  result <- unique_numbers[sapply(unique_numbers, function(x) (x + 1) %in% unique_numbers)]
+
+  # Return the result
+  return(result)
+}
+
+synteny_score <- function(gene_pairs, i = 0.5) {
+
+  # Get genes that are part of a synteny pair
+  pairs_order1 <- get_synteny_genes(gene_pairs$order1)
+  pairs_order2 <- get_synteny_genes(gene_pairs$order2)
+
+  # Initialize score
+  score <- 0
+
+  # Iterate over order_pair
+  for (j in 1:nrow(gene_pairs)) {
+    order1 <- order_pair$order1[j]
+    order2 <- order_pair$order2[j]
+
+    # Check if order1[i] is in pairs1 and order2[i] is in pairs2
+    if (order1 %in% pairs1 && order2 %in% pairs2) {
+      # Increment score
+      score <- score + 1
+
+      # Remove the numbers from pairs1 and pairs2
+      pairs1 <- pairs1[pairs1 != order1]
+      pairs2 <- pairs2[pairs2 != order2]
+    }
+  }
+
+  score <- score + nrow(gene_pairs) * i
+
+  # Return the final score and the updated pairs1 and pairs2
+  return(score)
+}
+
+
 #' Perform Protein BLAST Analysis Within Specified Clusters
 #'
 #' This function conducts a BLAST analysis for protein sequences within
@@ -162,7 +215,7 @@ compute_identity <- function(patterns, subjects) {
 #'                          )
 #'
 #' @importFrom Biostrings pairwiseAlignment
-#' @importFrom dplyr bind_rows group_by slice_max ungroup left_join
+#' @importFrom dplyr bind_rows group_by slice_max ungroup left_join summarize cur_data
 #' @importFrom stats setNames
 #'
 #' @note This function relies on the Biostrings package for sequence alignment
@@ -202,9 +255,10 @@ protein_blast <- function(data, clusters, id_column, query, identity) {
   protein_combinations_query$similarity <- 100
 
   protein_combinations_all <- dplyr::bind_rows(protein_combinations_alignment, protein_combinations_query)
-  protein_combinations_all <- subset(protein_combinations_all, select = c("rowID.y", "rowID.x", "identity", "similarity"))
+  browser()
+  protein_combinations_all <- subset(protein_combinations_all, select = c("rowID.y", "rowID.x", "order1", "order2", "identity", "similarity"))
 
-  # Filter to keep only the rows with the highest identity for each rowID.y
+  # Filter to keep only the rows with the highest identity for each rowID.y (query)
   protein_combinations_all <- protein_combinations_all %>%
     dplyr::group_by(rowID.y) %>%
     dplyr::slice_max(identity, n = 1) %>%
@@ -220,8 +274,14 @@ protein_blast <- function(data, clusters, id_column, query, identity) {
   # Therefore set unique groups to NA such that they won't be displayed in the graph
   protein_combinations_all$BlastP[ave(protein_combinations_all$BlastP, protein_combinations_all$BlastP, FUN=length) == 1] <- NA
 
-  # Bind data and put query cluster on top
+  # Bind data
   data <- dplyr::left_join(data, protein_combinations_all, by = c("rowID" = "rowID.y"))
+
+  # Calculate synteny scores for each cluster
+  synteny_scores <- data %>%
+    dplyr::group_by(cluster) %>%
+    dplyr::summarize(score = synteny_score(dplyr::cur_data()), .groups = 'drop')
+
   data <- data[order(data$cluster != query, data$cluster), ]
   data$rowID <- seq_len(nrow(data))
   data$rowID.x <- NULL

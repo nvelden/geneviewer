@@ -63,13 +63,6 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 
   show_legend <- if (!is.null(group)) TRUE else FALSE
 
-  # Add rowID to data
-  data$rowID <- seq_len(nrow(data))
-  # add start and end
-  data_tmp <- data
-  data$start <- data_tmp[[start]]
-  data$end <- data_tmp[[end]]
-
   # Filter out rows with NA values in 'start' or 'end' columns
   original_nrow <- nrow(data)
   data <- data[!is.na(data[[start]]) & !is.na(data[[end]]), ]
@@ -78,6 +71,13 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   if (nrow(data) < original_nrow) {
     warning("Rows with NA values in 'start' or 'end' columns have been filtered out.")
   }
+
+  # Add rowID to data
+  data$rowID <- seq_len(nrow(data))
+  # add start and end
+  data_tmp <- data
+  data$start <- data_tmp[[start]]
+  data$end <- data_tmp[[end]]
 
   # Convert cluster to character
   if(!is.null(cluster)){

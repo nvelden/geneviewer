@@ -229,11 +229,17 @@ protein_blast <- function(data, clusters, id_column, query, identity) {
   alignments <- Biostrings::pairwiseAlignment(pattern = protein_combinations_alignment$translation1,
                                              subject = protein_combinations_alignment$translation2,
                                              scoreOnly = FALSE)
+  alignment_list <- lapply(alignments, function(alignment) {
+    list(
+      pattern = as.character(Biostrings::pattern(alignment)),
+      subject = as.character(Biostrings::subject(alignment))
+    )
+  })
 
-  pattern <- sapply(alignments, function(alignment) as.character(Biostrings::pattern(alignment)))
-  subject <- sapply(alignments, function(alignment) as.character(Biostrings::subject(alignment)))
+  patterns <- sapply(alignment_list, function(x) x$pattern)
+  subjects <- sapply(alignment_list, function(x) x$subject)
 
-  identity_df <- compute_identity(pattern, subject)
+  identity_df <- compute_identity(patterns, subjects)
 
   protein_combinations_alignment$identity <- identity_df$identity
   protein_combinations_alignment$similarity <- identity_df$similarity

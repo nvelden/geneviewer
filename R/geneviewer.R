@@ -2084,6 +2084,7 @@ get_links <-
            value1 = NULL,
            value2 = NULL,
            cluster = NULL) {
+
     data <- GC_chart$x$data
 
     # Check if group column exists in the data
@@ -2091,6 +2092,9 @@ get_links <-
       stop(paste("Column", group, "not found in chart data."))
       return(NULL)
     }
+
+    # Remove rows with NA in the specified group column
+    data <- data[!is.na(data[[group]]), ]
 
     # Check if all values in value1 and value2 are present in the group column
     if (!is.null(value1) && !all(value1 %in% data[[group]])) {

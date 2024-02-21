@@ -87,6 +87,7 @@ HTMLWidgets.widget({
 
       // Add Clusters
       var clusters = Object.keys(series);
+
       // Add Links
       if(links && links.length > 0){
       var graphLinks = links.reduce((acc, entry) => {
@@ -168,7 +169,7 @@ HTMLWidgets.widget({
 
     };
 
-    var addLinks = function(width, height) {
+    var addLinks = function(width, height, clusters) {
 
      if (!links || links.length === 0) {
         return;
@@ -177,7 +178,7 @@ HTMLWidgets.widget({
     const graphContainer = d3.select(`#geneviewer-graph-container-${widgetId}`);
     //graphContainer.selectAll(".link-marker").remove();
 
-    makeLinks(graphContainer, links);
+    makeLinks(graphContainer, links, clusters);
 
     };
 

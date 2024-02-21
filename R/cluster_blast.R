@@ -72,6 +72,7 @@ get_protein_combinations <- function(data, cluster_pair) {
 #'
 #' @noRd
 compute_identity <- function(patterns, subjects) {
+
   # Define groups of similar amino acids
   similar_acids <- list(
     c("G", "A", "V", "L", "I"),
@@ -132,8 +133,8 @@ compute_identity <- function(patterns, subjects) {
   }, patterns, subjects, SIMPLIFY = FALSE)
 
   # Combine the results into a data frame
+  names(results) <- NULL
   results_df <- do.call(rbind, results)
-  rownames(results_df) <- NULL
   return(results_df)
 }
 
@@ -152,37 +153,24 @@ get_synteny_genes <- function(numbers) {
   return(result)
 }
 
-synteny_score <- function(gene_pairs, i = 0.5) {
+synteny_score <- function(order1, order2, identity, i = 0.5) {
 
-  # Get genes that are part of a synteny pair
-  pairs_order1 <- get_synteny_genes(gene_pairs$order1)
-  pairs_order2 <- get_synteny_genes(gene_pairs$order2)
-
-  # Initialize score
   score <- 0
+  j <- 1
 
-  # Iterate over order_pair
-  for (j in 1:nrow(gene_pairs)) {
-    order1 <- order_pair$order1[j]
-    order2 <- order_pair$order2[j]
-
-    # Check if order1[i] is in pairs1 and order2[i] is in pairs2
-    if (order1 %in% pairs1 && order2 %in% pairs2) {
-      # Increment score
+  while (j < length(order1)) {
+    if ((abs(order1[j+1] - order1[j]) < 2) && (abs(order2[j+1] - order2[j]) < 2)) {
       score <- score + 1
-
-      # Remove the numbers from pairs1 and pairs2
-      pairs1 <- pairs1[pairs1 != order1]
-      pairs2 <- pairs2[pairs2 != order2]
+      j <- j + 2
+    } else {
+      j <- j + 1
     }
   }
 
-  score <- score + nrow(gene_pairs) * i
+  score <- score + (sum(identity) / 100) * i
 
-  # Return the final score and the updated pairs1 and pairs2
   return(score)
 }
-
 
 #' Perform Protein BLAST Analysis Within Specified Clusters
 #'
@@ -255,7 +243,6 @@ protein_blast <- function(data, clusters, id_column, query, identity) {
   protein_combinations_query$similarity <- 100
 
   protein_combinations_all <- dplyr::bind_rows(protein_combinations_alignment, protein_combinations_query)
-  browser()
   protein_combinations_all <- subset(protein_combinations_all, select = c("rowID.y", "rowID.x", "order1", "order2", "identity", "similarity"))
 
   # Filter to keep only the rows with the highest identity for each rowID.y (query)
@@ -279,10 +266,15 @@ protein_blast <- function(data, clusters, id_column, query, identity) {
 
   # Calculate synteny scores for each cluster
   synteny_scores <- data %>%
+    filter(!is.na(order1)) %>%
     dplyr::group_by(cluster) %>%
-    dplyr::summarize(score = synteny_score(dplyr::cur_data()), .groups = 'drop')
+    dplyr::arrange(order1) %>%
+    dplyr::summarize(score = synteny_score(order1, order2, identity), .groups = 'drop')
 
-  data <- data[order(data$cluster != query, data$cluster), ]
+
+  # bind scores
+  data <- dplyr::left_join(data, synteny_scores) %>% arrange(desc(score))
+
   data$rowID <- seq_len(nrow(data))
   data$rowID.x <- NULL
 
@@ -331,7 +323,7 @@ GC_blast <- function(
     GC_chart,
     id_column,
     query,
-    identity = 0.3,
+    identity = 30,
     labels = NULL,
     ...) {
 
@@ -378,6 +370,7 @@ GC_blast <- function(
 
   #Re order series
   GC_chart$x$series <- GC_chart$x$series[unique(data$cluster)]
+  clusters <- unique(data$cluster)
 
   for (clust in clusters) {
 

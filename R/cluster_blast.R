@@ -18,7 +18,7 @@
 #'   and the names of their respective clusters (`cluster1` and `cluster2`).
 #'
 #' @noRd
-get_protein_combinations <- function(data, cluster_pair) {
+get_protein_combinations <- function(data, cluster_pair, rowIDs = NULL) {
 
   cluster1_data <- subset(data, cluster == cluster_pair[1])
   cluster2_data <- subset(data, cluster == cluster_pair[2])
@@ -203,15 +203,16 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #'                          )
 #'
 #' @importFrom Biostrings pairwiseAlignment
-#' @importFrom dplyr bind_rows group_by slice_max ungroup left_join summarize cur_data
+#' @importFrom dplyr bind_rows group_by slice_max ungroup left_join summarize cur_data arrange
 #' @importFrom stats setNames
-#'
+#' @importFrom rlang .data
+#' @importFrom parallel detectCores makeCluster clusterExport clusterEvalQ parLapply stopCluster
 #' @note This function relies on the Biostrings package for sequence alignment
 #'   and the dplyr package for data manipulation. Ensure these packages are
 #'   installed and loaded into your R session.
 #'
 #' @noRd
-protein_blast <- function(data, clusters, id_column, query, identity) {
+protein_blast <- function(data, clusters, genes, id_column, query, identity, parallel = TRUE) {
 
   # Check if Biostrings package is installed
   if (!requireNamespace("Biostrings", quietly = TRUE)) {
@@ -221,7 +222,14 @@ protein_blast <- function(data, clusters, id_column, query, identity) {
   # Perform alignment for cluster combinations
   cluster_pairs <- lapply(clusters, function(target) c(query, target))
 
-  protein_combinations_all <- do.call(rbind, lapply(cluster_pairs, function(pair) get_protein_combinations(data, pair)))
+  if(!is.null(genes)){
+    query_genes <- data[[id_column]][data$cluster == query & !data[[id_column]] %in% genes]
+    combination_data <- data[!data[[id_column]] %in% query_genes, ]
+  } else {
+    combination_data <- data
+  }
+
+  protein_combinations_all <- do.call(rbind, lapply(cluster_pairs, function(pair) get_protein_combinations(combination_data, pair)))
 
   protein_combinations_alignment <- protein_combinations_all[protein_combinations_all$cluster1 != protein_combinations_all$cluster2, ]
   protein_combinations_query <- protein_combinations_all[protein_combinations_all$rowID.x == protein_combinations_all$rowID.y, ]
@@ -229,12 +237,40 @@ protein_blast <- function(data, clusters, id_column, query, identity) {
   alignments <- Biostrings::pairwiseAlignment(pattern = protein_combinations_alignment$translation1,
                                              subject = protein_combinations_alignment$translation2,
                                              scoreOnly = FALSE)
-  alignment_list <- lapply(alignments, function(alignment) {
-    list(
-      pattern = as.character(Biostrings::pattern(alignment)),
-      subject = as.character(Biostrings::subject(alignment))
-    )
-  })
+
+  # Decide on parallel or sequential processing based on the number of rows
+  if (parallel && nrow(protein_combinations_alignment) > 1000) {
+
+    if (!requireNamespace("parallel", quietly = TRUE)) {
+      stop('parallel package is not installed. Please install it.')
+    }
+    # Set up a cluster
+    no_cores <- parallel::detectCores() - 1
+    cl <- parallel::makeCluster(no_cores)
+
+    # Export the alignments list and the Biostrings library to each cluster node
+    parallel::clusterExport(cl, varlist = c("alignments"), envir = environment())
+    parallel::clusterEvalQ(cl, library(Biostrings))
+
+    # Use parLapply for parallel execution
+    alignment_list <- parallel::parLapply(cl, alignments, function(alignment) {
+      list(
+        pattern = as.character(Biostrings::pattern(alignment)),
+        subject = as.character(Biostrings::subject(alignment))
+      )
+    })
+
+    # Stop the cluster after use
+    parallel::stopCluster(cl)
+  } else {
+    # Sequential processing
+    alignment_list <- lapply(alignments, function(alignment) {
+      list(
+        pattern = as.character(Biostrings::pattern(alignment)),
+        subject = as.character(Biostrings::subject(alignment))
+      )
+    })
+  }
 
   patterns <- sapply(alignment_list, function(x) x$pattern)
   subjects <- sapply(alignment_list, function(x) x$subject)
@@ -279,7 +315,11 @@ protein_blast <- function(data, clusters, id_column, query, identity) {
 
 
   # bind scores
-  data <- dplyr::left_join(data, synteny_scores) %>% arrange(desc(score))
+  data <- dplyr::left_join(data, synteny_scores, by = "cluster") %>% dplyr::arrange(desc(score))
+  # Place query cluster at the top
+  ordering <- with(data, order(cluster != query, -score))
+  data <- data[ordering, ]
+
 
   data$rowID <- seq_len(nrow(data))
   data$rowID.x <- NULL
@@ -329,11 +369,19 @@ GC_blast <- function(
     GC_chart,
     id_column,
     query,
+    cluster = NULL,
+    genes = NULL,
     identity = 30,
     labels = NULL,
+    parallel = TRUE,
     ...) {
 
   data <- GC_chart$x$data
+
+  if (!(id_column %in% names(data))) {
+    stop("The id_column could not be found in the data.")
+    return(NULL)
+  }
 
   if (!('sequence' %in% names(data)) && !('translation' %in% names(data))) {
     stop("No 'sequence' or 'translation' column found in chart data.")
@@ -342,6 +390,10 @@ GC_blast <- function(
 
   if ('sequence' %in% names(data) && !('translation' %in% names(data))) {
     names(data)[names(data) == "sequence"] <- "translation"
+  }
+
+  if (query %in% cluster) {
+    stop("The specified cluster(s) cannot contain the query.")
   }
 
   # Check if 'cluster' column exists in the data
@@ -353,14 +405,19 @@ GC_blast <- function(
 
   # Rename cluster column
   colnames(data)[colnames(data) == cluster_column] <- "cluster"
-  clusters <- unique(data$cluster)
 
   if (!(query %in% data$cluster)) {
     stop("Cluster name not found in cluster columnm.")
     return(NULL)
   }
 
-  data <- protein_blast(data, clusters, id_column, query, identity)
+  if(!is.null(cluster)){
+    cluster <- c(query, cluster)
+  }
+
+  clusters <- getUpdatedClusters(GC_chart, cluster)
+
+  data <- protein_blast(data, clusters, genes, id_column, query, identity, parallel)
 
   # Rename 'BlastP' column values based on 'names' argument
   if (!is.null(labels) && "BlastP" %in% colnames(data)) {

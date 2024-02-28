@@ -76,5 +76,3 @@
 #'   \item{Functions}{Functional categorization of the genes. A character vector.}
 #' }
 "erythromycin_cluster"
-
-

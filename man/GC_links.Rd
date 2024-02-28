@@ -11,9 +11,13 @@ GC_links(
   value2 = NULL,
   cluster = NULL,
   curve = TRUE,
+  identity = TRUE,
+  identity_label = TRUE,
   normal_color = "#969696",
   inverted_color = "#d62728",
-  style = list(),
+  use_group_colors = FALSE,
+  linkStyle = list(),
+  labelStyle = list(),
   ...
 )
 }
@@ -34,9 +38,9 @@ GC_links(
 
 \item{inverted_color}{Color for inverted links.}
 
-\item{style}{List of CSS styles to apply to the links.}
-
 \item{...}{Additional arguments passed to the links.}
+
+\item{style}{List of CSS styles to apply to the links.}
 }
 \value{
 Modified `GC_chart` object with added links.
@@ -78,9 +82,13 @@ GC_chart(genes_data,
 ) \%>\%
   GC_links(
     group = "group",
-    curve = FALSE,
+    curve = TRUE,
+    identity = TRUE,
+    identity_label = TRUE,
     normal_color = "#1f77b4",
     inverted_color = "#d62728",
+    use_group_colors = FALSE,
+
     style = list(
       stroke = "black",
       strokeWidth = 0.5,

@@ -353,6 +353,15 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
 
   uniqueGroups = uniqueGroups.filter(color => color !== null);
 
+    const schemeCategory30 = [
+    "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+    "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
+    "#393b79", "#637939", "#8c6d31", "#843c39", "#7b4173",
+    "#bd9e39", "#ad494a", "#d6616b", "#31a354", "#cedb9c",
+    "#9c9ede", "#637939", "#8ca252", "#b5cf6b", "#cedb9c",
+    "#8c6d31", "#e7cb94", "#e7969c", "#7b4173", "#a55194"
+  ];
+
   // Check if customColors is an object and not an array
   if (customColors && typeof customColors === 'object' && !Array.isArray(customColors)) {
     // Find groups without a corresponding color in customColors
@@ -385,7 +394,7 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
       .unknown("#FFF")
       .range(customColors);
   } else {
-    colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+    colorScale = d3.scaleOrdinal(schemeCategory30)
       .unknown("#FFF")
       .domain(uniqueGroups);
   }
@@ -721,7 +730,7 @@ function makeLinks(graphContainer, links, clusters) {
         const linkLabelselector = `.link-text[cluster='${data.cluster2}'][linkID='${data.linkID}']`;
         const labelContainer = graphContainer.select(linkLabelselector);
 
-        if (identityLabel) {
+        if (!labelContainer.empty() && identityLabel) {
             let currentX = labelContainer.attr("x");
                 let currentY = labelContainer.attr("y");
 
@@ -2325,7 +2334,16 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     y: 50,
     cursor: "pointer",
     fontSize: "12px",
+    fontStyle: "italic",
     fontFamily: "sans-serif",
+    textAnchor: "middle",
+    labelAdjustmentOptions: {
+      rotation: -65,
+      offsetX: 0,
+      offsetY: 0,
+      dx: "0em",
+      dy: "0em"
+    },
   };
 
     if (!links || links.length === 0) {
@@ -2333,7 +2351,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     }
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'linkOptions', options);
-    const { x, y, cursor, fontSize, fontFamily } = combinedOptions;
+    const { x, y, cursor, fontSize, fontStyle, fontFamily, textAnchor, labelAdjustmentOptions } = combinedOptions;
 
     const additionalOptions = extractAdditionalOptions(options, defaultOptions);
 
@@ -2391,24 +2409,53 @@ container.prototype.links = function (links, clusterKey, options = {}) {
                 .attr("cluster", clusterKey)
                 .attr("groupColor", this.genesColorScale(link.group2))
                 .attr("r", 0);
+            }
 
-            if(link.identity){
+    });
 
-            const yPos = this.yScale(45) + (this.markerHeight / 2) + clusterStrandSpacing;
+    // filter out duplicate labels
+    let identityLabels = links.filter(item => item.cluster2 === clusterKey)
+                           .map(({start2, end2, identity, linkID}) => ({start2, end2, identity, linkID}));
+
+    const uniqueCombinations = new Set();
+
+    // Filter in-place to remove duplicates
+    identityLabels = identityLabels.filter(({start2, end2, identity}) => {
+          const key = `${start2}-${end2}-${identity}`;
+      if (uniqueCombinations.has(key)) {
+          return false; // If the combination is already seen, filter it out
+      } else {
+          uniqueCombinations.add(key);
+          return true; // If it's a new combination, keep it
+      }
+    });
+
+    identityLabels.forEach((link, i) => {
+
+            const yPos = this.yScale(y) - (this.markerHeight / 1.5) - clusterStrandSpacing;
             const xPos = this.xScale((link.start2 + link.end2) / 2);
+            const self = this;
 
             group.append("text")
                 .attr("class", "link-text")
                 .attr("x", xPos)
                 .attr("y", yPos)
+                .attr("id","id-" + clusterKey + "-" + link.linkID)
                 .text(parseFloat(link.identity.toFixed(1)) + "%")
+                .style("font-size", fontSize)
+                .style("font-style", fontStyle)
+                .style("font-family", fontFamily)
+                .style("cursor", cursor)
+                .attr("text-anchor", "middle")
                 .attr("linkID", link.linkID)
-                .attr("cluster", clusterKey);
+                .attr("cluster", clusterKey)
+                .each(function (d, i) {
 
-            }
+                const currentElement = d3.select(this);
+                adjustSpecificLabel(self, "text.link-text", currentElement.attr("id"), labelAdjustmentOptions);
 
-        }
-    });
+                });
+      });
 
     return this;
 };

@@ -18,7 +18,9 @@ GC_chart(
 )
 }
 \arguments{
-\item{data}{Data frame containing genomic information.}
+\item{data}{Data frame containing genomic information or the file path to a
+folder containing `.gbk` files. When providing a file path, the data is
+loaded and processed into a data frame internally.}
 
 \item{start}{Column name that indicates start positions. Default is "start".}
 
@@ -30,10 +32,11 @@ NULL.}
 \item{group}{Column name used for gene grouping to influence color
 aesthetics.}
 
-\item{strand}{Optional column name indicating strand orientation.
-Acceptable values include 1, 'forward', 'sense', or '+' to represent the
-forward strand, and -1, 0, 'reverse', 'antisense', "complement" or '-' to represent
-the reverse strand. Default is NULL, meaning strand information is not used.}
+\item{strand}{Optional column name indicating strand orientation. Acceptable
+values include 1, 'forward', 'sense', or '+' to represent the forward
+strand, and -1, 0, 'reverse', 'antisense', "complement" or '-' to represent
+the reverse strand. Default is NULL, meaning strand information is not
+used.}
 
 \item{width}{Width specification for the chart, such as '100\%' or 500.
 Default is unspecified.}
@@ -43,8 +46,8 @@ Default is unspecified.}
 
 \item{style}{A list of CSS styles to be applied to the chart container. Each
 element of the list should be a valid CSS property-value pair. For example,
-list(backgroundColor = "white", border = "2px solid black").
-Default is an empty list.}
+list(backgroundColor = "white", border = "2px solid black"). Default is an
+empty list.}
 
 \item{elementId}{Optional identifier string for the widget. Default is NULL.}
 }
@@ -62,7 +65,12 @@ genes_data <- data.frame(
   group = c('A', 'A', 'B', 'B', 'A', 'C'),
   cluster = c(1, 1, 1, 2, 2, 2)
 )
+# Load from data.frame
 GC_chart(genes_data, group = "group", cluster = "cluster", height = "200px") \%>\%
 GC_labels("name")
+
+# Load from folder containing .gbk files
+file_path <- "~/path/to/folder/"
+GC_chart(file_path) \%>\%
 
 }

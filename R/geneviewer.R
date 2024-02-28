@@ -6,25 +6,28 @@ magrittr::`%>%`
 #'
 #' Generates an interactive GC chart for genomic data.
 #'
-#' @param data Data frame containing genomic information.
+#' @param data Data frame containing genomic information or the file path to a
+#'   folder containing `.gbk` files. When providing a file path, the data is
+#'   loaded and processed into a data frame internally.
 #' @param start Column name that indicates start positions. Default is "start".
 #' @param end Column name that indicates end positions. Default is "end".
 #' @param cluster Optional column name used for clustering purposes. Default is
 #'   NULL.
 #' @param group Column name used for gene grouping to influence color
 #'   aesthetics.
-#' @param strand Optional column name indicating strand orientation.
-#'   Acceptable values include 1, 'forward', 'sense', or '+' to represent the
-#'   forward strand, and -1, 0, 'reverse', 'antisense', "complement" or '-' to represent
-#'   the reverse strand. Default is NULL, meaning strand information is not used.
+#' @param strand Optional column name indicating strand orientation. Acceptable
+#'   values include 1, 'forward', 'sense', or '+' to represent the forward
+#'   strand, and -1, 0, 'reverse', 'antisense', "complement" or '-' to represent
+#'   the reverse strand. Default is NULL, meaning strand information is not
+#'   used.
 #' @param width Width specification for the chart, such as '100\%' or 500.
 #'   Default is unspecified.
 #' @param height Height specification for the chart, such as '400px' or 300.
 #'   Default is unspecified.
 #' @param style A list of CSS styles to be applied to the chart container. Each
 #'   element of the list should be a valid CSS property-value pair. For example,
-#'   list(backgroundColor = "white", border = "2px solid black").
-#'   Default is an empty list.
+#'   list(backgroundColor = "white", border = "2px solid black"). Default is an
+#'   empty list.
 #' @param elementId Optional identifier string for the widget. Default is NULL.
 #'
 #' @return A GC chart widget.
@@ -37,12 +40,27 @@ magrittr::`%>%`
 #'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
 #'   cluster = c(1, 1, 1, 2, 2, 2)
 #' )
+#' # Load from data.frame
 #' GC_chart(genes_data, group = "group", cluster = "cluster", height = "200px") %>%
 #' GC_labels("name")
+#'
+#' # Load from folder containing .gbk files
+#' file_path <- "~/path/to/folder/"
+#' GC_chart(file_path) %>%
 #'
 #' @import htmlwidgets
 #' @export
 GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, width = "100%", height = "400px", style = list(), elementId = NULL) {
+
+  # Load from .gbk files
+  if (is.character(data)) {
+    gbk <- geneviewer::read_gbk(data) # Adjust based on actual function call
+    data <- geneviewer::gbk_features_to_df(gbk, feature = "CDS", keys = c("protein_id", "region", "translation"))
+    data <- data[!is.na(data[[start]]) & !is.na(data[[end]]), ]
+    cluster <- "cluster"
+    strand <- "strand"
+  }
+
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
   # Check if column names are in the data frame
@@ -2239,9 +2257,13 @@ get_links <-
 #' ) %>%
 #'   GC_links(
 #'     group = "group",
-#'     curve = FALSE,
+#'     curve = TRUE,
+#'     identity = TRUE,
+#'     identity_label = TRUE,
 #'     normal_color = "#1f77b4",
 #'     inverted_color = "#d62728",
+#'     use_group_colors = FALSE,
+#'
 #'     style = list(
 #'       stroke = "black",
 #'       strokeWidth = 0.5,
@@ -2284,6 +2306,7 @@ GC_links <- function(
   link_columns <- c("cluster1", "group1", "start1", "end1",
                     "cluster2", "group2", "start2", "end2", "identity", "similarity")
   links_data <- links_data[, link_columns[link_columns %in% names(links_data)], drop = FALSE]
+  links_data <- links_data[order(links_data$start2), ]
 
   links_options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
     curve = curve,

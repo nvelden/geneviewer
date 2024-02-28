@@ -4,7 +4,17 @@
 \alias{GC_blast}
 \title{Perform Gene Cluster BLAST Analysis}
 \usage{
-GC_blast(GC_chart, id_column, query, identity = 0.3, ...)
+GC_blast(
+  GC_chart,
+  id_column,
+  query,
+  cluster = NULL,
+  genes = NULL,
+  identity = 30,
+  labels = NULL,
+  parallel = TRUE,
+  ...
+)
 }
 \arguments{
 \item{GC_chart}{A list object representing the GC chart, which must contain
@@ -18,6 +28,9 @@ data and configuration for clusters.}
 significant. Defaults to 0.3.}
 
 \item{...}{Additional arguments passed to the `protein_blast` function.}
+
+\item{lables}{A named list where names are gene identifiers to be replaced, and
+values are the new names. Default is NULL.}
 }
 \value{
 Returns the modified GC_chart object with updated BLAST analysis data.
@@ -34,7 +47,7 @@ This function requires the Biostrings package to be installed. It also
  configuration.
 }
 \examples{
-#' \dontrun{
+\dontrun{
 GC_chart(
    data,
    cluster = "cluster",

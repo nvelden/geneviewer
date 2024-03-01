@@ -614,7 +614,6 @@ function getLinkCoordinates(graphContainer, data) {
 
         // Check if elements exist
         if (!element1 || !element2 || !element3 || !element4) {
-            console.error('Elements not found for selectors:', selector1, selector2, selector3, selector4);
             return null;
         }
 
@@ -664,7 +663,7 @@ function makeLinks(graphContainer, links, clusters) {
         fillOpacity: 0.8
       },
       labelStyle: {
-        fontSize: "12px",
+        fontSize: "10px",
         fontStyle: "normal",
         fontFamily: "sans-serif",
         cursor: "default",
@@ -2337,6 +2336,8 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     fontStyle: "italic",
     fontFamily: "sans-serif",
     textAnchor: "middle",
+    showLinks: true,
+    identityLabel: true,
     labelAdjustmentOptions: {
       rotation: -65,
       offsetX: 0,
@@ -2351,7 +2352,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     }
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'linkOptions', options);
-    const { x, y, cursor, fontSize, fontStyle, fontFamily, textAnchor, labelAdjustmentOptions } = combinedOptions;
+    const { x, y, cursor, fontSize, fontStyle, fontFamily, textAnchor, showLinks, identityLabel, labelAdjustmentOptions } = combinedOptions;
 
     const additionalOptions = extractAdditionalOptions(options, defaultOptions);
 
@@ -2361,17 +2362,21 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     const hasReverseStrand = this.data.some(item => item.strand === "reverse");
     const clusterStrandSpacing = hasReverseStrand ? this.geneStrandSpacing * 1 : 0;
 
+    if(showLinks){
     links.forEach(link => {
 
         // Check if the link is relevant to cluster1
         if (link.cluster1 === clusterKey) {
+
+          const groupColor1 = link.groupColor ? this.genesColorScale(link.groupColor) : this.genesColorScale(link.group1);
+
             group.append("circle")
                 .attr("cx", this.xScale(link.start1))
                 .attr("cy", this.yScale(y) + clusterStrandSpacing)
                 .attr("position", link.start1)
                 .attr("r", 0)
                 .attr("cluster", clusterKey)
-                .attr("groupColor", this.genesColorScale(link.group1))
+                .attr("groupColor", groupColor1)
                 .attr("linkID", link.linkID)
                 .attr("class", "link-marker");
 
@@ -2380,7 +2385,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
                 .attr("cy", this.yScale(y) + clusterStrandSpacing)
                 .attr("position", link.end1)
                 .attr("class", "link-marker")
-                .attr("groupColor", this.genesColorScale(link.group1))
+                .attr("groupColor", groupColor1)
                 .attr("linkID", link.linkID)
                 .attr("cluster", clusterKey)
                 .attr("r", 0);
@@ -2390,13 +2395,15 @@ container.prototype.links = function (links, clusterKey, options = {}) {
         // Check if the link is relevant to cluster2
         if (link.cluster2 === clusterKey) {
 
+          const groupColor2 = link.groupColor ? this.genesColorScale(link.groupColor) : this.genesColorScale(link.group2);
+
             group.append("circle")
                 .attr("cx", this.xScale(link.start2))
                 .attr("cy", this.yScale(y) - clusterStrandSpacing)
                 .attr("position", link.start2)
                 .attr("class", "link-marker")
                 .attr("cluster", clusterKey)
-                .attr("groupColor", this.genesColorScale(link.group2))
+                .attr("groupColor", groupColor2)
                 .attr("linkID", link.linkID)
                 .attr("r", 0);
 
@@ -2407,55 +2414,38 @@ container.prototype.links = function (links, clusterKey, options = {}) {
                 .attr("class", "link-marker")
                 .attr("linkID", link.linkID)
                 .attr("cluster", clusterKey)
-                .attr("groupColor", this.genesColorScale(link.group2))
+                .attr("groupColor", groupColor2)
                 .attr("r", 0);
             }
 
     });
+    }
 
-    // filter out duplicate labels
-    let identityLabels = links.filter(item => item.cluster2 === clusterKey)
-                           .map(({start2, end2, identity, linkID}) => ({start2, end2, identity, linkID}));
+    if(identityLabel){
+    const self = this;
 
-    const uniqueCombinations = new Set();
-
-    // Filter in-place to remove duplicates
-    identityLabels = identityLabels.filter(({start2, end2, identity}) => {
-          const key = `${start2}-${end2}-${identity}`;
-      if (uniqueCombinations.has(key)) {
-          return false; // If the combination is already seen, filter it out
-      } else {
-          uniqueCombinations.add(key);
-          return true; // If it's a new combination, keep it
-      }
+    // Adding the Label
+    group.selectAll("link-text")
+    .data(this.data)
+    .enter()
+    .append("text")
+    .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-label-${i}`)
+    .attr("rowID", (d, i) => `${d["rowID"]}`)
+    .attr("class", "link-text")
+    .attr("x", (d, i) => this.xScale((d.start + d.end) / 2))
+    .attr("y", (d, i) => this.yScale(y) - (this.markerHeight / 1.5) - clusterStrandSpacing)
+    .text(d => d.identity != null && d.BlastP != d.protein_id && d.BlastP ? `${parseFloat(d.identity.toFixed(1))}%` : '')
+    .style("font-size", fontSize)
+    .style("font-style", fontStyle)
+    .style("font-family", fontFamily)
+    .style("cursor", cursor)
+    .attr("text-anchor", "middle")
+    .attr("cluster", clusterKey)
+    .each(function (d, i) {
+      const currentElement = d3.select(this);
+      adjustSpecificLabel(self, "text.link-text", currentElement.attr("id"), labelAdjustmentOptions);
     });
-
-    identityLabels.forEach((link, i) => {
-
-            const yPos = this.yScale(y) - (this.markerHeight / 1.5) - clusterStrandSpacing;
-            const xPos = this.xScale((link.start2 + link.end2) / 2);
-            const self = this;
-
-            group.append("text")
-                .attr("class", "link-text")
-                .attr("x", xPos)
-                .attr("y", yPos)
-                .attr("id","id-" + clusterKey + "-" + link.linkID)
-                .text(parseFloat(link.identity.toFixed(1)) + "%")
-                .style("font-size", fontSize)
-                .style("font-style", fontStyle)
-                .style("font-family", fontFamily)
-                .style("cursor", cursor)
-                .attr("text-anchor", "middle")
-                .attr("linkID", link.linkID)
-                .attr("cluster", clusterKey)
-                .each(function (d, i) {
-
-                const currentElement = d3.select(this);
-                adjustSpecificLabel(self, "text.link-text", currentElement.attr("id"), labelAdjustmentOptions);
-
-                });
-      });
+    }
 
     return this;
 };

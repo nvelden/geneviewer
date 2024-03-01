@@ -178,16 +178,28 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #' specified clusters. It generates all possible protein combinations between a
 #' query cluster and other clusters, performs pairwise alignments, calculates
 #' sequence identity and similarity, and filters results based on a minimum
-#' identity threshold. The function updates the provided data with BLAST
-#' results, including identity and similarity scores for each protein pair, and
-#' ensures that the query cluster is placed first.
+#' identity threshold.
 #'
-#' @param data A dataframe containing protein data including sequences or
-#'   translations and identifiers.
-#' @param id_column The name of the column that contains the gene identifiers.
+#' @param data A dataframe or a character vector specifying the path to .gbk
+#'   files. When a character vector is provided, it is interpreted as file paths
+#'   to .gbk files which are then read and processed. The dataframe must contain
+#'   columns for unique protein identifiers, cluster identifiers, protein
+#'   sequences, and the start and end positions of each gene.
 #' @param query The name of the query cluster to be used for BLAST comparisons.
+#' @param id The name of the column that contains the gene identifiers. Defaults
+#'   to "protein_id".
+#' @param start The name of the column specifying the start positions of genes.
+#'   Defaults to "start".
+#' @param end The name of the column specifying the end positions of genes.
+#'   Defaults to "end".
+#' @param cluster The name of the column specifying the cluster names. Defaults
+#'   to "cluster".
+#' @param genes An optional vector of gene identifiers to exclude from the
+#'   analysis. Defaults to NULL.
 #' @param identity Minimum identity threshold for BLAST hits to be considered
-#'   significant. Defaults to 0.3.
+#'   significant. Defaults to 30.
+#' @param parallel Logical indicating whether to use parallel processing for
+#'   alignments. Defaults to TRUE.
 #'
 #' @return A modified version of the input `data` dataframe, including
 #'   additional columns for BLAST results (identity, similarity).
@@ -196,28 +208,98 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #' # Assuming 'data' is your dataframe and 'ClusterA' is your query cluster
 #' data_updated <- protein_blast(
 #'                          GC_chart$x$data,
-#'                          clusters = c("ClusterA", "ClusterB"),
-#'                          id_column = "geneID",
-#'                          query = "ClusterA",
+#'                          id = "protein_id",
+#'                          query = "cluster A",
 #'                          identity = 0.3
 #'                          )
 #'
 #' @importFrom Biostrings pairwiseAlignment
-#' @importFrom dplyr bind_rows group_by slice_max ungroup left_join summarize cur_data arrange
+#' @importFrom dplyr bind_rows group_by slice_max ungroup left_join summarize
+#'   cur_data arrange
 #' @importFrom stats setNames
 #' @importFrom rlang .data
-#' @importFrom parallel detectCores makeCluster clusterExport clusterEvalQ parLapply stopCluster
+#' @importFrom parallel detectCores makeCluster clusterExport clusterEvalQ
+#'   parLapply stopCluster
 #' @note This function relies on the Biostrings package for sequence alignment
 #'   and the dplyr package for data manipulation. Ensure these packages are
 #'   installed and loaded into your R session.
 #'
 #' @noRd
-protein_blast <- function(data, clusters, genes, id_column, query, identity, parallel = TRUE) {
+protein_blast <- function(data, query, id = "protein_id", start = "start", end = "end", cluster = "cluster", genes = NULL, identity = 30, parallel = TRUE) {
 
   # Check if Biostrings package is installed
   if (!requireNamespace("Biostrings", quietly = TRUE)) {
     stop('Biostrings package is not installed. Please install it using BiocManager::install("Biostrings").')
   }
+
+  # Load from .gbk files
+  if (is.character(data)) {
+    gbk <- geneviewer::read_gbk(data) # Adjust based on actual function call
+    data <- geneviewer::gbk_features_to_df(gbk, feature = "CDS", keys = c("protein_id", "region", "translation"))
+    data <- data[!is.na(data[[start]]) & !is.na(data[[end]]), ]
+    cluster <- "cluster"
+    strand <- "strand"
+  }
+
+  # ensure that data is a data frame
+  stopifnot(is.data.frame(data))
+
+  if (!(id %in% names(data))) {
+    stop("Please use the id variable to specificy the column name containing unique protein identifiers.")
+    return(NULL)
+  }
+
+  if (anyDuplicated(data$id) > 0){
+    stop("The id column should consist of unique values.")
+    return(NULL)
+  }
+
+  if (!(start %in% names(data))) {
+    stop("Please use the start variable to specificy the column name specifying the start positions.")
+    return(NULL)
+  }
+
+  if (!(end %in% names(data))) {
+    stop("Please use the end variable to specificy the column name specifying the end positions.")
+    return(NULL)
+  }
+
+
+  if (!(cluster %in% names(data))) {
+    stop("Please use the cluster variable to specificy the column name specifying the cluster names.")
+    return(NULL)
+  }
+
+  if (!(query %in% data[[cluster]])) {
+    stop("Query not found in cluster columnm.")
+    return(NULL)
+  }
+
+  if (!('sequence' %in% names(data)) && !('translation' %in% names(data))) {
+    stop("No 'sequence' or 'translation' column found in data.")
+    return(NULL)
+  }
+
+  if ('sequence' %in% names(data) && !('translation' %in% names(data))) {
+    names(data)[names(data) == "sequence"] <- "translation"
+  }
+
+  # Remove NA values
+  data <- data[!is.na(data[[id]]) & !is.na(data$translation) & !is.na(data[[cluster]]), ]
+
+  # Add rowID to data
+  data$rowID <- seq_len(nrow(data))
+  # add start and end
+  data_tmp <- data
+  data$start <- data_tmp[[start]]
+  data$end <- data_tmp[[end]]
+
+  # Convert cluster to character
+  if(!is.null(cluster)){
+    data[[cluster]] <- as.character(data[[cluster]])
+  }
+
+  clusters <- unique(data[[cluster]])
 
   # Perform alignment for cluster combinations
   cluster_pairs <- lapply(clusters, function(target) c(query, target))
@@ -294,7 +376,7 @@ protein_blast <- function(data, clusters, genes, id_column, query, identity, par
     dplyr::ungroup()
 
   # Bind gene Ids
-  data_groups <- data[, c("rowID", id_column)]
+  data_groups <- data[, c("rowID", id)]
   names(data_groups) <- c("rowID", "BlastP")
 
   protein_combinations_all <- dplyr::left_join(protein_combinations_all, data_groups, by = c("rowID.x" = "rowID"))
@@ -312,7 +394,6 @@ protein_blast <- function(data, clusters, genes, id_column, query, identity, par
     dplyr::group_by(cluster) %>%
     dplyr::arrange(order1) %>%
     dplyr::summarize(score = synteny_score(order1, order2, identity), .groups = 'drop')
-
 
   # bind scores
   data <- dplyr::left_join(data, synteny_scores, by = "cluster") %>% dplyr::arrange(desc(score))
@@ -375,7 +456,7 @@ GC_blast <- function(
     labels = NULL,
     parallel = TRUE,
     ...) {
-
+  browser()
   data <- GC_chart$x$data
 
   if (!(id_column %in% names(data))) {
@@ -417,7 +498,16 @@ GC_blast <- function(
 
   clusters <- getUpdatedClusters(GC_chart, cluster)
 
-  data <- protein_blast(data, clusters, genes, id_column, query, identity, parallel)
+  data <-
+    protein_blast(
+      data,
+      query,
+      id = id_column,
+      cluster = "cluster",
+      identity = identity,
+      genes = genes,
+      parallel = parallel
+      )
 
   # Rename 'BlastP' column values based on 'names' argument
   if (!is.null(labels) && "BlastP" %in% colnames(data)) {
@@ -428,8 +518,8 @@ GC_blast <- function(
 
   # Update chart data
   GC_chart$x$data <- data
-  GC_chart$x$group <- "BlastP"
-  GC_chart$x$legend$group <- "BlastP"
+  #GC_chart$x$group <- "BlastP"
+  #GC_chart$x$legend$group <- "BlastP"
 
   #Re order series
   GC_chart$x$series <- GC_chart$x$series[unique(data$cluster)]
@@ -440,7 +530,7 @@ GC_blast <- function(
     subset_data <- data[data[[cluster_column]] == clust, ]
 
     GC_chart$x$series[[clust]]$data <- subset_data
-    GC_chart$x$series[[clust]]$genes <- list(group = "BlastP", show = TRUE)
+    #GC_chart$x$series[[clust]]$genes <- list(group = "BlastP", show = TRUE)
     if(clust == query){
     GC_chart$x$series[[clust]]$tooltip <-
      list(

@@ -63,8 +63,10 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))
+
   # Check if column names are in the data frame
   colnames_data <- colnames(data)
+
   if (!(start %in% colnames_data)) stop("start column not found in data")
   if (!(end %in% colnames_data)) stop("end column not found in data")
   if (!is.null(cluster) && !(cluster %in% colnames_data)) {
@@ -152,7 +154,23 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$sequence <- list(show = TRUE)
     x$series[[clust]]$annotations <- list()
     x$series[[clust]]$trackMouse <- list(show = FALSE)
-    x$series[[clust]]$tooltip <- list(show = TRUE, formatter = "<b>Start:</b> {start} <br><b>end:</b> {end}")
+
+    if(all(c("BlastP", "protein_id") %in% colnames_data)){
+      formatter <-
+        "<b>{protein_id}</b><br>
+        <b>BlastP hit with:</b> {BlastP}<br>
+        <b>Identity:</b> {identity}%%<br>
+        <b>Similarity:</b> {similarity}%%<br>
+        <b>Location:</b> {start} - {end}<br>"
+    } else {
+      formatter <-
+        "<b>Start:</b> {start}<br><b>End:</b> {end}"
+    }
+    x$series[[clust]]$tooltip <-
+      formatter <- list(
+        show = TRUE,
+        formatter = formatter
+      )
   }
 
   # create the widget
@@ -2283,6 +2301,7 @@ GC_links <- function(
     cluster = NULL,
     curve = TRUE,
     identity = TRUE,
+    show_links = TRUE,
     identity_label = TRUE,
     normal_color = "#969696",
     inverted_color = "#d62728",
@@ -2305,12 +2324,24 @@ GC_links <- function(
 
   link_columns <- c("cluster1", "group1", "start1", "end1",
                     "cluster2", "group2", "start2", "end2", "identity", "similarity")
+
+  if(use_group_colors){
+    if(!is.null(GC_chart$x$group)){
+    group_color <- GC_chart$x$group
+    } else {
+    group_color <- group
+    }
+    links_data$groupColor <- links_data[[paste0(group_color, "2")]]
+    link_columns <- c(link_columns, "groupColor")
+  }
+
   links_data <- links_data[, link_columns[link_columns %in% names(links_data)], drop = FALSE]
   links_data <- links_data[order(links_data$start2), ]
 
   links_options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
     curve = curve,
     identity = identity,
+    showLinks = show_links,
     identityLabel = identity_label,
     normalColor = normal_color,
     invertedColor = inverted_color,

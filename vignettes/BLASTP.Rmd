@@ -1,0 +1,166 @@
+---
+title: "Cluster comparison using BlastP"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Cluster comparison using BlastP}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+library(knitr)
+library(geneviewer)
+library(parallel)
+library(dplyr)
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+### Intro
+
+This tutorial describes how we can use `geneviewer` to identify and visualize homologous genes across clusters by performing a BlastP alignment. To demonstrate this we use a GenBank file that contains the genes involved in the biosynthesis of erythromycin A from *Saccharopolyspora erythraea* and compare it too several homologous clusters from different species which were identified using [antiSMASH](https://antismash.secondarymetabolites.org/#!/start). For guidance on importing clusters from GenBank files, please refer to this [guide](https://nvelden.github.io/geneviewer/articles/LoadGenBankFiles.html).
+
+### Materials
+
+The .gbk files and the additional gene info can be downloaded from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Cluster%20comparison%20using%20BlastP) repository. Besides the `geneviewer` package for the visualization you will need the `Biostrings` package to run the BlastP sequence alignment and optionally the `parallel` package to speed up the processing.
+
+```{r eval=FALSE, results='hide'}
+install.packages("devtools")
+install.packages("parallel") # Optional but recommended for speeding up processing
+
+devtools::install_github("nvelden/geneviewer")
+BiocManager::install("Biostrings")
+
+library(geneviewer)
+library(Biostrings)
+library(parallel) 
+```
+
+### Loading cluster information
+
+The cluster information needed to run the BlastP can be loaded directly from the .gbk files by pointing to the folder path that contains the files and running the `protein_blast()` function.
+
+```{r eval=FALSE, results='hide'}
+# change the path to the folder where the .gbk files are saved
+folder_path <- "~/path/to/folder/"
+```
+
+Alternatively, the protein blast can be performed using a data.frame that contains the start, end, strand, translation as well as a unique identifier for each gene and cluster as shown below.
+
+```{r include=FALSE}
+folder_path <- "~/Documents/2023 github/geneviewer/genbank_files/erythromycin"
+gbk <- geneviewer::read_gbk(folder_path)
+genbank_df <- geneviewer::gbk_features_to_df(gbk, feature = "CDS", keys = c("protein_id", "region", "translation")) %>% 
+  select(-region)
+genbank_df <- genbank_df[!is.na(genbank_df$start) & !is.na(genbank_df$end), ]
+```
+
+```{r echo = FALSE, results='asis'}
+kable(head(genbank_df))
+```
+
+### Run BlastP
+
+In this tutorial, we will directly input the folder path into `the protein_blast()` function to load our data. We'll select BGC0000055 as our query cluster and conduct a BlastP analysis to find the homologous in the other clusters. We use 30 as the minimum identity threshold. Performing the BlastP analysis can take several minutes so we set parallel processing to TRUE.
+
+```{r echo=TRUE, results='hide'}
+BlastP_results <- geneviewer::protein_blast(
+  folder_path,
+  query = "BGC0000055",
+  id = "protein_id", # Name of column containing gene identifiers. 
+  cluster = "cluster", # Name of column containing cluster identifiers. 
+  identity = 30,
+  parallel = TRUE
+)
+```
+
+After running the BlastP, the dataset will contain three additional columns. These colums are:
+
+-   **BlastP**: Indicates the top BlastP match found within the query cluster, characterized by its unique protein id.
+-   **identity**: The percentage identity to the BlastP hit.
+-   **similarity**: The percentage similarity to the BlastP hit.
+-   **score**: Synteny score between clusters based on those used in antiSMASH/MultiGeneBlast. 
+
+```{r echo = FALSE, results='asis'}
+kable(BlastP_results %>% select(-translation))
+```
+
+We can visualize the results using `geneviewer`. In the graph the clusters are ordered based on the synteny score. The genes are colored by the BlasP hit found in the query cluster. Genes that remain uncolored did not have any significant homologous. By hoovering over the genes one can see the percentage identity and similarity.
+
+```{r echo = TRUE, results='asis'}
+GC_chart(
+  data = BlastP_results,
+  cluster = "cluster",
+  strand = "strand",
+  group = "BlastP",
+  height = "800px"
+) %>%
+GC_clusterLabel() %>%
+GC_legend(FALSE)
+```
+
+### Color by gene function
+
+Rather than assigning colors to genes based on their BlastP matches, we can color them by gene function. To do this we can bind the extra gene information specific to our query cluster from the `BGC0000055_info.csv` file. 
+
+```{r include=FALSE}
+BGC0000055_info <- read.csv("~/Documents/2023 github/geneviewer/genbank_files/erythromycin/BGC0000055_info.csv")
+```
+
+```{r eval=FALSE, results='hide'}
+# change the path to the folder where the .gbk files are saved
+BGC0000055_info <- "~/path/to/folder/BGC0000055_info.csv"
+```
+
+```{r echo = FALSE, results='asis'}
+kable(head(BGC0000055_info))
+```
+
+By executing a `left_join()` operation with the `BlastP_results` dataset on the `BlastP` field, we can add the functional data. 
+
+```{r echo = TRUE, results='asis'}
+BlastP_results_functions <- left_join(BlastP_results, BGC0000055_info, by = join_by(BlastP == protein_id ) )
+```
+
+We can use the Function category to color the genes. We'll also add gene names, links, and BlastP identity values to the cluster information.
+
+```{r echo = TRUE, results='asis'}
+GC_chart(
+  data = BlastP_results_functions,
+  cluster = "cluster",
+  group = "Functions",
+  strand = "strand",
+  height = "800px"
+) %>%
+GC_labels(label = "Gene", cluster = 1) %>% 
+GC_links(group = "BlastP",  identity = TRUE) %>%  
+GC_clusterLabel() %>%
+GC_legend(TRUE)
+```
+
+Alternatively, we could only highlight links between specific genes using the value1 and value2 options in the `GC_links()` function. See the `GC_links()` documentation for more styling and coloring options.
+
+```{r echo = TRUE, results='asis'}
+GC_chart(
+  data = BlastP_results_functions,
+  cluster = "cluster",
+  group = "Functions",
+  strand = "strand",
+  height = "800px"
+) %>%
+GC_labels(label = "Gene", cluster = 1) %>% 
+GC_links(group = "Gene",  
+         identity = TRUE, 
+         value1 = c("eryAI", "eryAII", "eryAIII"), 
+         value2 = c("eryAI", "eryAII", "eryAIII"), 
+         use_group_colors = TRUE
+         ) %>%  
+GC_clusterLabel() %>%
+GC_legend(TRUE)
+```
+
+
+

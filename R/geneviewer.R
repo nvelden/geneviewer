@@ -2339,6 +2339,7 @@ GC_links <- function(
   links_data <- links_data[order(links_data$start2), ]
 
   links_options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+    group = group,
     curve = curve,
     identity = identity,
     showLinks = show_links,
@@ -2346,6 +2347,8 @@ GC_links <- function(
     normalColor = normal_color,
     invertedColor = inverted_color,
     useGroupColors = use_group_colors,
+    value1 = value1,
+    value2 = value2,
     linkStyle = linkStyle,
     labelStyle = labelStyle,
     ...

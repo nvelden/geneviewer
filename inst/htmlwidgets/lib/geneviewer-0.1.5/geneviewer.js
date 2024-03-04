@@ -1724,6 +1724,10 @@ container.prototype.labels = function (label, show = true, options = {}) {
     return this;
   }
 
+    if (!label) {
+    return this;
+  }
+
   // Verify that the data exists
   if (!this.data) {
     console.error('No data has been added to this cluster container. Please use the addGeneData() function before attempting to draw genes.');
@@ -1811,6 +1815,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
   };
 
   const self = this;
+
   // Adding the Label
   g.selectAll("text.label")
     .data(this.data)
@@ -2423,10 +2428,17 @@ container.prototype.links = function (links, clusterKey, options = {}) {
 
     if(identityLabel){
     const self = this;
-
+    const labelData = this.data.filter(d =>
+      d.identity != null &&
+      d.BlastP != d.protein_id &&
+      d.BlastP &&
+      ((options.value1 === undefined && options.value2 === undefined) ||
+      (options.value1 && options.value1.includes(d[options.group])) ||
+      (options.value2 && options.value2.includes(d[options.group])))
+    );
     // Adding the Label
-    group.selectAll("link-text")
-    .data(this.data)
+    group.selectAll(".link-text")
+    .data(labelData)
     .enter()
     .append("text")
     .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-label-${i}`)
@@ -2434,7 +2446,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     .attr("class", "link-text")
     .attr("x", (d, i) => this.xScale((d.start + d.end) / 2))
     .attr("y", (d, i) => this.yScale(y) - (this.markerHeight / 1.5) - clusterStrandSpacing)
-    .text(d => d.identity != null && d.BlastP != d.protein_id && d.BlastP ? `${parseFloat(d.identity.toFixed(1))}%` : '')
+    .text(d => `${parseFloat(d.identity.toFixed(1))}%`)
     .style("font-size", fontSize)
     .style("font-style", fontStyle)
     .style("font-family", fontFamily)

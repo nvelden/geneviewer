@@ -224,7 +224,7 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #'   and the dplyr package for data manipulation. Ensure these packages are
 #'   installed and loaded into your R session.
 #'
-#' @noRd
+#' @export
 protein_blast <- function(data, query, id = "protein_id", start = "start", end = "end", cluster = "cluster", genes = NULL, identity = 30, parallel = TRUE) {
 
   # Check if Biostrings package is installed
@@ -404,6 +404,8 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
 
   data$rowID <- seq_len(nrow(data))
   data$rowID.x <- NULL
+  data$order1 <- NULL
+  data$order2 <- NULL
 
   return(data)
 }

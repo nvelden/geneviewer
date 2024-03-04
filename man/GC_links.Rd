@@ -12,6 +12,7 @@ GC_links(
   cluster = NULL,
   curve = TRUE,
   identity = TRUE,
+  show_links = TRUE,
   identity_label = TRUE,
   normal_color = "#969696",
   inverted_color = "#d62728",

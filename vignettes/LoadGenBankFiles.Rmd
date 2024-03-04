@@ -41,7 +41,7 @@ View(gbk) # Inspect the list in Rstudio
 ```{r echo = FALSE, results='asis'}
 library(geneviewer)
 # change the path to where you have saved the file
-file_path <- "~/Documents/2023 github/geneviewer/genbank_files/BGC0000001.gbk"
+file_path <- "~/Documents/2023 github/geneviewer/genbank_files/abyssomicin/BGC0000001.gbk"
 gbk <- read_gbk(file_path)
 ```
 
@@ -150,7 +150,7 @@ View(gbk) # Inspect the list in Rstudio
 ```{r echo = FALSE, results='asis'}
 library(geneviewer)
 # change the path to the folder containing the .gbk files
-folder_path <- "~/Documents/2023 github/geneviewer/genbank_files/"
+folder_path <- "~/Documents/2023 github/geneviewer/genbank_files/abyssomicin"
 gbk_list <- read_gbk(folder_path)
 ```
 
@@ -193,12 +193,13 @@ GC_chart(
   group = "gene_kind",
   strand = "strand",
   cluster = "cluster",
-  height = "500px"
+  height = "800px"
 ) %>%
     GC_clusterTitle(
-    y = 15,  
+    y = 5,  
     title = paste0("<i>", source_clusters_df$organism, "</i>: ", source_clusters_df$region),
-    align = "left"
+    align = "left",
+    titleFont = list(fontSize = 12),
     ) %>%
   GC_clusterLabel(names(gbk_list)) %>%
   GC_genes(

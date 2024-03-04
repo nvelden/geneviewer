@@ -263,6 +263,7 @@ function adjustSpecificLabel(container, labelSelector, elementId, options = {}) 
 
       // If the specific label overlaps with another label
       if (overlapPercentage(specificLabelRect, labelRect) > 0) {
+
         // Adjust the label rotation and position
         d3.select(specificLabel)
           .style("text-anchor", "start")
@@ -350,26 +351,35 @@ function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
 function getColorScale(colorScheme, customColors, uniqueGroups) {
   let colorScale;
 
+  uniqueGroups = uniqueGroups.filter(color => color !== null);
+
+    const schemeCategory30 = [
+    "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+    "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
+    "#393b79", "#637939", "#8c6d31", "#843c39", "#7b4173",
+    "#bd9e39", "#ad494a", "#d6616b", "#31a354", "#cedb9c",
+    "#9c9ede", "#637939", "#8ca252", "#b5cf6b", "#cedb9c",
+    "#8c6d31", "#e7cb94", "#e7969c", "#7b4173", "#a55194"
+  ];
+
   // Check if customColors is an object and not an array
   if (customColors && typeof customColors === 'object' && !Array.isArray(customColors)) {
     // Find groups without a corresponding color in customColors
     const unmappedGroups = uniqueGroups.filter(group => !(group in customColors));
     // Issue a warning if there are unmapped groups
     if (unmappedGroups.length > 0) {
-      console.warn(`Warning: No color mapping found for the following groups, defaulting to black: ${unmappedGroups.join(', ')}`);
+      console.warn(`Warning: No color mapping found for the following groups, defaulting to white: ${unmappedGroups.join(', ')}`);
     }
-
-
     // Create a color scale based on the customColors object
     colorScale = d3.scaleOrdinal()
       .domain(uniqueGroups)
-      .range(uniqueGroups.map(group => customColors[group] || "black"));
+      .range(uniqueGroups.map(group => customColors[group] || "#FFF"));
   } else if (colorScheme) {
     if (!d3[colorScheme]) {
-      console.warn(`Warning: The color scheme "${colorScheme}" does not exist. Defaulting to black.`);
+      console.warn(`Warning: The color scheme "${colorScheme}" does not exist. Defaulting to white.`);
       colorScale = d3.scaleOrdinal()
         .domain(uniqueGroups)
-        .range(uniqueGroups.map(() => "black")); // Set all colors to black
+        .range(uniqueGroups.map(() => "#FFF"));
     } else {
       colorScale = d3.scaleOrdinal(d3[colorScheme])
         .domain(uniqueGroups);
@@ -381,9 +391,11 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
   } else if (customColors && customColors.length > 0) {
     colorScale = d3.scaleOrdinal()
       .domain(uniqueGroups)
+      .unknown("#FFF")
       .range(customColors);
   } else {
-    colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+    colorScale = d3.scaleOrdinal(schemeCategory30)
+      .unknown("#FFF")
       .domain(uniqueGroups);
   }
 
@@ -602,7 +614,6 @@ function getLinkCoordinates(graphContainer, data) {
 
         // Check if elements exist
         if (!element1 || !element2 || !element3 || !element4) {
-            console.error('Elements not found for selectors:', selector1, selector2, selector3, selector4);
             return null;
         }
 
@@ -622,10 +633,12 @@ function getLinkCoordinates(graphContainer, data) {
         // Determine the strand based on the x-coordinate positions
         const strand1 = item.start1 <= item.end1 ? "forward" : "reverse";
         const strand2 = item.start2 <= item.end2 ? "forward" : "reverse";
+        const groupColor1 = element1.getAttribute("groupColor")
+        const groupColor2 = element2.getAttribute("groupColor")
 
         return [
-            { startPoint: adjustRect(rect1), endPoint: adjustRect(rect2), strand: strand1 },
-            { startPoint: adjustRect(rect3), endPoint: adjustRect(rect4), strand: strand2 }
+            { startPoint: adjustRect(rect1), endPoint: adjustRect(rect2), strand: strand1, groupColor: groupColor1 },
+            { startPoint: adjustRect(rect3), endPoint: adjustRect(rect4), strand: strand2, groupColor: groupColor2 }
         ];
     });
 
@@ -642,13 +655,22 @@ function makeLinks(graphContainer, links, clusters) {
       curve: true,
       invertedColor: "red",
       normalColor: "blue",
+      useGroupColors: false,
       color: "lightgrey",
-      style: {
+      identityLabel: true,
+      linkStyle: {
         stroke: "none",
         fillOpacity: 0.8
+      },
+      labelStyle: {
+        fontSize: "10px",
+        fontStyle: "normal",
+        fontFamily: "sans-serif",
+        cursor: "default",
+        textAnchor: "middle",
+        alignmentBaseline: "middle"
       }
     };
-
 
   const graphRect = graphContainer.node().getBoundingClientRect();
       // Create a container div for the SVG
@@ -669,32 +691,77 @@ function makeLinks(graphContainer, links, clusters) {
       .style("top", `${graphContainer.top}px`);
 
 
+
     links.forEach(function(link) {
 
-      const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options);
-      const { curve, invertedColor, normalColor, color, style } = combinedOptions;
-      const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
-      const coordinates = getLinkCoordinates(graphContainer, HTMLWidgets.dataframeToD3(link.data));
+        const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options)
+        const { curve, invertedColor, normalColor, useGroupColors, color, linkStyle, labelStyle, identityLabel } = combinedOptions;
 
+        const additionalOptionsLinkStyle = extractAdditionalOptions(linkStyle, defaultOptions.linkStyle);
+        const additionalOptionsLabelStyle = extractAdditionalOptions(labelStyle, defaultOptions.labelStyle);
+
+        const linkData = HTMLWidgets.dataframeToD3(link.data)
+        const coordinates = getLinkCoordinates(graphContainer, linkData);
+
+      // Add svg paths
       coordinates.forEach(function(coordinate, index) {
 
                 const baseColor = coordinate[0].strand == coordinate[1].strand ? d3.rgb(normalColor) : d3.rgb(invertedColor)
                 var colorScale = d3.scaleSequential(t => d3.interpolate("#FFFFFF", baseColor)(t))
                     .domain([0, 100]);
                 const identity = link.data?.identity?.[index] ?? 100
+                const linkColor = useGroupColors ? coordinate[0].groupColor : colorScale(identity)
 
             lineSvg.append("path")
                 .attr("d", createLinkerPath(coordinate[0], coordinate[1], curve))
-                .style("fill", colorScale(identity))
-                .style("stroke", style.stroke)
-                .style("fill-opacity", style.fillOpacity)
+                .style("fill", linkColor)
+                .style("stroke", linkStyle.stroke)
+                .style("fill-opacity", linkStyle.fillOpacity)
                 .classed("GeneLink", true)
                 .each(function () {
                     const currentElement = d3.select(this);
-                    setStyleFromOptions(currentElement, additionalOptionsStyle);
+                    setStyleFromOptions(currentElement, additionalOptionsLinkStyle);
                 });
-        });
+
+      // Add identity label
+      linkData.forEach(function(data, index){
+
+        const linkLabelselector = `.link-text[cluster='${data.cluster2}'][linkID='${data.linkID}']`;
+        const labelContainer = graphContainer.select(linkLabelselector);
+
+        if (!labelContainer.empty() && identityLabel) {
+            let currentX = labelContainer.attr("x");
+                let currentY = labelContainer.attr("y");
+
+                if (additionalOptionsLabelStyle.x !== undefined) {
+                    currentX = parseFloat(currentX) + parseFloat(additionalOptionsLabelStyle.x);
+                }
+                if (additionalOptionsLabelStyle.y !== undefined) {
+                    currentY = parseFloat(currentY) + parseFloat(additionalOptionsLabelStyle.y);
+                }
+
+        labelContainer
+            .attr("x", currentX)
+            .attr("y", currentY)
+            .style("font-size", labelStyle.fontSize)
+            .style("font-style", labelStyle.fontStyle)
+            .style("font-family", labelStyle.fontFamily)
+            .style("cursor", labelStyle.cursor)
+            .attr("text-anchor", labelStyle.textAnchor)
+            .attr("alignment-baseline", labelStyle.alignmentBaseline)
+            .each(function () {
+                const currentElement = d3.select(this);
+                setStyleFromOptions(currentElement, additionalOptionsLabelStyle);
+            });
+        } else { // If identityLabel is FALSE, remove the labelContainer
+          labelContainer.remove();
+        }
+
+      });
+
     });
+  });
+
 }
 
 function createLinkerPath(link1, link2, curve = true) {
@@ -1657,6 +1724,10 @@ container.prototype.labels = function (label, show = true, options = {}) {
     return this;
   }
 
+    if (!label) {
+    return this;
+  }
+
   // Verify that the data exists
   if (!this.data) {
     console.error('No data has been added to this cluster container. Please use the addGeneData() function before attempting to draw genes.');
@@ -1720,16 +1791,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
     const currentDy = style.dy || dy;
     const currentRotate = style.rotate || rotate;
     var currentLabelAdjustmentOptions = style.labelAdjustmentOptions || labelAdjustmentOptions;
-
-    if(!this.separateStrands){
       currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
-    }
-    else if (d.strand === "forward") {
-      currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
-    } else {
-      currentLabelAdjustmentOptions.rotation = Math.abs(currentLabelAdjustmentOptions.rotation);
-    }
-
     const currentAdjustLabels = style.adjustLabels !== undefined ? style.adjustLabels : adjustLabels;
 
       // Calculate Y position based on geneTrack
@@ -1753,6 +1815,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
   };
 
   const self = this;
+
   // Adding the Label
   g.selectAll("text.label")
     .data(this.data)
@@ -1999,6 +2062,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
   const uniqueGroups = [...new Set(this.dataAll.map(d => d[group]))];
 
   const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
+  this.genesColorScale = colorScale;
 
   var g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
@@ -2028,9 +2092,9 @@ container.prototype.genes = function (group, show = true, options = {}) {
         }
       )
 
-    this.markerHeight = height
+    this.markerHeight = height;
     this.geneStrandSpacing = this.separateStrands ? (height / 2 + this.strandSpacing) : 0;
-    this.geneOverlapSpacing = (height + this.overlapSpacing)
+    this.geneOverlapSpacing = (height + this.overlapSpacing);
 
     // Calculate Y position based on geneTrack
     const currentGeneStrandSpacing = (d.strand == "forward" && this.geneStrandSpacing !== 0)
@@ -2128,6 +2192,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     svgLegend.node().getBoundingClientRect().width;
 
   let uniqueGroups = [...new Set(this.data.map(d => d[group]))];
+  uniqueGroups = uniqueGroups.filter(color => color !== null);
 
   const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
 
@@ -2267,11 +2332,34 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   return this;
 };
 
-container.prototype.links = function (links, clusterKey) {
+container.prototype.links = function (links, clusterKey, options = {}) {
+
+  const defaultOptions = {
+    y: 50,
+    cursor: "pointer",
+    fontSize: "12px",
+    fontStyle: "italic",
+    fontFamily: "sans-serif",
+    textAnchor: "middle",
+    showLinks: true,
+    identityLabel: true,
+    labelAdjustmentOptions: {
+      rotation: -65,
+      offsetX: 0,
+      offsetY: 0,
+      dx: "0em",
+      dy: "0em"
+    },
+  };
 
     if (!links || links.length === 0) {
         return this;
     }
+
+    const combinedOptions = mergeOptions.call(this, defaultOptions, 'linkOptions', options);
+    const { x, y, cursor, fontSize, fontStyle, fontFamily, textAnchor, showLinks, identityLabel, labelAdjustmentOptions } = combinedOptions;
+
+    const additionalOptions = extractAdditionalOptions(options, defaultOptions);
 
     var group = this.svg.append("g")
         .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
@@ -2279,50 +2367,97 @@ container.prototype.links = function (links, clusterKey) {
     const hasReverseStrand = this.data.some(item => item.strand === "reverse");
     const clusterStrandSpacing = hasReverseStrand ? this.geneStrandSpacing * 1 : 0;
 
+    if(showLinks){
     links.forEach(link => {
+
         // Check if the link is relevant to cluster1
         if (link.cluster1 === clusterKey) {
+
+          const groupColor1 = link.groupColor ? this.genesColorScale(link.groupColor) : this.genesColorScale(link.group1);
+
             group.append("circle")
                 .attr("cx", this.xScale(link.start1))
-                .attr("cy", this.yScale(50) + clusterStrandSpacing)
+                .attr("cy", this.yScale(y) + clusterStrandSpacing)
                 .attr("position", link.start1)
                 .attr("r", 0)
                 .attr("cluster", clusterKey)
+                .attr("groupColor", groupColor1)
                 .attr("linkID", link.linkID)
                 .attr("class", "link-marker");
 
             group.append("circle")
                 .attr("cx", this.xScale(link.end1))
-                .attr("cy", this.yScale(50) + clusterStrandSpacing)
+                .attr("cy", this.yScale(y) + clusterStrandSpacing)
                 .attr("position", link.end1)
                 .attr("class", "link-marker")
+                .attr("groupColor", groupColor1)
                 .attr("linkID", link.linkID)
                 .attr("cluster", clusterKey)
                 .attr("r", 0);
+
         }
 
         // Check if the link is relevant to cluster2
         if (link.cluster2 === clusterKey) {
 
+          const groupColor2 = link.groupColor ? this.genesColorScale(link.groupColor) : this.genesColorScale(link.group2);
+
             group.append("circle")
                 .attr("cx", this.xScale(link.start2))
-                .attr("cy", this.yScale(50) - clusterStrandSpacing)
+                .attr("cy", this.yScale(y) - clusterStrandSpacing)
                 .attr("position", link.start2)
                 .attr("class", "link-marker")
                 .attr("cluster", clusterKey)
+                .attr("groupColor", groupColor2)
                 .attr("linkID", link.linkID)
                 .attr("r", 0);
 
             group.append("circle")
                 .attr("cx", this.xScale(link.end2))
-                .attr("cy", this.yScale(50) - clusterStrandSpacing)
+                .attr("cy", this.yScale(y) - clusterStrandSpacing)
                 .attr("position", link.end2)
                 .attr("class", "link-marker")
                 .attr("linkID", link.linkID)
                 .attr("cluster", clusterKey)
+                .attr("groupColor", groupColor2)
                 .attr("r", 0);
-        }
+            }
+
     });
+    }
+
+    if(identityLabel){
+    const self = this;
+    const labelData = this.data.filter(d =>
+      d.identity != null &&
+      d.BlastP != d.protein_id &&
+      d.BlastP &&
+      ((options.value1 === undefined && options.value2 === undefined) ||
+      (options.value1 && options.value1.includes(d[options.group])) ||
+      (options.value2 && options.value2.includes(d[options.group])))
+    );
+    // Adding the Label
+    group.selectAll(".link-text")
+    .data(labelData)
+    .enter()
+    .append("text")
+    .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-label-${i}`)
+    .attr("rowID", (d, i) => `${d["rowID"]}`)
+    .attr("class", "link-text")
+    .attr("x", (d, i) => this.xScale((d.start + d.end) / 2))
+    .attr("y", (d, i) => this.yScale(y) - (this.markerHeight / 1.5) - clusterStrandSpacing)
+    .text(d => `${parseFloat(d.identity.toFixed(1))}%`)
+    .style("font-size", fontSize)
+    .style("font-style", fontStyle)
+    .style("font-family", fontFamily)
+    .style("cursor", cursor)
+    .attr("text-anchor", "middle")
+    .attr("cluster", clusterKey)
+    .each(function (d, i) {
+      const currentElement = d3.select(this);
+      adjustSpecificLabel(self, "text.link-text", currentElement.attr("id"), labelAdjustmentOptions);
+    });
+    }
 
     return this;
 };

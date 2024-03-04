@@ -2113,7 +2113,7 @@ GC_align <- function(
 #' # See examples for the `GC_links` function for usage.
 #' @seealso
 #' * [GC_links()]
-#' @export
+#' @noRd
 get_links <-
   function(GC_chart,
            group,

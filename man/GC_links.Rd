@@ -35,13 +35,25 @@ GC_links(
 
 \item{curve}{Logical; if `TRUE`, links are curved, otherwise straight.}
 
+\item{identity}{Logical; if `TRUE`, color intensity of links based on
+identity values.}
+
+\item{show_links}{Logical; if `TRUE`, links are shown, otherwise hidden.}
+
+\item{identity_label}{Logical; if `TRUE`, shown identiy labels, otherwise
+hidden.}
+
 \item{normal_color}{Color for the links in their normal state.}
 
 \item{inverted_color}{Color for inverted links.}
 
-\item{...}{Additional arguments passed to the links.}
+\item{use_group_colors}{Logical; if `TRUE`, color links by group.}
 
-\item{style}{List of CSS styles to apply to the links.}
+\item{linkStyle}{A list of CSS styles to apply to the links.}
+
+\item{labelStyle}{A list of CSS styles specifically for the labels.}
+
+\item{...}{Additional arguments passed to the links.}
 }
 \value{
 Modified `GC_chart` object with added links.
@@ -58,6 +70,7 @@ genes_data <- data.frame(
   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5',
            'Gene 6', 'Gene 7', 'Gene 8', 'Gene 9', 'Gene 10'),
   group = c('A', 'B', 'C', 'A', 'B', 'C', 'A', 'B', 'C', 'D'),
+  identity = c(NA, NA, NA, 50, 40, 100, 60, 65, 20, NA),
   cluster = c(1, 1, 1, 2, 2, 2, 3, 3, 3, 3)
 )
 GC_chart(genes_data,
@@ -85,19 +98,26 @@ GC_chart(genes_data,
     group = "group",
     curve = TRUE,
     identity = TRUE,
+    show_links = TRUE,
     identity_label = TRUE,
     normal_color = "#1f77b4",
     inverted_color = "#d62728",
     use_group_colors = FALSE,
-
-    style = list(
+    linkStyle = list(
       stroke = "black",
       strokeWidth = 0.5,
       fillOpacity = 0.4
       # Any other CSS style
+    ),
+    labelStyle = list(
+      fontSize = "8px",
+     fill = "#FFF",
+      fillOpacity = 0.4
+      # Any other CSS style
     )
   ) \%>\%
-  GC_labels(label = "group")
+  GC_labels(label = "group", cluster = 1) \%>\%
+  GC_clusterLabel()
 }
 \seealso{
 * [get_links()]

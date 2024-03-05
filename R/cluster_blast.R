@@ -20,8 +20,8 @@
 #' @noRd
 get_protein_combinations <- function(data, cluster_pair, rowIDs = NULL) {
 
-  cluster1_data <- subset(data, cluster == cluster_pair[1])
-  cluster2_data <- subset(data, cluster == cluster_pair[2])
+  cluster1_data <- data[data$cluster == cluster_pair[1], ]
+  cluster2_data <- data[data$cluster == cluster_pair[2], ]
 
   # Sort and add order column
   cluster1_data <- cluster1_data[order(pmin(cluster1_data$start, cluster1_data$end)), ]
@@ -205,18 +205,19 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #'   additional columns for BLAST results (identity, similarity).
 #'
 #' @examples
-#' # Assuming 'data' is your dataframe and 'ClusterA' is your query cluster
+#' \dontrun{
+#' path_to_folder <- "path/to/gbk/folder/"
 #' data_updated <- protein_blast(
-#'                          GC_chart$x$data,
+#'                          path_to_folder,
 #'                          id = "protein_id",
 #'                          query = "cluster A",
-#'                          identity = 0.3
+#'                          identity = 30
 #'                          )
+#'}
 #'
-#' @importFrom Biostrings pairwiseAlignment
 #' @importFrom dplyr bind_rows group_by slice_max ungroup left_join summarize
-#'   cur_data arrange
-#' @importFrom stats setNames
+#'   cur_data arrange desc
+#' @importFrom stats setNames ave
 #' @importFrom rlang .data
 #' @importFrom parallel detectCores makeCluster clusterExport clusterEvalQ
 #'   parLapply stopCluster
@@ -305,8 +306,8 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
   cluster_pairs <- lapply(clusters, function(target) c(query, target))
 
   if(!is.null(genes)){
-    query_genes <- data[[id_column]][data$cluster == query & !data[[id_column]] %in% genes]
-    combination_data <- data[!data[[id_column]] %in% query_genes, ]
+    query_genes <- data[[.data$id_column]][data$cluster == query & !data[[.data$id_column]] %in% genes]
+    combination_data <- data[!data[[.data$id_column]] %in% query_genes, ]
   } else {
     combination_data <- data
   }
@@ -371,7 +372,7 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
 
   # Filter to keep only the rows with the highest identity for each rowID.y (query)
   protein_combinations_all <- protein_combinations_all %>%
-    dplyr::group_by(rowID.y) %>%
+    dplyr::group_by(.data$rowID.y) %>%
     dplyr::slice_max(identity, n = 1) %>%
     dplyr::ungroup()
 
@@ -383,20 +384,20 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
 
   # If there is a hit there should be 2 genes in the same group.
   # Therefore set unique groups to NA such that they won't be displayed in the graph
-  protein_combinations_all$BlastP[ave(protein_combinations_all$BlastP, protein_combinations_all$BlastP, FUN=length) == 1] <- NA
+  protein_combinations_all$BlastP[stats::ave(protein_combinations_all$BlastP, protein_combinations_all$BlastP, FUN=length) == 1] <- NA
 
   # Bind data
   data <- dplyr::left_join(data, protein_combinations_all, by = c("rowID" = "rowID.y"))
 
   # Calculate synteny scores for each cluster
   synteny_scores <- data %>%
-    filter(!is.na(order1)) %>%
+    filter(!is.na(.data$order1)) %>%
     dplyr::group_by(cluster) %>%
-    dplyr::arrange(order1) %>%
-    dplyr::summarize(score = synteny_score(order1, order2, identity), .groups = 'drop')
+    dplyr::arrange(.data$order1) %>%
+    dplyr::summarize(score = synteny_score(.data$order1, .data$order2, identity), .groups = 'drop')
 
   # bind scores
-  data <- dplyr::left_join(data, synteny_scores, by = "cluster") %>% dplyr::arrange(desc(score))
+  data <- dplyr::left_join(data, synteny_scores, by = "cluster") %>% dplyr::arrange(dplyr::desc(.data$score))
   # Place query cluster at the top
   ordering <- with(data, order(cluster != query, -score))
   data <- data[ordering, ]

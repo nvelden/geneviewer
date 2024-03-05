@@ -70,7 +70,7 @@ GC_chart(genes_data, group = "group", cluster = "cluster", height = "200px") \%>
 GC_labels("name")
 
 # Load from folder containing .gbk files
-file_path <- "~/path/to/folder/"
-GC_chart(file_path) \%>\%
+# file_path <- "~/path/to/folder/"
+# GC_chart(file_path) \%>\%
 
 }

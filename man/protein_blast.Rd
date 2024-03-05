@@ -63,12 +63,14 @@ This function relies on the Biostrings package for sequence alignment
   installed and loaded into your R session.
 }
 \examples{
-# Assuming 'data' is your dataframe and 'ClusterA' is your query cluster
+\dontrun{
+path_to_folder <- "path/to/gbk/folder/"
 data_updated <- protein_blast(
-                         GC_chart$x$data,
+                         path_to_folder,
                          id = "protein_id",
                          query = "cluster A",
-                         identity = 0.3
+                         identity = 30
                          )
+}
 
 }

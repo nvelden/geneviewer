@@ -45,8 +45,8 @@ magrittr::`%>%`
 #' GC_labels("name")
 #'
 #' # Load from folder containing .gbk files
-#' file_path <- "~/path/to/folder/"
-#' GC_chart(file_path) %>%
+#' # file_path <- "~/path/to/folder/"
+#' # GC_chart(file_path) %>%
 #'
 #' @import htmlwidgets
 #' @export
@@ -2237,9 +2237,16 @@ get_links <-
 #' @param value2 Optional vector of group values to generate links for.
 #' @param cluster Numeric or character vector or NULL; specifies which clusters
 #' @param curve Logical; if `TRUE`, links are curved, otherwise straight.
-#' @param style List of CSS styles to apply to the links.
+#' @param identity Logical; if `TRUE`, color intensity of links based on
+#'   identity values.
+#' @param show_links Logical; if `TRUE`, links are shown, otherwise hidden.
+#' @param identity_label Logical; if `TRUE`, shown identiy labels, otherwise
+#'   hidden.
 #' @param normal_color Color for the links in their normal state.
 #' @param inverted_color Color for inverted links.
+#' @param use_group_colors Logical; if `TRUE`, color links by group.
+#' @param linkStyle A list of CSS styles to apply to the links.
+#' @param labelStyle A list of CSS styles specifically for the labels.
 #' @param ... Additional arguments passed to the links.
 #' @return Modified `GC_chart` object with added links.
 #' @examples
@@ -2250,6 +2257,7 @@ get_links <-
 #'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5',
 #'            'Gene 6', 'Gene 7', 'Gene 8', 'Gene 9', 'Gene 10'),
 #'   group = c('A', 'B', 'C', 'A', 'B', 'C', 'A', 'B', 'C', 'D'),
+#'   identity = c(NA, NA, NA, 50, 40, 100, 60, 65, 20, NA),
 #'   cluster = c(1, 1, 1, 2, 2, 2, 3, 3, 3, 3)
 #' )
 #' GC_chart(genes_data,
@@ -2277,19 +2285,26 @@ get_links <-
 #'     group = "group",
 #'     curve = TRUE,
 #'     identity = TRUE,
+#'     show_links = TRUE,
 #'     identity_label = TRUE,
 #'     normal_color = "#1f77b4",
 #'     inverted_color = "#d62728",
 #'     use_group_colors = FALSE,
-#'
-#'     style = list(
+#'     linkStyle = list(
 #'       stroke = "black",
 #'       strokeWidth = 0.5,
 #'       fillOpacity = 0.4
 #'       # Any other CSS style
+#'     ),
+#'     labelStyle = list(
+#'       fontSize = "8px",
+#'      fill = "#FFF",
+#'       fillOpacity = 0.4
+#'       # Any other CSS style
 #'     )
 #'   ) %>%
-#'   GC_labels(label = "group")
+#'   GC_labels(label = "group", cluster = 1) %>%
+#'   GC_clusterLabel()
 #' @seealso
 #' * [get_links()]
 #' @export

@@ -2428,10 +2428,10 @@ container.prototype.links = function (links, clusterKey, options = {}) {
 
     if(identityLabel){
     const self = this;
+
     const labelData = this.data.filter(d =>
       d.identity != null &&
-      d.BlastP != d.protein_id &&
-      d.BlastP &&
+      (d.BlastP === undefined || (d.BlastP != d.protein_id && d.BlastP)) &&
       ((options.value1 === undefined && options.value2 === undefined) ||
       (options.value1 && options.value1.includes(d[options.group])) ||
       (options.value2 && options.value2.includes(d[options.group])))

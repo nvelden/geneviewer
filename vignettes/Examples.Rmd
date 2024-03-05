@@ -398,4 +398,65 @@ GC_chart(erythromycin_cluster,
   GC_color(customColors = colors) 
 ```
 
+### *Saccharopolyspora erythraea* Erythromycin BlastP
+
+<details>
+<summary>Click to see the code</summary>
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+### Erythromycin BlastP
+GC_chart(erythromycin_BlastP, 
+         cluster = "cluster",
+         strand = "strand",
+         group = "Functions",
+         height = 700) %>%
+  GC_title(
+    title = "BlastP Results"
+  ) %>%
+  GC_labels("Gene", cluster = 1) %>%
+  GC_links(group = "Gene", 
+           show_links = FALSE,
+           labelStyle = list(fontSize = "10px")
+           ) %>%
+  GC_clusterLabel()
+```
+</details>
+
+
+```{r echo = FALSE, results='asis'}
+### Erythromycin BlastP
+GC_chart(erythromycin_BlastP, 
+         cluster = "cluster",
+         strand = "strand",
+         group = "Functions",
+         height = 700) %>%
+  GC_title(
+    title = "BlastP Results"
+  ) %>%
+  GC_labels("Gene", cluster = 1) %>%
+  GC_links(group = "Gene", 
+           show_links = FALSE,
+           labelStyle = list(fontSize = "10px")
+           ) %>%
+  GC_clusterLabel()
+```
+
+<details>
+<summary>Click to see the code</summary>
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+### Erythromycin BlastP
+GC_chart(erythromycin_BlastP %>% filter(cluster %in% c("BGC0000055", "BGC0000054")), 
+         cluster = "cluster",
+         strand = "strand",
+         group = "BlastP",
+         height = 250) %>%
+  GC_labels("Gene", cluster = 1) %>%
+  GC_genes(marker_size = "small", marker = "rbox", markerHeight = 15) %>%
+  GC_links(group = "BlastP", 
+           show_links = TRUE,
+           identity_label = FALSE
+           ) %>%
+  GC_clusterLabel() %>%
+  GC_legend(FALSE)
+```
+</details>
 

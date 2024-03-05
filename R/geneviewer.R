@@ -159,8 +159,8 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
       formatter <-
         "<b>{protein_id}</b><br>
         <b>BlastP hit with:</b> {BlastP}<br>
-        <b>Identity:</b> {identity}%%<br>
-        <b>Similarity:</b> {similarity}%%<br>
+        <b>Identity:</b> {identity}%<br>
+        <b>Similarity:</b> {similarity}%<br>
         <b>Location:</b> {start} - {end}<br>"
     } else {
       formatter <-

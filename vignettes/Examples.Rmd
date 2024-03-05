@@ -9,6 +9,7 @@ vignette: >
 
 ```{r, include = FALSE}
 library(geneviewer)
+library(dplyr)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -460,3 +461,19 @@ GC_chart(erythromycin_BlastP %>% filter(cluster %in% c("BGC0000055", "BGC0000054
 ```
 </details>
 
+```{r echo = FALSE, results='asis'}
+### Erythromycin BlastP
+GC_chart(erythromycin_BlastP %>% dplyr::filter(cluster %in% c("BGC0000055", "BGC0000054")), 
+         cluster = "cluster",
+         strand = "strand",
+         group = "BlastP",
+         height = 250) %>%
+  GC_labels("Gene", cluster = 1) %>%
+  GC_genes(marker_size = "small", marker = "rbox", markerHeight = 15) %>%
+  GC_links(group = "BlastP", 
+           show_links = TRUE,
+           identity_label = FALSE
+           ) %>%
+  GC_clusterLabel() %>%
+  GC_legend(FALSE)
+```

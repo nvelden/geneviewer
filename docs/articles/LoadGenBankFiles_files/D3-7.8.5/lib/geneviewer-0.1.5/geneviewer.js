@@ -2336,13 +2336,15 @@ container.prototype.links = function (links, clusterKey, options = {}) {
 
   const defaultOptions = {
     y: 50,
-    cursor: "pointer",
-    fontSize: "12px",
-    fontStyle: "italic",
-    fontFamily: "sans-serif",
-    textAnchor: "middle",
     showLinks: true,
     identityLabel: true,
+    labelStyle: {
+        cursor: "pointer",
+        fontSize: "12px",
+        fontStyle: "italic",
+        fontFamily: "sans-serif",
+        textAnchor: "middle",
+    },
     labelAdjustmentOptions: {
       rotation: -65,
       offsetX: 0,
@@ -2357,9 +2359,10 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     }
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'linkOptions', options);
-    const { x, y, cursor, fontSize, fontStyle, fontFamily, textAnchor, showLinks, identityLabel, labelAdjustmentOptions } = combinedOptions;
+    const { x, y, cursor, fontSize, fontStyle, fontFamily, textAnchor, showLinks, identityLabel, labelStyle, labelAdjustmentOptions } = combinedOptions;
 
     const additionalOptions = extractAdditionalOptions(options, defaultOptions);
+    const additionalOptionsLabelStyle = extractAdditionalOptions(labelStyle, defaultOptions.labelStyle);
 
     var group = this.svg.append("g")
         .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
@@ -2428,10 +2431,10 @@ container.prototype.links = function (links, clusterKey, options = {}) {
 
     if(identityLabel){
     const self = this;
+
     const labelData = this.data.filter(d =>
       d.identity != null &&
-      d.BlastP != d.protein_id &&
-      d.BlastP &&
+      (d.BlastP === undefined || (d.BlastP != d.protein_id && d.BlastP)) &&
       ((options.value1 === undefined && options.value2 === undefined) ||
       (options.value1 && options.value1.includes(d[options.group])) ||
       (options.value2 && options.value2.includes(d[options.group])))
@@ -2447,15 +2450,16 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     .attr("x", (d, i) => this.xScale((d.start + d.end) / 2))
     .attr("y", (d, i) => this.yScale(y) - (this.markerHeight / 1.5) - clusterStrandSpacing)
     .text(d => `${parseFloat(d.identity.toFixed(1))}%`)
-    .style("font-size", fontSize)
-    .style("font-style", fontStyle)
-    .style("font-family", fontFamily)
-    .style("cursor", cursor)
-    .attr("text-anchor", "middle")
+    .style("font-size", labelStyle.fontSize)
+    .style("font-style", labelStyle.fontStyle)
+    .style("font-family", labelStyle.fontFamily)
+    .style("cursor", labelStyle.cursor)
+    .attr("text-anchor", labelStyle.textAnchor)
     .attr("cluster", clusterKey)
     .each(function (d, i) {
       const currentElement = d3.select(this);
-      adjustSpecificLabel(self, "text.link-text", currentElement.attr("id"), labelAdjustmentOptions);
+      adjustSpecificLabel(self, ".link-text", currentElement.attr("id"), labelAdjustmentOptions);
+      setStyleFromOptions(currentElement, additionalOptionsLabelStyle);
     });
     }
 

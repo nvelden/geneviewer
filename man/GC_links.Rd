@@ -76,7 +76,11 @@ genes_data <- data.frame(
 GC_chart(genes_data,
          cluster = "cluster",
          height = "200px") \%>\%
-  GC_links(group = "group", value1 = "A", value2 = "B") \%>\%
+  GC_links(
+    group = "group",
+    value1 = "A",
+    value2 = "B",
+    identity_label = FALSE) \%>\%
   GC_labels(label = "group")
 
 # Add links between group A of cluster 1 and A and B of cluster 2
@@ -87,6 +91,7 @@ GC_chart(genes_data,
          GC_links(group = "group",
                    value1 = c("A", "A"),
                    value2 = c("B", "A"),
+                   identity_label = FALSE,
                    cluster = c(1,2))
 
 # Style links
@@ -110,9 +115,7 @@ GC_chart(genes_data,
       # Any other CSS style
     ),
     labelStyle = list(
-      fontSize = "8px",
-     fill = "#FFF",
-      fillOpacity = 0.4
+      fontSize = "8px"
       # Any other CSS style
     )
   ) \%>\%

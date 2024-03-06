@@ -12,8 +12,8 @@ template:
   bslib:
     pkgdown-nav-height: 100px
 
-#params:
-#  google_site_verification: yTGAUIDwbj1rCz39OTZSzq5wZAPsbzfL9O_Gc7u6w14
+params:
+  google_site_verification: yTGAUIDwbj1rCz39OTZSzq5wZAPsbzfL9O_Gc7u6w14
 
 # Navbar settings
 navbar:

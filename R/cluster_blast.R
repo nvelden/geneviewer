@@ -194,7 +194,7 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #'   Defaults to "end".
 #' @param cluster The name of the column specifying the cluster names. Defaults
 #'   to "cluster".
-#' @param genes An optional vector of gene identifiers to exclude from the
+#' @param genes An optional vector of gene identifiers to include in the
 #'   analysis. Defaults to NULL.
 #' @param identity Minimum identity threshold for BLAST hits to be considered
 #'   significant. Defaults to 30.
@@ -306,8 +306,8 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
   cluster_pairs <- lapply(clusters, function(target) c(query, target))
 
   if(!is.null(genes)){
-    query_genes <- data[[.data$id_column]][data$cluster == query & !data[[.data$id_column]] %in% genes]
-    combination_data <- data[!data[[.data$id_column]] %in% query_genes, ]
+    query_genes <- data[[id]][data$cluster == query & !data[[id]] %in% genes]
+    combination_data <- data[!data[[id]] %in% query_genes, ]
   } else {
     combination_data <- data
   }

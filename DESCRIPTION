@@ -4,10 +4,12 @@ Title: Gene Cluster Visualizations in R
 Version: 0.1.6
 Author: Niels van der Velden
 Maintainer: Niels van der Velden <n.s.j.vandervelden@gmail.com>
-Description: 'geneviewer' is an R package designed to plot gene arrow maps. 
-             It allows side by side visualization of multiple gene clusters and 
-             has options to add a legend, labels, annotations, customized scales, 
-             colors, tooltips and much more.
+Description: 'geneviewer' is an R package designed to plot gene clusters. 
+             It can import data directly from GenBank files, perform BlastP 
+             alignments and visualize the results in gene arrow maps. In addition 
+             there are extensive options for customization such as addition of 
+             alegend, labels, annotations, customized scales, colors, tooltips 
+             and much more.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

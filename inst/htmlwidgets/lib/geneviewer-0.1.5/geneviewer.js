@@ -2430,11 +2430,13 @@ container.prototype.links = function (links, clusterKey, options = {}) {
 
     const labelData = this.data.filter(d =>
       d.identity != null &&
+      d.BlastP != "No Hit" &&
       (d.BlastP === undefined || (d.BlastP != d.protein_id && d.BlastP)) &&
       ((options.value1 === undefined && options.value2 === undefined) ||
       (options.value1 && options.value1.includes(d[options.group])) ||
       (options.value2 && options.value2.includes(d[options.group])))
     );
+
     // Adding the Label
     group.selectAll(".link-text")
     .data(labelData)

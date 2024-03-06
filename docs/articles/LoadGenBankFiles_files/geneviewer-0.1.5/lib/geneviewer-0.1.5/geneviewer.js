@@ -2182,15 +2182,14 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   let uniqueGroups = [...new Set(this.data.map(d => d[group]))];
   uniqueGroups = uniqueGroups.filter(color => color !== null);
 
+  const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
+
   // Separate special groups ("Other", "No Hit", "Unknown") from the rest
   const specialGroups = ["Other", "No Hit", "Unknown"];
   const regularGroups = uniqueGroups.filter(group => !specialGroups.includes(group));
   const specialGroupsInData = specialGroups.filter(group => uniqueGroups.includes(group));
-
   // Reassemble uniqueGroups with special groups placed last
   uniqueGroups = [...regularGroups, ...specialGroupsInData];
-
-  const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
 
   if (order && order.length > 0) {
     uniqueGroups = order

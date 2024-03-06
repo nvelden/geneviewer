@@ -339,7 +339,7 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "150px") 
 
 ## BlastP
 
-The `protein_blast()` function can be used to perform a BlastP alignment between clusters. For more information see the [Cluster comparison using BlastP](https://nvelden.github.io/geneviewer/articles/BLASTP.html) tutorial.  
+The `protein_blast()` function can be used to perform a BlastP alignment between clusters. For more information see the [Cluster comparison using BlastP](https://nvelden.github.io/geneviewer/articles/BLASTP.html) tutorial. 
 
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
 BlastP_results <- 
@@ -386,7 +386,7 @@ chart %>%
   GC_labels("name")
 ```
 
-It is possible to add an identity column to the data which will be used to set the color intensity of the links.  
+It is possible to add an identity column to the data which will be used to set the color intensity of the links. In addition links and labels can be styled using the `linkStyle` and `labelStyle` variable.
 
 ```{r echo=TRUE, results='asis'}
 ophA_clusters$identity <- sample(1:100, size = nrow(ophA_clusters), replace = TRUE) 
@@ -403,12 +403,23 @@ chart <- GC_chart(
     value2 = c("Methyltransferase", "Prolyloligopeptidase"),
     inverted_color = "#969696", 
     identity = TRUE,
-    curve = FALSE
+    curve = FALSE,
+    linkStyle = list(
+      stroke = "black",
+      strokeWidth = 0.5
+      # Any other CSS style
+    ),
+    labelStyle = list(
+      fill = "red"
+      # Any other CSS style
+    )
     ) %>% 
   GC_legend(TRUE)
 
 chart
 ```
+
+
 
 ## Sequence
 
@@ -438,7 +449,6 @@ GC_chart(
   ) %>%
   GC_legend(FALSE)
 ```
-
 
 ## Labels
 

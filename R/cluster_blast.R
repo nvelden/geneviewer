@@ -404,6 +404,7 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
 
 
   data$rowID <- seq_len(nrow(data))
+  data$BlastP[is.na(data$BlastP)] <- "No Hit"
   data$rowID.x <- NULL
   data$order1 <- NULL
   data$order2 <- NULL

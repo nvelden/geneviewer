@@ -351,9 +351,9 @@ function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
 function getColorScale(colorScheme, customColors, uniqueGroups) {
   let colorScale;
 
-  uniqueGroups = uniqueGroups.filter(color => color !== null);
+  //customColors = { ...(customColors || {}), null: "#FFF" };
 
-    const schemeCategory30 = [
+  const schemeCategory30 = [
     "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
     "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
     "#393b79", "#637939", "#8c6d31", "#843c39", "#7b4173",
@@ -364,22 +364,14 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
 
   // Check if customColors is an object and not an array
   if (customColors && typeof customColors === 'object' && !Array.isArray(customColors)) {
-    // Find groups without a corresponding color in customColors
-    const unmappedGroups = uniqueGroups.filter(group => !(group in customColors));
-    // Issue a warning if there are unmapped groups
-    if (unmappedGroups.length > 0) {
-      console.warn(`Warning: No color mapping found for the following groups, defaulting to white: ${unmappedGroups.join(', ')}`);
-    }
     // Create a color scale based on the customColors object
     colorScale = d3.scaleOrdinal()
       .domain(uniqueGroups)
       .range(uniqueGroups.map(group => customColors[group] || "#FFF"));
   } else if (colorScheme) {
     if (!d3[colorScheme]) {
-      console.warn(`Warning: The color scheme "${colorScheme}" does not exist. Defaulting to white.`);
-      colorScale = d3.scaleOrdinal()
-        .domain(uniqueGroups)
-        .range(uniqueGroups.map(() => "#FFF"));
+      console.warn(`Warning: The color scheme "${colorScheme}" does not exist. Defaulting to schemeCategory30.`);
+      colorScale = d3.scaleOrdinal(schemeCategory30).domain(uniqueGroups);
     } else {
       colorScale = d3.scaleOrdinal(d3[colorScheme])
         .domain(uniqueGroups);
@@ -388,17 +380,13 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
         console.warn(`Warning: More unique groups than colors. Some colors will repeat.`);
       }
     }
-  } else if (customColors && customColors.length > 0) {
-    colorScale = d3.scaleOrdinal()
-      .domain(uniqueGroups)
-      .unknown("#FFF")
-      .range(customColors);
   } else {
     colorScale = d3.scaleOrdinal(schemeCategory30)
-      .unknown("#FFF")
-      .domain(uniqueGroups);
+      .domain(uniqueGroups)
+      .range(uniqueGroups.map(group =>
+        group === "No Hit" || group === null ? "#FFF" : schemeCategory30[uniqueGroups.indexOf(group) % schemeCategory30.length]
+      ));
   }
-
   return colorScale;
 }
 
@@ -2193,6 +2181,14 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
 
   let uniqueGroups = [...new Set(this.data.map(d => d[group]))];
   uniqueGroups = uniqueGroups.filter(color => color !== null);
+
+  // Separate special groups ("Other", "No Hit", "Unknown") from the rest
+  const specialGroups = ["Other", "No Hit", "Unknown"];
+  const regularGroups = uniqueGroups.filter(group => !specialGroups.includes(group));
+  const specialGroupsInData = specialGroups.filter(group => uniqueGroups.includes(group));
+
+  // Reassemble uniqueGroups with special groups placed last
+  uniqueGroups = [...regularGroups, ...specialGroupsInData];
 
   const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
 

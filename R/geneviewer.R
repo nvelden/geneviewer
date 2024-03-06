@@ -2131,6 +2131,7 @@ get_links <-
 
     # Remove rows with NA in the specified group column
     data <- data[!is.na(data[[group]]), ]
+    data <- data[data[[group]] != "No Hit", ]
 
     # Check if all values in value1 and value2 are present in the group column
     if (!is.null(value1) && !all(value1 %in% data[[group]])) {

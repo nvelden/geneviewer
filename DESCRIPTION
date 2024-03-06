@@ -1,7 +1,7 @@
 Package: geneviewer
 Type: Package
 Title: Gene Cluster Visualizations in R
-Version: 0.1.5
+Version: 0.1.6
 Author: Niels van der Velden
 Maintainer: Niels van der Velden <n.s.j.vandervelden@gmail.com>
 Description: 'geneviewer' is an R package designed to plot gene arrow maps. 

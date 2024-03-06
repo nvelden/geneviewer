@@ -1,3 +1,9 @@
+# geneviewer 0.1.6
+
+### Enhancements:
+- Option to perfrom BlastP between gene clusters.
+- Add option to add links between genes in clusters.
+
 # geneviewer 0.1.5
 
 ### Enhancements:

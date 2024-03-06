@@ -337,6 +337,25 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "150px") 
    GC_legend(TRUE)
 ```
 
+## BlastP
+
+The `protein_blast()` function can be used to perform a BlastP alignment between clusters. For more information see the [Cluster comparison using BlastP](https://nvelden.github.io/geneviewer/articles/BLASTP.html) tutorial.  
+
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+BlastP_results <- 
+  protein_blast(
+    data, # or path to folder containing .gbk files
+    query, # The name of the query cluster to be used for BLAST comparisons.
+    id = "protein_id", # The name of the column that contains the gene identifiers.
+    start = "start",
+    end = "end",
+    cluster = "cluster",
+    genes = NULL, #Vector of protein IDs to include for BlastP analysis.
+    identity = 30,
+    parallel = TRUE
+)
+```
+
 ## Links
 
 The `get_links` and `GC_links()` functions can be used to add links between genes. In the below example, we initially create a chart object. Subsequently, we generate links among all clusters. This is achieved by specifying a grouping column which will generate links for all value pairs between the different clusters.

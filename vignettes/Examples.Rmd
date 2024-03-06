@@ -422,7 +422,6 @@ GC_chart(erythromycin_BlastP,
 ```
 </details>
 
-
 ```{r echo = FALSE, results='asis'}
 ### Erythromycin BlastP
 GC_chart(erythromycin_BlastP, 

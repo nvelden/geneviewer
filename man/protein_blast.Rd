@@ -37,7 +37,7 @@ Defaults to "end".}
 \item{cluster}{The name of the column specifying the cluster names. Defaults
 to "cluster".}
 
-\item{genes}{An optional vector of gene identifiers to exclude from the
+\item{genes}{An optional vector of gene identifiers to include in the
 analysis. Defaults to NULL.}
 
 \item{identity}{Minimum identity threshold for BLAST hits to be considered

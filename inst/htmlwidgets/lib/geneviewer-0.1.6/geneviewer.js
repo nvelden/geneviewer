@@ -902,7 +902,7 @@ container.prototype.scale = function (options = {}) {
           lineStyle } = combinedOptions;
 
   // Determine y based on axisPosition and initialY
-  const y = initialY !== null ? initialY : (axisPosition === 'bottom' ? 30 : 80);
+  const y = initialY !== null ? initialY : (axisPosition === 'bottom' ? 20 : 80);
 
   // Extract additional options that are not in defaultScaleOptions
   const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultScaleOptions.tickStyle);

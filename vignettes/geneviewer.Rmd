@@ -77,7 +77,6 @@ GC_chart(ophA_clusters,
          )
 ```
 
-
 ## Shiny
 
 The `GC_chartOutput()` and `renderGC_chart()` functions enable you to visualize gene clusters within Shiny applications.
@@ -163,7 +162,7 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "300px") 
 
 The `GC_cluster` function can be used to style and adjust the margins of specific clusters.
 
-In the below example we set a different background color for each cluster and decrease the left and right margins to 25px. Note that the margins of the title and legend are not adjusted. To adjust those as well it is easiest to use the [`GC_grid`](#grid) function which will adjust the margins of all elements at once.   
+In the below example we set a different background color for each cluster and decrease the left and right margins to 25px. Note that the margins of the title and legend are not adjusted. To adjust those as well it is easiest to use the [`GC_grid`](#grid) function which will adjust the margins of all elements at once.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(
@@ -222,7 +221,7 @@ GC_chart(
 
 ## Grid {#grid}
 
-The `GC_grid()` function can be used to modify the grid of the chart or specific clusters. In the below example the top and bottom margins are increased and the left and right margins decreased from 50px which is the default to 25px. 
+The `GC_grid()` function can be used to modify the grid of the chart or specific clusters. In the below example the top and bottom margins are increased and the left and right margins decreased from 50px which is the default to 25px.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, group = "class", cluster = "cluster",
@@ -257,7 +256,7 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "250px") 
 
 ## Genes
 
-The `GC_genes()` function can be used to custom style the genes. In the below example the stroke and stroke width are altered but it can take any valid CSS style. The color coding is set according to the group in the `GC_chart()` function. Changing the color scheme is best done through the `GC_color()` function (see: [Colors section](#colors)) as this will uniformly change the colors in both the genes and legend. 
+The `GC_genes()` function can be used to custom style the genes. In the below example the stroke and stroke width are altered but it can take any valid CSS style. The color coding is set according to the group in the `GC_chart()` function. Changing the color scheme is best done through the `GC_color()` function (see: [Colors section](#colors)) as this will uniformly change the colors in both the genes and legend.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "150px") %>%
@@ -271,7 +270,7 @@ GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "150px") %
    GC_legend()
 ```
 
-By default the genes are displayed as arrows. To alter there appearance one can use the `marker` and `marker_size` variables. Beside the default arrow marker one can use boxarrow, box, rbox and cbox. You can set each marker to small, medium (default) or large.  
+By default the genes are displayed as arrows. To alter there appearance one can use the `marker` and `marker_size` variables. Beside the default arrow marker one can use boxarrow, box, rbox and cbox. You can set each marker to small, medium (default) or large.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "100px") %>%
@@ -308,7 +307,7 @@ GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "100px") %
   GC_legend(FALSE)
 ```
 
-For finer control one can use the `markerHeight` variable which will overwrite the `marker_size` variable.  In addition you can change the position of the markers using the `x` and `y` variables. In case of the arrow and boxarrow markers you can also alter the arrowhead using the  `arrowheadWidth` and `arrowheadHeight` variables.  
+For finer control one can use the `markerHeight` variable which will overwrite the `marker_size` variable. In addition you can change the position of the markers using the `x` and `y` variables. In case of the arrow and boxarrow markers you can also alter the arrowhead using the `arrowheadWidth` and `arrowheadHeight` variables.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "100px") %>%
@@ -339,7 +338,7 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "150px") 
 
 ## BlastP
 
-The `protein_blast()` function can be used to perform a BlastP alignment between clusters. For more information see the [Cluster comparison using BlastP](https://nvelden.github.io/geneviewer/articles/BLASTP.html) tutorial. 
+The `protein_blast()` function can be used to perform a BlastP alignment between clusters. For more information see the [Cluster comparison using BlastP](https://nvelden.github.io/geneviewer/articles/BLASTP.html) tutorial.
 
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
 BlastP_results <- 
@@ -373,7 +372,8 @@ chart <- GC_chart(
 chart %>% GC_links("class")
 ```
 
-Using the `value1` and `value2` variables in the `get_links` function you can generate links between specific genes. In case there are more than 2 clusters you can use the `cluster` variable which allows to specify the clusters to generate links for.  
+Using the `value1` and `value2` variables in the `get_links` function you can generate links between specific genes. In case there are more than 2 clusters you can use the `cluster` variable which allows to specify the clusters to generate links for.
+
 ```{r echo=TRUE, results='asis'}
 # Add links to chart
 chart %>% 
@@ -418,8 +418,6 @@ chart <- GC_chart(
 
 chart
 ```
-
-
 
 ## Sequence
 
@@ -518,10 +516,9 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") 
 
 ## Annotations
 
-The `GC_annotation` function can be used to add annotations to specified clusters within a GC chart. The types of annotations available are: text, textMarker, line, arrow, symbol,
-rectangle, promoter, and terminator. 
+The `GC_annotation` function can be used to add annotations to specified clusters within a GC chart. The types of annotations available are: text, textMarker, line, arrow, symbol, rectangle, promoter, and terminator.
 
-Annotations are placed by specifying the `type` followed by the type specific parameters. As shown in the below example multiple annotations of the same type can be placed by providing a list of values. The `GC_trackMouse()` function can be used to track the mouse coordinates while hoovering over the chart which makes it more easy to determine the `x` and `y` positions to place the annotation. 
+Annotations are placed by specifying the `type` followed by the type specific parameters. As shown in the below example multiple annotations of the same type can be placed by providing a list of values. The `GC_trackMouse()` function can be used to track the mouse coordinates while hoovering over the chart which makes it more easy to determine the `x` and `y` positions to place the annotation.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "300px") %>%
@@ -571,7 +568,7 @@ GC_chart(ophA_cluster, group = "class", cluster = "cluster", height = "150px") %
 
 ### Text Marker
 
-Below shows an example with all options to place a text Marker. With the exception of the styles all other variables can also take a list of values. By default x1 and x2 are `NULL` and `position` is used for the horizontal placement.   
+Below shows an example with all options to place a text Marker. With the exception of the styles all other variables can also take a list of values. By default x1 and x2 are `NULL` and `position` is used for the horizontal placement.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, group = "class", cluster = "cluster", height = "150px") %>%
@@ -853,10 +850,9 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_color(customColors = custom_colors )
 ```
 
-
 ## Legend
 
-The `GC_legend()` function can be used to show / hide and customize the legend. By default the legend is shown at the bottom. The below example shows the `GC_function()` with all its default settings. 
+The `GC_legend()` function can be used to show / hide and customize the legend. By default the legend is shown at the bottom. The below example shows the `GC_function()` with all its default settings.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(
@@ -897,7 +893,7 @@ GC_chart(
   )
 ```
 
-In the below example a more advanced customization is shown changing the order, size, position and appearance of the legend. The color is changed using the `GC_color` function which simultaneously adjusts the colors of the legend and genes. 
+In the below example a more advanced customization is shown changing the order, size, position and appearance of the legend. The color is changed using the `GC_color` function which simultaneously adjusts the colors of the legend and genes.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(
@@ -920,7 +916,7 @@ GC_chart(
 
 ## Scale
 
-The `GC_scale()` function is utilized for adjusting the chart's scale. The padding parameter can be used to add extra space to start and end of the cluster. The visibility of the scale can be controlled by the hidden parameter, which, when set to TRUE, hides the axis. The `y` parameter can be used to adjust the horizontal position of the axis (1 at the bottom and 100 being the top). 
+The `GC_scale()` function is utilized for adjusting the chart's scale. The padding parameter can be used to add extra space to start and end of the cluster. The visibility of the scale can be controlled by the hidden parameter, which, when set to TRUE, hides the axis. The `y` parameter can be used to adjust the horizontal position of the axis (1 at the bottom and 100 being the top).
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, group = "class", height = "100px") %>%
@@ -975,12 +971,21 @@ GC_chart(
 
 ### Reverse Scale
 
-The scale can be reversed by setting reverse = TRUE
+The scale can be reversed by setting reverse = TRUE.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "200px") %>%
   GC_scale(cluster = 1, reverse = FALSE, ticksCount = 10) %>%
   GC_scale(cluster = 2, reverse = TRUE, ticksCount = 10)
+```
+
+### Shared genomic scale
+
+By setting `axis_type` to range, you can standardize the axis across clusters, shifting from precise genomic coordinates to a unified scale. This scale is based on the widest span observed among the clusters, starting from 0 and extending to the endpoint of the cluster covering the largest range. **Warning**: By using a shared axis some of the options like setting breaks and reversing the scale might not work anymore.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "200px") %>%
+  GC_scale(axis_type = "range")
 ```
 
 ### Styling
@@ -990,7 +995,7 @@ The scale can be styled using the `tickStyle`, `textStyle` and `lineStyle` optio
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_scale(
-    ticksFormat = ".1e", # Default: ",.0f"
+    ticksFormat = ".2s", # Default: ",.0f"
     tickValues = c(ophA_cluster$start, ophA_cluster$end),
     #ticksCount = 10,
     tickStyle = 
@@ -1136,4 +1141,3 @@ htmlwidgets::saveWidget(cluster_plot, "temp.html", selfcontained = TRUE)
 # Save plot to .png (or .jpg, .jpeg, .webp, .pdf)
 webshot2::webshot("temp.html", "output.png", selector = ".geneviewer")
 ```
-

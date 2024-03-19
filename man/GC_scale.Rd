@@ -75,7 +75,7 @@ side of a scale break. Default is 1.}
 Default is 10.}
 
 \item{ticksFormat}{Format for tick labels; depends on axis_type, defaulting
-to ",.0f" for 'position' or ".0s" for 'range' when NULL.}
+to ",.0f" for 'position' or ".2s" for 'range' when NULL.}
 
 \item{tickStyle}{List specifying the style for the ticks.}
 

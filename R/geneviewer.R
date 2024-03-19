@@ -144,7 +144,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$container <- list(height = get_relative_height(height, height) / length(clusters), width = width)
     x$series[[clust]]$container$style <- list(width = "100%", backgroundColor = style$backgroundColor)
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
-    x$series[[clust]]$scale <- list()
+    x$series[[clust]]$scale <- list(xMin = min(subset_data$start, subset_data$end), xMax = max(subset_data$start, subset_data$end))
     x$series[[clust]]$labels <- list(group = group, show = TRUE)
     x$series[[clust]]$coordinates <- list(show = FALSE)
     x$series[[clust]]$scaleBar <- list()
@@ -659,7 +659,7 @@ GC_grid <- function(
 #' FALSE.
 #' @param breaks List specifying settings for the scale breaks. Default is an
 #' empty list ().
-#' @param axisType Character string indicating the type of the axis ('top' or
+#' @param axis_position Character string indicating the type of the axis ('top' or
 #' bottom'). Default is 'bottom'.
 #' @param tickValues Numeric vector or NULL, custom tick values to be used at
 #' the top of the cluster. If NULL, the default tick values are used.
@@ -673,8 +673,8 @@ GC_grid <- function(
 #' side of a scale break. Default is 1.
 #' @param ticksCount Numeric value indicating the number of ticks on the scale.
 #' Default is 10.
-#' @param ticksFormat Character string indicating the format of the ticks.
-#' Default is ",.0f".
+#' @param ticksFormat Format for tick labels; depends on axis_type, defaulting
+#' to ",.0f" for 'position' or ".2s" for 'range' when NULL.
 #' @param y Numeric value from 1 to 100 indicating the y-position of the x-axis.
 #' Default is NULL.
 #' @param tickStyle List specifying the style for the ticks.
@@ -700,7 +700,7 @@ GC_grid <- function(
 #'     padding = 2,
 #'     hidden = FALSE,
 #'     reverse = FALSE,
-#'     axisType = "bottom",
+#'     axis_position = "bottom",
 #'     # breaks = list(
 #'     #  list(start = 160, end = 900),
 #'     #  list(start = 1600, end = 1900)
@@ -744,13 +744,14 @@ GC_scale <- function(GC_chart,
                      breaks = list(),
                      tickValues = NULL,
                      reverse = FALSE,
-                     axisType = "bottom",
+                     axis_position = "bottom",
+                     axis_type = "position", # range
                      y = NULL,
                      scale_breaks = FALSE,
                      scale_break_threshold = 20,
                      scale_break_padding = 1,
                      ticksCount = 10,
-                     ticksFormat = ",.0f",
+                     ticksFormat = NULL,
                      tickStyle = list(),
                      textStyle = list(),
                      lineStyle = list(),
@@ -758,17 +759,42 @@ GC_scale <- function(GC_chart,
   # Capture ... arguments
   dots <- list(...)
 
+  xMin <- NULL
+  xMax <- NULL
+
+  if(axis_type == "range"){
+    if(is.null(ticksFormat)){
+      ticksFormat <- ".2s"
+    }
+  data <-  adjust_to_range(GC_chart$x$data)
+  GC_chart$x$data <- data
+  xMin <- 0
+  xMax <- max(data$start, data$end)
+  }
+
   # Update the GC_chart object with title and options for each cluster
   clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for (i in seq_along(clusters)) {
-    # Calculate the index for each parameter considering their different lengths
+
+    subset_data <- GC_chart$x$series[[clusters[i]]]$data
     start_idx <- (i - 1) %% length(start) + 1
     stop_idx <- (i - 1) %% length(end) + 1
     reverse_idx <- (i - 1) %% length(reverse) + 1
 
-    # Subset data for the current cluster
-    subset_data <- GC_chart$x$series[[clusters[i]]]$data
+    if (axis_type == "range" && !hidden) {
+      subset_data <- data[data$cluster == clusters[i], ]
+      GC_chart$x$series[[clusters[i]]]$data <- subset_data
+
+      # Set hidden to TRUE for all but the last cluster
+      if (i < length(clusters)) {
+        hidden_current <- TRUE
+      } else {
+        hidden_current <- hidden
+      }
+    } else {
+      hidden_current <- hidden
+    }
 
     # Compute scale breaks if required
     if (scale_breaks) {
@@ -784,12 +810,15 @@ GC_scale <- function(GC_chart,
     options <- list(
       start = start[start_idx],
       end = end[stop_idx],
+      xMin = xMin,
+      xMax = xMax,
       padding = padding,
-      hidden = hidden,
+      hidden = hidden_current,
       breaks = breaks_data,
       tickValues = tickValues,
       reverse = reverse[reverse_idx],
-      axisType = axisType,
+      axisPosition = axis_position,
+      axisType = axis_type,
       scale_breaks = scale_breaks,
       scale_break_threshold = scale_break_threshold,
       scale_break_padding = scale_break_padding,
@@ -808,7 +837,6 @@ GC_scale <- function(GC_chart,
 
   return(GC_chart)
 }
-
 
 #' Update Scale Bar of a GC Chart Cluster
 #'

@@ -864,10 +864,12 @@ container.prototype.scale = function (options = {}) {
   const defaultScaleOptions = {
     start: null,
     end: null,
+    xMin: null,
+    xMax: null,
     padding: 2,
     hidden: true,
     reverse: false,
-    axisType: "bottom",
+    axisPosition: "bottom",
     breaks: [],
     tickValues: null,
     ticksCount: 10,
@@ -894,10 +896,13 @@ container.prototype.scale = function (options = {}) {
   const combinedOptions = mergeOptions.call(this, defaultScaleOptions, 'scaleOptions', options);
 
   // De-structure the combined options
-  const { start, end, padding, hidden, breaks, tickValues, reverse, axisType, ticksCount, ticksFormat, y: initialY, tickStyle, textStyle, lineStyle } = combinedOptions;
+  const { start, end, xMin, xMax, padding, hidden, breaks,
+          tickValues, reverse, axisPosition, ticksCount,
+          ticksFormat, y: initialY, tickStyle, textStyle,
+          lineStyle } = combinedOptions;
 
-  // Determine y based on axisType and initialY
-  const y = initialY !== null ? initialY : (axisType === 'bottom' ? 30 : 80);
+  // Determine y based on axisPosition and initialY
+  const y = initialY !== null ? initialY : (axisPosition === 'bottom' ? 30 : 80);
 
   // Extract additional options that are not in defaultScaleOptions
   const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultScaleOptions.tickStyle);
@@ -905,7 +910,7 @@ container.prototype.scale = function (options = {}) {
   const additionalOptionslineStyle = extractAdditionalOptions(lineStyle, defaultScaleOptions.lineStyle);
 
   // Filter data based on the provided start and end values
-  if (start !== null) {
+  if (start !== null ) {
     this.data = this.data.filter(d => d.start >= start);
   }
   if (end !== null) {
@@ -923,8 +928,13 @@ container.prototype.scale = function (options = {}) {
   this.reverse = reverse;
 
   // Use provided start and end values if they exist, otherwise compute them from data
-  this.minStart = start !== null ? start : d3.min(this.data, d => Math.min(d.start, d.end));
-  this.maxEnd = end !== null ? end : d3.max(this.data, d => Math.max(d.start, d.end));
+  this.minStart = start !== null ? start :
+                xMin !== null ? xMin :
+                d3.min(this.data, d => Math.min(d.start, d.end));
+
+  this.maxEnd = end !== null ? end :
+              xMax !== null ? xMax :
+              d3.max(this.data, d => Math.max(d.start, d.end));
 
   if(start == null){
   this.minStart = addScalePadding(this.minStart, this.maxEnd, padding, to = "start")
@@ -1327,6 +1337,7 @@ container.prototype.sequence = function (show = true, options = {}) {
     y: 50,
     start: null,
     end: null,
+    padding: 2,
     sequenceStyle: { // Adding sequenceStyle
       stroke: "grey",
       strokeWidth: 1
@@ -1342,7 +1353,7 @@ container.prototype.sequence = function (show = true, options = {}) {
 
   // Merge the default options with any predefined sequenceOptions and the provided options
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'sequenceOptions', options);
-  const { y, start, end, markerStyle, sequenceStyle } = combinedOptions;
+  const { y, start, end, padding, markerStyle, sequenceStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions for sequenceStyle
   const additionalOptionsSequence = extractAdditionalOptions(sequenceStyle, defaultOptions.sequenceStyle);
@@ -1350,12 +1361,23 @@ container.prototype.sequence = function (show = true, options = {}) {
   var g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
+  var minStart = start || d3.min(this.data, d => Math.min(d.start, d.end));
+  var maxEnd = end || d3.max(this.data, d => Math.max(d.start, d.end));
+
+  if(start == null){
+  minStart = addScalePadding(minStart, maxEnd, padding, to = "start")
+  }
+
+  if(end == null){
+  maxEnd = addScalePadding(minStart, maxEnd, padding, to = "end")
+  }
+
   // Draw baseline with sequenceStyle
   g.append("line")
     .attr("class", "baseline")
-    .attr("x1", this.xScale(start || this.minStart))
+    .attr("x1", this.xScale(minStart))
     .attr("y1", this.yScale(y))
-    .attr("x2", this.xScale(end || this.maxEnd))
+    .attr("x2", this.xScale(maxEnd))
     .attr("y2", this.yScale(y))
     .style("stroke", sequenceStyle.stroke)
     .style("stroke-width", sequenceStyle.strokeWidth)
@@ -1371,6 +1393,8 @@ container.prototype.sequence = function (show = true, options = {}) {
     const yBase = this.yScale(y);
     const yTop = yBase - markerStyle.markerHeight / 2;
     const yBottom = yBase + markerStyle.markerHeight / 2;
+
+
 
     if (xStart !== null && xEnd !== null) {
       g.append("line")

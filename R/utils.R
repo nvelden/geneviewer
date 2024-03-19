@@ -398,3 +398,33 @@ add_gene_track <- function(data) {
 
   return(data)
 }
+
+#' Adjust Start and End Positions Based on Group Minimums
+#'
+#' This function adjusts the start and end positions of genomic elements within
+#' each cluster by subtracting the minimum start or end position found in that
+#' cluster. This normalization facilitates comparisons and visualizations by
+#' aligning the positions relative to the start of each cluster.
+#'
+#' @param data A dataframe containing genomic elements with at least three columns:
+#'   cluster (group identifier), start, and end. Each row represents a genomic
+#'   element with its start and end positions within a specific cluster.
+#' @importFrom dplyr group_by mutate select
+#' @noRd
+adjust_to_range <- function(data){
+
+  data <- data %>%
+    dplyr::group_by(cluster) %>%
+    dplyr::mutate(
+      min_start_end = min(start, end),
+      start = start - min_start_end,
+      end = end - min_start_end
+    ) %>%
+    dplyr::select(-min_start_end)
+
+  return(data)
+}
+
+
+
+

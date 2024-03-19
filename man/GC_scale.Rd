@@ -14,13 +14,14 @@ GC_scale(
   breaks = list(),
   tickValues = NULL,
   reverse = FALSE,
-  axisType = "bottom",
+  axis_position = "bottom",
+  axis_type = "position",
   y = NULL,
   scale_breaks = FALSE,
   scale_break_threshold = 20,
   scale_break_padding = 1,
   ticksCount = 10,
-  ticksFormat = ",.0f",
+  ticksFormat = NULL,
   tickStyle = list(),
   textStyle = list(),
   lineStyle = list(),
@@ -55,7 +56,7 @@ the top of the cluster. If NULL, the default tick values are used.}
 \item{reverse}{Logical flag indicating whether to reverse the scale for the
 corresponding cluster. Default is FALSE.}
 
-\item{axisType}{Character string indicating the type of the axis ('top' or
+\item{axis_position}{Character string indicating the type of the axis ('top' or
 bottom'). Default is 'bottom'.}
 
 \item{y}{Numeric value from 1 to 100 indicating the y-position of the x-axis.
@@ -73,8 +74,8 @@ side of a scale break. Default is 1.}
 \item{ticksCount}{Numeric value indicating the number of ticks on the scale.
 Default is 10.}
 
-\item{ticksFormat}{Character string indicating the format of the ticks.
-Default is ",.0f".}
+\item{ticksFormat}{Format for tick labels; depends on axis_type, defaulting
+to ",.0f" for 'position' or ".0s" for 'range' when NULL.}
 
 \item{tickStyle}{List specifying the style for the ticks.}
 
@@ -106,7 +107,7 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
     padding = 2,
     hidden = FALSE,
     reverse = FALSE,
-    axisType = "bottom",
+    axis_position = "bottom",
     # breaks = list(
     #  list(start = 160, end = 900),
     #  list(start = 1600, end = 1900)

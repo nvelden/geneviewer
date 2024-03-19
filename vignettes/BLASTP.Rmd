@@ -140,7 +140,7 @@ GC_clusterLabel() %>%
 GC_legend(TRUE)
 ```
 
-Alternatively, we could only highlight links between specific genes using the value1 and value2 options in the `GC_links()` function. See the `GC_links()` documentation for more styling and coloring options.
+Alternatively, the GC_links() function allows for highlighting connections between specific genes by utilizing the value1 and value2 parameters. To gain insights into the cluster sizes, we can adjust the axis_type to range. For additional styling and coloring options, refer to the GC_links() and `GC_scale` documentation.
 
 ```{r echo = TRUE, results='asis'}
 GC_chart(
@@ -151,6 +151,7 @@ GC_chart(
   height = "600px"
 ) %>%
 GC_labels(label = "Gene", cluster = 1) %>% 
+GC_scale(axis_type = "range") %>%
 GC_links(group = "Gene",  
          identity = TRUE, 
          value1 = c("eryAI", "eryAII", "eryAIII"), 

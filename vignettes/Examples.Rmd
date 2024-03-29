@@ -443,8 +443,9 @@ GC_chart(erythromycin_BlastP,
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
+library(dplyr)
 ### Erythromycin BlastP
-GC_chart(erythromycin_BlastP %>% filter(cluster %in% c("BGC0000055", "BGC0000054")), 
+GC_chart(erythromycin_BlastP %>% dplyr::filter(cluster %in% c("BGC0000055", "BGC0000054")), 
          cluster = "cluster",
          strand = "strand",
          group = "BlastP",

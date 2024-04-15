@@ -1,6 +1,6 @@
 <p align="center">
 
-<img src="man/figures/logo.png" height="150px" align="right"/>
+<img src="man/figures/logo.png" class="pkgdown-hide" height="150px" align="right"/>
 
 <h1><strong>geneviewer</strong> - Gene Cluster Visualizations in R</h1>
 

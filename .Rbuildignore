@@ -1,6 +1,7 @@
 .gitignore
 ^fasta_files$
 ^genbank_files$
+^gff_files$
 ^renv$
 ^renv\.lock$
 ^.*\.Rproj$

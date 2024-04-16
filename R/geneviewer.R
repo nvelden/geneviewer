@@ -661,6 +661,8 @@ GC_grid <- function(
 #' empty list ().
 #' @param axis_position Character string indicating the type of the axis ('top' or
 #' bottom'). Default is 'bottom'.
+#' @param axis_type Character string indicating the type of the axis ('position' or
+#' 'range'). Default is 'position'.
 #' @param tickValues Numeric vector or NULL, custom tick values to be used at
 #' the top of the cluster. If NULL, the default tick values are used.
 #' @param reverse Logical flag indicating whether to reverse the scale for the

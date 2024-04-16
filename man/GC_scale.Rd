@@ -59,6 +59,9 @@ corresponding cluster. Default is FALSE.}
 \item{axis_position}{Character string indicating the type of the axis ('top' or
 bottom'). Default is 'bottom'.}
 
+\item{axis_type}{Character string indicating the type of the axis ('position' or
+'range'). Default is 'position'.}
+
 \item{y}{Numeric value from 1 to 100 indicating the y-position of the x-axis.
 Default is NULL.}
 

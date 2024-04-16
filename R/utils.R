@@ -410,21 +410,18 @@ add_gene_track <- function(data) {
 #'   cluster (group identifier), start, and end. Each row represents a genomic
 #'   element with its start and end positions within a specific cluster.
 #' @importFrom dplyr group_by mutate select
+#' @importFrom rlang .data
 #' @noRd
 adjust_to_range <- function(data){
 
   data <- data %>%
-    dplyr::group_by(cluster) %>%
+    dplyr::group_by(.data$cluster) %>%
     dplyr::mutate(
-      min_start_end = min(start, end),
-      start = start - min_start_end,
-      end = end - min_start_end
+      min_start_end = min(.data$start, .data$end),
+      start = .data$start - .data$min_start_end,
+      end = .data$end - .data$min_start_end
     ) %>%
-    dplyr::select(-min_start_end)
+    dplyr::select(-.data$min_start_end)
 
   return(data)
 }
-
-
-
-

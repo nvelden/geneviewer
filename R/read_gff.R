@@ -49,7 +49,7 @@ read_gff <- function(path, fields = NULL){
     # Process each .gff file in the directory
     for (file in files) {
       data <- process_gff(file, fields)
-      filename <- basename(file)
+      filename <- sub("\\.gff$", "", basename(file))
       data$filename <- filename
       data_list[[filename]] <- data
     }
@@ -62,7 +62,6 @@ read_gff <- function(path, fields = NULL){
   } else if(file.exists(path)){
 
     data <- process_gff(path, fields)
-    data$filename <- basename(path)
 
     return(data)
 
@@ -80,17 +79,6 @@ process_gff <- function(path, fields = NULL){
 
     lines <- readLines(path)
     data <- read.table(text = lines, header = FALSE, sep = "\t", fill = TRUE, stringsAsFactors = FALSE, col.names = field_names)
-
-    if(!is.null(fields) && !"attributes" %in% fields){
-
-      invalid_fields <- setdiff(fields, names(data))
-      if (length(invalid_fields) > 0) {
-        stop(paste("Invalid field(s):", paste(invalid_fields, collapse = ", ")))
-      }
-
-      data <- data %>% dplyr::select(dplyr::all_of(fields))
-      return(data)
-    }
 
     data$attributes <- gsub("\\t.*", "", data$attributes)
 

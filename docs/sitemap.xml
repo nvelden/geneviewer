@@ -139,6 +139,9 @@
     <loc>/reference/read_gbk.html</loc>
   </url>
   <url>
+    <loc>/reference/read_gff.html</loc>
+  </url>
+  <url>
     <loc>/reference/reexports.html</loc>
   </url>
 </urlset>

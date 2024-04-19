@@ -36,7 +36,7 @@ read_gff <- function(path, fields = NULL){
 
   if(dir.exists(path)){
     # It's a directory
-    files <- list.files(path, pattern = "\\.gff$", full.names = TRUE)
+    files <- list.files(path, pattern = "\\.gff3?$", full.names = TRUE)
 
     # Check if there are any .gff files in the directory
     if (length(files) == 0) {
@@ -49,7 +49,7 @@ read_gff <- function(path, fields = NULL){
     # Process each .gff file in the directory
     for (file in files) {
       data <- process_gff(file, fields)
-      filename <- sub("\\.gff$", "", basename(file))
+      filename <- sub("\\.gff3?$", "", basename(file))
       data$filename <- filename
       data_list[[filename]] <- data
     }
@@ -78,7 +78,15 @@ process_gff <- function(path, fields = NULL){
   if(file.exists(path)){
 
     lines <- readLines(path)
-    data <- read.table(text = lines, header = FALSE, sep = "\t", fill = TRUE, stringsAsFactors = FALSE, col.names = field_names)
+    data <- read.table(
+      text = lines,
+      header = FALSE,
+      quote = "",
+      sep = "\t",
+      fill = TRUE,
+      stringsAsFactors = FALSE,
+      col.names = field_names
+      )
 
     data$attributes <- gsub("\\t.*", "", data$attributes)
 

@@ -56,12 +56,12 @@ read_gbk <- function(path, sections = NULL, features = NULL, origin = TRUE) {
 
     # Process each .gbk file in the directory
     basename <- sapply(files, function(x) sub("\\.gbk$", "", basename(x)))
-    results <- setNames(lapply(files, function(file) process_gbk(file, sections, features, origin)),
+    results <- setNames(lapply(files, function(file) process_gbk(file, sections, features, origin, basename(file))),
                         basename)
 
   } else if (file.exists(path)) {
     basename <- sub("\\.gbk$", "", basename(path))
-    results[[basename]] <- process_gbk(path, sections, features, origin)
+    results[[basename]] <- process_gbk(path, sections, features, origin, basename)
   } else {
     stop("The specified path does not exist.")
   }
@@ -118,6 +118,11 @@ gbk_features_to_df <- function(gbk_list, feature = "CDS", keys = NULL, process_r
     }
 
     feature_list <- list_item[["FEATURES"]][[feature]]
+
+    # Check if any of the keys are present in the entire feature list
+    if (!is.null(keys) && !any(unlist(lapply(feature_list, function(x) any(names(x) %in% keys))))) {
+      warning(paste("None of the specified keys found in", cluster_name))
+    }
 
     df <- dplyr::bind_rows(lapply(feature_list, function(x) {
       # If keys are defined, subset x to include only the specified keys
@@ -313,7 +318,7 @@ gbk_get_features <- function(lines, key) {
 }
 
 #' @noRd
-process_gbk <- function(file, sections = NULL, features = NULL, origin = TRUE) {
+process_gbk <- function(file, sections = NULL, features = NULL, origin = TRUE, basename = NULL) {
 
   # Check if the file exists
   if (!file.exists(file)) {
@@ -321,6 +326,13 @@ process_gbk <- function(file, sections = NULL, features = NULL, origin = TRUE) {
   }
 
   lines <- readLines(file)
+
+  num_records <- sum(grepl("^//$", lines))
+
+  # Check for multiple sequence records
+  if (num_records > 1) {
+    warning(sprintf("Multiple sequence records found in %s. Only the first record will be processed.", basename))
+  }
 
   # Get actual section keys from the file
   actual_section_keys <- gbk_get_section_keys(lines)

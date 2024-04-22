@@ -412,10 +412,10 @@ add_gene_track <- function(data) {
 #' @importFrom dplyr group_by mutate select
 #' @importFrom rlang .data
 #' @noRd
-adjust_to_range <- function(data){
+adjust_to_range <- function(data, cluster = "cluster"){
 
   data <- data %>%
-    dplyr::group_by(.data$cluster) %>%
+    dplyr::group_by(.data[[cluster]]) %>%
     dplyr::mutate(
       min_start_end = min(.data$start, .data$end),
       start = .data$start - .data$min_start_end,

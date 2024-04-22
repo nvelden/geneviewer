@@ -768,7 +768,7 @@ GC_scale <- function(GC_chart,
     if(is.null(ticksFormat)){
       ticksFormat <- ".2s"
     }
-  data <-  adjust_to_range(GC_chart$x$data)
+  data <-  adjust_to_range(GC_chart$x$data, cluster = GC_chart$x$cluster)
   GC_chart$x$data <- data
   xMin <- 0
   xMax <- max(data$start, data$end)
@@ -785,7 +785,7 @@ GC_scale <- function(GC_chart,
     reverse_idx <- (i - 1) %% length(reverse) + 1
 
     if (axis_type == "range" && !hidden) {
-      subset_data <- data[data$cluster == clusters[i], ]
+      subset_data <- data[data[[GC_chart$x$cluster]] == clusters[i], ]
       GC_chart$x$series[[clusters[i]]]$data <- subset_data
 
       # Set hidden to TRUE for all but the last cluster

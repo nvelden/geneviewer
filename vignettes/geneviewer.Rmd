@@ -1139,5 +1139,9 @@ cluster_plot <-
 htmlwidgets::saveWidget(cluster_plot, "temp.html", selfcontained = TRUE)
 
 # Save plot to .png (or .jpg, .jpeg, .webp, .pdf)
-webshot2::webshot("temp.html", "output.png", selector = ".geneviewer")
+webshot2::webshot(
+  "temp.html", 
+  "output.png", 
+  zoom = 1, # Increase zoom for higher resolution
+  selector = ".geneviewer")
 ```

@@ -14,7 +14,7 @@
 
 ## geneviewer
 
-**geneviewer** is an R package designed for visualizing gene clusters. It can import data directly from GenBank files, perform BlastP alignments between clusters and visualize the results in gene arrow maps. In addition there are extensive options to customize the gene arrow maps such as adding a legend, labels, links, annotations, customized scales, colors, tooltips and much more. To explore all features visit the [package website](https://nvelden.github.io/geneviewer/articles/geneviewer.html).
+**geneviewer** is an R package designed for visualizing gene clusters. It can import data directly from GenBank, GFF and FASTA files, perform BlastP alignments between clusters and visualize the results in gene arrow maps. In addition there are extensive options to customize the gene arrow maps such as adding a legend, labels, links, annotations, customized scales, colors, tooltips and much more. To explore all features visit the [package website](https://nvelden.github.io/geneviewer/articles/geneviewer.html).
 
 ## Installation
 

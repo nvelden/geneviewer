@@ -2401,7 +2401,8 @@ container.prototype.links = function (links, clusterKey, options = {}) {
                 .attr("cx", this.xScale(link.start1))
                 .attr("cy", this.yScale(y) + clusterStrandSpacing)
                 .attr("position", link.start1)
-                .attr("r", 0)
+                .attr("visibility", "hidden")
+                .attr("r", 1)
                 .attr("cluster", clusterKey)
                 .attr("groupColor", groupColor1)
                 .attr("linkID", link.linkID)
@@ -2415,7 +2416,8 @@ container.prototype.links = function (links, clusterKey, options = {}) {
                 .attr("groupColor", groupColor1)
                 .attr("linkID", link.linkID)
                 .attr("cluster", clusterKey)
-                .attr("r", 0);
+                .attr("visibility", "hidden")
+                .attr("r", 1);
 
         }
 
@@ -2432,7 +2434,8 @@ container.prototype.links = function (links, clusterKey, options = {}) {
                 .attr("cluster", clusterKey)
                 .attr("groupColor", groupColor2)
                 .attr("linkID", link.linkID)
-                .attr("r", 0);
+                .attr("visibility", "hidden")
+                .attr("r", 1);
 
             group.append("circle")
                 .attr("cx", this.xScale(link.end2))
@@ -2442,7 +2445,8 @@ container.prototype.links = function (links, clusterKey, options = {}) {
                 .attr("linkID", link.linkID)
                 .attr("cluster", clusterKey)
                 .attr("groupColor", groupColor2)
-                .attr("r", 0);
+                .attr("visibility", "hidden")
+                .attr("r", 1);
             }
 
     });

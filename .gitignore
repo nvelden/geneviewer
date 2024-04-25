@@ -6,6 +6,7 @@
 .DS_store
 renv/
 fasta_files/
+bed_files/
 genbank_files/
 gff_files/
 renv.lock

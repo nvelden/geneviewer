@@ -2,6 +2,7 @@
 ^fasta_files$
 ^genbank_files$
 ^gff_files$
+^bed_files$
 ^renv$
 ^renv\.lock$
 ^.*\.Rproj$

@@ -47,7 +47,7 @@ read_gbk <- function(path, sections = NULL, features = NULL, origin = TRUE) {
 
   if (dir.exists(path)) {
     # It's a directory
-    files <- list.files(path, pattern = "\\.gbk$", full.names = TRUE)
+    files <- list.files(path, pattern = "\\.gbk$|\\.gb$", full.names = TRUE)
 
     # Check if there are any .gbk files in the directory
     if (length(files) == 0) {

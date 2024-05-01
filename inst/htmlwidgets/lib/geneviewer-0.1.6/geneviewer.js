@@ -1589,8 +1589,6 @@ container.prototype.coordinates = function (show = true, options = {}) {
       setStyleFromOptions(currentElement, additionalOptionsTickStyle);
     });
 
-
-
   // Create and configure the bottom axis
   const xAxisBottom = g.append("g")
     .attr("transform", "translate(0," + this.yScale(yPositionBottom) + ")")
@@ -1808,8 +1806,8 @@ container.prototype.labels = function (label, show = true, options = {}) {
 
       // Calculate Y position based on geneTrack
     const currentGeneStrandSpacing = (d.strand == "forward" && this.geneStrandSpacing !== 0)
-                                 ? -this.geneStrandSpacing
-                                 : this.geneStrandSpacing;
+                                 ? this.geneStrandSpacing
+                                 : -this.geneStrandSpacing;
     var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
 
     const yPos = this.yScale(currentY) - (this.markerHeight / 2) - currentGeneStrandSpacing + currentOverlapSpacing;
@@ -2110,8 +2108,8 @@ container.prototype.genes = function (group, show = true, options = {}) {
 
     // Calculate Y position based on geneTrack
     const currentGeneStrandSpacing = (d.strand == "forward" && this.geneStrandSpacing !== 0)
-                                 ? -this.geneStrandSpacing
-                                 : this.geneStrandSpacing;
+                                 ? this.geneStrandSpacing
+                                 : -this.geneStrandSpacing;
     var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
 
     const yPos = this.yScale(currentY) - currentGeneStrandSpacing + currentOverlapSpacing;

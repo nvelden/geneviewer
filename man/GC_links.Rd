@@ -7,6 +7,7 @@
 GC_links(
   GC_chart,
   group,
+  data = NULL,
   value1 = NULL,
   value2 = NULL,
   cluster = NULL,

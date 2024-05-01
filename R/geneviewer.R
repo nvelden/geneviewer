@@ -2264,6 +2264,7 @@ get_links <-
 #'
 #' @param GC_chart Gene chart object.
 #' @param group The name of the column in the data to create value pairs from.
+#' @param data data.frame containing linking data.
 #' @param value1 Optional vector of group values to generate links for.
 #' @param value2 Optional vector of group values to generate links for.
 #' @param cluster Numeric or character vector or NULL; specifies which clusters
@@ -2344,7 +2345,8 @@ get_links <-
 #' @export
 GC_links <- function(
     GC_chart,
-    group,
+    group = NULL,
+    data = NULL,
     value1 = NULL,
     value2 = NULL,
     cluster = NULL,
@@ -2359,7 +2361,16 @@ GC_links <- function(
     labelStyle = list(),
     ...) {
 
-  links_data <- get_links(GC_chart, group, value1 = value1, value2 = value2, cluster = cluster)
+  if (is.null(data) && is.null(GC_chart)) {
+    stop("Error: Either 'group' or 'data' must be provided.")
+  }
+
+  if(!is.null(data)){
+    links_data <- data
+    group <- NULL
+  } else {
+    links_data <- get_links(GC_chart, group, value1 = value1, value2 = value2, cluster = cluster)
+  }
 
   # Rename columns
   if("identity2" %in% names(links_data)){

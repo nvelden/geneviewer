@@ -55,12 +55,12 @@ read_gbk <- function(path, sections = NULL, features = NULL, origin = TRUE) {
     }
 
     # Process each .gbk file in the directory
-    basename <- sapply(files, function(x) sub("\\.gbk$", "", basename(x)))
+    basename <- sapply(files, function(x) sub("\\.gbk$|\\.gb$", "", basename(x)))
     results <- setNames(lapply(files, function(file) process_gbk(file, sections, features, origin, basename(file))),
                         basename)
 
   } else if (file.exists(path)) {
-    basename <- sub("\\.gbk$", "", basename(path))
+    basename <- sub("\\.gbk$|\\.gb$", "", basename(path))
     results[[basename]] <- process_gbk(path, sections, features, origin, basename)
   } else {
     stop("The specified path does not exist.")

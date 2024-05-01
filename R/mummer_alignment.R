@@ -1,5 +1,5 @@
-GC_mummer <- function(
-    file_path,
+mummer_alignment <- function(
+    path,
     cluster = c("MT939486", "MT939487","MT939488", "LT960552"),
     maptype = "many-to-many",
     seqtype = "protein",
@@ -9,11 +9,11 @@ GC_mummer <- function(
     ){
 
   # Check if the file_path contains spaces
-  if (grepl(" ", file_path)) {
+  if (grepl(" ", path)) {
     stop("Error: MUMmer requires a file path without spaces.")
   }
 
-  all_files <- list.files(file_path, full.names = TRUE, pattern = "\\.gbk$|\\.gb$|\\.fasta$")
+  all_files <- list.files(path, full.names = TRUE, pattern = "\\.gbk$|\\.gb$|\\.fasta$")
 
   cluster_pairs <-
     mapply(c, cluster[-length(cluster)], cluster[-1], SIMPLIFY = FALSE)
@@ -38,7 +38,7 @@ GC_mummer <- function(
 
     tryCatch({
       # Call the mummer_alignment function
-      mummer_alignment(
+      mummer(
         reference = reference_seq,
         query = query_seq,
         maptype = maptype,
@@ -48,7 +48,7 @@ GC_mummer <- function(
         )
 
       coords_file <- sprintf("%s/%s_%s_%s_%s.coords",
-                             file_path,
+                             path,
                              pair[1],
                              pair[2],
                              seqtype,
@@ -62,7 +62,7 @@ GC_mummer <- function(
       }
 
       if (remove_files) {
-        file.remove(list.files(path=file_path, pattern=sprintf("%s_%s", pair[1], pair[2]), full.names=TRUE))
+        file.remove(list.files(path=path, pattern=sprintf("%s_%s", pair[1], pair[2]), full.names=TRUE))
       }
 
       return(coords)
@@ -77,7 +77,7 @@ GC_mummer <- function(
   return(links)
 }
 
-mummer_alignment <- function(reference, query, maptype = "many-to-many", seqtype = "protein", mummer_options = "", filter_options = "") {
+mummer <- function(reference, query, maptype = "many-to-many", seqtype = "protein", mummer_options = "", filter_options = "") {
 
   # Validate the sequence type
   if (!seqtype %in% c("protein", "nucleotide")) {
@@ -211,4 +211,54 @@ parse_procmer <- function(path, reference, query){
     stop("The specified path does not exist.")
   }
   return(data)
+}
+
+genbank_to_fasta <- function(path, output_path=NULL){
+  # Check if the file exists
+  if (!file.exists(path)) {
+    stop("File does not exist")
+  }
+
+  # Read all lines from the file
+  lines <- readLines(path)
+
+  # Extract the definition and version for the FASTA header
+  definition <- lines[grep("^DEFINITION", lines)]
+  definition <- sub("^DEFINITION\\s+", "", definition)
+  definition <- sub("\\.$", "", definition)
+  version <- lines[grep("^VERSION", lines)]
+  version <- sub("^VERSION\\s+", "", version)
+  fasta_header <- sprintf(">%s %s", version, definition)
+
+  # Identify the start of the sequence block
+  origin_index <- grep("^ORIGIN", lines)
+  if (length(origin_index) == 0) {
+    stop("No sequence detected in GenBank file.")
+  }
+  end_index <- grep("^//", lines)
+
+  # Extract and clean all lines after "ORIGIN"
+  if (length(origin_index) > 0 && length(end_index) > 0 && origin_index < end_index) {
+    sequence_lines <- lines[(origin_index + 1):(end_index - 1)]
+    sequence <- paste(sequence_lines, collapse = "")
+    sequence <- gsub("\\s+|[0-9]+", "", sequence)
+    sequence <- toupper(sequence)
+  } else {
+    stop("The sequence block is not properly formatted or missing.")
+  }
+
+  # Combine the header and sequence into one FASTA format string
+  fasta_content <- sprintf("%s\n%s", fasta_header, sequence)
+
+  if (is.null(output_path)) {
+    file_dir <- dirname(path)
+    gbk_name <- tools::file_path_sans_ext(basename(path))
+    fasta_file_path <- file.path(file_dir, sprintf("%s.fasta", gbk_name))
+  } else {
+    fasta_file_path <- output_path
+  }
+
+  # Write the FASTA content to the specified file path
+  writeLines(fasta_content, fasta_file_path)
+
 }

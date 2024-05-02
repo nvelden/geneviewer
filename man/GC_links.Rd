@@ -6,7 +6,7 @@
 \usage{
 GC_links(
   GC_chart,
-  group,
+  group = NULL,
   data = NULL,
   value1 = NULL,
   value2 = NULL,
@@ -27,6 +27,8 @@ GC_links(
 \item{GC_chart}{Gene chart object.}
 
 \item{group}{The name of the column in the data to create value pairs from.}
+
+\item{data}{data.frame containing linking data.}
 
 \item{value1}{Optional vector of group values to generate links for.}
 

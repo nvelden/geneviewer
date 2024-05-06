@@ -396,6 +396,36 @@ chart <- GC_chart(
   cluster = "cluster", 
   group = "class", 
   height = "250px") %>%
+  GC_links(
+    "class", 
+    value1 = c("Methyltransferase", "Prolyloligopeptidase"), 
+    value2 = c("Methyltransferase", "Prolyloligopeptidase"),
+    inverted_color = "#969696", 
+    identity = TRUE,
+    curve = FALSE,
+    linkStyle = list(
+      stroke = "black",
+      strokeWidth = 0.5
+      # Any other CSS style
+    ),
+    labelStyle = list(
+      fill = "red"
+      # Any other CSS style
+    )
+    ) %>% 
+  GC_legend(TRUE)
+
+chart
+```
+
+```{r echo=TRUE, results='asis'}
+ophA_clusters$identity <- sample(1:100, size = nrow(ophA_clusters), replace = TRUE) 
+
+chart <- GC_chart(
+  ophA_clusters, 
+  cluster = "cluster", 
+  group = "class", 
+  height = "250px") %>%
   GC_legend(FALSE) %>%
   GC_links(
     "class", 
@@ -418,6 +448,31 @@ chart <- GC_chart(
 
 chart
 ```
+
+
+The `data` parameter can be used to load a data frame that specifies links between genomic regions based on their start and end positions, rather than linking specific genes.
+
+```{r echo=TRUE, results='asis'}
+links_data <- data.frame(
+  start1 = c(5000, 16000),
+  end1 =  c(9000, 19000),
+  start2 = c(20000, 42000),
+  end2 = c(25000, 32000),
+  cluster1 = c("ophA","ophA"),
+  cluster2 = c("dbophA", "dbophA")
+)
+# Add links to chart
+GC_chart(
+  ophA_clusters, 
+  cluster = "cluster", 
+  group = "class", 
+  height = "250px") %>% 
+  GC_links(
+    data = links_data,
+    identity_label = FALSE
+    )
+```
+
 
 ## Sequence
 

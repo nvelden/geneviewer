@@ -355,7 +355,7 @@ parse_procmer <- function(path, reference, query){
 #' for the header and sequences from the ORIGIN section.
 #'
 #' @param path Path to the GenBank file.
-#' @param output_path Optional path for the output FASTA file. If NULL, the
+#' @param output_dir Optional path for the output FASTA file. If NULL, the
 #'   output is saved in the same directory as the input file with the same base
 #'   name but with a .fasta extension.
 #'

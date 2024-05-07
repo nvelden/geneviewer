@@ -5,12 +5,11 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="geneviewer is an R package designed to plot gene clusters. 
-             It can import data directly from GenBank files, perform BlastP 
-             alignments and visualize the results in gene arrow maps. In addition 
-             there are extensive options for customization such as addition of 
-             alegend, labels, annotations, customized scales, colors, tooltips 
-             and much more.">
+<meta name="description" content="geneviewer is an R package for plotting gene clusters. 
+              It imports data from GenBank, FASTA, and GFF files, performs BlastP
+              and MUMmer alignments, and displays results on gene arrow maps. 
+              The package offers extensive customization options, including 
+              legends, labels, annotations, scales, colors, tooltips, and more.">
 <title>Gene Cluster Visualizations in R • geneviewer</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -24,12 +23,11 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
 <meta property="og:title" content="Gene Cluster Visualizations in R">
-<meta property="og:description" content="geneviewer is an R package designed to plot gene clusters. 
-             It can import data directly from GenBank files, perform BlastP 
-             alignments and visualize the results in gene arrow maps. In addition 
-             there are extensive options for customization such as addition of 
-             alegend, labels, annotations, customized scales, colors, tooltips 
-             and much more.">
+<meta property="og:description" content="geneviewer is an R package for plotting gene clusters. 
+              It imports data from GenBank, FASTA, and GFF files, performs BlastP
+              and MUMmer alignments, and displays results on gene arrow maps. 
+              The package offers extensive customization options, including 
+              legends, labels, annotations, scales, colors, tooltips, and more.">
 <meta property="og:image" content="https://nvelden.github.io/geneviewer/logo.png">
 <meta name="google-site-verification" content="yTGAUIDwbj1rCz39OTZSzq5wZAPsbzfL9O_Gc7u6w14">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
@@ -68,6 +66,7 @@
     <a class="dropdown-item" href="articles/LoadFastaFiles.html">Loading Gene Clusters From FASTA Files</a>
     <a class="dropdown-item" href="articles/LoadGFF.html">Loading Gene Clusters From Generic Feature Format (GFF) Files</a>
     <a class="dropdown-item" href="articles/LoadGenBankFiles.html">Loading Gene Clusters From Genbank Files</a>
+    <a class="dropdown-item" href="articles/MUMMER.html">Genome alignment using MUMmer</a>
   </div>
 </li>
 <li class="nav-item">
@@ -107,7 +106,7 @@
 <div class="section level2">
 <h2 id="geneviewer">geneviewer<a class="anchor" aria-label="anchor" href="#geneviewer"></a>
 </h2>
-<p><strong>geneviewer</strong> is an R package designed for visualizing gene clusters. It can import data directly from GenBank, GFF and FASTA files, perform BlastP alignments between clusters and visualize the results in gene arrow maps. In addition there are extensive options to customize the gene arrow maps such as adding a legend, labels, links, annotations, customized scales, colors, tooltips and much more. To explore all features visit the <a href="https://nvelden.github.io/geneviewer/articles/geneviewer.html">package website</a>.</p>
+<p><strong>geneviewer</strong> is an R package for plotting gene clusters. It imports data from GenBank, FASTA, and GFF files, performs BlastP and MUMmer alignments, and displays results on gene arrow maps. The package offers extensive customization options, including legends, labels, annotations, scales, colors, tooltips, and more. To explore all features visit the <a href="https://nvelden.github.io/geneviewer/articles/geneviewer.html">package website</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>

@@ -4,12 +4,12 @@
 \alias{genbank_to_fasta}
 \title{Convert GenBank to FASTA Format}
 \usage{
-genbank_to_fasta(path, output_path = NULL)
+genbank_to_fasta(path, output_dir = NULL)
 }
 \arguments{
 \item{path}{Path to the GenBank file.}
 
-\item{output_path}{Optional path for the output FASTA file. If NULL, the
+\item{output_dir}{Optional path for the output FASTA file. If NULL, the
 output is saved in the same directory as the input file with the same base
 name but with a .fasta extension.}
 }

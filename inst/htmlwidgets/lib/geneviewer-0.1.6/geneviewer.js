@@ -819,32 +819,37 @@ function allStrandsEqual(data) {
 }
 
 function makeColorBar(graphContainer, links) {
+    // Check for identity and color bar options
     if (links.options && links.options.identity === false) {
         return null;
     }
-    if (links[0].options.colorBar === false) {
+    if (links[0].options.colorBar === false || links[0].options.measure === 'none') {
         return null;
     }
 
     // Default options for the color bars (both normal and inverted)
     const defaultOptions = {
-        x: 0,
-        y: 24,
-        margin: { top: 5, right: 25, bottom: 0, left: 50 },
         invertedColor: "#d62728",
         normalColor: "#969696",
-        width: 10,
-        height: 60,
-        labelFontSize: 8,
-        barStroke: "#000",
-        barStrokeWidth: 0.5,
-        barOpacity: 1,
-        labelYOffset: 0,
-        labelXOffset: 2
+        measure: "identity",
+        margin: { top: 5, right: 25, bottom: 0, left: 50 },
+        colorBarOptions: {
+            x: 0,
+            y: 24,
+            width: 10,
+            height: 60,
+            labelFontSize: 8,
+            barStroke: "#000",
+            barStrokeWidth: 0.5,
+            barOpacity: 1,
+            labelYOffset: 0,
+            labelXOffset: 2
+        }
     };
 
-    // check if there are inverted links
-    const colorBarOptions = { ...defaultOptions, ...links[0].options };
+    // Extract user-supplied options and merge them with the defaults
+    const linkOptions = { ...defaultOptions, ...links[0].options };
+    const colorBarOptions = { ...defaultOptions.colorBarOptions, ...links[0].options.colorBarOptions };
 
     const graphRect = graphContainer.node().getBoundingClientRect();
 
@@ -855,28 +860,28 @@ function makeColorBar(graphContainer, links) {
         .style("height", "100%");
 
     // Create an SVG element inside the newly created container
-    var svg = svgContainer.append("svg")
+    const svg = svgContainer.append("svg")
         .attr("width", graphRect.width)
         .attr("height", graphRect.height)
         .classed("color-bar", true)
         .style("position", "absolute");
 
     // Append a group element to the SVG and transform based on margins
-    var g = svg.append("g")
-        .attr("transform", `translate(${colorBarOptions.margin.left}, ${colorBarOptions.margin.top})`);
+    const g = svg.append("g")
+        .attr("transform", `translate(${linkOptions.margin.left}, ${linkOptions.margin.top})`);
 
     // Create a linear gradient for the normal bar
-    var defs = g.append("defs");
-    var linearGradient = defs.append("linearGradient")
+    const defs = g.append("defs");
+    const linearGradient = defs.append("linearGradient")
         .attr("id", "linear-gradient")
         .attr("gradientTransform", "rotate(90)");
 
-    const identityArray = links.flatMap(link => link.data.identity);
-    const minValue = Math.min(...identityArray);
-    const maxValue = Math.max(...identityArray);
+    const identityArray = links.flatMap(link => link.data[linkOptions.measure]);
+    const minValue = Math.round(Math.min(...identityArray));
+    const maxValue = Math.round(Math.max(...identityArray));
 
     // Define a color scale for the normal gradient
-    var colorScale = d3.scaleSequential(t => d3.interpolate("#FFF", colorBarOptions.normalColor)(t))
+    const colorScale = d3.scaleSequential(t => d3.interpolate("#FFF", linkOptions.normalColor)(t))
         .domain([minValue, maxValue]);
 
     // Set the gradient stops for the normal gradient
@@ -889,8 +894,8 @@ function makeColorBar(graphContainer, links) {
         .attr("stop-color", colorScale(minValue));
 
     // Calculate dimensions for drawing the color bar
-    const contentWidth = graphRect.width - colorBarOptions.margin.left - colorBarOptions.margin.right;
-    const contentHeight = graphRect.height - colorBarOptions.margin.top - colorBarOptions.margin.bottom;
+    const contentWidth = graphRect.width - linkOptions.margin.left - linkOptions.margin.right;
+    const contentHeight = graphRect.height - linkOptions.margin.top - linkOptions.margin.bottom;
 
     const width = parseFloat(colorBarOptions.width);
     const height = parseFloat(colorBarOptions.height);
@@ -924,13 +929,14 @@ function makeColorBar(graphContainer, links) {
         .attr("font-size", colorBarOptions.labelFontSize)
         .text(minValue + '%');
 
+    // Draw the inverted bar only if the strands are not the same
     if (!allStrandsEqual(links[0].data)) {
-        var reverseGradient = defs.append("linearGradient")
+        const reverseGradient = defs.append("linearGradient")
             .attr("id", "reverse-gradient")
             .attr("gradientTransform", "rotate(90)");
 
         // Define a color scale for the inverted gradient
-        var reverseColorScale = d3.scaleSequential(t => d3.interpolate("#FFF", colorBarOptions.invertedColor)(t))
+        const reverseColorScale = d3.scaleSequential(t => d3.interpolate("#FFF", linkOptions.invertedColor)(t))
             .domain([minValue, maxValue]);
 
         // Set the gradient stops for the inverted gradient
@@ -2515,7 +2521,8 @@ container.prototype.links = function (links, clusterKey, options = {}) {
   const defaultOptions = {
     y: 50,
     showLinks: true,
-    identityLabel: true,
+    label: true,
+    measure: "identity",
     labelStyle: {
         cursor: "pointer",
         fontSize: "12px",
@@ -2537,7 +2544,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     }
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'linkOptions', options);
-    const { x, y, cursor, fontSize, fontStyle, fontFamily, textAnchor, showLinks, identityLabel, labelStyle, labelAdjustmentOptions } = combinedOptions;
+    const { x, y, cursor, fontSize, fontStyle, fontFamily, textAnchor, showLinks, label, measure, labelStyle, labelAdjustmentOptions } = combinedOptions;
 
     const additionalOptions = extractAdditionalOptions(options, defaultOptions);
     const additionalOptionsLabelStyle = extractAdditionalOptions(labelStyle, defaultOptions.labelStyle);
@@ -2611,11 +2618,11 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     });
     }
 
-    if(identityLabel){
+    if(label){
     const self = this;
 
     const labelData = this.data.filter(d =>
-      d.identity != null &&
+      d[measure] != null &&
       d.BlastP != "No Hit" &&
       (d.BlastP === undefined || (d.BlastP != d.protein_id && d.BlastP)) &&
       ((options.value1 === undefined && options.value2 === undefined) ||
@@ -2633,7 +2640,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     .attr("class", "link-text")
     .attr("x", (d, i) => this.xScale((d.start + d.end) / 2))
     .attr("y", (d, i) => this.yScale(y) - (this.markerHeight / 1.5) - clusterStrandSpacing)
-    .text(d => `${parseFloat(d.identity.toFixed(1))}%`)
+    .text(d => `${parseFloat(d[measure].toFixed(1))}%`)
     .style("font-size", labelStyle.fontSize)
     .style("font-style", labelStyle.fontStyle)
     .style("font-family", labelStyle.fontFamily)

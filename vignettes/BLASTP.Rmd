@@ -135,7 +135,7 @@ GC_chart(
   height = "600px"
 ) %>%
 GC_labels(label = "Gene", cluster = 1) %>% 
-GC_links(group = "BlastP",  identity = TRUE) %>%  
+GC_links(group = "BlastP",  measure = "identity") %>%  
 GC_clusterLabel() %>%
 GC_legend(TRUE)
 ```
@@ -153,7 +153,6 @@ GC_chart(
 GC_labels(label = "Gene", cluster = 1) %>% 
 GC_scale(axis_type = "range") %>%
 GC_links(group = "Gene",  
-         identity = TRUE, 
          value1 = c("eryAI", "eryAII", "eryAIII"), 
          value2 = c("eryAI", "eryAII", "eryAIII"), 
          use_group_colors = TRUE

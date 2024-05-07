@@ -109,7 +109,8 @@ GC_chart(
   cluster = "cluster"
 ) %>%
 GC_links(
-  data = alignment
+  data = alignment,
+  measure = "identity", # similarity/none
 ) %>%
 GC_scale(axis_type = "range") %>%
 GC_cluster(separate_strands = TRUE) %>%

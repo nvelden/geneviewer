@@ -386,10 +386,11 @@ chart %>%
   GC_labels("name")
 ```
 
-It is possible to add an identity column to the data which will be used to set the color intensity of the links. In addition links and labels can be styled using the `linkStyle` and `labelStyle` variable.
+It is possible to add an "identity" or "similarity" column to the data which will be used as measure to set the color intensity of the links. In addition links and labels can be styled using the `linkStyle` and `labelStyle` variable.
 
 ```{r echo=TRUE, results='asis'}
 ophA_clusters$identity <- sample(1:100, size = nrow(ophA_clusters), replace = TRUE) 
+ophA_clusters$identity[ophA_clusters$cluster == "ophA"] <- NA
 
 chart <- GC_chart(
   ophA_clusters, 
@@ -401,7 +402,8 @@ chart <- GC_chart(
     value1 = c("Methyltransferase", "Prolyloligopeptidase"), 
     value2 = c("Methyltransferase", "Prolyloligopeptidase"),
     inverted_color = "#969696", 
-    identity = TRUE,
+    measure = "identity", # similarity / none
+    label = TRUE,
     curve = FALSE,
     linkStyle = list(
       stroke = "black",
@@ -417,38 +419,6 @@ chart <- GC_chart(
 
 chart
 ```
-
-```{r echo=TRUE, results='asis'}
-ophA_clusters$identity <- sample(1:100, size = nrow(ophA_clusters), replace = TRUE) 
-
-chart <- GC_chart(
-  ophA_clusters, 
-  cluster = "cluster", 
-  group = "class", 
-  height = "250px") %>%
-  GC_legend(FALSE) %>%
-  GC_links(
-    "class", 
-    value1 = c("Methyltransferase", "Prolyloligopeptidase"), 
-    value2 = c("Methyltransferase", "Prolyloligopeptidase"),
-    inverted_color = "#969696", 
-    identity = TRUE,
-    curve = FALSE,
-    linkStyle = list(
-      stroke = "black",
-      strokeWidth = 0.5
-      # Any other CSS style
-    ),
-    labelStyle = list(
-      fill = "red"
-      # Any other CSS style
-    )
-    ) %>% 
-  GC_legend(TRUE)
-
-chart
-```
-
 
 The `data` parameter can be used to load a data frame that specifies links between genomic regions based on their start and end positions, rather than linking specific genes.
 
@@ -468,8 +438,7 @@ GC_chart(
   group = "class", 
   height = "250px") %>% 
   GC_links(
-    data = links_data,
-    identity_label = FALSE
+    data = links_data
     )
 ```
 

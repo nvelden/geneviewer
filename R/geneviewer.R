@@ -2357,6 +2357,7 @@ GC_links <- function(
     normal_color = "#969696",
     inverted_color = "#d62728",
     use_group_colors = FALSE,
+    color_bar = TRUE,
     linkStyle = list(),
     labelStyle = list(),
     ...) {
@@ -2409,6 +2410,7 @@ GC_links <- function(
     useGroupColors = use_group_colors,
     value1 = value1,
     value2 = value2,
+    colorBar = color_bar,
     linkStyle = linkStyle,
     labelStyle = labelStyle,
     ...

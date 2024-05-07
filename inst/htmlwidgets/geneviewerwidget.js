@@ -184,7 +184,7 @@ HTMLWidgets.widget({
     const colorBarContainer = d3.select(`#geneviewer-graph-container-${widgetId}`);
     //graphContainer.selectAll(".link-marker").remove();
 
-    makeColorBar(graphContainer);
+    makeColorBar(graphContainer, links);
 
     };
 

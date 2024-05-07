@@ -645,6 +645,7 @@ function makeLinks(graphContainer, links, clusters) {
       normalColor: "blue",
       useGroupColors: false,
       color: "lightgrey",
+      identity: true,
       identityLabel: true,
       linkStyle: {
         stroke: "none",
@@ -697,7 +698,7 @@ function makeLinks(graphContainer, links, clusters) {
                 const baseColor = coordinate[0].strand == coordinate[1].strand ? d3.rgb(normalColor) : d3.rgb(invertedColor)
                 var colorScale = d3.scaleSequential(t => d3.interpolate("#FFFFFF", baseColor)(t))
                     .domain([0, 100]);
-                const identity = link.data?.identity?.[index] ?? 100
+                const identity = combinedOptions.identity === false ? 100 : (link.data?.identity?.[index] ?? 100);
                 const linkColor = useGroupColors ? coordinate[0].groupColor : colorScale(identity)
 
             lineSvg.append("path")
@@ -793,21 +794,57 @@ function getClusterLinks(data, cluster) {
     return clusterLinks;
 }
 
-function makeColorBar(graphContainer, options = {}) {
-    // Default options for the color bar
+function allStrandsEqual(data) {
+    data.strand1 = data.strand1 || [];
+    data.strand2 = data.strand2 || [];
+    let allStrandsEqual = true;
+    let previousStrand1, previousStrand2;
+
+    for (let i = 0; i < data.start1.length; i++) {
+        const strand1 = data.start1[i] > data.end1[i] ? "forward" : "reverse";
+        const strand2 = data.start2[i] > data.end2[i] ? "forward" : "reverse";
+
+        data.strand1[i] = strand1;
+        data.strand2[i] = strand2;
+
+        if (i > 0 && (strand1 !== previousStrand1 || strand2 !== previousStrand2)) {
+            allStrandsEqual = false;
+        }
+
+        previousStrand1 = strand1;
+        previousStrand2 = strand2;
+    }
+
+    return allStrandsEqual;
+}
+
+function makeColorBar(graphContainer, links) {
+    if (links.options && links.options.identity === false) {
+        return null;
+    }
+    if (links[0].options.colorBar === false) {
+        return null;
+    }
+
+    // Default options for the color bars (both normal and inverted)
     const defaultOptions = {
-        x: 1,
-        y: 0,
-        margin: { top: 5, right: 50, bottom: 5, left: 50 },
+        x: 0,
+        y: 24,
+        margin: { top: 5, right: 25, bottom: 0, left: 50 },
         invertedColor: "#d62728",
         normalColor: "#969696",
-        width: 100,
-        height: 20,
-        minValue: 10,
-        maxValue: 100
+        width: 10,
+        height: 60,
+        labelFontSize: 8,
+        barStroke: "#000",
+        barStrokeWidth: 0.5,
+        barOpacity: 1,
+        labelYOffset: 0,
+        labelXOffset: 2
     };
 
-    const colorBarOptions = {...defaultOptions, ...options};
+    // check if there are inverted links
+    const colorBarOptions = { ...defaultOptions, ...links[0].options };
 
     const graphRect = graphContainer.node().getBoundingClientRect();
 
@@ -824,42 +861,99 @@ function makeColorBar(graphContainer, options = {}) {
         .classed("color-bar", true)
         .style("position", "absolute");
 
-    // Append a group element to svg, and transform it based on margins
+    // Append a group element to the SVG and transform based on margins
     var g = svg.append("g")
         .attr("transform", `translate(${colorBarOptions.margin.left}, ${colorBarOptions.margin.top})`);
 
-    // Create a linear gradient for the color bar
+    // Create a linear gradient for the normal bar
     var defs = g.append("defs");
     var linearGradient = defs.append("linearGradient")
-        .attr("id", "linear-gradient");
+        .attr("id", "linear-gradient")
+        .attr("gradientTransform", "rotate(90)");
 
-    // Define a color scale with a domain from 0 to 100
+    const identityArray = links.flatMap(link => link.data.identity);
+    const minValue = Math.min(...identityArray);
+    const maxValue = Math.max(...identityArray);
+
+    // Define a color scale for the normal gradient
     var colorScale = d3.scaleSequential(t => d3.interpolate("#FFF", colorBarOptions.normalColor)(t))
-                       .domain([0, 100]);
+        .domain([minValue, maxValue]);
 
-    // Set the gradient stops at the min and max values
+    // Set the gradient stops for the normal gradient
     linearGradient.append("stop")
         .attr("offset", "0%")
-        .attr("stop-color", colorScale(colorBarOptions.minValue));
+        .attr("stop-color", colorScale(maxValue));
 
     linearGradient.append("stop")
         .attr("offset", "100%")
-        .attr("stop-color", colorScale(colorBarOptions.maxValue));
+        .attr("stop-color", colorScale(minValue));
 
-    // Calculate position considering the margins
-    const xPosition = graphRect.width - colorBarOptions.margin.right - colorBarOptions.width - colorBarOptions.margin.left;
-    const yPosition = graphRect.height - colorBarOptions.margin.bottom - colorBarOptions.height - colorBarOptions.margin.top;
+    // Calculate dimensions for drawing the color bar
+    const contentWidth = graphRect.width - colorBarOptions.margin.left - colorBarOptions.margin.right;
+    const contentHeight = graphRect.height - colorBarOptions.margin.top - colorBarOptions.margin.bottom;
 
+    const width = parseFloat(colorBarOptions.width);
+    const height = parseFloat(colorBarOptions.height);
 
-    // Draw the rectangle that will use the gradient
+    const xPosition = contentWidth - width - colorBarOptions.x;
+    const yPosition = contentHeight - height - colorBarOptions.y;
+
+    // Draw the normal color gradient bar with stroke and opacity
     g.append("rect")
         .attr("x", xPosition)
         .attr("y", yPosition)
-        .attr("width", colorBarOptions.width)
-        .attr("height", colorBarOptions.height)
-        .style("fill", "url(#linear-gradient)");
-}
+        .attr("width", width)
+        .attr("height", height)
+        .style("fill", "url(#linear-gradient)")
+        .style("stroke", colorBarOptions.barStroke)
+        .style("stroke-width", colorBarOptions.barStrokeWidth)
+        .style("opacity", colorBarOptions.barOpacity);
 
+    // Draw labels for the normal gradient
+    g.append("text")
+        .attr("x", xPosition + width + colorBarOptions.labelXOffset)
+        .attr("y", yPosition - colorBarOptions.labelYOffset)
+        .attr("alignment-baseline", "middle")
+        .attr("font-size", colorBarOptions.labelFontSize)
+        .text(maxValue + '%');
+
+    g.append("text")
+        .attr("x", xPosition + width + colorBarOptions.labelXOffset)
+        .attr("y", yPosition + height + colorBarOptions.labelYOffset)
+        .attr("alignment-baseline", "middle")
+        .attr("font-size", colorBarOptions.labelFontSize)
+        .text(minValue + '%');
+
+    if (!allStrandsEqual(links[0].data)) {
+        var reverseGradient = defs.append("linearGradient")
+            .attr("id", "reverse-gradient")
+            .attr("gradientTransform", "rotate(90)");
+
+        // Define a color scale for the inverted gradient
+        var reverseColorScale = d3.scaleSequential(t => d3.interpolate("#FFF", colorBarOptions.invertedColor)(t))
+            .domain([minValue, maxValue]);
+
+        // Set the gradient stops for the inverted gradient
+        reverseGradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", reverseColorScale(maxValue));
+
+        reverseGradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", reverseColorScale(minValue));
+
+        // Draw the rectangle that will use the reverse gradient with the same stroke and opacity
+        g.append("rect")
+            .attr("x", xPosition - width) // Positioned to the left of the first bar
+            .attr("y", yPosition)
+            .attr("width", width)
+            .attr("height", height)
+            .style("fill", "url(#reverse-gradient)")
+            .style("stroke", colorBarOptions.barStroke)
+            .style("stroke-width", colorBarOptions.barStrokeWidth)
+            .style("opacity", colorBarOptions.barOpacity);
+    }
+}
 // Cluster functions
 
 container.prototype.cluster = function (options = {}) {

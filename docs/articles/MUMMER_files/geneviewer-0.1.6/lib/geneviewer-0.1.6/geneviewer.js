@@ -875,9 +875,8 @@ function makeColorBar(graphContainer, links) {
 
     // Create a linear gradient for the normal bar
     const defs = g.append("defs");
-    const forwardGradientId = getUniqueId("linear-gradient")
     const linearGradient = defs.append("linearGradient")
-        .attr("id", forwardGradientId)
+        .attr("id", "linear-gradient")
         .attr("gradientTransform", "rotate(90)");
 
     const identityArray = links.flatMap(link => link.data[linkOptions.measure]);
@@ -913,7 +912,7 @@ function makeColorBar(graphContainer, links) {
         .attr("y", yPosition)
         .attr("width", width)
         .attr("height", height)
-        .style("fill", `url(#${forwardGradientId})`)
+        .style("fill", "url(#linear-gradient)")
         .style("stroke", colorBarOptions.barStroke)
         .style("stroke-width", colorBarOptions.barStrokeWidth)
         .style("opacity", colorBarOptions.barOpacity);
@@ -935,9 +934,8 @@ function makeColorBar(graphContainer, links) {
 
     // Draw the inverted bar only if the strands are not the same
     if (!allStrandsEqual(links[0].data)) {
-        const reverseGradientId = getUniqueId("reverse-gradient")
         const reverseGradient = defs.append("linearGradient")
-            .attr("id", reverseGradientId)
+            .attr("id", "reverse-gradient")
             .attr("gradientTransform", "rotate(90)");
 
         // Define a color scale for the inverted gradient
@@ -959,7 +957,7 @@ function makeColorBar(graphContainer, links) {
             .attr("y", yPosition)
             .attr("width", width)
             .attr("height", height)
-            .style("fill", `url(#${reverseGradientId})`)
+            .style("fill", "url(#reverse-gradient)")
             .style("stroke", colorBarOptions.barStroke)
             .style("stroke-width", colorBarOptions.barStrokeWidth)
             .style("opacity", colorBarOptions.barOpacity);

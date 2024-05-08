@@ -23,7 +23,7 @@ This tutorial guides you through the process of performing genome alignments usi
 
 ### Materials
 
-The .gbk files can be downloaded directly from [GenBank](https://www.ncbi.nlm.nih.gov/genbank/) using accession numbers CP000486.1, CP009599.1, CP003188.1 and CP009638.1. Alternatively, you can obtain the GenBank files including all alignment files directly from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Loading%20GenBank%20files) repository.
+The .gbk files can be downloaded directly from [GenBank](https://www.ncbi.nlm.nih.gov/genbank/) using accession numbers CP000486.1, CP009599.1, CP003188.1 and CP009638.1. Alternatively, you can obtain the GenBank files including all alignment files directly from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/MUMmer%20alignments) repository.
 
 ### MUMmer alignment
 

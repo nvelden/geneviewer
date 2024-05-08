@@ -386,7 +386,7 @@ chart %>%
   GC_labels("name")
 ```
 
-It is possible to add an "identity" or "similarity" column to the data which will be used as measure to set the color intensity of the links. In addition links and labels can be styled using the `linkStyle` and `labelStyle` variable.
+An "identity" or "similarity" column can be added to the data which will be used as measure to set the color intensity of the links. In addition links and labels can be styled using the `linkStyle` and `labelStyle` variable.
 
 ```{r echo=TRUE, results='asis'}
 ophA_clusters$identity <- sample(1:100, size = nrow(ophA_clusters), replace = TRUE) 
@@ -401,7 +401,7 @@ chart <- GC_chart(
     "class", 
     value1 = c("Methyltransferase", "Prolyloligopeptidase"), 
     value2 = c("Methyltransferase", "Prolyloligopeptidase"),
-    inverted_color = "#969696", 
+    inverted_color = "green", 
     measure = "identity", # similarity / none
     label = TRUE,
     curve = FALSE,
@@ -420,7 +420,7 @@ chart <- GC_chart(
 chart
 ```
 
-The `data` parameter can be used to load a data frame that specifies links between genomic regions based on their start and end positions, rather than linking specific genes.
+The `data` parameter allows you to load a data frame that defines links between genomic regions by their start and end positions, rather than linking specific genes. You can include an "identity" or "similarity" column that will be used to set the color intensity of these links.
 
 ```{r echo=TRUE, results='asis'}
 links_data <- data.frame(
@@ -429,7 +429,9 @@ links_data <- data.frame(
   start2 = c(20000, 42000),
   end2 = c(25000, 32000),
   cluster1 = c("ophA","ophA"),
-  cluster2 = c("dbophA", "dbophA")
+  cluster2 = c("dbophA", "dbophA"),
+  identity = c(20, 100),
+  similarity = c(10, 90)
 )
 # Add links to chart
 GC_chart(
@@ -438,7 +440,8 @@ GC_chart(
   group = "class", 
   height = "250px") %>% 
   GC_links(
-    data = links_data
+    data = links_data,
+    measure = "identity"
     )
 ```
 

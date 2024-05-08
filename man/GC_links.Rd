@@ -78,6 +78,7 @@ genes_data <- data.frame(
            'Gene 6', 'Gene 7', 'Gene 8', 'Gene 9', 'Gene 10'),
   group = c('A', 'B', 'C', 'A', 'B', 'C', 'A', 'B', 'C', 'D'),
   identity = c(NA, NA, NA, 50, 40, 100, 60, 65, 20, NA),
+  similarity = c(NA, NA, NA, 40, 30, 90, 50, 55, 10, NA),
   cluster = c(1, 1, 1, 2, 2, 2, 3, 3, 3, 3)
 )
 GC_chart(genes_data,
@@ -87,6 +88,7 @@ GC_chart(genes_data,
     group = "group",
     value1 = "A",
     value2 = "B",
+    measure = "identity",
     label = FALSE) \%>\%
   GC_labels(label = "group")
 

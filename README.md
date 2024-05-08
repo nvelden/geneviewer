@@ -57,6 +57,10 @@ For additional examples and the corresponding code to create the plots, please v
 
 <hr>
 
+<img src="man/figures/MUMmer.png"/>
+
+<hr>
+
 <img src="man/figures/erythromycin_link.png"/>
 
 <hr>

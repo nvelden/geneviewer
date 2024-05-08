@@ -819,12 +819,15 @@ function allStrandsEqual(data) {
 }
 
 function makeColorBar(graphContainer, links) {
-    // Check for identity and color bar options
-    if (links.options && links.options.identity === false) {
-        return null;
+
+    if (links[0].options.colorBar === false){
+      return null;
     }
-    if (links[0].options.colorBar === false || links[0].options.measure === 'none') {
-        return null;
+    if (links[0].options.measure === 'none'){
+      return null;
+    }
+    if (!links[0].data.hasOwnProperty('identity') && !links[0].data.hasOwnProperty('similarity')) {
+      return null;
     }
 
     // Default options for the color bars (both normal and inverted)
@@ -872,8 +875,9 @@ function makeColorBar(graphContainer, links) {
 
     // Create a linear gradient for the normal bar
     const defs = g.append("defs");
+    const forwardGradientId = getUniqueId("linear-gradient")
     const linearGradient = defs.append("linearGradient")
-        .attr("id", "linear-gradient")
+        .attr("id", forwardGradientId)
         .attr("gradientTransform", "rotate(90)");
 
     const identityArray = links.flatMap(link => link.data[linkOptions.measure]);
@@ -882,7 +886,7 @@ function makeColorBar(graphContainer, links) {
 
     // Define a color scale for the normal gradient
     const colorScale = d3.scaleSequential(t => d3.interpolate("#FFF", linkOptions.normalColor)(t))
-        .domain([minValue, maxValue]);
+        .domain([0, 100]);
 
     // Set the gradient stops for the normal gradient
     linearGradient.append("stop")
@@ -909,7 +913,7 @@ function makeColorBar(graphContainer, links) {
         .attr("y", yPosition)
         .attr("width", width)
         .attr("height", height)
-        .style("fill", "url(#linear-gradient)")
+        .style("fill", `url(#${forwardGradientId})`)
         .style("stroke", colorBarOptions.barStroke)
         .style("stroke-width", colorBarOptions.barStrokeWidth)
         .style("opacity", colorBarOptions.barOpacity);
@@ -931,13 +935,14 @@ function makeColorBar(graphContainer, links) {
 
     // Draw the inverted bar only if the strands are not the same
     if (!allStrandsEqual(links[0].data)) {
+        const reverseGradientId = getUniqueId("reverse-gradient")
         const reverseGradient = defs.append("linearGradient")
-            .attr("id", "reverse-gradient")
+            .attr("id", reverseGradientId)
             .attr("gradientTransform", "rotate(90)");
 
         // Define a color scale for the inverted gradient
         const reverseColorScale = d3.scaleSequential(t => d3.interpolate("#FFF", linkOptions.invertedColor)(t))
-            .domain([minValue, maxValue]);
+            .domain([0, 100]);
 
         // Set the gradient stops for the inverted gradient
         reverseGradient.append("stop")
@@ -954,12 +959,13 @@ function makeColorBar(graphContainer, links) {
             .attr("y", yPosition)
             .attr("width", width)
             .attr("height", height)
-            .style("fill", "url(#reverse-gradient)")
+            .style("fill", `url(#${reverseGradientId})`)
             .style("stroke", colorBarOptions.barStroke)
             .style("stroke-width", colorBarOptions.barStrokeWidth)
             .style("opacity", colorBarOptions.barOpacity);
     }
 }
+
 // Cluster functions
 
 container.prototype.cluster = function (options = {}) {

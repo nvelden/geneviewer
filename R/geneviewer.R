@@ -2379,7 +2379,7 @@ GC_links <- function(
     labelStyle = list(),
     ...
 ) {
-  browser()
+
   # Validate measure
   if (!measure %in% c("identity", "similarity", "none")) {
     stop("Invalid measure specified. Choose 'identity', 'similarity', or 'none'.")
@@ -2394,6 +2394,7 @@ GC_links <- function(
   if (!is.null(data)) {
     links_data <- data
     group <- NULL
+    label <- FALSE
   } else {
     links_data <- get_links(GC_chart, group, value1 = value1, value2 = value2, cluster = cluster)
   }

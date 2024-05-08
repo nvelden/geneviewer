@@ -645,6 +645,7 @@ function makeLinks(graphContainer, links, clusters) {
       normalColor: "blue",
       useGroupColors: false,
       color: "lightgrey",
+      identity: true,
       identityLabel: true,
       linkStyle: {
         stroke: "none",
@@ -697,7 +698,7 @@ function makeLinks(graphContainer, links, clusters) {
                 const baseColor = coordinate[0].strand == coordinate[1].strand ? d3.rgb(normalColor) : d3.rgb(invertedColor)
                 var colorScale = d3.scaleSequential(t => d3.interpolate("#FFFFFF", baseColor)(t))
                     .domain([0, 100]);
-                const identity = link.data?.identity?.[index] ?? 100
+                const identity = combinedOptions.identity === false ? 100 : (link.data?.identity?.[index] ?? 100);
                 const linkColor = useGroupColors ? coordinate[0].groupColor : colorScale(identity)
 
             lineSvg.append("path")
@@ -791,6 +792,178 @@ function getClusterLinks(data, cluster) {
     const clusterLinks = linksCluster1.concat(linksCluster2);
 
     return clusterLinks;
+}
+
+function allStrandsEqual(data) {
+    data.strand1 = data.strand1 || [];
+    data.strand2 = data.strand2 || [];
+    let allStrandsEqual = true;
+    let previousStrand1, previousStrand2;
+
+    for (let i = 0; i < data.start1.length; i++) {
+        const strand1 = data.start1[i] > data.end1[i] ? "forward" : "reverse";
+        const strand2 = data.start2[i] > data.end2[i] ? "forward" : "reverse";
+
+        data.strand1[i] = strand1;
+        data.strand2[i] = strand2;
+
+        if (i > 0 && (strand1 !== previousStrand1 || strand2 !== previousStrand2)) {
+            allStrandsEqual = false;
+        }
+
+        previousStrand1 = strand1;
+        previousStrand2 = strand2;
+    }
+
+    return allStrandsEqual;
+}
+
+function makeColorBar(graphContainer, links) {
+
+    if (links[0].options.colorBar === false){
+      return null;
+    }
+    if (links[0].options.measure === 'none'){
+      return null;
+    }
+    if (!links[0].data.hasOwnProperty('identity') && !links[0].data.hasOwnProperty('similarity')) {
+      return null;
+    }
+
+    // Default options for the color bars (both normal and inverted)
+    const defaultOptions = {
+        invertedColor: "#d62728",
+        normalColor: "#969696",
+        measure: "identity",
+        margin: { top: 5, right: 25, bottom: 0, left: 50 },
+        colorBarOptions: {
+            x: 0,
+            y: 24,
+            width: 10,
+            height: 60,
+            labelFontSize: 8,
+            barStroke: "#000",
+            barStrokeWidth: 0.5,
+            barOpacity: 1,
+            labelYOffset: 0,
+            labelXOffset: 2
+        }
+    };
+
+    // Extract user-supplied options and merge them with the defaults
+    const linkOptions = { ...defaultOptions, ...links[0].options };
+    const colorBarOptions = { ...defaultOptions.colorBarOptions, ...links[0].options.colorBarOptions };
+
+    const graphRect = graphContainer.node().getBoundingClientRect();
+
+    // Create a container div for the SVG
+    const svgContainer = graphContainer.insert("div", ":first-child")
+        .style("position", "relative")
+        .style("width", "100%")
+        .style("height", "100%");
+
+    // Create an SVG element inside the newly created container
+    const svg = svgContainer.append("svg")
+        .attr("width", graphRect.width)
+        .attr("height", graphRect.height)
+        .classed("color-bar", true)
+        .style("position", "absolute");
+
+    // Append a group element to the SVG and transform based on margins
+    const g = svg.append("g")
+        .attr("transform", `translate(${linkOptions.margin.left}, ${linkOptions.margin.top})`);
+
+    // Create a linear gradient for the normal bar
+    const defs = g.append("defs");
+    const forwardGradientId = getUniqueId("linear-gradient")
+    const linearGradient = defs.append("linearGradient")
+        .attr("id", forwardGradientId)
+        .attr("gradientTransform", "rotate(90)");
+
+    const identityArray = links.flatMap(link => link.data[linkOptions.measure]);
+    const minValue = Math.round(Math.min(...identityArray));
+    const maxValue = Math.round(Math.max(...identityArray));
+
+    // Define a color scale for the normal gradient
+    const colorScale = d3.scaleSequential(t => d3.interpolate("#FFF", linkOptions.normalColor)(t))
+        .domain([0, 100]);
+
+    // Set the gradient stops for the normal gradient
+    linearGradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", colorScale(maxValue));
+
+    linearGradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", colorScale(minValue));
+
+    // Calculate dimensions for drawing the color bar
+    const contentWidth = graphRect.width - linkOptions.margin.left - linkOptions.margin.right;
+    const contentHeight = graphRect.height - linkOptions.margin.top - linkOptions.margin.bottom;
+
+    const width = parseFloat(colorBarOptions.width);
+    const height = parseFloat(colorBarOptions.height);
+
+    const xPosition = contentWidth - width - colorBarOptions.x;
+    const yPosition = contentHeight - height - colorBarOptions.y;
+
+    // Draw the normal color gradient bar with stroke and opacity
+    g.append("rect")
+        .attr("x", xPosition)
+        .attr("y", yPosition)
+        .attr("width", width)
+        .attr("height", height)
+        .style("fill", `url(#${forwardGradientId})`)
+        .style("stroke", colorBarOptions.barStroke)
+        .style("stroke-width", colorBarOptions.barStrokeWidth)
+        .style("opacity", colorBarOptions.barOpacity);
+
+    // Draw labels for the normal gradient
+    g.append("text")
+        .attr("x", xPosition + width + colorBarOptions.labelXOffset)
+        .attr("y", yPosition - colorBarOptions.labelYOffset)
+        .attr("alignment-baseline", "middle")
+        .attr("font-size", colorBarOptions.labelFontSize)
+        .text(maxValue + '%');
+
+    g.append("text")
+        .attr("x", xPosition + width + colorBarOptions.labelXOffset)
+        .attr("y", yPosition + height + colorBarOptions.labelYOffset)
+        .attr("alignment-baseline", "middle")
+        .attr("font-size", colorBarOptions.labelFontSize)
+        .text(minValue + '%');
+
+    // Draw the inverted bar only if the strands are not the same
+    if (!allStrandsEqual(links[0].data)) {
+        const reverseGradientId = getUniqueId("reverse-gradient")
+        const reverseGradient = defs.append("linearGradient")
+            .attr("id", reverseGradientId)
+            .attr("gradientTransform", "rotate(90)");
+
+        // Define a color scale for the inverted gradient
+        const reverseColorScale = d3.scaleSequential(t => d3.interpolate("#FFF", linkOptions.invertedColor)(t))
+            .domain([0, 100]);
+
+        // Set the gradient stops for the inverted gradient
+        reverseGradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", reverseColorScale(maxValue));
+
+        reverseGradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", reverseColorScale(minValue));
+
+        // Draw the rectangle that will use the reverse gradient with the same stroke and opacity
+        g.append("rect")
+            .attr("x", xPosition - width) // Positioned to the left of the first bar
+            .attr("y", yPosition)
+            .attr("width", width)
+            .attr("height", height)
+            .style("fill", `url(#${reverseGradientId})`)
+            .style("stroke", colorBarOptions.barStroke)
+            .style("stroke-width", colorBarOptions.barStrokeWidth)
+            .style("opacity", colorBarOptions.barOpacity);
+    }
 }
 
 // Cluster functions
@@ -1589,8 +1762,6 @@ container.prototype.coordinates = function (show = true, options = {}) {
       setStyleFromOptions(currentElement, additionalOptionsTickStyle);
     });
 
-
-
   // Create and configure the bottom axis
   const xAxisBottom = g.append("g")
     .attr("transform", "translate(0," + this.yScale(yPositionBottom) + ")")
@@ -1808,8 +1979,8 @@ container.prototype.labels = function (label, show = true, options = {}) {
 
       // Calculate Y position based on geneTrack
     const currentGeneStrandSpacing = (d.strand == "forward" && this.geneStrandSpacing !== 0)
-                                 ? -this.geneStrandSpacing
-                                 : this.geneStrandSpacing;
+                                 ? this.geneStrandSpacing
+                                 : -this.geneStrandSpacing;
     var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
 
     const yPos = this.yScale(currentY) - (this.markerHeight / 2) - currentGeneStrandSpacing + currentOverlapSpacing;
@@ -2110,8 +2281,8 @@ container.prototype.genes = function (group, show = true, options = {}) {
 
     // Calculate Y position based on geneTrack
     const currentGeneStrandSpacing = (d.strand == "forward" && this.geneStrandSpacing !== 0)
-                                 ? -this.geneStrandSpacing
-                                 : this.geneStrandSpacing;
+                                 ? this.geneStrandSpacing
+                                 : -this.geneStrandSpacing;
     var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
 
     const yPos = this.yScale(currentY) - currentGeneStrandSpacing + currentOverlapSpacing;
@@ -2356,7 +2527,8 @@ container.prototype.links = function (links, clusterKey, options = {}) {
   const defaultOptions = {
     y: 50,
     showLinks: true,
-    identityLabel: true,
+    label: true,
+    measure: "identity",
     labelStyle: {
         cursor: "pointer",
         fontSize: "12px",
@@ -2378,7 +2550,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     }
 
     const combinedOptions = mergeOptions.call(this, defaultOptions, 'linkOptions', options);
-    const { x, y, cursor, fontSize, fontStyle, fontFamily, textAnchor, showLinks, identityLabel, labelStyle, labelAdjustmentOptions } = combinedOptions;
+    const { x, y, cursor, fontSize, fontStyle, fontFamily, textAnchor, showLinks, label, measure, labelStyle, labelAdjustmentOptions } = combinedOptions;
 
     const additionalOptions = extractAdditionalOptions(options, defaultOptions);
     const additionalOptionsLabelStyle = extractAdditionalOptions(labelStyle, defaultOptions.labelStyle);
@@ -2452,11 +2624,11 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     });
     }
 
-    if(identityLabel){
+    if(label){
     const self = this;
 
     const labelData = this.data.filter(d =>
-      d.identity != null &&
+      d[measure] != null &&
       d.BlastP != "No Hit" &&
       (d.BlastP === undefined || (d.BlastP != d.protein_id && d.BlastP)) &&
       ((options.value1 === undefined && options.value2 === undefined) ||
@@ -2474,7 +2646,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     .attr("class", "link-text")
     .attr("x", (d, i) => this.xScale((d.start + d.end) / 2))
     .attr("y", (d, i) => this.yScale(y) - (this.markerHeight / 1.5) - clusterStrandSpacing)
-    .text(d => `${parseFloat(d.identity.toFixed(1))}%`)
+    .text(d => `${parseFloat(d[measure].toFixed(1))}%`)
     .style("font-size", labelStyle.fontSize)
     .style("font-style", labelStyle.fontStyle)
     .style("font-family", labelStyle.fontFamily)

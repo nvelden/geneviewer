@@ -1,3 +1,9 @@
+# geneviewer 0.1.7
+
+### Enhancements:
+- Option to perform MUMmer alignments.
+- Add option to add a color bar.
+
 # geneviewer 0.1.6
 
 ### Enhancements:

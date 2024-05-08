@@ -180,6 +180,12 @@ HTMLWidgets.widget({
 
     makeLinks(graphContainer, links, clusters);
 
+    // Remove all existing links
+    const colorBarContainer = d3.select(`#geneviewer-graph-container-${widgetId}`);
+    //graphContainer.selectAll(".link-marker").remove();
+
+    makeColorBar(graphContainer, links);
+
     };
 
     return {

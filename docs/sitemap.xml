@@ -28,6 +28,9 @@
     <loc>https://nvelden.github.io/geneviewer/articles/LoadGenBankFiles.html</loc>
   </url>
   <url>
+    <loc>https://nvelden.github.io/geneviewer/articles/MUMMER.html</loc>
+  </url>
+  <url>
     <loc>https://nvelden.github.io/geneviewer/articles/geneviewer.html</loc>
   </url>
   <url>
@@ -115,6 +118,9 @@
     <loc>https://nvelden.github.io/geneviewer/reference/gbk_features_to_df.html</loc>
   </url>
   <url>
+    <loc>https://nvelden.github.io/geneviewer/reference/genbank_to_fasta.html</loc>
+  </url>
+  <url>
     <loc>https://nvelden.github.io/geneviewer/reference/geneviewer-shiny.html</loc>
   </url>
   <url>
@@ -128,6 +134,9 @@
   </url>
   <url>
     <loc>https://nvelden.github.io/geneviewer/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>https://nvelden.github.io/geneviewer/reference/mummer_alignment.html</loc>
   </url>
   <url>
     <loc>https://nvelden.github.io/geneviewer/reference/ophA_clusters.html</loc>

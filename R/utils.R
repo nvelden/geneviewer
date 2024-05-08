@@ -323,7 +323,7 @@ add_strand <- function(data, strand = NULL){
     reverse <- c(-1, 0, "reverse", "-", "antisense", "complement")
 
     if (!all(data[[strand]] %in% c(forward, reverse))) {
-      stop("Invalid strand values found. Valid values are 1/forward or -1/0/reverse.")
+      stop("Invalid strand values found. Valid values are 1/forward/+/sense or -1/0/reverse/-/antisense/complement.")
     }
 
     # Replace values in the strand column

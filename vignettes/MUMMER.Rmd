@@ -1,0 +1,129 @@
+---
+title: "Genome alignment using MUMmer"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Genome alignment using MUMmer}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+library(knitr)
+library(geneviewer)
+library(dplyr)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+### Intro
+
+This tutorial guides you through the process of performing genome alignments using [MUMmer](https://mummer4.github.io/index.html), an alignment tool widely used for comparing genomic sequences. As an example we will align the plasmids from serveral species of *B. thuringiensis*. Following the alignment, we'll show you how to visualize the results using **`geneviewer`**.
+
+### Materials
+
+The .gbk files can be downloaded directly from [GenBank](https://www.ncbi.nlm.nih.gov/genbank/) using accession numbers CP000486.1, CP009599.1, CP003188.1 and CP009638.1. Alternatively, you can obtain the GenBank files including all alignment files directly from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Loading%20GenBank%20files) repository.
+
+### MUMmer alignment
+
+MUMmer needs to be installed on your local machine to execute alignments. For detailed installation instructions, visit the [MUMmer website](https://mummer4.github.io/install/install.html). Once MUMmer is installed, you can perform the alignment using `geneviewer` with the `mummer_alignment()` function. By default it will run the alignment in order of the files in the folder. 
+
+**Important** MUMmer requires file paths without spaces.
+
+```{r eval=FALSE, results='hide'}
+library(geneviewer)
+# Change the path to the folder where the .gbk files are saved
+folder_path <- "~/path/to/folder/"
+```
+
+By default, the `mummer_alignment()` function will perform pair wise alignments starting with the first file in the folder. To adjust the order in which files are aligned, assign a vector of file names to the `cluster` variable. By default nucleotide sequences are translated into proteins using "promer" and a "many-to-many" mapping alignment is performed. For the most suitable alignment method for your project, please carefully review the [MUMmer](https://mummer4.github.io/index.html) documentation. To learn how to modify the default settings, consult the documentation by running `?mummer_alignment()`.
+
+```{r eval=FALSE, results='hide'}
+alignment <- 
+  mummer_alignment(
+    path = folder_path,
+    cluster = NULL,
+    maptype = "many-to-many",
+    seqtype = "protein"
+  )
+```
+
+```{r echo = FALSE, results='hide', message=FALSE, warning=FALSE}
+folder_path <- "~/Desktop/Bacillus/"
+alignment <- 
+  mummer_alignment(
+    path = folder_path,
+    cluster = NULL,
+    maptype = "many-to-many",
+    seqtype = "protein"
+  )
+```
+
+The alignment generates a data frame that details the start and end positions of each aligned region between the reference (cluster1) and query (cluster2), along with identity and similarity scores. This data frame can be directly loaded into the `GC_links()` function.
+
+```{r echo = FALSE, results='asis'}
+kable(head(alignment))
+```
+
+### Synteny gene cluster chart
+
+To map the alignment onto the genome, we must first load the cluster information from the .gbk files. For detailed instructions, please refer to the tutorial [Load Gene Cluster data from GenBank Files](https://nvelden.github.io/geneviewer/articles/LoadGenBankFiles.html). We add an extra column called "CDS" to the data which will be used as key to color the genes.
+
+```{r eval=FALSE, results='hide'}
+folder_path <- "~/path/to/folder/"
+gbk <- read_gbk(folder_path)
+cds_df <- gbk_features_to_df(
+  gbk, 
+  feature = "CDS",
+  keys = c("region", "gene", "protein_id", "note", "product")
+  )
+cds_df$type <- "CDS"
+```
+
+```{r echo = FALSE, results='hide', message=FALSE, warning=FALSE}
+folder_path <- "~/Desktop/Bacillus/"
+gbk <- read_gbk(folder_path)
+cds_df <- gbk_features_to_df(
+  gbk, 
+  feature = "CDS",
+  keys = c("region", "gene", "protein_id", "note", "product")
+  )
+cds_df$type <- "CDS"
+```
+
+```{r echo = FALSE, results='asis'}
+kable(head(cds_df))
+```
+
+
+We can load the cluster data into the `GC_chart()` and the alignment data into the `GC_links()` function. In addition, we change the axis_type to "range", make the genes a little smaller and add cluster labels. For more customization options see [Get started](https://nvelden.github.io/geneviewer/articles/geneviewer.html).
+
+**Important**: The gene cluster data like the alignment data is loaded in the order of the files in the folder. If a custom order was used for the MUMer alignment make sure to sort the "cluster" column in the cluster data in the same way.
+
+```{r echo = TRUE, results='asis'}
+GC_chart(
+  data = cds_df,
+  group = "cluster",
+  strand = "strand",
+  cluster = "cluster"
+) %>%
+GC_links(
+  data = alignment,
+  measure = "identity", # similarity/none
+) %>%
+GC_scale(axis_type = "range") %>%
+GC_cluster(separate_strands = TRUE) %>%
+GC_genes(
+  group = "type",
+  marker_size = "small"
+) %>%    
+GC_clusterLabel(
+  title = c("pALH1", "pBFQ", "F837_55", "pBFI_4"), 
+  width = 50
+  ) %>%
+GC_tooltip(
+  formatter = "<b>{protein_id}</b><br>{start} - {end}" 
+) %>%
+GC_legend(FALSE)
+```

@@ -1,15 +1,14 @@
 Package: geneviewer
 Type: Package
 Title: Gene Cluster Visualizations in R
-Version: 0.1.6
+Version: 0.1.7
 Author: Niels van der Velden
 Maintainer: Niels van der Velden <n.s.j.vandervelden@gmail.com>
-Description: 'geneviewer' is an R package designed to plot gene clusters. 
-             It can import data directly from GenBank files, perform BlastP 
-             alignments and visualize the results in gene arrow maps. In addition 
-             there are extensive options for customization such as addition of 
-             alegend, labels, annotations, customized scales, colors, tooltips 
-             and much more.
+Description: 'geneviewer' is an R package for plotting gene clusters. 
+              It imports data from GenBank, FASTA, and GFF files, performs BlastP
+              and MUMmer alignments, and displays results on gene arrow maps. 
+              The package offers extensive customization options, including 
+              legends, labels, annotations, scales, colors, tooltips, and more.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

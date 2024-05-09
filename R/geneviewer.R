@@ -2343,7 +2343,7 @@ get_links <-
 #'         # Any other CSS style
 #'       ),
 #'       titleOptions = list(
-#'         fontSize = 12,
+#'         fontSize = 10,
 #'         xOffset = 2,
 #'         yOffset = 0
 #'         # Any other CSS style

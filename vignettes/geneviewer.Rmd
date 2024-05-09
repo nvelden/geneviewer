@@ -418,7 +418,7 @@ chart <- GC_chart(
          # Any other CSS style
        ),
        titleOptions = list(
-         fontSize = 12,
+         fontSize = 10,
          xOffset = 2,
          yOffset = 0
          # Any other CSS style

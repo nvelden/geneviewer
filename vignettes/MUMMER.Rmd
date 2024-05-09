@@ -56,7 +56,7 @@ alignment <-
     path = folder_path,
     cluster = NULL,
     maptype = "many-to-many",
-    seqtype = "protein"
+    seqtype = "protein",
   )
 ```
 

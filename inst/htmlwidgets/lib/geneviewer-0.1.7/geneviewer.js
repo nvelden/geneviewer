@@ -645,8 +645,8 @@ function makeLinks(graphContainer, links, clusters) {
       normalColor: "blue",
       useGroupColors: false,
       color: "lightgrey",
-      identity: true,
-      identityLabel: true,
+      measure: "identity",
+      label: true,
       linkStyle: {
         stroke: "none",
         fillOpacity: 0.8
@@ -679,12 +679,10 @@ function makeLinks(graphContainer, links, clusters) {
       .style("left", `${graphContainer.left}px`)
       .style("top", `${graphContainer.top}px`);
 
-
-
     links.forEach(function(link) {
 
         const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options)
-        const { curve, invertedColor, normalColor, useGroupColors, color, linkStyle, labelStyle, identityLabel } = combinedOptions;
+        const { curve, invertedColor, normalColor, useGroupColors, color, linkStyle, labelStyle, label, measure } = combinedOptions;
 
         const additionalOptionsLinkStyle = extractAdditionalOptions(linkStyle, defaultOptions.linkStyle);
         const additionalOptionsLabelStyle = extractAdditionalOptions(labelStyle, defaultOptions.labelStyle);
@@ -698,7 +696,7 @@ function makeLinks(graphContainer, links, clusters) {
                 const baseColor = coordinate[0].strand == coordinate[1].strand ? d3.rgb(normalColor) : d3.rgb(invertedColor)
                 var colorScale = d3.scaleSequential(t => d3.interpolate("#FFFFFF", baseColor)(t))
                     .domain([0, 100]);
-                const identity = combinedOptions.identity === false ? 100 : (link.data?.identity?.[index] ?? 100);
+                const identity = combinedOptions.measure === "none" ? 100 : (link.data?.[measure]?.[index] ?? 100);
                 const linkColor = useGroupColors ? coordinate[0].groupColor : colorScale(identity)
 
             lineSvg.append("path")
@@ -839,6 +837,7 @@ function makeColorBar(graphContainer, links) {
         colorBarOptions: {
             x: 0,
             y: 24,
+            title: true,
             width: 10,
             height: 60,
             labelFontSize: 8,
@@ -907,6 +906,16 @@ function makeColorBar(graphContainer, links) {
     const xPosition = contentWidth - width - colorBarOptions.x;
     const yPosition = contentHeight - height - colorBarOptions.y;
 
+    g.append("text")
+    .attr("x", xPosition + width + colorBarOptions.labelXOffset)
+    .attr("y", yPosition + height / 2 + colorBarOptions.labelYOffset + 10)
+    .attr("transform", `rotate(-90,
+    ${xPosition + width + colorBarOptions.labelXOffset}, ${yPosition + height / 2 + colorBarOptions.labelYOffset})`)
+    .attr("alignment-baseline", "bottom")
+    .attr("text-anchor", "middle")  // Centers the text horizontally
+    .attr("font-size", colorBarOptions.labelFontSize + 2)
+    .text(links[0].options.measure);  // Title text
+
     // Draw the normal color gradient bar with stroke and opacity
     g.append("rect")
         .attr("x", xPosition)
@@ -953,9 +962,8 @@ function makeColorBar(graphContainer, links) {
             .attr("offset", "100%")
             .attr("stop-color", reverseColorScale(minValue));
 
-        // Draw the rectangle that will use the reverse gradient with the same stroke and opacity
         g.append("rect")
-            .attr("x", xPosition - width) // Positioned to the left of the first bar
+            .attr("x", xPosition - width)
             .attr("y", yPosition)
             .attr("width", width)
             .attr("height", height)

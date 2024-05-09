@@ -2315,7 +2315,7 @@ get_links <-
 #'                    label = FALSE,
 #'                    cluster = c(1,2))
 #'
-#' # Style links
+#' # Style links and color bar
 #' GC_chart(genes_data,
 #'          cluster = "cluster",
 #'          height = "200px"
@@ -2330,18 +2330,30 @@ get_links <-
 #'     normal_color = "#1f77b4",
 #'     inverted_color = "#d62728",
 #'     use_group_colors = FALSE,
-#'    color_bar = TRUE,
-#'    colorBarOptions = list(
+#'     color_bar = TRUE,
+#'     colorBarOptions = list(
 #'       x = 0,
 #'       y = 24,
 #'       width = 10,
 #'       height = 60,
-#'       labelFontSize = 8,
-#'       barStroke = "#000",
-#'       barStrokeWidth = 0.5,
-#'       barOpacity = 1,
-#'       labelYOffset = 0,
-#'       labelXOffset = 2
+#'       labelOptions = list(
+#'         fontSize = 8,
+#'         xOffset = 2,
+#'         yOffset = 0
+#'         # Any other CSS style
+#'       ),
+#'       titleOptions = list(
+#'         fontSize = 12,
+#'         xOffset = 2,
+#'         yOffset = 0
+#'         # Any other CSS style
+#'       ),
+#'       barOptions = list(
+#'         stroke = "#000",
+#'         strokeWidth = 0.5,
+#'         opacity = 1
+#'         # Any other CSS style
+#'       )
 #'     ),
 #'     linkStyle = list(
 #'       stroke = "black",
@@ -2367,9 +2379,9 @@ GC_links <- function(
     value2 = NULL,
     cluster = NULL,
     curve = TRUE,
-    measure = "identity",      # Changed from measure_type to measure
+    measure = "identity",
     show_links = TRUE,
-    label = TRUE,              # Changed from measure_label to label
+    label = TRUE,
     normal_color = "#969696",
     inverted_color = "#d62728",
     use_group_colors = FALSE,

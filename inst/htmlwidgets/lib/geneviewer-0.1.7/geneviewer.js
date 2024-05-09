@@ -840,18 +840,38 @@ function makeColorBar(graphContainer, links) {
             title: true,
             width: 10,
             height: 60,
-            labelFontSize: 8,
-            barStroke: "#000",
-            barStrokeWidth: 0.5,
-            barOpacity: 1,
-            labelYOffset: 0,
-            labelXOffset: 2
+            labelOptions: {
+              fontSize: 8,
+              xOffset: 2,
+              yOffset: 0
+            },
+            titleOptions: {
+              fontSize: 10,
+              xOffset: 2,
+              yOffset: 0
+            },
+            barOptions: {
+              stroke: "#000",
+              strokeWidth: 0.5,
+              opacity: 1
+            },
         }
     };
 
     // Extract user-supplied options and merge them with the defaults
     const linkOptions = { ...defaultOptions, ...links[0].options };
     const colorBarOptions = { ...defaultOptions.colorBarOptions, ...links[0].options.colorBarOptions };
+
+    // Extract sub-options for labels, titles, and bars
+    const labelOptions = { ...defaultOptions.colorBarOptions.labelOptions, ...colorBarOptions.labelOptions };
+    const titleOptions = { ...defaultOptions.colorBarOptions.titleOptions, ...colorBarOptions.titleOptions };
+    const barOptions = { ...defaultOptions.colorBarOptions.barOptions, ...colorBarOptions.barOptions };
+
+    // Assuming `extractAdditionalOptions` is a function that extracts non-default options
+    const additionalOptionsLabel = extractAdditionalOptions(labelOptions, defaultOptions.colorBarOptions.labelOptions);
+    const additionalOptionsTitle = extractAdditionalOptions(titleOptions, defaultOptions.colorBarOptions.titleOptions);
+    const additionalOptionsBar = extractAdditionalOptions(barOptions, defaultOptions.colorBarOptions.barOptions);
+
 
     const graphRect = graphContainer.node().getBoundingClientRect();
 
@@ -906,15 +926,19 @@ function makeColorBar(graphContainer, links) {
     const xPosition = contentWidth - width - colorBarOptions.x;
     const yPosition = contentHeight - height - colorBarOptions.y;
 
+     // Add the title text with rotation
     g.append("text")
-    .attr("x", xPosition + width + colorBarOptions.labelXOffset)
-    .attr("y", yPosition + height / 2 + colorBarOptions.labelYOffset + 10)
-    .attr("transform", `rotate(-90,
-    ${xPosition + width + colorBarOptions.labelXOffset}, ${yPosition + height / 2 + colorBarOptions.labelYOffset})`)
-    .attr("alignment-baseline", "bottom")
-    .attr("text-anchor", "middle")  // Centers the text horizontally
-    .attr("font-size", colorBarOptions.labelFontSize + 2)
-    .text(links[0].options.measure);  // Title text
+        .attr("x", xPosition + width + titleOptions.xOffset)
+        .attr("y", yPosition + height / 2 + titleOptions.yOffset + 10)
+        .attr("transform", `rotate(-90, ${xPosition + width + titleOptions.xOffset}, ${yPosition + height / 2 + titleOptions.yOffset})`)
+        .attr("alignment-baseline", "bottom")
+        .attr("text-anchor", "middle")
+        .attr("font-size", titleOptions.fontSize)
+        .text(links[0].options.measure)
+        .each(function () {
+            const currentElement = d3.select(this);
+            setStyleFromOptions(currentElement, additionalOptionsTitle);
+        });
 
     // Draw the normal color gradient bar with stroke and opacity
     g.append("rect")
@@ -923,24 +947,36 @@ function makeColorBar(graphContainer, links) {
         .attr("width", width)
         .attr("height", height)
         .style("fill", `url(#${forwardGradientId})`)
-        .style("stroke", colorBarOptions.barStroke)
-        .style("stroke-width", colorBarOptions.barStrokeWidth)
-        .style("opacity", colorBarOptions.barOpacity);
+        .style("stroke", barOptions.stroke)
+        .style("stroke-width", barOptions.strokeWidth)
+        .style("opacity", barOptions.opacity)
+        .each(function () {
+            const currentElement = d3.select(this);
+            setStyleFromOptions(currentElement, additionalOptionsBar);
+        });
 
     // Draw labels for the normal gradient
     g.append("text")
-        .attr("x", xPosition + width + colorBarOptions.labelXOffset)
-        .attr("y", yPosition - colorBarOptions.labelYOffset)
+        .attr("x", xPosition + width + labelOptions.xOffset)
+        .attr("y", yPosition - labelOptions.yOffset)
         .attr("alignment-baseline", "middle")
-        .attr("font-size", colorBarOptions.labelFontSize)
-        .text(maxValue + '%');
+        .attr("font-size", labelOptions.fontSize)
+        .text(maxValue + '%')
+        .each(function () {
+            const currentElement = d3.select(this);
+            setStyleFromOptions(currentElement, additionalOptionsLabel);
+        });
 
     g.append("text")
-        .attr("x", xPosition + width + colorBarOptions.labelXOffset)
-        .attr("y", yPosition + height + colorBarOptions.labelYOffset)
+        .attr("x", xPosition + width + labelOptions.xOffset)
+        .attr("y", yPosition + height + labelOptions.yOffset)
         .attr("alignment-baseline", "middle")
-        .attr("font-size", colorBarOptions.labelFontSize)
-        .text(minValue + '%');
+        .attr("font-size", labelOptions.fontSize)
+        .text(minValue + '%')
+                .each(function () {
+            const currentElement = d3.select(this);
+            setStyleFromOptions(currentElement, additionalOptionsLabel);
+        });
 
     // Draw the inverted bar only if the strands are not the same
     if (!allStrandsEqual(links[0].data)) {
@@ -968,9 +1004,13 @@ function makeColorBar(graphContainer, links) {
             .attr("width", width)
             .attr("height", height)
             .style("fill", `url(#${reverseGradientId})`)
-            .style("stroke", colorBarOptions.barStroke)
-            .style("stroke-width", colorBarOptions.barStrokeWidth)
-            .style("opacity", colorBarOptions.barOpacity);
+            .style("stroke", barOptions.stroke)
+            .style("stroke-width", barOptions.strokeWidth)
+            .style("opacity", barOptions.opacity)
+            .each(function () {
+                const currentElement = d3.select(this);
+                setStyleFromOptions(currentElement, additionalOptionsBar);
+            });
     }
 }
 

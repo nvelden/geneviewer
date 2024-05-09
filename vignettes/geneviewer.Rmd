@@ -405,6 +405,31 @@ chart <- GC_chart(
     measure = "identity", # similarity / none
     label = TRUE,
     curve = FALSE,
+    color_bar = TRUE,
+    colorBarOptions = list(
+       x = 0,
+       y = 24,
+       width = 10,
+       height = 60,
+       labelOptions = list(
+         fontSize = 8,
+         xOffset = 2,
+         yOffset = 0
+         # Any other CSS style
+       ),
+       titleOptions = list(
+         fontSize = 12,
+         xOffset = 2,
+         yOffset = 0
+         # Any other CSS style
+       ),
+       barOptions = list(
+         stroke = "#000",
+         strokeWidth = 0.5,
+         opacity = 1
+         # Any other CSS style
+       )
+     ),
     linkStyle = list(
       stroke = "black",
       strokeWidth = 0.5

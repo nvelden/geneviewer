@@ -1,15 +1,15 @@
-pandoc: 3.1.1
-pkgdown: 2.0.7
+pandoc: 3.1.11
+pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
   BLASTP: BLASTP.html
   Examples: Examples.html
-  LoadFastaFiles: LoadFastaFiles.html
-  LoadGFF: LoadGFF.html
-  LoadGenBankFiles: LoadGenBankFiles.html
-  MUMMER: MUMMER.html
   geneviewer: geneviewer.html
-last_built: 2024-05-09T17:56Z
+  LoadFastaFiles: LoadFastaFiles.html
+  LoadGenBankFiles: LoadGenBankFiles.html
+  LoadGFF: LoadGFF.html
+  MUMMER: MUMMER.html
+last_built: 2024-05-10T16:22Z
 urls:
   reference: https://nvelden.github.io/geneviewer/reference
   article: https://nvelden.github.io/geneviewer/articles

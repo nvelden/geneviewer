@@ -25,14 +25,18 @@ This tutorial describes how we can use `geneviewer` to identify and visualize ho
 
 ### Materials
 
-The .gbk files and the additional gene info can be downloaded from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Cluster%20comparison%20using%20BlastP) repository. Besides the `geneviewer` package for the visualization you will need the `Biostrings` package to run the BlastP sequence alignment and optionally the `parallel` package to speed up the processing.
+The .gbk files and the additional gene info can be downloaded from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Cluster%20comparison%20using%20BlastP) repository. For visualization, the `geneviewer` package is required. Sequence alignment is performed using either the `pwalign` or `Biostrings` package, depending on the Bioconductor version in use. Optionally, the `parallel` package can be utilized to increase processing times.
 
 ```{r eval=FALSE, results='hide'}
 install.packages("devtools")
 install.packages("parallel") # Optional but recommended for speeding up processing
 
 devtools::install_github("nvelden/geneviewer")
-BiocManager::install("Biostrings")
+
+# For BiocManager versions > 3.19 
+BiocManager::install("pwalign")
+# For BiocManager versions < 3.19 
+BiocManager::install("Biostrings") 
 
 library(geneviewer)
 library(parallel) 

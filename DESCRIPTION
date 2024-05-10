@@ -28,5 +28,6 @@ Suggests:
     rmarkdown,
     shiny,
     biomaRt,
+    pwalign,
     Biostrings
 VignetteBuilder: knitr

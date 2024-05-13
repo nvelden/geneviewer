@@ -58,12 +58,9 @@ sequence identity and similarity, and filters results based on a minimum
 identity threshold.
 }
 \note{
-This function selects the appropriate alignment package based on the
-  Bioconductor version. For versions earlier than 3.19, it relies on the
-  Biostrings package for sequence alignment. For versions 3.19 and higher, it
-  uses the pwalign package. Ensure these packages are installed using
-  BiocManager and loaded into your R session. The dplyr package is also used
-  for data manipulation.
+This function relies on the Biostrings and pwalign package for sequence
+alignment and the dplyr package for data manipulation. Ensure these packages
+are installed and loaded into your R session.
 }
 \examples{
 \dontrun{

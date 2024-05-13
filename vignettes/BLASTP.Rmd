@@ -12,6 +12,8 @@ library(knitr)
 library(geneviewer)
 library(parallel)
 library(dplyr)
+library(Biostrings)
+library(pwalign)
 
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -25,20 +27,18 @@ This tutorial describes how we can use `geneviewer` to identify and visualize ho
 
 ### Materials
 
-The .gbk files and the additional gene info can be downloaded from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Cluster%20comparison%20using%20BlastP) repository. For visualization, the `geneviewer` package is required. Sequence alignment is performed using either the `pwalign` or `Biostrings` package, depending on the Bioconductor version in use. Optionally, the `parallel` package can be utilized to increase processing times.
+The .gbk files and the additional gene info can be downloaded from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Cluster%20comparison%20using%20BlastP) repository. For visualization, the `geneviewer` package is required. Sequence alignment is performed using the `Biostrings` and `pwalign` packages that can be downloaded from Bioconductor. Optionally, the `parallel` package can be utilized to increase processing times.
 
 ```{r eval=FALSE, results='hide'}
-install.packages("devtools")
-install.packages("parallel") # Optional but recommended for speeding up processing
-
 devtools::install_github("nvelden/geneviewer")
-
-# For BiocManager versions > 3.19 
+BiocManager::install("Biostrings")
 BiocManager::install("pwalign")
-# For BiocManager versions < 3.19 
-BiocManager::install("Biostrings") 
+# Optional but recommended for speeding up processing
+install.packages("parallel") 
 
 library(geneviewer)
+library(Biostrings)
+library(pwalign)
 library(parallel) 
 ```
 
@@ -67,7 +67,7 @@ kable(head(genbank_df))
 
 ### Run BlastP
 
-In this tutorial, we will directly input the folder path into `the protein_blast()` function to load our data. We'll select BGC0000055 as our query cluster and conduct a BlastP analysis to find the homologous in the other clusters. We use 30 as the minimum identity threshold. Performing the BlastP analysis can take several minutes so we set parallel processing to TRUE.
+In this tutorial, we will directly input the folder path into `the protein_blast()` function to load our data. We'll select BGC0000055 as our query cluster and conduct a BlastP analysis to find the homologous in the other clusters. We use 30 as the minimum identity threshold. Performing the BlastP analysis with this dataset can take several minutes so we set parallel processing to TRUE. For smaller datasets or if the `parallel` package is not installed, set parallel processing to `FALSE`.
 
 ```{r echo=TRUE, results='hide'}
 BlastP_results <- geneviewer::protein_blast(

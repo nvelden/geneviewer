@@ -219,38 +219,23 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #'   cur_data arrange desc
 #' @importFrom stats setNames ave
 #' @importFrom rlang .data
-#' @importFrom utils packageVersion
 #' @importFrom parallel detectCores makeCluster clusterExport clusterEvalQ
 #'   parLapply stopCluster
-#' @note This function selects the appropriate alignment package based on the
-#'   Bioconductor version. For versions earlier than 3.19, it relies on the
-#'   Biostrings package for sequence alignment. For versions 3.19 and higher, it
-#'   uses the pwalign package. Ensure these packages are installed using
-#'   BiocManager and loaded into your R session. The dplyr package is also used
-#'   for data manipulation.
+#' @note This function relies on the Biostrings and pwalign package for sequence
+#' alignment and the dplyr package for data manipulation. Ensure these packages
+#' are installed and loaded into your R session.
 #'
 #' @export
 protein_blast <- function(data, query, id = "protein_id", start = "start", end = "end", cluster = "cluster", genes = NULL, identity = 30, parallel = TRUE) {
 
-  # Check Bioconductor version and use either Biostrings or pwalign
-  if (requireNamespace("BiocVersion", quietly = TRUE)) {
-    if (utils::packageVersion("BiocVersion") < "3.19") {
-      if (!requireNamespace("Biostrings", quietly = TRUE)) {
-        stop('Biostrings package is not installed. Please install it using BiocManager::install("Biostrings").')
-      }
-      pairwise_alignment_fun <- Biostrings::pairwiseAlignment
-      get_pattern <- Biostrings::pattern
-      get_subject <- Biostrings::subject
-    } else {
-      if (!requireNamespace("pwalign", quietly = TRUE)) {
-        stop('pwalign package is not installed. Please install it using BiocManager::install("pwalign").')
-      }
-      pairwise_alignment_fun <- pwalign::pairwiseAlignment
-      get_pattern <- pwalign::pattern
-      get_subject <- pwalign::subject
-    }
-  } else {
-    stop("BiocManager is not installed. Please install it using install.packages('BiocManager').")
+  # Check if Biostrings package is installed
+  if (!requireNamespace("Biostrings", quietly = TRUE) || !"Biostrings" %in% loadedNamespaces()) {
+    stop('Biostrings package is not installed or not loaded. Install with BiocManager::install("Biostrings").')
+  }
+
+  # Check if pwalign package is installed and loaded
+  if (!requireNamespace("pwalign", quietly = TRUE) || !"pwalign" %in% loadedNamespaces()) {
+    stop('pwalign package is not installed or not loaded. Install with BiocManager::install("pwalign").')
   }
 
   # Load from .gbk files
@@ -337,9 +322,9 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
   protein_combinations_alignment <- protein_combinations_all[protein_combinations_all$cluster1 != protein_combinations_all$cluster2, ]
   protein_combinations_query <- protein_combinations_all[protein_combinations_all$rowID.x == protein_combinations_all$rowID.y, ]
 
-  alignments <- pairwise_alignment_fun(pattern = protein_combinations_alignment$translation1,
-                                             subject = protein_combinations_alignment$translation2,
-                                             scoreOnly = FALSE)
+  alignments <- pwalign::pairwiseAlignment(pattern = protein_combinations_alignment$translation1,
+                                              subject = protein_combinations_alignment$translation2,
+                                              scoreOnly = FALSE)
 
   # Decide on parallel or sequential processing based on the number of rows
   if (parallel && nrow(protein_combinations_alignment) > 1000) {
@@ -351,15 +336,15 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
     no_cores <- parallel::detectCores() - 1
     cl <- parallel::makeCluster(no_cores)
 
-    # Export the alignments list and the Biostrings library to each cluster node
+    # Export the alignments list and the pwalign library to each cluster node
     parallel::clusterExport(cl, varlist = c("alignments"), envir = environment())
-    # parallel::clusterEvalQ(cl, library(Biostrings))
+    parallel::clusterEvalQ(cl, library(pwalign))
 
     # Use parLapply for parallel execution
     alignment_list <- parallel::parLapply(cl, alignments, function(alignment) {
       list(
-        pattern = as.character(get_pattern(alignment)),
-        subject = as.character(get_subject(alignment))
+        pattern = as.character(pwalign::pattern(alignment)),
+        subject = as.character(pwalign::subject(alignment))
       )
     })
 
@@ -369,8 +354,8 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
     # Sequential processing
     alignment_list <- lapply(alignments, function(alignment) {
       list(
-        pattern = as.character(get_pattern(alignment)),
-        subject = as.character(get_subject(alignment))
+        pattern = as.character(pwalign::pattern(alignment)),
+        subject = as.character(pwalign::subject(alignment))
       )
     })
   }

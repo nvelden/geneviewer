@@ -16,7 +16,7 @@ GC_tooltip(
 \item{GC_chart}{The gene chart object to be modified.}
 
 \item{formatter}{A character string defining the HTML content of the tooltip. It can
-include placeholders like `{start}` and `{end}` which will be replaced by actual
+include placeholders like \code{\{start\}} and \code{\{end\}} which will be replaced by actual
 data values. The default value shows start and end data.}
 
 \item{show}{Logical, whether to display the tooltip or not.}

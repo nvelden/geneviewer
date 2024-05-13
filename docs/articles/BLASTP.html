@@ -116,22 +116,20 @@ this <a href="https://nvelden.github.io/geneviewer/articles/LoadGenBankFiles.htm
 <p>The .gbk files and the additional gene info can be downloaded from
 the <a href="https://github.com/nvelden/geneviewer-tutorials/tree/main/Cluster%20comparison%20using%20BlastP" class="external-link">geneviewer-tutorials</a>
 repository. For visualization, the <code>geneviewer</code> package is
-required. Sequence alignment is performed using either the
-<code>pwalign</code> or <code>Biostrings</code> package, depending on
-the Bioconductor version in use. Optionally, the <code>parallel</code>
+required. Sequence alignment is performed using the
+<code>Biostrings</code> and <code>pwalign</code> packages that can be
+downloaded from Bioconductor. Optionally, the <code>parallel</code>
 package can be utilized to increase processing times.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"parallel"</span><span class="op">)</span> <span class="co"># Optional but recommended for speeding up processing</span></span>
-<span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"nvelden/geneviewer"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># For BiocManager versions &gt; 3.19 </span></span>
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"nvelden/geneviewer"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="st">"Biostrings"</span><span class="op">)</span></span>
 <span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="st">"pwalign"</span><span class="op">)</span></span>
-<span><span class="co"># For BiocManager versions &lt; 3.19 </span></span>
-<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="st">"Biostrings"</span><span class="op">)</span> </span>
+<span><span class="co"># Optional but recommended for speeding up processing</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"parallel"</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/nvelden/geneviewer" class="external-link">geneviewer</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bioconductor.org/packages/Biostrings" class="external-link">Biostrings</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bioconductor.org/packages/pwalign" class="external-link">pwalign</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">parallel</span><span class="op">)</span> </span></code></pre></div>
 </div>
 <div class="section level3">
@@ -231,8 +229,10 @@ identifier for each gene and cluster as shown below.</p>
 <code>the protein_blast()</code> function to load our data. We’ll select
 BGC0000055 as our query cluster and conduct a BlastP analysis to find
 the homologous in the other clusters. We use 30 as the minimum identity
-threshold. Performing the BlastP analysis can take several minutes so we
-set parallel processing to TRUE.</p>
+threshold. Performing the BlastP analysis with this dataset can take
+several minutes so we set parallel processing to TRUE. For smaller
+datasets or if the <code>parallel</code> package is not installed, set
+parallel processing to <code>FALSE</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">BlastP_results</span> <span class="op">&lt;-</span> <span class="fu">geneviewer</span><span class="fu">::</span><span class="fu"><a href="../reference/protein_blast.html">protein_blast</a></span><span class="op">(</span></span>
 <span>  <span class="va">folder_path</span>,</span>

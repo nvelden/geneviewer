@@ -432,8 +432,8 @@ GC_clusterTitle <- function(
 #'
 #' @param GC_chart A GC chart object.
 #' @param show Logical, whether to display the sequence (default is TRUE).
-#' @param y Vertical position of the sequence line (default is 50).
 #' @param cluster Numeric or character vector specifying clusters to update.
+#' @param y Vertical position of the sequence line (default is 50).
 #' @param sequenceStyle A list of styling options for the sequence line.
 #' @param markerStyle A list of styling options for the sequence break markers.
 #' @param ... Additional customization arguments for sequence display.
@@ -770,7 +770,7 @@ GC_scale <- function(GC_chart,
     }
   data <-  adjust_to_range(GC_chart$x$data, cluster = GC_chart$x$cluster)
   GC_chart$x$data <- data
-  xMin <- 0
+  xMin <- 1
   xMax <- max(data$start, data$end)
   }
 
@@ -785,8 +785,12 @@ GC_scale <- function(GC_chart,
     reverse_idx <- (i - 1) %% length(reverse) + 1
 
     if (axis_type == "range" && !hidden) {
+      if(length(clusters) > 1){
       subset_data <- data[data[[GC_chart$x$cluster]] == clusters[i], ]
       GC_chart$x$series[[clusters[i]]]$data <- subset_data
+      } else {
+        GC_chart$x$series[[clusters[i]]]$data <- data
+      }
 
       # Set hidden to TRUE for all but the last cluster
       if (i < length(clusters)) {

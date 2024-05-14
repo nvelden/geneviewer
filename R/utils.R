@@ -414,14 +414,24 @@ add_gene_track <- function(data) {
 #' @noRd
 adjust_to_range <- function(data, cluster = "cluster"){
 
+  if(!is.null(cluster) && cluster %in% colnames(data)){
   data <- data %>%
     dplyr::group_by(.data[[cluster]]) %>%
     dplyr::mutate(
       min_start_end = min(.data$start, .data$end),
-      start = .data$start - .data$min_start_end,
-      end = .data$end - .data$min_start_end
+      start = .data$start - .data$min_start_end + 1,
+      end = .data$end - .data$min_start_end +1
     ) %>%
     dplyr::select(-.data$min_start_end)
+  } else {
+    data <- data %>%
+      dplyr::mutate(
+        min_start_end = min(.data$start, .data$end),
+        start = .data$start - .data$min_start_end + 1,
+        end = .data$end - .data$min_start_end + 1
+      ) %>%
+      dplyr::select(-.data$min_start_end)
+  }
 
   return(data)
 }

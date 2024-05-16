@@ -50,7 +50,7 @@ magrittr::`%>%`
 #'
 #' @import htmlwidgets
 #' @export
-GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, width = "100%", height = "400px", style = list(), elementId = NULL) {
+GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, transcript = NULL, width = "100%", height = "400px", style = list(), elementId = NULL) {
 
   # Load from .gbk files
   if (is.character(data)) {
@@ -67,8 +67,19 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   # Check if column names are in the data frame
   colnames_data <- colnames(data)
 
+  if (!is.null(cluster) && !is.null(transcript)) {
+    stop("Only one of 'cluster' or 'transcript' can be defined. Please specify only one.")
+  }
+
   if (!(start %in% colnames_data)) stop("start column not found in data")
   if (!(end %in% colnames_data)) stop("end column not found in data")
+
+  if (!is.null(transcript) && !(transcript %in% colnames_data)) {
+    stop("transcript column not found in data")
+  } else {
+    cluster <- transcript
+  }
+
   if (!is.null(cluster) && !(cluster %in% colnames_data)) {
     stop("cluster column not found in data")
   }
@@ -144,6 +155,9 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$container <- list(height = get_relative_height(height, height) / length(clusters), width = width)
     x$series[[clust]]$container$style <- list(width = "100%", backgroundColor = style$backgroundColor)
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
+    x$series[[clust]]$sequence <- list(show = TRUE)
+    x$series[[clust]]$scale <- list(xMin = min(subset_data$start, subset_data$end), xMax = max(subset_data$start, subset_data$end))
+    x$series[[clust]]$transcript <- list(group = group, show = FALSE)
     x$series[[clust]]$scale <- list(xMin = min(subset_data$start, subset_data$end), xMax = max(subset_data$start, subset_data$end))
     x$series[[clust]]$labels <- list(group = group, show = TRUE)
     x$series[[clust]]$coordinates <- list(show = FALSE)
@@ -151,10 +165,16 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$footer <- list()
     x$series[[clust]]$clusterLabel <- list()
     x$series[[clust]]$clusterTitle <- list()
-    x$series[[clust]]$sequence <- list(show = TRUE)
     x$series[[clust]]$annotations <- list()
     x$series[[clust]]$trackMouse <- list(show = FALSE)
 
+    # Transcript specific settings
+    if(!is.null(transcript)){
+      x$series[[clust]]$genes <- list(group = group, show = FALSE)
+      x$series[[clust]]$sequence <- list(show = FALSE)
+    }
+
+    # Blast specific settings
     if(all(c("BlastP", "protein_id") %in% colnames_data)){
       formatter <-
         "<b>{protein_id}</b><br>
@@ -1550,6 +1570,136 @@ GC_genes <- function(
   # Check if prevent_gene_overlap is called last
   if (!is.null(GC_chart$x$prevent_gene_overlap_called) && GC_chart$x$prevent_gene_overlap_called) {
     warning("Preventing gene overlap must be called after setting genes, labels or coordinates for proper effect.")
+  }
+
+  return(GC_chart)
+}
+
+#' Modify Gene Characteristics within a Chart
+#'
+#' This function updates a gene chart with specific characteristics for genes
+#' based on the given parameters. It can show/hide genes, apply a color scheme,
+#' assign custom colors, filter by cluster, and accept additional options.
+#'
+#' @param GC_chart The gene chart object to be modified.
+#' @param group Character or NULL, groups to show or hide in the chart. If NULL,
+#'   the group is taken from the chart object.
+#' @param marker Character or NULL, type of marker to represent genes on the chart.
+#' Allowed values are 'arrow', 'boxarrow', 'box', 'cbox', and 'rbox'.
+#' @param marker_size Character or NULL, size category of the marker
+#' ('small', 'medium', 'large').
+#' @param show Logical, whether to show the genes or not.
+#' @param colorScheme Character or NULL, the name of the color scheme to use.
+#' @param customColors List or NULL, custom colors to apply to the genes.
+#' @param cluster Numeric or character, the specific cluster to filter genes by.
+#' @param itemStyle List, a list of styles to apply to individual items in the
+#'   chart.
+#' @param ... Additional arguments to be passed to the gene options.
+#'
+#' @return Returns the modified gene chart object.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 170, 210),
+#'   end = c(40, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 2, 2, 2)
+#' )
+#'
+#' # Change the appearance of a specific gene cluster
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
+#'   GC_genes(
+#'     group = "group",
+#'     show = TRUE,
+#'     marker = "arrow",
+#'     marker_size = "medium",
+#'     colorScheme = NULL, # One of D3.js build in colorSchemes
+#'                         # (eg. "schemeCategory10",
+#'                         # "schemeAccent", "schemeTableau10")
+#'     customColors = NULL, # A vector of color names
+#'     prevent_overlap = FALSE,
+#'     gene_overlap_spacing = 40,
+#'     cluster = 1, # Specify a specific cluster
+#'     x = 1,
+#'     y = 50,
+#'     stroke = "black",
+#'     strokeWidth = 1,
+#'     arrowheadWidth = NULL,
+#'     arrowheadHeight = NULL,
+#'     arrowHeight = NULL,
+#'     markerHeight = NULL # overwrites marker_size
+#'    )
+#'
+#' # Change the appearance of a specific gene
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
+#' GC_genes(
+#'   cluster = 2,
+#'   itemStyle = list(list(index = 2, fill = "red", stroke = "blue")
+#'   )
+#'  )
+#'
+#' @export
+GC_transcript <- function(
+    GC_chart,
+    group = NULL,
+    marker = NULL,
+    marker_size = NULL,
+    show = TRUE,
+    colorScheme = NULL,
+    customColors = NULL,
+    cluster = NULL,
+    styleExons = list(),
+    styleIntrons = list(),
+    styleUTRs = list(),
+    itemStyle = list(),
+    ...
+) {
+
+  if (is.logical(group) && length(group) == 1) {
+    show <- group
+    group <- NULL
+  }
+
+  if (is.null(group) && is.null(GC_chart$x$group) && is.null(marker)){
+    stop("Please define a group")
+  }
+
+  if (is.null(group) && !is.null(GC_chart$x$group)){
+    group <- GC_chart$x$group
+  }
+
+  if (!is.null(group) && !(group %in% names(GC_chart$x$data))) {
+    stop("group column not found in data")
+  }
+
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
+
+  for(i in seq_along(clusters)){
+
+    # Default options
+    options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+      group = group[(i-1) %% length(group) + 1],
+      marker = marker[(i-1) %% length(marker) + 1],
+      markerSize = marker_size,
+      show = show[(i-1) %% length(show) + 1],
+      colorScheme = colorScheme,
+      customColors = customColors,
+      styleExons = styleExons,
+      styleIntrons = styleIntrons,
+      styleUTRs = styleUTRs,
+      itemStyle = itemStyle,
+      ...
+    ))
+
+    GC_chart$x$series[[clusters[i]]]$transcript <- options
+
+  }
+
+  # Check if prevent_gene_overlap is called last
+  if (!is.null(GC_chart$x$prevent_gene_overlap_called) && GC_chart$x$prevent_gene_overlap_called) {
+    warning("Preventing gene overlap must be called after setting transcripts for proper effect.")
   }
 
   return(GC_chart)

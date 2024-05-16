@@ -117,9 +117,10 @@ function getGenePath(marker, length, markerSize, options = {}) {
     const markerDefaults = {
         arrow: { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 15 },
         boxarrow: { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 30 },
-        box: { arrowheadWidth: 0, arrowheadHeight: 30, markerHeight: 30  },
+        box: { arrowheadWidth: 0, arrowheadHeight: 30, markerHeight: 30 },
         rbox: { arrowheadWidth: 0, arrowheadHeight: 30, markerHeight: 30, cornerRadius: 5 },
-        cbox:  { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 30 },
+        cbox: { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 30 },
+        intron: { arrowheadWidth: 0, arrowheadHeight: 0, markerHeight: 20 },  // Add intron default
         // Add other marker types if needed
     };
 
@@ -147,7 +148,6 @@ function getGenePath(marker, length, markerSize, options = {}) {
         case "arrow":
         case "boxarrow":
         case "box":
-
             path = `M0 ${shaftTop}
                 L0 ${shaftBottom}
                 L${shaftLength} ${shaftBottom}
@@ -159,7 +159,6 @@ function getGenePath(marker, length, markerSize, options = {}) {
         case "rbox":
             effectiveCornerRadius = Math.min(cornerRadius, scaledMarkerHeight / 2, length / 2);
             height = scaledMarkerHeight;
-
             path = `M ${effectiveCornerRadius},0
                      H ${length - effectiveCornerRadius}
                      A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 ${length},${effectiveCornerRadius}
@@ -171,16 +170,23 @@ function getGenePath(marker, length, markerSize, options = {}) {
                      A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 ${effectiveCornerRadius},0
                      Z`;
             break;
-          case "cbox":
+        case "cbox":
             effectiveCornerRadius = Math.min(scaledMarkerHeight / 2, length / 2);
             height = scaledMarkerHeight;
-
             path = `M ${effectiveCornerRadius} 0
                  L ${length - effectiveCornerRadius} 0
                  Q ${length} ${scaledMarkerHeight / 2} ${length - effectiveCornerRadius} ${scaledMarkerHeight}
                  L ${effectiveCornerRadius} ${scaledMarkerHeight}
                  Q 0 ${scaledMarkerHeight / 2} ${effectiveCornerRadius} 0
                  Z`;
+            break;
+        case "intron":
+            // Create a V-shaped path for the intron
+            const midPoint = length / 2;
+            height = scaledMarkerHeight / 2
+            path = `M0 ${height}
+                    L${midPoint} 0
+                    L${length} ${height}`;
             break;
         default:
             console.warn(`Marker type '${marker}' not recognized.`);

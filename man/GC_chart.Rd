@@ -11,6 +11,7 @@ GC_chart(
   cluster = NULL,
   group = NULL,
   strand = NULL,
+  transcript = NULL,
   width = "100\%",
   height = "400px",
   style = list(),

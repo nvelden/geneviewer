@@ -1759,10 +1759,12 @@ GC_color <- function(
   # Capture clusters to update
   clusters <- names(GC_chart$x$series)
 
-  # Update gene colors
+  # Update gene and transcript colors
   for(cluster_name in clusters){
     GC_chart$x$series[[cluster_name]]$genes$colorScheme <- colorScheme
     GC_chart$x$series[[cluster_name]]$genes$customColors <- customColors
+    GC_chart$x$series[[cluster_name]]$transcript$colorScheme <- colorScheme
+    GC_chart$x$series[[cluster_name]]$transcript$customColors <- customColors
   }
 
   return(GC_chart)

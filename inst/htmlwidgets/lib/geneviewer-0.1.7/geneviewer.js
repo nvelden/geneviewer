@@ -2393,11 +2393,11 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   const defaultOptions = {
     x: 1,
     y: 50,
+    colorScheme: null,
+    customColors: null,
     styleExons: {
       show: true,
       strokeWidth: 0,
-      colorScheme: null,
-      customColors: null,
       cursor: "default",
       marker: "box",
       markerSize: "medium",
@@ -2411,8 +2411,6 @@ container.prototype.transcript = function (group, show = true, options = {}) {
       strokeWidth: 0,
       fill: "none",
       strokeWidth: 1,
-      colorScheme: null,
-      customColors: null,
       cursor: "default",
       marker: "intron",
       markerSize: "medium",
@@ -2430,8 +2428,6 @@ container.prototype.transcript = function (group, show = true, options = {}) {
       color: "black",
       fill: "#FFF",
       strokeWidth: 1,
-      colorScheme: null,
-      customColors: null,
       cursor: "default",
       marker: "box",
       markerSize: "medium",
@@ -2462,11 +2458,10 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   // Extract additional options that aren't in defaultOptions
   const additionalOptionsExons = extractAdditionalOptions(combinedOptions.styleExons, defaultOptions.styleExons);
   const additionalOptionsIntrons = extractAdditionalOptions(combinedOptions.styleIntrons, defaultOptions.styleIntrons);
-  console.log(additionalOptionsIntrons)
   const additionalOptionsUTRs = extractAdditionalOptions(combinedOptions.styleUTRs, defaultOptions.styleUTRs);
 
   const uniqueGroups = [...new Set(this.dataAll.map(d => d[group]))];
-
+  console.log(customColors)
   const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
   this.genesColorScale = colorScale;
 

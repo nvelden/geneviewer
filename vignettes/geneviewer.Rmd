@@ -902,6 +902,22 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_color(customColors = custom_colors )
 ```
 
+To ensure the color changes take effect, the GC_color function call must be placed after all other function calls. In the example below, the custom_colors are overwritten by the color settings in the `GC_genes` function. Therefore, always place the `GC_color` function call last.
+
+```{r echo=TRUE, results='asis'}
+# Pass a list of Colors
+custom_colors <- c("#D62728", "#D62728", "#D62728", "#D62728", "#D62728", "#D62728")
+
+# Create a named list of colors
+named_vector <- setNames(custom_colors, unique(ophA_cluster$class))
+custom_colors <- as.list(named_vector)
+
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_color(customColors = custom_colors ) %>%
+  GC_genes() %>%
+  GC_legend()
+```
+
 ## Legend
 
 The `GC_legend()` function can be used to show / hide and customize the legend. By default the legend is shown at the bottom. The below example shows the `GC_function()` with all its default settings.

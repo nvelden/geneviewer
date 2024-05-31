@@ -355,6 +355,132 @@ BlastP_results <-
 )
 ```
 
+## Transcripts
+
+The `GC_chart()` function can be set to visualize transcripts. It requires setting the transcript column with unique IDs for each transcript and a type column identifying whether the feature is a "UTR", "intron", or "exon".
+
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+transcript_data <- data.frame(
+  transcript = c("transcript1", "transcript1", "transcript1", "transcript1",
+                 "transcript1", "transcript1", "transcript1",
+                 "transcript2", "transcript2", "transcript2", "transcript2",
+                 "transcript2"),
+   type = c("5_utr", "intron", "exon", "intron", "exon", "intron", "3_utr",
+            "5_utr", "intron", "exon", "intron", "3_utr"),
+  start = c(1, 51, 101, 151, 201, 251, 301,
+            1, 51, 101, 151, 301),
+  end = c(50, 100, 150, 200, 250, 300, 350,
+          50, 100, 150, 300, 350),
+  strand = rep("forward", 12)
+)
+GC_chart(
+  data = transcript_data,
+  start = "start",
+  end = "end",
+  strand = "strand",
+  transcript = "transcript",
+  type = "type"
+)
+```
+
+Each transcript can be customized using the `GC_transcript()` function`. For all options see the documentation by running `?GC_transcript()`. 
+
+### Set custom colors for transcripts
+
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+GC_chart(
+  data = transcript_data,
+  start = "start",
+  end = "end",
+  strand = "strand",
+  transcript = "transcript",
+  type = "type",
+  height = "200px"
+) %>% 
+  GC_transcript(
+    group = "type",
+    customColors = 
+      list(
+        exon="green",
+        intron = "blue",
+        `5_utr` = "black",
+        `3_utr` = "grey"
+      )
+    )
+```
+
+The introns, exons, UTRs, and labels can be styled using the `styleIntrons`, `styleExons`, `styleUTRs`, and `labelOptions` variables respectively.
+
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+GC_chart(
+  data = transcript_data,
+  start = "start",
+  end = "end",
+  strand = "strand",
+  transcript = "transcript",
+  type = "type",
+  height = "200px"
+) %>% 
+  GC_transcript(
+    styleIntrons = 
+      list(
+      strokeWidth = 2,
+      markerHeight = 60
+      # Any other CSS style
+      ),
+    styleExons = 
+      list(
+        markerSize = "small",
+        fill = "none",
+        strokeWidth = 2,
+        stroke = "red"
+        # Any other CSS style
+      ),
+    styleUTRs = list(
+      markerSize = "small",
+      fill = "green"
+      # Any other CSS style
+    ),
+    labelOptions = list(
+      show = TRUE,
+      xOffset = 0,
+      yOffset = 0,
+      fontSize = "10px",
+      fontWeight = "bold"
+      # Any other CSS style
+    )
+  )
+```
+
+The `itemStyle` in combination with the transcript variable allows for the customization of individual exons, introns, or UTRs within specific transcripts.
+
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+GC_chart(
+  data = transcript_data,
+  start = "start",
+  end = "end",
+  strand = "strand",
+  transcript = "transcript",
+  type = "type",
+  height = "200px"
+) %>% 
+  GC_transcript(
+    transcript = 1,
+    itemStyleExons = 
+      list(
+        list(index = 0, fill = "red")
+      )
+  ) %>%
+  GC_transcript(
+    transcript = 2,
+    itemStyleIntrons = 
+    list(
+      list(index = 1, stroke = "red", strokeWidth = 2)
+    )
+  )
+```
+
+
 ## Links
 
 The `get_links` and `GC_links()` functions can be used to add links between genes. In the below example, we initially create a chart object. Subsequently, we generate links among all clusters. This is achieved by specifying a grouping column which will generate links for all value pairs between the different clusters.

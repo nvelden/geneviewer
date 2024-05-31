@@ -13,6 +13,10 @@ magrittr::`%>%`
 #' @param end Column name that indicates end positions. Default is "end".
 #' @param cluster Optional column name used for clustering purposes. Default is
 #'   NULL.
+#' @param transcript Optional column name used for clustering transcript data.
+#' Default is NULL.
+#' @param type Optional column name identifying the feature type (e.g., "UTR",
+#'   "intron", or "exon"). Required if `transcript` is defined. Default is NULL.
 #' @param group Column name used for gene grouping to influence color
 #'   aesthetics.
 #' @param strand Optional column name indicating strand orientation. Acceptable
@@ -50,7 +54,7 @@ magrittr::`%>%`
 #'
 #' @import htmlwidgets
 #' @export
-GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, transcript = NULL, width = "100%", height = "400px", style = list(), elementId = NULL) {
+GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, transcript = NULL, type = NULL, width = "100%", height = "400px", style = list(), elementId = NULL) {
 
   # Load from .gbk files
   if (is.character(data)) {
@@ -76,7 +80,16 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 
   if (!is.null(transcript) && !(transcript %in% colnames_data)) {
     stop("transcript column not found in data")
-  } else {
+  }
+  if (!is.null(transcript) && is.null(type)) {
+    stop("type column (e.g., exon, intron, UTR) is required for 'transcript' data.")
+  }
+
+  if (!is.null(type) && !(type %in% colnames_data)) {
+    stop("type column not found in data")
+  }
+
+  if(is.null(cluster) && !is.null(transcript)){
     cluster <- transcript
   }
 
@@ -105,10 +118,16 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 
   # Add rowID to data
   data$rowID <- seq_len(nrow(data))
+
   # add start and end
   data_tmp <- data
   data$start <- data_tmp[[start]]
   data$end <- data_tmp[[end]]
+
+  # Add type column if transcript data
+  if(!is.null(transcript)){
+    data$type <- data_tmp[[type]]
+  }
 
   # Convert cluster to character
   if(!is.null(cluster)){
@@ -172,6 +191,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     if(!is.null(transcript)){
       x$series[[clust]]$genes <- list(group = group, show = FALSE)
       x$series[[clust]]$sequence <- list(show = FALSE)
+      x$series[[clust]]$transcript <- list(group = group, show = TRUE)
     }
 
     # Blast specific settings
@@ -1458,8 +1478,8 @@ GC_coordinates <- function(
 #' assign custom colors, filter by cluster, and accept additional options.
 #'
 #' @param GC_chart The gene chart object to be modified.
-#' @param group Character or NULL, groups to show or hide in the chart. If NULL,
-#'   the group is taken from the chart object.
+#' @param group Column name used for gene grouping to influence color
+#'   aesthetics.
 #' @param marker Character or NULL, type of marker to represent genes on the chart.
 #' Allowed values are 'arrow', 'boxarrow', 'box', 'cbox', and 'rbox'.
 #' @param marker_size Character or NULL, size category of the marker
@@ -1534,9 +1554,9 @@ GC_genes <- function(
     group <- NULL
   }
 
-  if (is.null(group) && is.null(GC_chart$x$group) && is.null(marker)){
-    stop("Please define a group")
-  }
+  # if (is.null(group) && is.null(GC_chart$x$group) && is.null(marker)){
+  #   stop("Please define a group")
+  # }
 
   if (is.null(group) && !is.null(GC_chart$x$group)){
     group <- GC_chart$x$group
@@ -1575,84 +1595,138 @@ GC_genes <- function(
   return(GC_chart)
 }
 
-#' Modify Gene Characteristics within a Chart
+#'Modify Transcript Characteristics within a Chart
 #'
-#' This function updates a gene chart with specific characteristics for genes
-#' based on the given parameters. It can show/hide genes, apply a color scheme,
-#' assign custom colors, filter by cluster, and accept additional options.
+#'This function updates the chart with specific characteristics for transcripts
+#'based on the given parameters. It can show/hide transcripts, apply a color
+#'scheme, assign custom colors, filter by cluster, and accept additional
+#'options.
 #'
-#' @param GC_chart The gene chart object to be modified.
-#' @param group Character or NULL, groups to show or hide in the chart. If NULL,
-#'   the group is taken from the chart object.
-#' @param marker Character or NULL, type of marker to represent genes on the chart.
-#' Allowed values are 'arrow', 'boxarrow', 'box', 'cbox', and 'rbox'.
-#' @param marker_size Character or NULL, size category of the marker
-#' ('small', 'medium', 'large').
-#' @param show Logical, whether to show the genes or not.
-#' @param colorScheme Character or NULL, the name of the color scheme to use.
-#' @param customColors List or NULL, custom colors to apply to the genes.
-#' @param cluster Numeric or character, the specific cluster to filter genes by.
-#' @param itemStyle List, a list of styles to apply to individual items in the
-#'   chart.
-#' @param ... Additional arguments to be passed to the gene options.
+#'@param GC_chart The chart object to be modified.
+#'@param group Column name used for transcript grouping to influence color
+#'  aesthetics.
+#'@param show Logical, whether to show the transcripts or not.
+#'@param colorScheme Character or NULL, the name of the color scheme to use.
+#'@param customColors List or NULL, custom colors to apply to the genes.
+#'@param transcript Numeric or character, the specific transcript Id to filter
+#'transcripts by.
+#'@param styleExons List, styles to apply to exons in the chart.
+#'@param styleIntrons List, styles to apply to introns in the chart.
+#'@param styleUTRs List, styles to apply to UTRs in the chart.
+#'@param itemStyleExons List, a list of styles to apply to individual exons in
+#'  thechart.
+#'@param itemStyleIntrons List, a list of styles to apply to individual introns
+#'  in the chart.
+#'@param itemStyleUTRs List, a list of styles to apply to individual UTRs in the
+#'  chart.
+#' @param labelOptions List, options for styling labels such as font size, color,
+#'   and position.
+#'@param ... Additional arguments to be passed to the gene options.
 #'
-#' @return Returns the modified gene chart object.
+#'@return Returns the modified gene chart object.
 #'
 #' @examples
-#' genes_data <- data.frame(
-#'   start = c(10, 90, 130, 170, 210),
-#'   end = c(40, 120, 160, 200, 240),
-#'   name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
-#'   group = c('A', 'B', 'B', 'A', 'C'),
-#'   cluster = c(1, 1, 2, 2, 2)
+#' transcript_data <- data.frame(
+#'   transcript = c("transcript1", "transcript1", "transcript1", "transcript1",
+#'                  "transcript1", "transcript1", "transcript1",
+#'                  "transcript2", "transcript2", "transcript2", "transcript2",
+#'                  "transcript2"),
+#'   type = c("5_utr", "intron", "exon", "intron", "exon", "intron", "3_utr",
+#'            "5_utr", "intron", "exon", "intron", "3_utr"),
+#'   start = c(1, 51, 101, 151, 201, 251, 301,
+#'             1, 51, 101, 151, 301),
+#'   end = c(50, 100, 150, 200, 250, 300, 350,
+#'           50, 100, 150, 300, 350),
+#'   strand = rep("forward", 12)
 #' )
 #'
-#' # Change the appearance of a specific gene cluster
-#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
-#'   GC_genes(
-#'     group = "group",
+# All default transcript settings
+#' GC_chart(transcript_data, transcript = "transcript", type = "type", height = "200px") %>%
+#'   GC_transcript(
+#'     group = NULL,
 #'     show = TRUE,
-#'     marker = "arrow",
-#'     marker_size = "medium",
-#'     colorScheme = NULL, # One of D3.js build in colorSchemes
-#'                         # (eg. "schemeCategory10",
-#'                         # "schemeAccent", "schemeTableau10")
-#'     customColors = NULL, # A vector of color names
-#'     prevent_overlap = FALSE,
-#'     gene_overlap_spacing = 40,
-#'     cluster = 1, # Specify a specific cluster
-#'     x = 1,
-#'     y = 50,
-#'     stroke = "black",
-#'     strokeWidth = 1,
-#'     arrowheadWidth = NULL,
-#'     arrowheadHeight = NULL,
-#'     arrowHeight = NULL,
-#'     markerHeight = NULL # overwrites marker_size
-#'    )
-#'
-#' # Change the appearance of a specific gene
-#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
-#' GC_genes(
-#'   cluster = 2,
-#'   itemStyle = list(list(index = 2, fill = "red", stroke = "blue")
+#'     transcript = NULL,
+#'     colorScheme = NULL,
+#'     customColors = NULL,
+#'     styleExons = list(
+#'       show = TRUE,
+#'       strokeWidth = 0,
+#'       cursor = "default",
+#'       marker = "box",
+#'       markerSize = "medium",
+#'       arrowheadWidth = NULL,
+#'       arrowheadHeight = NULL,
+#'       markerHeight = NULL,
+#'       cornerRadius = NULL
+#'       # Any other CSS style
+#'     ),
+#'     styleIntrons = list(
+#'       show = TRUE,
+#'       strokeWidth = 1,
+#'       fill = "none",
+#'       cursor = "default",
+#'       marker = "intron",
+#'       markerSize = "medium",
+#'       arrowheadWidth = NULL,
+#'       arrowheadHeight = NULL,
+#'       markerHeight = NULL,
+#'       cornerRadius = NULL
+#'       # Any other CSS style
+#'     ),
+#'     styleUTRs = list(
+#'       show = TRUE,
+#'       fontSize = "10px",
+#'       fontStyle = "normal",
+#'       fontFamily = "sans-serif",
+#'       cursor = "default",
+#'       color = "black",
+#'       fill = "#FFF",
+#'       strokeWidth = 1,
+#'       marker = "box",
+#'       markerSize = "medium",
+#'       arrowheadWidth = NULL,
+#'       arrowheadHeight = NULL,
+#'       markerHeight = NULL,
+#'       cornerRadius = NULL
+#'       # Any other CSS style
+#'     ),
+#'     labelOptions = list(
+#'       show = TRUE,
+#'       xOffset = 2,
+#'       yOffset = 0,
+#'       fontSize = "12px",
+#'       fontStyle = "normal",
+#'       fontWeight = "normal",
+#'       fontFamily = "sans-serif",
+#'       cursor = "default",
+#'       color = "black"
+#'     ),
+#'     itemStyleExons = list(),
+#'     itemStyleIntrons = list(),
+#'     itemStyleUTRs = list()
 #'   )
-#'  )
-#'
+#' # Change the appearance of a specific intron
+#' GC_chart(transcript_data, transcript = "transcript", type = "type", height = "200px") %>%
+#'   GC_transcript(
+#'     cluster = 2,
+#'     itemStyleExons = list(list(index = 0, fill = "red")
+#'     )
+#'   )
 #' @export
 GC_transcript <- function(
     GC_chart,
     group = NULL,
-    marker = NULL,
-    marker_size = NULL,
     show = TRUE,
     colorScheme = NULL,
     customColors = NULL,
-    cluster = NULL,
+    transcript = NULL,
     styleExons = list(),
     styleIntrons = list(),
     styleUTRs = list(),
-    itemStyle = list(),
+    itemStyleExons = list(),
+    itemStyleIntrons = list(),
+    itemStyleUTRs = list(),
+    labelOptions = list(),
     ...
 ) {
 
@@ -1661,9 +1735,9 @@ GC_transcript <- function(
     group <- NULL
   }
 
-  if (is.null(group) && is.null(GC_chart$x$group) && is.null(marker)){
-    stop("Please define a group")
-  }
+  # if (is.null(group) && is.null(GC_chart$x$group) && is.null(marker)){
+  #   stop("Please define a group")
+  # }
 
   if (is.null(group) && !is.null(GC_chart$x$group)){
     group <- GC_chart$x$group
@@ -1673,23 +1747,23 @@ GC_transcript <- function(
     stop("group column not found in data")
   }
 
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
+  clusters <- getUpdatedClusters(GC_chart, transcript)
 
   for(i in seq_along(clusters)){
 
     # Default options
     options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
       group = group[(i-1) %% length(group) + 1],
-      marker = marker[(i-1) %% length(marker) + 1],
-      markerSize = marker_size,
       show = show[(i-1) %% length(show) + 1],
       colorScheme = colorScheme,
       customColors = customColors,
       styleExons = styleExons,
       styleIntrons = styleIntrons,
       styleUTRs = styleUTRs,
-      itemStyle = itemStyle,
+      itemStyleExons = itemStyleExons,
+      itemStyleIntrons = itemStyleIntrons,
+      itemStyleUTRs = itemStyleUTRs,
+      labelOptions = labelOptions,
       ...
     ))
 

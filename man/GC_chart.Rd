@@ -12,6 +12,7 @@ GC_chart(
   group = NULL,
   strand = NULL,
   transcript = NULL,
+  type = NULL,
   width = "100\%",
   height = "400px",
   style = list(),
@@ -38,6 +39,12 @@ values include 1, 'forward', 'sense', or '+' to represent the forward
 strand, and -1, 0, 'reverse', 'antisense', "complement" or '-' to represent
 the reverse strand. Default is NULL, meaning strand information is not
 used.}
+
+\item{transcript}{Optional column name used for clustering transcript data.
+Default is NULL.}
+
+\item{type}{Optional column name identifying the feature type (e.g., "UTR",
+"intron", or "exon"). Required if `transcript` is defined. Default is NULL.}
 
 \item{width}{Width specification for the chart, such as '100\%' or 500.
 Default is unspecified.}

@@ -20,8 +20,8 @@ GC_genes(
 \arguments{
 \item{GC_chart}{The gene chart object to be modified.}
 
-\item{group}{Character or NULL, groups to show or hide in the chart. If NULL,
-the group is taken from the chart object.}
+\item{group}{Column name used for gene grouping to influence color
+aesthetics.}
 
 \item{marker}{Character or NULL, type of marker to represent genes on the chart.
 Allowed values are 'arrow', 'boxarrow', 'box', 'cbox', and 'rbox'.}

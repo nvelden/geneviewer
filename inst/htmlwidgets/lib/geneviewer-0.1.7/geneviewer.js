@@ -2099,7 +2099,7 @@ container.prototype.tooltip = function (show = true, options = {}) {
   }
 
   const defaultOptions = {
-    triggers: ["markers", "genes", "labels"],
+    triggers: ["markers", "genes", "labels", "exons", "introns", "utrs"],
     formatter: "<b>Start:</b> {start}<br><b>End: {end}</b>",
     opacity: 0,
     position: "absolute",
@@ -2219,6 +2219,7 @@ container.prototype.tooltip = function (show = true, options = {}) {
     // Mouseover event to show the tooltip
     selection.on("mouseover", (event, d) => {
       const dataPoint = this.data.find(item => item === d);
+
       const x = event.pageX;
       const y = event.pageY;
 
@@ -2461,7 +2462,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   const additionalOptionsUTRs = extractAdditionalOptions(combinedOptions.styleUTRs, defaultOptions.styleUTRs);
 
   const uniqueGroups = [...new Set(this.dataAll.map(d => d[group]))];
-  console.log(customColors)
+
   const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
   this.genesColorScale = colorScale;
 
@@ -2512,7 +2513,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
     // Add exons
     const exons = this.data.filter(transcript => /exon/i.test(transcript.type));
 
-    g.selectAll(".exons")
+    g.selectAll(".exon")
       .data(exons)
       .enter()
       .append("path")
@@ -2546,14 +2547,14 @@ container.prototype.transcript = function (group, show = true, options = {}) {
       });
 
     // Update the reference
-    this.exons = g.selectAll(".exons");
+    this.exons = g.selectAll(".exon");
   }
 
   if (styleIntrons.show) {
     // Add introns
     const introns = this.data.filter(transcript => /intron/i.test(transcript.type));
 
-    g.selectAll(".introns")
+    g.selectAll(".intron")
       .data(introns)
       .enter()
       .append("path")
@@ -2588,14 +2589,14 @@ container.prototype.transcript = function (group, show = true, options = {}) {
       });
 
     // Update the reference
-    this.introns = g.selectAll(".introns");
+    this.introns = g.selectAll(".intron");
   }
 
   if (styleUTRs.show) {
     // Add UTRs
     const utrs = this.data.filter(transcript => /utr/i.test(transcript.type));
 
-    g.selectAll(".utrs")
+    g.selectAll(".utr")
       .data(utrs)
       .enter()
       .append("path")
@@ -2629,7 +2630,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
       });
 
     // Update the reference
-    this.utrs = g.selectAll(".utrs");
+    this.utrs = g.selectAll(".utr");
 
     if (labelOptions.show) {
 
@@ -2644,7 +2645,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
     // add 3' label
     g.append("text")
         .attr("x", xPosition3Prime)
-        .attr("y", (d) => this.yScale(y))
+        .attr("y", (d) => this.yScale(y + labelOptions.yOffset))
         .attr("class", `5-label`)
         .attr("text-anchor", "middle")
         .attr("alignment-baseline", "middle")
@@ -2659,7 +2660,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
     // add 5' label
     g.append("text")
         .attr("x", xPosition5Prime)
-        .attr("y", (d) => this.yScale(y))
+        .attr("y", (d) => this.yScale(y + labelOptions.yOffset))
         .attr("class", `5-label`)
         .attr("text-anchor", "middle")
         .attr("alignment-baseline", "middle")

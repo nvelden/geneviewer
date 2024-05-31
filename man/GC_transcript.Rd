@@ -2,46 +2,57 @@
 % Please edit documentation in R/geneviewer.R
 \name{GC_transcript}
 \alias{GC_transcript}
-\title{Modify Gene Characteristics within a Chart}
+\title{Modify Transcript Characteristics within a Chart}
 \usage{
 GC_transcript(
   GC_chart,
   group = NULL,
-  marker = NULL,
-  marker_size = NULL,
   show = TRUE,
   colorScheme = NULL,
   customColors = NULL,
-  cluster = NULL,
+  transcript = NULL,
   styleExons = list(),
   styleIntrons = list(),
   styleUTRs = list(),
-  itemStyle = list(),
+  itemStyleExons = list(),
+  itemStyleIntrons = list(),
+  itemStyleUTRs = list(),
+  labelOptions = list(),
   ...
 )
 }
 \arguments{
-\item{GC_chart}{The gene chart object to be modified.}
+\item{GC_chart}{The chart object to be modified.}
 
-\item{group}{Character or NULL, groups to show or hide in the chart. If NULL,
-the group is taken from the chart object.}
+\item{group}{Column name used for transcript grouping to influence color
+aesthetics.}
 
-\item{marker}{Character or NULL, type of marker to represent genes on the chart.
-Allowed values are 'arrow', 'boxarrow', 'box', 'cbox', and 'rbox'.}
-
-\item{marker_size}{Character or NULL, size category of the marker
-('small', 'medium', 'large').}
-
-\item{show}{Logical, whether to show the genes or not.}
+\item{show}{Logical, whether to show the transcripts or not.}
 
 \item{colorScheme}{Character or NULL, the name of the color scheme to use.}
 
 \item{customColors}{List or NULL, custom colors to apply to the genes.}
 
-\item{cluster}{Numeric or character, the specific cluster to filter genes by.}
+\item{transcript}{Numeric or character, the specific transcript Id to filter
+transcripts by.}
 
-\item{itemStyle}{List, a list of styles to apply to individual items in the
+\item{styleExons}{List, styles to apply to exons in the chart.}
+
+\item{styleIntrons}{List, styles to apply to introns in the chart.}
+
+\item{styleUTRs}{List, styles to apply to UTRs in the chart.}
+
+\item{itemStyleExons}{List, a list of styles to apply to individual exons in
+thechart.}
+
+\item{itemStyleIntrons}{List, a list of styles to apply to individual introns
+in the chart.}
+
+\item{itemStyleUTRs}{List, a list of styles to apply to individual UTRs in the
 chart.}
+
+\item{labelOptions}{List, options for styling labels such as font size, color,
+and position.}
 
 \item{...}{Additional arguments to be passed to the gene options.}
 }
@@ -49,49 +60,95 @@ chart.}
 Returns the modified gene chart object.
 }
 \description{
-This function updates a gene chart with specific characteristics for genes
-based on the given parameters. It can show/hide genes, apply a color scheme,
-assign custom colors, filter by cluster, and accept additional options.
+This function updates the chart with specific characteristics for transcripts
+based on the given parameters. It can show/hide transcripts, apply a color
+scheme, assign custom colors, filter by cluster, and accept additional
+options.
 }
 \examples{
-genes_data <- data.frame(
-  start = c(10, 90, 130, 170, 210),
-  end = c(40, 120, 160, 200, 240),
-  name = c('Gene 1', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
-  group = c('A', 'B', 'B', 'A', 'C'),
-  cluster = c(1, 1, 2, 2, 2)
+transcript_data <- data.frame(
+  transcript = c("transcript1", "transcript1", "transcript1", "transcript1",
+                 "transcript1", "transcript1", "transcript1",
+                 "transcript2", "transcript2", "transcript2", "transcript2",
+                 "transcript2"),
+  type = c("5_utr", "intron", "exon", "intron", "exon", "intron", "3_utr",
+           "5_utr", "intron", "exon", "intron", "3_utr"),
+  start = c(1, 51, 101, 151, 201, 251, 301,
+            1, 51, 101, 151, 301),
+  end = c(50, 100, 150, 200, 250, 300, 350,
+          50, 100, 150, 300, 350),
+  strand = rep("forward", 12)
 )
 
-# Change the appearance of a specific gene cluster
-GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
-  GC_genes(
-    group = "group",
+GC_chart(transcript_data, transcript = "transcript", type = "type", height = "200px") \%>\%
+  GC_transcript(
+    group = NULL,
     show = TRUE,
-    marker = "arrow",
-    marker_size = "medium",
-    colorScheme = NULL, # One of D3.js build in colorSchemes
-                        # (eg. "schemeCategory10",
-                        # "schemeAccent", "schemeTableau10")
-    customColors = NULL, # A vector of color names
-    prevent_overlap = FALSE,
-    gene_overlap_spacing = 40,
-    cluster = 1, # Specify a specific cluster
-    x = 1,
-    y = 50,
-    stroke = "black",
-    strokeWidth = 1,
-    arrowheadWidth = NULL,
-    arrowheadHeight = NULL,
-    arrowHeight = NULL,
-    markerHeight = NULL # overwrites marker_size
-   )
-
-# Change the appearance of a specific gene
-GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
-GC_genes(
-  cluster = 2,
-  itemStyle = list(list(index = 2, fill = "red", stroke = "blue")
+    transcript = NULL,
+    colorScheme = NULL,
+    customColors = NULL,
+    styleExons = list(
+      show = TRUE,
+      strokeWidth = 0,
+      cursor = "default",
+      marker = "box",
+      markerSize = "medium",
+      arrowheadWidth = NULL,
+      arrowheadHeight = NULL,
+      markerHeight = NULL,
+      cornerRadius = NULL
+      # Any other CSS style
+    ),
+    styleIntrons = list(
+      show = TRUE,
+      strokeWidth = 1,
+      fill = "none",
+      cursor = "default",
+      marker = "intron",
+      markerSize = "medium",
+      arrowheadWidth = NULL,
+      arrowheadHeight = NULL,
+      markerHeight = NULL,
+      cornerRadius = NULL
+      # Any other CSS style
+    ),
+    styleUTRs = list(
+      show = TRUE,
+      fontSize = "10px",
+      fontStyle = "normal",
+      fontFamily = "sans-serif",
+      cursor = "default",
+      color = "black",
+      fill = "#FFF",
+      strokeWidth = 1,
+      marker = "box",
+      markerSize = "medium",
+      arrowheadWidth = NULL,
+      arrowheadHeight = NULL,
+      markerHeight = NULL,
+      cornerRadius = NULL
+      # Any other CSS style
+    ),
+    labelOptions = list(
+      show = TRUE,
+      xOffset = 2,
+      yOffset = 0,
+      fontSize = "12px",
+      fontStyle = "normal",
+      fontWeight = "normal",
+      fontFamily = "sans-serif",
+      cursor = "default",
+      color = "black"
+    ),
+    itemStyleExons = list(),
+    itemStyleIntrons = list(),
+    itemStyleUTRs = list()
   )
- )
-
+# Change the appearance of a specific intron
+GC_chart(transcript_data, transcript = "transcript", type = "type", height = "200px") \%>\%
+  GC_transcript(
+    cluster = 2,
+    itemStyleExons = list(list(index = 0, fill = "red")
+    )
+  )
 }

@@ -1,5 +1,6 @@
 const themes = {
   preset: {
+    /*
     titleOptions: {
       titleFont: {
         size: "16px",
@@ -92,6 +93,7 @@ const themes = {
       fontSize: "10px",
       show: true
     }
+      */
   }
 };
 

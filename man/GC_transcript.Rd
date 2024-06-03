@@ -80,7 +80,12 @@ transcript_data <- data.frame(
   strand = rep("forward", 12)
 )
 
-GC_chart(transcript_data, transcript = "transcript", type = "type", height = "200px") \%>\%
+GC_chart(
+  transcript_data,
+  transcript = "transcript",
+  type = "type",
+  height = "200px"
+) \%>\%
   GC_transcript(
     group = NULL,
     show = TRUE,
@@ -145,9 +150,13 @@ GC_chart(transcript_data, transcript = "transcript", type = "type", height = "20
     itemStyleUTRs = list()
   )
 # Change the appearance of a specific intron
-GC_chart(transcript_data, transcript = "transcript", type = "type", height = "200px") \%>\%
+GC_chart(transcript_data,
+         transcript = "transcript",
+         type = "type",
+         height = "200px"
+         ) \%>\%
   GC_transcript(
-    cluster = 2,
+    transcript = 2,
     itemStyleExons = list(list(index = 0, fill = "red")
     )
   )

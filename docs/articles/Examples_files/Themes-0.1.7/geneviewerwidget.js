@@ -110,6 +110,7 @@ HTMLWidgets.widget({
             labelOptions = cluster.labels,
             sequenceOptions = cluster.sequence,
             geneOptions = cluster.genes,
+            transcriptOptions = cluster.transcript,
             coordinateOptions = cluster.coordinates;
             scaleBarOptions = cluster.scaleBar;
             annotationOptions = cluster.annotations;
@@ -138,6 +139,7 @@ HTMLWidgets.widget({
           .scale(scaleOptions)
           .sequence(sequenceOptions?.show ?? false, sequenceOptions)
           .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)
+          .transcript(transcriptOptions?.group, transcriptOptions?.show ?? false, transcriptOptions)
           .links(clusterLinks, clusterKey,  linksOptions)
           .coordinates(coordinateOptions?.show ?? false, coordinateOptions)
           .labels(labelOptions?.label, labelOptions?.show ?? false, labelOptions)

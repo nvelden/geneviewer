@@ -1148,6 +1148,8 @@ container.prototype.scale = function (options = {}) {
 
   this.reverse = reverse;
 
+  this.padding = padding;
+
   // Use provided start and end values if they exist, otherwise compute them from data
   this.minStart = start !== null ? start :
                 xMin !== null ? xMin :
@@ -1558,7 +1560,6 @@ container.prototype.sequence = function (show = true, options = {}) {
     y: 50,
     start: null,
     end: null,
-    padding: 2,
     sequenceStyle: { // Adding sequenceStyle
       stroke: "grey",
       strokeWidth: 1
@@ -1574,7 +1575,7 @@ container.prototype.sequence = function (show = true, options = {}) {
 
   // Merge the default options with any predefined sequenceOptions and the provided options
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'sequenceOptions', options);
-  const { y, start, end, padding, markerStyle, sequenceStyle } = combinedOptions;
+  const { y, start, end, markerStyle, sequenceStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions for sequenceStyle
   const additionalOptionsSequence = extractAdditionalOptions(sequenceStyle, defaultOptions.sequenceStyle);
@@ -1586,11 +1587,11 @@ container.prototype.sequence = function (show = true, options = {}) {
   var maxEnd = end || d3.max(this.data, d => Math.max(d.start, d.end));
 
   if(start == null){
-  minStart = addScalePadding(minStart, maxEnd, padding, to = "start")
+  minStart = addScalePadding(minStart, maxEnd, this.padding, to = "start")
   }
 
   if(end == null){
-  maxEnd = addScalePadding(minStart, maxEnd, padding, to = "end")
+  maxEnd = addScalePadding(minStart, maxEnd, this.padding, to = "end")
   }
 
   // Draw baseline with sequenceStyle
@@ -2098,7 +2099,7 @@ container.prototype.tooltip = function (show = true, options = {}) {
   }
 
   const defaultOptions = {
-    triggers: ["markers", "genes", "labels"],
+    triggers: ["markers", "genes", "labels", "exons", "introns", "utrs"],
     formatter: "<b>Start:</b> {start}<br><b>End: {end}</b>",
     opacity: 0,
     position: "absolute",
@@ -2218,6 +2219,7 @@ container.prototype.tooltip = function (show = true, options = {}) {
     // Mouseover event to show the tooltip
     selection.on("mouseover", (event, d) => {
       const dataPoint = this.data.find(item => item === d);
+
       const x = event.pageX;
       const y = event.pageY;
 
@@ -2374,6 +2376,306 @@ container.prototype.genes = function (group, show = true, options = {}) {
 
   // Update the reference
   this.genes = g.selectAll(".gene");
+
+  return this;
+};
+
+container.prototype.transcript = function (group, show = true, options = {}) {
+
+  if (!show) {
+    return this;
+  }
+
+  if (!this.data) {
+    console.error('No data has been added to this cluster container. Please use the geneData() function before attempting to draw arrows.');
+    return this;
+  }
+
+  const defaultOptions = {
+    x: 1,
+    y: 50,
+    colorScheme: null,
+    customColors: null,
+    styleExons: {
+      show: true,
+      strokeWidth: 0,
+      cursor: "default",
+      marker: "box",
+      markerSize: "medium",
+      arrowheadWidth: null,
+      arrowheadHeight: null,
+      markerHeight: null,
+      cornerRadius: null
+    },
+    styleIntrons: {
+      show: true,
+      strokeWidth: 0,
+      fill: "none",
+      strokeWidth: 1,
+      cursor: "default",
+      marker: "intron",
+      markerSize: "medium",
+      arrowheadWidth: null,
+      arrowheadHeight: null,
+      markerHeight: null,
+      cornerRadius: null
+    },
+    styleUTRs: {
+      show: true,
+      fontSize: "10px",
+      fontStyle: "normal",
+      fontFamily: "sans-serif",
+      cursor: "default",
+      color: "black",
+      fill: "#FFF",
+      strokeWidth: 1,
+      cursor: "default",
+      marker: "box",
+      markerSize: "medium",
+      arrowheadWidth: null,
+      arrowheadHeight: null,
+      markerHeight: null,
+      cornerRadius: null
+    },
+     labelOptions: {
+      show: true,
+      xOffset: 2,
+      yOffset: 0,
+      fontSize: "12px",
+      fontStyle: "normal",
+      fontWeight: "normal",
+      fontFamily: "sans-serif",
+      cursor: "default",
+      color: "black"
+    },
+    itemStyleExons: [],
+    itemStyleIntrons: [],
+    itemStyleUTRs: []
+  };
+
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
+  const { x, y, colorScheme, customColors, styleExons, styleIntrons, styleUTRs, itemStyleExons, itemStyleIntrons, itemStyleUTRs, labelOptions } = combinedOptions;
+
+  // Extract additional options that aren't in defaultOptions
+  const additionalOptionsExons = extractAdditionalOptions(combinedOptions.styleExons, defaultOptions.styleExons);
+  const additionalOptionsIntrons = extractAdditionalOptions(combinedOptions.styleIntrons, defaultOptions.styleIntrons);
+  const additionalOptionsUTRs = extractAdditionalOptions(combinedOptions.styleUTRs, defaultOptions.styleUTRs);
+
+  const uniqueGroups = [...new Set(this.dataAll.map(d => d[group]))];
+
+  const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
+  this.genesColorScale = colorScale;
+
+  const g = this.svg.append("g")
+    .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+
+  // Sort the data first by the minimum value of start and end.
+  this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
+
+  const getAttributesForIndex = (d, i, styles, itemStyles) => {
+    const style = itemStyles.find(s => s.index === i) || {};
+    const geneLength = Math.abs(this.xScale(d.end) - this.xScale(d.start));
+    const currentX = style.x || x;
+    const currentY = style.y || y;
+    const marker = style.marker || styles.marker;
+    const markerSize = style.markerSize || styles.markerSize;
+
+    // GenePath
+    const { path, arrowheadWidth, arrowheadHeight, height } = getGenePath(
+      marker,
+      geneLength,
+      markerSize,
+      options = {
+        arrowheadWidth: style.arrowheadWidth || styles.arrowheadWidth,
+        arrowheadHeight: style.arrowheadHeight || styles.arrowheadHeight,
+        markerHeight: style.markerHeight || styles.markerHeight,
+        cornerRadius: style.cornerRadius || styles.cornerRadius
+      }
+    );
+
+    this.markerHeight = height;
+    this.geneStrandSpacing = this.separateStrands ? (height / 2 + this.strandSpacing) : 0;
+    this.geneOverlapSpacing = (height + this.overlapSpacing);
+
+    // Calculate Y position based on geneTrack
+    const currentGeneStrandSpacing = (d.strand === "forward" && this.geneStrandSpacing !== 0)
+      ? this.geneStrandSpacing
+      : -this.geneStrandSpacing;
+    const currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
+
+    const yPos = this.yScale(currentY) - currentGeneStrandSpacing + currentOverlapSpacing;
+    const xPos = this.xScale(d.start);
+
+    return { xPos, yPos, path, arrowheadWidth, arrowheadHeight, height };
+  };
+
+  if (styleExons.show) {
+    // Add exons
+    const exons = this.data.filter(transcript => /exon/i.test(transcript.type));
+
+    g.selectAll(".exon")
+      .data(exons)
+      .enter()
+      .append("path")
+      .attr("d", (d, i) => {
+        return getAttributesForIndex(d, i, styleExons, itemStyleExons).path;
+      })
+      .attr("transform", (d, i) => {
+        const { xPos, yPos, height } = getAttributesForIndex(d, i, styleExons, itemStyleExons);
+        const rotation = this.reverse
+          ? (d.direction === 'forward' ? 180 : 0)
+          : (d.direction === 'forward' ? 0 : 180);
+        return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (height / 2)})`;
+      })
+      .attr("fill", (d) => colorScale(d[group]))
+      .attr("class", "exon")
+      .attr("id", (d, i) => `${sanitizeId(d.cluster)}-exon-${i}`)
+      .attr("rowID", (d, i) => `${d["rowID"]}`)
+      .attr("start", (d, i) => `${d["start"]}`)
+      .attr("end", (d, i) => `${d["end"]}`)
+      .attr("strand", (d, i) => `${d["strand"]}`)
+      .attr("cluster", (d, i) => `${d["cluster"]}`)
+      .style("stroke-width", styleExons.strokeWidth)
+      .style("stroke", styleExons.stroke)
+      .style("cursor", styleExons.cursor)
+      .each(function (d, i) {
+        const currentElement = d3.select(this);
+        // Set additional options as attributes
+        setStyleFromOptions(currentElement, additionalOptionsExons);
+        // Override with itemStyle based on the index
+        applyStyleToElement(currentElement, itemStyleExons, i);
+      });
+
+    // Update the reference
+    this.exons = g.selectAll(".exon");
+  }
+
+  if (styleIntrons.show) {
+    // Add introns
+    const introns = this.data.filter(transcript => /intron/i.test(transcript.type));
+
+    g.selectAll(".intron")
+      .data(introns)
+      .enter()
+      .append("path")
+      .attr("d", (d, i) => {
+        return getAttributesForIndex(d, i, styleIntrons, itemStyleIntrons).path;
+      })
+      .attr("transform", (d, i) => {
+        const { xPos, yPos, height } = getAttributesForIndex(d, i, styleIntrons, itemStyleIntrons);
+        const yOffset = d.direction === 'forward' ? -height : +height;
+        const rotation = this.reverse
+          ? (d.direction === 'forward' ? 180 : 0)
+          : (d.direction === 'forward' ? 0 : 180);
+        return `rotate(${rotation}, ${xPos}, ${yPos + yOffset}) translate(${xPos}, ${yPos + yOffset})`;
+      })
+      .attr("fill", styleIntrons.fill)
+      .attr("class", "intron")
+      .attr("id", (d, i) => `${sanitizeId(d.cluster)}-intron-${i}`)
+      .attr("rowID", (d, i) => `${d["rowID"]}`)
+      .attr("start", (d, i) => `${d["start"]}`)
+      .attr("end", (d, i) => `${d["end"]}`)
+      .attr("strand", (d, i) => `${d["strand"]}`)
+      .attr("cluster", (d, i) => `${d["cluster"]}`)
+      .style("stroke-width", styleIntrons.strokeWidth)
+      .style("stroke", (d) => colorScale(d[group]))
+      .style("cursor", styleIntrons.cursor)
+      .each(function (d, i) {
+        const currentElement = d3.select(this);
+        // Set additional options as attributes
+        setStyleFromOptions(currentElement, additionalOptionsIntrons);
+        // Override with itemStyle based on the index
+        applyStyleToElement(currentElement, itemStyleIntrons, i);
+      });
+
+    // Update the reference
+    this.introns = g.selectAll(".intron");
+  }
+
+  if (styleUTRs.show) {
+    // Add UTRs
+    const utrs = this.data.filter(transcript => /utr/i.test(transcript.type));
+
+    g.selectAll(".utr")
+      .data(utrs)
+      .enter()
+      .append("path")
+      .attr("d", (d, i) => {
+        return getAttributesForIndex(d, i, styleUTRs, itemStyleUTRs).path;
+      })
+      .attr("transform", (d, i) => {
+        const { xPos, yPos, height } = getAttributesForIndex(d, i, styleUTRs, itemStyleUTRs);
+        const rotation = this.reverse
+          ? (d.direction === 'forward' ? 180 : 0)
+          : (d.direction === 'forward' ? 0 : 180);
+        return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (height / 2)})`;
+      })
+      .attr("fill", styleUTRs.fill)
+      .attr("class", "utr")
+      .attr("id", (d, i) => `${sanitizeId(d.cluster)}-utr-${i}`)
+      .attr("rowID", (d, i) => `${d["rowID"]}`)
+      .attr("start", (d, i) => `${d["start"]}`)
+      .attr("end", (d, i) => `${d["end"]}`)
+      .attr("strand", (d, i) => `${d["strand"]}`)
+      .attr("cluster", (d, i) => `${d["cluster"]}`)
+      .style("stroke-width", styleUTRs.strokeWidth)
+      .style("stroke", (d) => colorScale(d[group]))
+      .style("cursor", styleUTRs.cursor)
+      .each(function (d, i) {
+        const currentElement = d3.select(this);
+        // Set additional options as attributes
+        setStyleFromOptions(currentElement, additionalOptionsUTRs);
+        // Override with itemStyle based on the index
+        applyStyleToElement(currentElement, itemStyleUTRs, i);
+      });
+
+    // Update the reference
+    this.utrs = g.selectAll(".utr");
+
+    if (labelOptions.show) {
+
+    const xPosition3Prime = this.data[0].direction === 'forward'
+      ? this.xScale(this.maxEnd) + labelOptions.xOffset
+      : this.xScale(this.minStart) - labelOptions.xOffset;
+
+    const xPosition5Prime = this.data[0].direction === 'forward'
+      ? this.xScale(this.minStart) - labelOptions.xOffset
+      : this.xScale(this.maxEnd) + labelOptions.xOffset;
+
+    // add 3' label
+    g.append("text")
+        .attr("x", xPosition3Prime)
+        .attr("y", (d) => this.yScale(y + labelOptions.yOffset))
+        .attr("class", `5-label`)
+        .attr("text-anchor", "middle")
+        .attr("alignment-baseline", "middle")
+        .style("font-size", labelOptions.fontSize)
+        .style("font-style", labelOptions.fontStyle)
+        .style("font-weight", labelOptions.fontWeight)
+        .style("font-family", labelOptions.fontFamily)
+        .style("cursor", labelOptions.cursor)
+        .style("fill", labelOptions.color)
+        .text("3'");
+
+    // add 5' label
+    g.append("text")
+        .attr("x", xPosition5Prime)
+        .attr("y", (d) => this.yScale(y + labelOptions.yOffset))
+        .attr("class", `5-label`)
+        .attr("text-anchor", "middle")
+        .attr("alignment-baseline", "middle")
+        .style("font-size", labelOptions.fontSize)
+        .style("font-style", labelOptions.fontStyle)
+        .style("font-weight", labelOptions.fontWeight)
+        .style("font-family", labelOptions.fontFamily)
+        .style("cursor", labelOptions.cursor)
+        .style("fill", labelOptions.color)
+        .text("5'");
+
+    }
+
+
+  }
 
   return this;
 };

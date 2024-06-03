@@ -37,6 +37,6 @@
     opacity: 0.5;
 }
 
-.gene.hovered {
- filter: brightness(80%);
+.gene.hovered, .exon.hovered, .utr.hovered, .intron.hovered {
+  filter: brightness(80%);
 }

@@ -16,9 +16,6 @@
     <loc>https://nvelden.github.io/geneviewer/articles/Examples.html</loc>
   </url>
   <url>
-    <loc>https://nvelden.github.io/geneviewer/articles/GenBank.html</loc>
-  </url>
-  <url>
     <loc>https://nvelden.github.io/geneviewer/articles/LoadFastaFiles.html</loc>
   </url>
   <url>
@@ -46,13 +43,13 @@
     <loc>https://nvelden.github.io/geneviewer/news/index.html</loc>
   </url>
   <url>
+    <loc>https://nvelden.github.io/geneviewer/reference/BRCA1_splice_variants.html</loc>
+  </url>
+  <url>
     <loc>https://nvelden.github.io/geneviewer/reference/GC_align.html</loc>
   </url>
   <url>
     <loc>https://nvelden.github.io/geneviewer/reference/GC_annotation.html</loc>
-  </url>
-  <url>
-    <loc>https://nvelden.github.io/geneviewer/reference/GC_blast.html</loc>
   </url>
   <url>
     <loc>https://nvelden.github.io/geneviewer/reference/GC_chart.html</loc>
@@ -109,6 +106,9 @@
     <loc>https://nvelden.github.io/geneviewer/reference/GC_trackMouse.html</loc>
   </url>
   <url>
+    <loc>https://nvelden.github.io/geneviewer/reference/GC_transcript.html</loc>
+  </url>
+  <url>
     <loc>https://nvelden.github.io/geneviewer/reference/erythromycin_BlastP.html</loc>
   </url>
   <url>
@@ -122,9 +122,6 @@
   </url>
   <url>
     <loc>https://nvelden.github.io/geneviewer/reference/geneviewer-shiny.html</loc>
-  </url>
-  <url>
-    <loc>https://nvelden.github.io/geneviewer/reference/get_links.html</loc>
   </url>
   <url>
     <loc>https://nvelden.github.io/geneviewer/reference/hs_dystrophin_transcripts.html</loc>

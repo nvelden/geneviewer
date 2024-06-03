@@ -359,27 +359,30 @@ BlastP_results <-
 
 The `GC_chart()` function can be set to visualize transcripts. It requires setting the transcript column with unique IDs for each transcript and a type column identifying whether the feature is a "UTR", "intron", or "exon".
 
-```{r echo=TRUE, eval=FALSE, warning=FALSE}
-transcript_data <- data.frame(
-  transcript = c("transcript1", "transcript1", "transcript1", "transcript1",
+```{r echo=TRUE, results='asis'}
+transcript_data <- 
+  data.frame(
+    transcript = c("transcript1", "transcript1", "transcript1", "transcript1",
                  "transcript1", "transcript1", "transcript1",
                  "transcript2", "transcript2", "transcript2", "transcript2",
                  "transcript2"),
-   type = c("5_utr", "intron", "exon", "intron", "exon", "intron", "3_utr",
+    type = c("5_utr", "intron", "exon", "intron", "exon", "intron", "3_utr",
             "5_utr", "intron", "exon", "intron", "3_utr"),
-  start = c(1, 51, 101, 151, 201, 251, 301,
+    start = c(1, 51, 101, 151, 201, 251, 301,
             1, 51, 101, 151, 301),
-  end = c(50, 100, 150, 200, 250, 300, 350,
+    end = c(50, 100, 150, 200, 250, 300, 350,
           50, 100, 150, 300, 350),
-  strand = rep("forward", 12)
+    strand = rep("forward", 12)
 )
+
 GC_chart(
   data = transcript_data,
   start = "start",
   end = "end",
   strand = "strand",
   transcript = "transcript",
-  type = "type"
+  type = "type",
+  height = "200px"
 )
 ```
 
@@ -387,7 +390,7 @@ Each transcript can be customized using the `GC_transcript()` function`. For all
 
 ### Set custom colors for transcripts
 
-```{r echo=TRUE, eval=FALSE, warning=FALSE}
+```{r echo=TRUE, results='asis'}
 GC_chart(
   data = transcript_data,
   start = "start",
@@ -411,7 +414,7 @@ GC_chart(
 
 The introns, exons, UTRs, and labels can be styled using the `styleIntrons`, `styleExons`, `styleUTRs`, and `labelOptions` variables respectively.
 
-```{r echo=TRUE, eval=FALSE, warning=FALSE}
+```{r echo=TRUE, results='asis'}
 GC_chart(
   data = transcript_data,
   start = "start",
@@ -454,7 +457,7 @@ GC_chart(
 
 The `itemStyle` in combination with the transcript variable allows for the customization of individual exons, introns, or UTRs within specific transcripts.
 
-```{r echo=TRUE, eval=FALSE, warning=FALSE}
+```{r echo=TRUE, results='asis'}
 GC_chart(
   data = transcript_data,
   start = "start",

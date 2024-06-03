@@ -1641,7 +1641,12 @@ GC_genes <- function(
 #' )
 #'
 # All default transcript settings
-#' GC_chart(transcript_data, transcript = "transcript", type = "type", height = "200px") %>%
+#' GC_chart(
+#'   transcript_data,
+#'   transcript = "transcript",
+#'   type = "type",
+#'   height = "200px"
+#' ) %>%
 #'   GC_transcript(
 #'     group = NULL,
 #'     show = TRUE,
@@ -1706,9 +1711,13 @@ GC_genes <- function(
 #'     itemStyleUTRs = list()
 #'   )
 #' # Change the appearance of a specific intron
-#' GC_chart(transcript_data, transcript = "transcript", type = "type", height = "200px") %>%
+#' GC_chart(transcript_data,
+#'          transcript = "transcript",
+#'          type = "type",
+#'          height = "200px"
+#'          ) %>%
 #'   GC_transcript(
-#'     cluster = 2,
+#'     transcript = 2,
 #'     itemStyleExons = list(list(index = 0, fill = "red")
 #'     )
 #'   )

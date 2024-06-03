@@ -239,68 +239,48 @@ GC_chart(
   GC_cluster(prevent_gene_overlap = TRUE, overlap_spacing=20)
 ```
 
-### *H. sapiens* Dystrophin transcript variants
+### BRCA1 splice variants
 
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
-GC_chart(hs_dystrophin_transcripts,
-         start = "start",
-         end = "end",
-         group = "type",
-         cluster = "transcript") %>%
-  GC_title("Dystrophin transcript variants") %>%
-  GC_genes(
-    stroke = "#1f77b4",
+GC_chart(BRCA1_splice_variants, 
+         start = "start", 
+         end = "end", 
+         strand = "strand", 
+         transcript = "ensembl_transcript_id", 
+         type = "type",
+         height = "600px") %>% 
+  GC_clusterTitle(
+    title = unique(BRCA1_splice_variants$ensembl_transcript_id),
+    titleFont = list(
+      fontSize = "12px"
+    )
   ) %>%
-  GC_scale(
-    cluster = c(1, 2, 3, 4),
-    start = 1,
-    end = max(hs_dystrophin_transcripts$length),
-    hidden = TRUE
-  ) %>%
-  GC_scale(
-    cluster = 5,
-    y = 25,
-    ticksCount = 8,
-    start = 1,
-    end = max(hs_dystrophin_transcripts$length),
-  ) %>%
-  GC_clusterLabel(title = unique(hs_dystrophin_transcripts$transcript)) %>%
-  GC_legend(
-    position = "top"
+  GC_clusterFooter(
+    title = c("0.8%", "0.1%", "0.07%", "0.02%", "0.01%"),
+    align = "center"
   )
 ```
 </details>
 
-<br>
-
 ```{r echo = FALSE, results='asis'}
-GC_chart(hs_dystrophin_transcripts,
-         start = "start",
-         end = "end",
-         group = "type",
-         cluster = "transcript") %>%
-  GC_title("Dystrophin transcript variants") %>%
-  GC_genes(
-    stroke = "#1f77b4",
+GC_chart(BRCA1_splice_variants, 
+         start = "start", 
+         end = "end", 
+         strand = "strand", 
+         transcript = "ensembl_transcript_id", 
+         type = "type",
+         height = "600px") %>% 
+  GC_clusterTitle(
+    title = unique(BRCA1_splice_variants$ensembl_transcript_id),
+    titleFont = list(
+      fontSize = "12px"
+    )
   ) %>%
-  GC_scale(
-    cluster = c(1, 2, 3, 4),
-    start = 1,
-    end = max(hs_dystrophin_transcripts$length),
-    hidden = TRUE
-  ) %>%
-  GC_scale(
-    cluster = 5,
-    y = 25,
-    ticksCount = 8,
-    start = 1,
-    end = max(hs_dystrophin_transcripts$length),
-  ) %>%
-  GC_clusterLabel(title = unique(hs_dystrophin_transcripts$transcript)) %>%
-  GC_legend(
-    position = "top"
+  GC_clusterFooter(
+    title = c("0.8%", "0.1%", "0.07%", "0.02%", "0.01%"),
+    align = "center"
   )
 ```
 
@@ -416,6 +396,7 @@ GC_chart(erythromycin_BlastP,
   GC_labels("Gene", cluster = 1) %>%
   GC_links(group = "Gene", 
            show_links = FALSE,
+           color_bar = FALSE,
            labelStyle = list(fontSize = "10px")
            ) %>%
   GC_clusterLabel()
@@ -435,6 +416,7 @@ GC_chart(erythromycin_BlastP,
   GC_labels("Gene", cluster = 1) %>%
   GC_links(group = "Gene", 
            show_links = FALSE,
+           color_bar = FALSE,
            labelStyle = list(fontSize = "10px")
            ) %>%
   GC_clusterLabel()
@@ -453,8 +435,8 @@ GC_chart(erythromycin_BlastP %>% dplyr::filter(cluster %in% c("BGC0000055", "BGC
   GC_labels("Gene", cluster = 1) %>%
   GC_genes(marker_size = "small", marker = "rbox", markerHeight = 15) %>%
   GC_links(group = "BlastP", 
-           show_links = TRUE,
-           identity_label = FALSE
+           label = FALSE,
+           color_bar = FALSE
            ) %>%
   GC_clusterLabel() %>%
   GC_legend(FALSE)
@@ -462,6 +444,7 @@ GC_chart(erythromycin_BlastP %>% dplyr::filter(cluster %in% c("BGC0000055", "BGC
 </details>
 
 ```{r echo = FALSE, results='asis'}
+library(dplyr)
 ### Erythromycin BlastP
 GC_chart(erythromycin_BlastP %>% dplyr::filter(cluster %in% c("BGC0000055", "BGC0000054")), 
          cluster = "cluster",
@@ -471,9 +454,10 @@ GC_chart(erythromycin_BlastP %>% dplyr::filter(cluster %in% c("BGC0000055", "BGC
   GC_labels("Gene", cluster = 1) %>%
   GC_genes(marker_size = "small", marker = "rbox", markerHeight = 15) %>%
   GC_links(group = "BlastP", 
-           show_links = TRUE,
-           identity_label = FALSE
+           label = FALSE,
+           color_bar = FALSE
            ) %>%
   GC_clusterLabel() %>%
   GC_legend(FALSE)
 ```
+

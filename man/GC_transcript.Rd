@@ -6,11 +6,14 @@
 \usage{
 GC_transcript(
   GC_chart,
+  transcript = NULL,
+  type = NULL,
+  strand = NULL,
   group = NULL,
+  selection = NULL,
   show = TRUE,
   colorScheme = NULL,
   customColors = NULL,
-  transcript = NULL,
   styleExons = list(),
   styleIntrons = list(),
   styleUTRs = list(),
@@ -24,17 +27,29 @@ GC_transcript(
 \arguments{
 \item{GC_chart}{The chart object to be modified.}
 
-\item{group}{Column name used for transcript grouping to influence color
-aesthetics.}
+\item{transcript}{Optional column name used for clustering transcript data.
+Default is NULL.}
+
+\item{type}{Column name identifying the feature type ("UTR",
+"exon"). Default is NULL.}
+
+\item{strand}{Optional column name indicating strand orientation. Acceptable
+values include 1, 'forward', 'sense', or '+' to represent the forward
+strand, and -1, 0, 'reverse', 'antisense', "complement" or '-' to represent
+the reverse strand. Default is NULL, meaning strand information is not
+used.}
+
+\item{group}{Optional column name used for transcript grouping to influence
+color aesthetics.}
+
+\item{selection}{Numeric or character, the specific transcript to filter
+transcripts by.}
 
 \item{show}{Logical, whether to show the transcripts or not.}
 
 \item{colorScheme}{Character or NULL, the name of the color scheme to use.}
 
 \item{customColors}{List or NULL, custom colors to apply to the genes.}
-
-\item{transcript}{Numeric or character, the specific transcript Id to filter
-transcripts by.}
 
 \item{styleExons}{List, styles to apply to exons in the chart.}
 
@@ -43,7 +58,7 @@ transcripts by.}
 \item{styleUTRs}{List, styles to apply to UTRs in the chart.}
 
 \item{itemStyleExons}{List, a list of styles to apply to individual exons in
-thechart.}
+the chart.}
 
 \item{itemStyleIntrons}{List, a list of styles to apply to individual introns
 in the chart.}
@@ -68,28 +83,30 @@ options.
 \examples{
 transcript_data <- data.frame(
   transcript = c("transcript1", "transcript1", "transcript1", "transcript1",
-                 "transcript1", "transcript1", "transcript1",
-                 "transcript2", "transcript2", "transcript2", "transcript2",
-                 "transcript2"),
-  type = c("5_utr", "intron", "exon", "intron", "exon", "intron", "3_utr",
-           "5_utr", "intron", "exon", "intron", "3_utr"),
-  start = c(1, 51, 101, 151, 201, 251, 301,
-            1, 51, 101, 151, 301),
-  end = c(50, 100, 150, 200, 250, 300, 350,
-          50, 100, 150, 300, 350),
-  strand = rep("forward", 12)
+                 "transcript2", "transcript2", "transcript2"),
+  type = c("5_utr", "exon", "exon", "3_utr",
+           "5_utr", "exon", "3_utr"),
+  start = c(1, 101, 201, 301,
+            1, 101, 301),
+  end = c(50, 150, 250, 350,
+          50, 150, 350),
+  strand = rep("forward", 7)
 )
 
+# All default transcript settings
 GC_chart(
   transcript_data,
-  transcript = "transcript",
-  type = "type",
+  start = "start",
+  end = "end",
   height = "200px"
 ) \%>\%
   GC_transcript(
+    transcript = "transcript",
+    strand = "strand",
+    type = "type",
     group = NULL,
     show = TRUE,
-    transcript = NULL,
+    selection = NULL,
     colorScheme = NULL,
     customColors = NULL,
     styleExons = list(
@@ -151,12 +168,14 @@ GC_chart(
   )
 # Change the appearance of a specific intron
 GC_chart(transcript_data,
-         transcript = "transcript",
-         type = "type",
+         start = "start",
+         end = "end",
          height = "200px"
-         ) \%>\%
+) \%>\%
   GC_transcript(
-    transcript = 2,
+    transcript = "transcript",
+    type = "type",
+    selection = 2,
     itemStyleExons = list(list(index = 0, fill = "red")
     )
   )

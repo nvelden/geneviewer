@@ -13,10 +13,6 @@ magrittr::`%>%`
 #' @param end Column name that indicates end positions. Default is "end".
 #' @param cluster Optional column name used for clustering purposes. Default is
 #'   NULL.
-#' @param transcript Optional column name used for clustering transcript data.
-#' Default is NULL.
-#' @param type Optional column name identifying the feature type (e.g., "UTR",
-#'   "intron", or "exon"). Required if `transcript` is defined. Default is NULL.
 #' @param group Column name used for gene grouping to influence color
 #'   aesthetics.
 #' @param strand Optional column name indicating strand orientation. Acceptable
@@ -54,7 +50,14 @@ magrittr::`%>%`
 #'
 #' @import htmlwidgets
 #' @export
-GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, transcript = NULL, type = NULL, width = "100%", height = "400px", style = list(), elementId = NULL) {
+GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, width = "100%", height = "400px", style = list(), elementId = NULL) {
+
+  x <- list()
+  # Capture all arguments with their current values
+  x$params <- as.list(environment())
+  x$params$data <- NULL
+  x$params <- Filter(function(y) !is.null(y) && !(is.list(y) && length(y) == 0), x$params)
+
 
   # Load from .gbk files
   if (is.character(data)) {
@@ -71,27 +74,8 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   # Check if column names are in the data frame
   colnames_data <- colnames(data)
 
-  if (!is.null(cluster) && !is.null(transcript)) {
-    stop("Only one of 'cluster' or 'transcript' can be defined. Please specify only one.")
-  }
-
   if (!(start %in% colnames_data)) stop("start column not found in data")
   if (!(end %in% colnames_data)) stop("end column not found in data")
-
-  if (!is.null(transcript) && !(transcript %in% colnames_data)) {
-    stop("transcript column not found in data")
-  }
-  if (!is.null(transcript) && is.null(type)) {
-    stop("type column (e.g., exon, intron, UTR) is required for 'transcript' data.")
-  }
-
-  if (!is.null(type) && !(type %in% colnames_data)) {
-    stop("type column not found in data")
-  }
-
-  if(is.null(cluster) && !is.null(transcript)){
-    cluster <- transcript
-  }
 
   if (!is.null(cluster) && !(cluster %in% colnames_data)) {
     stop("cluster column not found in data")
@@ -102,8 +86,6 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   if (!is.null(strand) && !(strand %in% colnames_data)) {
     stop("strand column not found in data")
   }
-
-  x <- list()
 
   show_legend <- if (!is.null(group)) TRUE else FALSE
 
@@ -124,15 +106,11 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   data$start <- data_tmp[[start]]
   data$end <- data_tmp[[end]]
 
-  # Add type column if transcript data
-  if(!is.null(transcript)){
-    data$type <- data_tmp[[type]]
-  }
-
   # Convert cluster to character
   if(!is.null(cluster)){
   data[[cluster]] <- as.character(data[[cluster]])
   }
+
   # Add strand if specified
   data <- add_strand(data, strand)
 
@@ -186,13 +164,6 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$clusterTitle <- list()
     x$series[[clust]]$annotations <- list()
     x$series[[clust]]$trackMouse <- list(show = FALSE)
-
-    # Transcript specific settings
-    if(!is.null(transcript)){
-      x$series[[clust]]$genes <- list(group = group, show = FALSE)
-      x$series[[clust]]$sequence <- list(show = FALSE)
-      x$series[[clust]]$transcript <- list(group = group, show = TRUE)
-    }
 
     # Blast specific settings
     if(all(c("BlastP", "protein_id") %in% colnames_data)){
@@ -1603,24 +1574,34 @@ GC_genes <- function(
 #'options.
 #'
 #'@param GC_chart The chart object to be modified.
-#'@param group Column name used for transcript grouping to influence color
-#'  aesthetics.
+#'@param transcript Optional column name used for clustering transcript data.
+#' Default is NULL.
+#'@param type Column name identifying the feature type ("UTR",
+#' "exon"). Default is NULL.
+#' @param strand Optional column name indicating strand orientation. Acceptable
+#'   values include 1, 'forward', 'sense', or '+' to represent the forward
+#'   strand, and -1, 0, 'reverse', 'antisense', "complement" or '-' to represent
+#'   the reverse strand. Default is NULL, meaning strand information is not
+#'   used.
+#'@param group Optional column name used for transcript grouping to influence
+#'color aesthetics.
+#'@param selection Numeric or character, the specific transcript to filter
+#'  transcripts by.
 #'@param show Logical, whether to show the transcripts or not.
 #'@param colorScheme Character or NULL, the name of the color scheme to use.
 #'@param customColors List or NULL, custom colors to apply to the genes.
-#'@param transcript Numeric or character, the specific transcript Id to filter
-#'transcripts by.
+
 #'@param styleExons List, styles to apply to exons in the chart.
 #'@param styleIntrons List, styles to apply to introns in the chart.
 #'@param styleUTRs List, styles to apply to UTRs in the chart.
 #'@param itemStyleExons List, a list of styles to apply to individual exons in
-#'  thechart.
+#'  the chart.
 #'@param itemStyleIntrons List, a list of styles to apply to individual introns
 #'  in the chart.
 #'@param itemStyleUTRs List, a list of styles to apply to individual UTRs in the
 #'  chart.
 #' @param labelOptions List, options for styling labels such as font size, color,
-#'   and position.
+#'  and position.
 #'@param ... Additional arguments to be passed to the gene options.
 #'
 #'@return Returns the modified gene chart object.
@@ -1628,29 +1609,30 @@ GC_genes <- function(
 #' @examples
 #' transcript_data <- data.frame(
 #'   transcript = c("transcript1", "transcript1", "transcript1", "transcript1",
-#'                  "transcript1", "transcript1", "transcript1",
-#'                  "transcript2", "transcript2", "transcript2", "transcript2",
-#'                  "transcript2"),
-#'   type = c("5_utr", "intron", "exon", "intron", "exon", "intron", "3_utr",
-#'            "5_utr", "intron", "exon", "intron", "3_utr"),
-#'   start = c(1, 51, 101, 151, 201, 251, 301,
-#'             1, 51, 101, 151, 301),
-#'   end = c(50, 100, 150, 200, 250, 300, 350,
-#'           50, 100, 150, 300, 350),
-#'   strand = rep("forward", 12)
+#'                  "transcript2", "transcript2", "transcript2"),
+#'   type = c("5_utr", "exon", "exon", "3_utr",
+#'            "5_utr", "exon", "3_utr"),
+#'   start = c(1, 101, 201, 301,
+#'             1, 101, 301),
+#'   end = c(50, 150, 250, 350,
+#'           50, 150, 350),
+#'   strand = rep("forward", 7)
 #' )
 #'
-# All default transcript settings
+#' # All default transcript settings
 #' GC_chart(
 #'   transcript_data,
-#'   transcript = "transcript",
-#'   type = "type",
+#'   start = "start",
+#'   end = "end",
 #'   height = "200px"
 #' ) %>%
 #'   GC_transcript(
+#'     transcript = "transcript",
+#'     strand = "strand",
+#'     type = "type",
 #'     group = NULL,
 #'     show = TRUE,
-#'     transcript = NULL,
+#'     selection = NULL,
 #'     colorScheme = NULL,
 #'     customColors = NULL,
 #'     styleExons = list(
@@ -1712,43 +1694,89 @@ GC_genes <- function(
 #'   )
 #' # Change the appearance of a specific intron
 #' GC_chart(transcript_data,
-#'          transcript = "transcript",
-#'          type = "type",
+#'          start = "start",
+#'          end = "end",
 #'          height = "200px"
-#'          ) %>%
+#' ) %>%
 #'   GC_transcript(
-#'     transcript = 2,
+#'     transcript = "transcript",
+#'     type = "type",
+#'     selection = 2,
 #'     itemStyleExons = list(list(index = 0, fill = "red")
 #'     )
 #'   )
 #' @export
-GC_transcript <- function(
-    GC_chart,
-    group = NULL,
-    show = TRUE,
-    colorScheme = NULL,
-    customColors = NULL,
-    transcript = NULL,
-    styleExons = list(),
-    styleIntrons = list(),
-    styleUTRs = list(),
-    itemStyleExons = list(),
-    itemStyleIntrons = list(),
-    itemStyleUTRs = list(),
-    labelOptions = list(),
-    ...
-) {
+GC_transcript <- function(GC_chart,
+                          transcript = NULL,
+                          type = NULL,
+                          strand = NULL,
+                          group = NULL,
+                          selection = NULL,
+                          show = TRUE,
+                          colorScheme = NULL,
+                          customColors = NULL,
+                          styleExons = list(),
+                          styleIntrons = list(),
+                          styleUTRs = list(),
+                          itemStyleExons = list(),
+                          itemStyleIntrons = list(),
+                          itemStyleUTRs = list(),
+                          labelOptions = list(),
+                          ...) {
+
+  transcript_called <- GC_chart$x$transcript_called
+
+  # Update GC_chart object with new data
+  if (is.null(transcript_called)) {
+
+    data <- GC_chart$x$data
+    data_tmp <- GC_chart$x$data
+    colnames_data <- colnames(data)
+
+    if (!is.null(type) && !(type %in% colnames_data)) {
+      stop("type column not found in data")
+    }
+
+    if (!is.null(type)) {
+      data$type <- data_tmp[[type]]
+    }
+
+    if (!is.null(transcript) && !(transcript %in% colnames_data)) {
+      stop("transcript column not found in data")
+    }
+
+    if (!is.null(transcript)) {
+      data$transcript <- as.character(data_tmp[[transcript]])
+    }
+    data <- get_introns(data)
+    transcripts <- unique(as.character(data$transcript))
+
+    # Update chart object
+    new_params <- GC_chart$x$params
+    new_params$data <- data
+
+    if (is.null(transcript)) {
+      new_params$cluster <- "transcript"
+    } else {
+      new_params$cluster <- transcript
+    }
+    new_params$strand <- strand
+
+    GC_chart <- do.call(geneviewer::GC_chart, new_params)
+
+    for (trans in transcripts) {
+        GC_chart$x$series[[trans]]$genes <- list(group = NULL, show = FALSE)
+        GC_chart$x$series[[trans]]$sequence <- list(show = FALSE)
+        GC_chart$x$series[[trans]]$transcript <- list(group = NULL, show = TRUE)
+    }
+  }
 
   if (is.logical(group) && length(group) == 1) {
     show <- group
     group <- NULL
   }
 
-  # if (is.null(group) && is.null(GC_chart$x$group) && is.null(marker)){
-  #   stop("Please define a group")
-  # }
-
-  if (is.null(group) && !is.null(GC_chart$x$group)){
+  if (is.null(group) && !is.null(GC_chart$x$group)) {
     group <- GC_chart$x$group
   }
 
@@ -1756,34 +1784,34 @@ GC_transcript <- function(
     stop("group column not found in data")
   }
 
-  clusters <- getUpdatedClusters(GC_chart, transcript)
+  clusters <- getUpdatedClusters(GC_chart, selection)
 
-  for(i in seq_along(clusters)){
-
+  for (i in seq_along(clusters)) {
     # Default options
-    options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
-      group = group[(i-1) %% length(group) + 1],
-      show = show[(i-1) %% length(show) + 1],
-      colorScheme = colorScheme,
-      customColors = customColors,
-      styleExons = styleExons,
-      styleIntrons = styleIntrons,
-      styleUTRs = styleUTRs,
-      itemStyleExons = itemStyleExons,
-      itemStyleIntrons = itemStyleIntrons,
-      itemStyleUTRs = itemStyleUTRs,
-      labelOptions = labelOptions,
-      ...
-    ))
+    options <- Filter(
+      function(x)
+        ! is.null(x) && length(x) > 0,
+      list(
+        group = group[(i - 1) %% length(group) + 1],
+        show = show[(i - 1) %% length(show) + 1],
+        colorScheme = colorScheme,
+        customColors = customColors,
+        styleExons = styleExons,
+        styleIntrons = styleIntrons,
+        styleUTRs = styleUTRs,
+        itemStyleExons = itemStyleExons,
+        itemStyleIntrons = itemStyleIntrons,
+        itemStyleUTRs = itemStyleUTRs,
+        labelOptions = labelOptions,
+        ...
+      )
+    )
 
     GC_chart$x$series[[clusters[i]]]$transcript <- options
 
   }
 
-  # Check if prevent_gene_overlap is called last
-  if (!is.null(GC_chart$x$prevent_gene_overlap_called) && GC_chart$x$prevent_gene_overlap_called) {
-    warning("Preventing gene overlap must be called after setting transcripts for proper effect.")
-  }
+  GC_chart$x$transcript_called <- TRUE
 
   return(GC_chart)
 }

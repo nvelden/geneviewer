@@ -357,49 +357,36 @@ BlastP_results <-
 
 ## Transcripts
 
-The `GC_chart()` function can be set to visualize transcripts. It requires setting the transcript column with unique IDs for each transcript and a type column identifying whether the feature is a "UTR", "intron", or "exon".
+The `GC_chart()` function can be set to visualize transcripts. It requires setting the transcript column with unique IDs for each transcript and a type column identifying whether the feature is a "UTR", or "exon". Please note that introns are calculated based on exon positions
 
 ```{r echo=TRUE, results='asis'}
-transcript_data <- 
-  data.frame(
-    transcript = c("transcript1", "transcript1", "transcript1", "transcript1",
-                 "transcript1", "transcript1", "transcript1",
-                 "transcript2", "transcript2", "transcript2", "transcript2",
-                 "transcript2"),
-    type = c("5_utr", "intron", "exon", "intron", "exon", "intron", "3_utr",
-            "5_utr", "intron", "exon", "intron", "3_utr"),
-    start = c(1, 51, 101, 151, 201, 251, 301,
-            1, 51, 101, 151, 301),
-    end = c(50, 100, 150, 200, 250, 300, 350,
-          50, 100, 150, 300, 350),
-    strand = rep("forward", 12)
+transcript_data <- data.frame(
+  transcript = c("transcript1", "transcript1", "transcript1", "transcript1",
+                 "transcript2", "transcript2", "transcript2"),
+  type = c("5_utr", "exon", "exon", "3_utr",
+           "5_utr", "exon", "3_utr"),
+  start = c(1, 101, 201, 301,
+            1, 101, 301),
+  end = c(50, 150, 250, 350,
+          50, 150, 350),
+  strand = rep("forward", 7)
 )
 
-GC_chart(
-  data = transcript_data,
+GC_chart(transcript_data, height = "200px") %>%
+GC_transcript(
   start = "start",
   end = "end",
   strand = "strand",
   transcript = "transcript",
-  type = "type",
-  height = "200px"
 )
 ```
 
-Each transcript can be customized using the `GC_transcript()` function`. For all options see the documentation by running `?GC_transcript()`. 
+There is a wide range of option to customize the exons, introns and UTRs. For all options see the documentation by running `?GC_transcript()`. 
 
 ### Set custom colors for transcripts
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(
-  data = transcript_data,
-  start = "start",
-  end = "end",
-  strand = "strand",
-  transcript = "transcript",
-  type = "type",
-  height = "200px"
-) %>% 
+GC_chart(transcript_data, height = "200px") %>%
   GC_transcript(
     group = "type",
     customColors = 
@@ -415,15 +402,7 @@ GC_chart(
 The introns, exons, UTRs, and labels can be styled using the `styleIntrons`, `styleExons`, `styleUTRs`, and `labelOptions` variables respectively.
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(
-  data = transcript_data,
-  start = "start",
-  end = "end",
-  strand = "strand",
-  transcript = "transcript",
-  type = "type",
-  height = "200px"
-) %>% 
+GC_chart(transcript_data, height = "200px") %>%
   GC_transcript(
     styleIntrons = 
       list(
@@ -455,34 +434,27 @@ GC_chart(
   )
 ```
 
-The `itemStyle` in combination with the transcript variable allows for the customization of individual exons, introns, or UTRs within specific transcripts.
+The `itemStyle` in combination with the `selection` variable allows for the customization of individual exons, introns, or UTRs within specific transcripts.
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(
-  data = transcript_data,
-  start = "start",
-  end = "end",
-  strand = "strand",
-  transcript = "transcript",
-  type = "type",
-  height = "200px"
-) %>% 
+GC_chart(transcript_data, height = "200px") %>%
   GC_transcript(
-    transcript = 1,
+    transcript = "transcript",
+    selection = 1,
     itemStyleExons = 
       list(
         list(index = 0, fill = "red")
       )
   ) %>%
   GC_transcript(
-    transcript = 2,
+    transcript = "transcript",
+    selection = 2,
     itemStyleIntrons = 
     list(
       list(index = 1, stroke = "red", strokeWidth = 2)
     )
   )
 ```
-
 
 ## Links
 

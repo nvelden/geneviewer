@@ -244,13 +244,12 @@ GC_chart(
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
-GC_chart(BRCA1_splice_variants, 
-         start = "start", 
-         end = "end", 
-         strand = "strand", 
-         transcript = "ensembl_transcript_id", 
-         type = "type",
-         height = "600px") %>% 
+GC_chart(BRCA1_splice_variants, height = "600px") %>%
+  GC_transcript(
+    transcript = "ensembl_transcript_id", 
+    strand = "strand", 
+    type = "type",
+  ) %>%
   GC_clusterTitle(
     title = unique(BRCA1_splice_variants$ensembl_transcript_id),
     titleFont = list(
@@ -265,13 +264,12 @@ GC_chart(BRCA1_splice_variants,
 </details>
 
 ```{r echo = FALSE, results='asis'}
-GC_chart(BRCA1_splice_variants, 
-         start = "start", 
-         end = "end", 
-         strand = "strand", 
-         transcript = "ensembl_transcript_id", 
-         type = "type",
-         height = "600px") %>% 
+GC_chart(BRCA1_splice_variants, height = "600px") %>%
+  GC_transcript(
+    transcript = "ensembl_transcript_id", 
+    strand = "strand", 
+    type = "type",
+  ) %>%
   GC_clusterTitle(
     title = unique(BRCA1_splice_variants$ensembl_transcript_id),
     titleFont = list(

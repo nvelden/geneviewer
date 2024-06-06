@@ -2280,17 +2280,12 @@ GC_cluster <- function(
     GC_chart$x$series[[i]]$data <- add_gene_track(subset_data)
   }
 
-  # Update Style
-  containerOptions <- Filter(function(x) !is.null(x) && length(x) > 0, list(
-      style = style
-    ))
-
   # Merge new options with existing options
   if (is.null(GC_chart$x$series[[clusters[i]]]$container$style)) {
-    GC_chart$x$series[[clusters[i]]]$container$style <- containerOptions
+    GC_chart$x$series[[clusters[i]]]$container$style <- style
   } else {
     GC_chart$x$series[[clusters[i]]]$container$style <-
-      modifyList(GC_chart$x$series[[clusters[i]]]$container$style, containerOptions)
+      modifyList(GC_chart$x$series[[clusters[i]]]$container$style, style)
   }
 
   # Update cluster options
@@ -2303,11 +2298,11 @@ GC_cluster <- function(
   ))
 
   # Merge new options with existing options
-  if (is.null(GC_chart$x$series[[clusters[i]]]$cluster)) {
-    GC_chart$x$series[[clusters[i]]]$cluster <- clusterOptions
+  if (is.null(GC_chart$x$series[[clusters[i]]]$container)) {
+    GC_chart$x$series[[clusters[i]]]$container <- clusterOptions
   } else {
-    GC_chart$x$series[[clusters[i]]]$cluster <-
-      modifyList(GC_chart$x$series[[clusters[i]]]$cluster, clusterOptions)
+    GC_chart$x$series[[clusters[i]]]$container <-
+      modifyList(GC_chart$x$series[[clusters[i]]]$container, clusterOptions)
   }
 
   }

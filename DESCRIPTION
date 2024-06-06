@@ -1,7 +1,7 @@
 Package: geneviewer
 Type: Package
 Title: Gene Cluster Visualizations in R
-Version: 0.1.7
+Version: 0.1.8
 Author: Niels van der Velden
 Maintainer: Niels van der Velden <n.s.j.vandervelden@gmail.com>
 Description: 'geneviewer' is an R package for plotting gene clusters and 

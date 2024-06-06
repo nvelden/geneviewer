@@ -1,3 +1,8 @@
+# geneviewer 0.1.8
+
+### Enhancements:
+- Option to display transcripts using the GC_transcripts function.
+
 # geneviewer 0.1.7
 
 ### Enhancements:

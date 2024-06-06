@@ -11,7 +11,7 @@
 
 ## geneviewer
 
-**geneviewer** is an R package for plotting gene clusters. It imports data from GenBank, FASTA, and GFF files, performs BlastP and MUMmer alignments, and displays results on gene arrow maps. The package offers extensive customization options, including legends, labels, annotations, scales, colors, tooltips, and more. To explore all features visit the [package website](https://nvelden.github.io/geneviewer/articles/geneviewer.html).
+**geneviewer** is an R package for plotting gene clusters and transcripts. It imports data from GenBank, FASTA, and GFF files, performs BlastP and MUMmer alignments, and displays results on gene arrow maps. The package offers extensive customization options, including legends, labels, annotations, scales, colors, tooltips, and more. To explore all features visit the [package website](https://nvelden.github.io/geneviewer/articles/geneviewer.html).
 
 ## Installation
 
@@ -51,6 +51,10 @@ GC_chart(gene_cluster, group = "class", height = "100px") %>%
 For additional examples and the corresponding code to create the plots, please visit the [Examples](https://nvelden.github.io/geneviewer/articles/Examples.html) section.
 
 <img src="man/figures/erythromycin_BlastP.png"/>
+
+<hr>
+
+<img src="man/figures/BRCA1_splice_variants.png"/>
 
 <hr>
 

@@ -188,7 +188,7 @@ GC_chart(
   ophA_clusters,
   group = "name",
   cluster = "cluster",
-  height = "300px" 
+  height = "350px" 
   ) %>% 
   GC_labels() %>%
   GC_cluster(separate_strands = TRUE, strand_spacing = 3) %>%
@@ -357,7 +357,7 @@ BlastP_results <-
 
 ## Transcripts
 
-The `GC_chart()` function can be set to visualize transcripts. It requires setting the transcript column with unique IDs for each transcript and a type column identifying whether the feature is a "UTR", or "exon". Please note that introns are calculated based on exon positions
+The `GC_transcript()` function can be used to visualize transcripts. It requires setting the transcript column with unique IDs for each transcript and a type column identifying whether the feature is a "UTR", or "exon". Optionally, you can also set the direction by specifying the strand column. Please note that introns are calculated based on exon positions.
 
 ```{r echo=TRUE, results='asis'}
 transcript_data <- data.frame(
@@ -372,26 +372,31 @@ transcript_data <- data.frame(
   strand = rep("forward", 7)
 )
 
-GC_chart(transcript_data, height = "200px") %>%
-GC_transcript(
+GC_chart(
+  transcript_data, 
   start = "start",
   end = "end",
-  strand = "strand",
-  transcript = "transcript",
+  height = "200px") %>%
+GC_transcript(
+  transcript = "transcript", 
+  strand = "strand", 
 )
 ```
 
-There is a wide range of option to customize the exons, introns and UTRs. For all options see the documentation by running `?GC_transcript()`. 
-
-### Set custom colors for transcripts
+There is a wide range of options to customize the exons, introns and UTRs. For all options see the documentation by running `?GC_transcript()`. Below is an example of setting custom colors by grouping by "type" and specifying the colors using `customColors`.
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(transcript_data, height = "200px") %>%
+GC_chart(
+  transcript_data, 
+  start = "start",
+  end = "end",
+  height = "200px"
+  ) %>%
   GC_transcript(
     group = "type",
     customColors = 
       list(
-        exon="green",
+        exon = "green",
         intron = "blue",
         `5_utr` = "black",
         `3_utr` = "grey"
@@ -437,7 +442,12 @@ GC_chart(transcript_data, height = "200px") %>%
 The `itemStyle` in combination with the `selection` variable allows for the customization of individual exons, introns, or UTRs within specific transcripts.
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(transcript_data, height = "200px") %>%
+GC_chart(
+  transcript_data, 
+  start = "start",
+  end = "end",
+  height = "200px"
+  ) %>%
   GC_transcript(
     transcript = "transcript",
     selection = 1,

@@ -15,7 +15,7 @@ of each transcript).}
 \value{
 A dataframe with the original exons and the calculated introns, sorted
   by transcript and start position. Each row includes the `start`, `end`,
-  `type` (exon or intron), `transcript`, and `strand` for each segment.
+  `type` (exon, UTR or intron), `transcript`, and `strand` for each segment.
 }
 \description{
 This function takes a dataset containing transcript information and calculates

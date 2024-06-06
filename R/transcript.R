@@ -13,7 +13,7 @@
 #'
 #' @return A dataframe with the original exons and the calculated introns, sorted
 #'   by transcript and start position. Each row includes the `start`, `end`,
-#'   `type` (exon or intron), `transcript`, and `strand` for each segment.
+#'   `type` (exon, UTR or intron), `transcript`, and `strand` for each segment.
 #'
 #' @importFrom dplyr mutate filter group_by arrange lead select bind_rows
 #' @importFrom rlang .data

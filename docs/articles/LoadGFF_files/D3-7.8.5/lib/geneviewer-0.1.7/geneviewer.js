@@ -2565,7 +2565,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
         const { xPos, yPos, height } = getAttributesForIndex(d, i, styleIntrons, itemStyleIntrons);
         const yOffset = d.direction === 'forward' ? -height : +height;
         const rotation = this.reverse
-          ? (d.direction === 'forward' ? 180 : 0)
+          ? (d.direction === 'reverse' ? 180 : 0)
           : (d.direction === 'forward' ? 0 : 180);
         return `rotate(${rotation}, ${xPos}, ${yPos + yOffset}) translate(${xPos}, ${yPos + yOffset})`;
       })

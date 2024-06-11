@@ -1,0 +1,19 @@
+dependencies:
+  - name: geneviewerwidget
+    version: 0.1.8
+    src: htmlwidgets
+    script: geneviewerwidget.js
+  - name: Themes
+    version: 0.1.8
+    src: htmlwidgets
+    script: ./lib/geneviewer-0.1.8/Themes.js
+  - name: geneviewer
+    version: 0.1.8
+    src: htmlwidgets
+    script: ./lib/geneviewer-0.1.8/geneviewer.js
+  - name: D3
+    version: 7.8.5
+    src: htmlwidgets
+    script: ./lib/D3-7.8.5/d3.min.js
+    stylesheet: ./lib/styles.css
+

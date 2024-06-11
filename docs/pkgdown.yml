@@ -9,7 +9,8 @@ articles:
   LoadGenBankFiles: LoadGenBankFiles.html
   LoadGFF: LoadGFF.html
   MUMMER: MUMMER.html
-last_built: 2024-06-06T17:12Z
+  Transcripts: Transcripts.html
+last_built: 2024-06-11T20:47Z
 urls:
   reference: https://nvelden.github.io/geneviewer/reference
   article: https://nvelden.github.io/geneviewer/articles

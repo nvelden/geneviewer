@@ -1,0 +1,145 @@
+---
+title: "Visualizing gene Transcripts"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Visualizing gene Transcripts}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+library(knitr)
+library(dplyr)
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+### Intro
+
+This tutorial shows how to use `biomaRt` to load transcript data from Ensembl and visualize it using `geneviewer`. As a practical example, we will retrieve the exon and UTR regions of five different splice variants of the BRCA1 gene and display the results with `geneviewer`.
+
+### Loading Transcript data
+
+Transcript data for the BRCA1 gene can be loaded using the `biomaRt` package, with the Ensembl gene ID obtained from the Ensembl website. In this example, we first load the necessary libraries. Next, we specify the Ensembl gene ID for BRCA1 and establish a connection to the Ensembl database using `useMart()`. Finally, we retrieve all transcript IDs associated with the BRCA1 gene using the `getBM()` function.
+
+```{r echo = TRUE, results='asis'}
+library(biomaRt)
+library(geneviewer)
+library(dplyr)
+
+
+ensembl_gene_id <- c("ENSG00000012048")
+mart = useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+
+# Retrieve all transcript IDs for the gene
+transcrips <- getBM(attributes = c("ensembl_gene_id", "ensembl_transcript_id"),
+                              filters = "ensembl_gene_id",
+                              values = ensembl_gene_id,
+                              mart = mart)
+
+```
+
+```{r echo = FALSE, results='asis'}
+kable(head(transcrips))
+```
+
+Now that we have all transcript IDs associated with the BRCA1 gene, we can retrieve the start and end positions of the exons, as well as the 5' and 3' UTRs. Additionally, we will add the strand information for each transcript. As an example, we only retrieve the information for the first 5 transcript IDs. We use the getBM function to retrieve the start and end positions for each feature separately. We rename the start and end columns, allowing us to combine all results into a single data frame using bind_rows from the `dplyr` package. Finally, we remove any rows with NA in the start column and add the strand information for each transcript.
+
+```{r echo = TRUE, results='asis'}
+
+transcript_IDs <- transcrips$ensembl_transcript_id[1:5]
+
+# Get exon details
+exon_attributes <- c("ensembl_transcript_id", "exon_chrom_start", "exon_chrom_end")
+exon_results <- getBM(attributes = exon_attributes,
+                      filters = "ensembl_transcript_id",
+                      values = transcript_IDs,
+                      mart = mart) %>%
+  dplyr::mutate(type = "exon", start = exon_chrom_start, end = exon_chrom_end) %>%
+  dplyr::select(ensembl_transcript_id, type, start, end)
+
+# Get 3' UTR details
+utr3_attributes <- c("ensembl_transcript_id", "3_utr_start", "3_utr_end")
+utr3_results <- getBM(attributes = utr3_attributes,
+                      filters = "ensembl_transcript_id",
+                      values = transcript_IDs,
+                      mart = mart) %>%
+  dplyr::mutate(type = "3_utr", start = `3_utr_start`, end = `3_utr_end`) %>%
+  dplyr::select(ensembl_transcript_id, type, start, end)
+
+# Get 5' UTR details
+utr5_attributes <- c("ensembl_transcript_id", "5_utr_start", "5_utr_end")
+utr5_results <- getBM(attributes = utr5_attributes,
+                      filters = "ensembl_transcript_id",
+                      values = transcript_IDs,
+                      mart = mart) %>%
+  dplyr::mutate(type = "5_utr", start = `5_utr_start`, end = `5_utr_end`) %>%
+  dplyr::select(ensembl_transcript_id, type, start, end)
+
+# Bind features
+transcript_attributes <- bind_rows(exon_results, utr3_results, utr5_results) %>%
+  filter(!is.na(start))
+
+# Add strand
+transcript_strand <- getBM(attributes = c("ensembl_transcript_id", "strand"),
+                           filters = "ensembl_transcript_id",
+                           values = transcript_IDs,
+                           mart = mart) 
+
+# Add transcript strand
+transcript_attributes <- 
+  dplyr::left_join(
+    transcript_attributes, 
+    transcript_strand, 
+    by = "ensembl_transcript_id"
+    )
+
+```
+
+```{r echo = FALSE, results='asis'}
+kable(head(transcript_attributes))
+```
+
+Now that we have the start, end and strand information of the transcripts we can visualize the results using `geneviewer` and the `GC_transcript` function. Note that the intron positions are calculated based on the exon positions. To ensure the exons are recognized, the type column with the feature name must be specified and include "exon" in its name.
+
+```{r echo = TRUE, results='asis'}
+GC_chart(
+  data = transcript_attributes, 
+  start = "start",
+  end = "end",
+  strand = "strand",
+  height = "600px"
+) %>%
+  GC_transcript(
+    transcript = "ensembl_transcript_id",
+    type = "type"
+  )
+```
+
+We can further customize the chart by adding a title with the transcript name and a footer with the relative abundance of each transcript. To change the color, alter the appearance of specific features, and explore many more options, see the [Get Started](https://nvelden.github.io/geneviewer/articles/geneviewer.html#transcripts) guide or the GC_transcripts documentation by running ?GC_transcripts in the console.
+
+```{r echo = TRUE, results='asis'}
+GC_chart(
+  data = transcript_attributes, 
+  height = "600px"
+  ) %>%
+  GC_transcript(
+    transcript = "ensembl_transcript_id", 
+    strand = "strand", 
+    type = "type",
+  ) %>%
+  GC_clusterTitle(
+    title = unique(transcript_attributes$ensembl_transcript_id),
+    titleFont = list(
+      fontSize = "12px"
+    )
+  ) %>%
+  GC_clusterFooter(
+    title = c("0.8%", "0.1%", "0.07%", "0.02%", "0.01%"),
+    align = "center"
+  )
+``` 
+

@@ -866,6 +866,60 @@ GC_chart(ophA_cluster, group = "class", cluster = "cluster", height = "150px") %
   GC_trackMouse()
 ```
 
+### Arc
+
+Below shows an example with all options to place arcs.
+
+```{r echo=TRUE, results='asis'}
+transcript_data <- data.frame(
+  transcript = c("transcript1", "transcript1", "transcript1", "transcript1",
+                 "transcript2", "transcript2", "transcript2"),
+  type = c("5_utr", "exon", "exon", "3_utr",
+           "5_utr", "exon", "3_utr"),
+  start = c(1, 101, 201, 301,
+            1, 101, 301),
+  end = c(50, 150, 250, 350,
+          50, 150, 350),
+  strand = rep("forward", 7)
+)
+
+GC_chart(
+  transcript_data, 
+  start = "start",
+  end = "end",
+  height = "400px") %>%
+GC_transcript(
+  transcript = "transcript", 
+  strand = "strand", 
+) %>%
+  GC_annotation(
+    cluster = 1,
+    type = "arc",
+    x1 = c(150, 150),                   
+    y1 = c(50),                  
+    x2 = c(301, 201),                 
+    y2 = c(50),                  
+    midY = c(80, 20),                
+    stroke = c("black"),         
+    strokeWidth = c(0.9, 0.1),         
+    labelX = c(0),               
+    labelY = c(0),               
+    text = c(0.9, 0.1),               
+    lineStyle = list(
+      # Any other CSS styles
+    ),
+    textStyle = list(
+      fontSize = "10px",         
+      fontFamily = "sans-serif", 
+      fill = "black",           
+      textAnchor = "middle"      
+      # Any other CSS styles
+    )
+  ) %>% 
+  GC_legend(FALSE) %>%
+  GC_trackMouse()
+```
+
 ### Square
 
 Below shows an example with all options to place a square. The `rotation` variable can also take a list of values.

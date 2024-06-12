@@ -3106,6 +3106,8 @@ container.prototype.createAnnotation = function (group, options) {
       break;
     case 'symbol':
       this.createSymbolAnnotation(group, options);
+    case 'arc':
+      this.createCurveAnnotation(group, options);
       break;
     default:
       console.warn('Unsupported annotation type:', options.type);
@@ -3664,4 +3666,89 @@ container.prototype.createTerminatorAnnotation = function(group, options) {
         setStyleFromOptions(currentElement, additionalOptionsStyle);
       });
   }
+};
+
+container.prototype.createCurveAnnotation = function (group, options) {
+    const defaultOptions = {
+        x1: [0],
+        y1: [50],
+        x2: [100],
+        y2: [50],
+        midY: [80],
+        stroke: ["black"],
+        strokeWidth: [1],
+        lineStyle: {},
+        text: [""],
+        labelX: [0],
+        labelY: [0],
+        textStyle: {
+            fontSize: "10px",
+            fontFamily: "sans-serif",
+            fill: "black",
+            textAnchor: "middle"
+        }
+    };
+
+    // Merge default options and user-specified options
+    const combinedOptions = mergeOptions.call(this, defaultOptions, "curveAnnotationOptions", options);
+
+    // Convert all coordinates and styles to arrays if not already
+    const keys = ['x1', 'y1', 'x2', 'y2', 'midY', 'stroke', 'strokeWidth', 'text', 'labelX', 'labelY'];
+    keys.forEach(key => {
+        if (!Array.isArray(combinedOptions[key])) {
+            combinedOptions[key] = [combinedOptions[key]];
+        }
+    });
+
+    let { x1, y1, x2, y2, midY, stroke, strokeWidth, lineStyle, text, labelX, labelY, textStyle } = combinedOptions;
+
+    var group = this.svg.append("g")
+        .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+
+    // Iterate over each set of points
+    for (let i = 0; i < Math.max(x1.length, y1.length, x2.length, y2.length, text.length, labelX.length, labelY.length); i++) {
+        const currentX1 = x1[i % x1.length];
+        const currentY1 = y1[i % y1.length];
+        const currentX2 = x2[i % x2.length];
+        const currentY2 = y2[i % y2.length];
+        const currentMidY = midY[i % midY.length];
+        const currentStroke = stroke[i % stroke.length];
+        const currentStrokeWidth = strokeWidth[i % strokeWidth.length];
+        const currentText = text[i % text.length];
+        const currentLabelX = labelX[i % labelX.length];
+        const currentLabelY = labelY[i % labelY.length];
+        const midX = (currentX1 + currentX2) / 2;
+
+        // Define the line generator with a curve
+        const lineGenerator = d3.line()
+            .curve(d3.curveBasis)
+            .x(d => this.xScale(d.x))
+            .y(d => this.yScale(d.y));
+
+        // Create the path using the start, middle (control point), and end coordinates
+        const points = [
+            { x: currentX1, y: currentY1 },
+            { x: midX, y: currentMidY },
+            { x: currentX2, y: currentY2 }
+        ];
+
+        // Create the path element with merged styles
+        const path = group.append("path")
+            .attr("d", lineGenerator(points))
+            .style("stroke", currentStroke)
+            .style("stroke-width", currentStrokeWidth)
+            .style("fill", "none");
+
+        // Apply additional line styles if any
+        setStyleFromOptions(path, extractAdditionalOptions(lineStyle, defaultOptions.lineStyle));
+
+        // Add text at the highest point of the curve with offsets
+        const textElement = group.append("text")
+            .attr("x", this.xScale(midX) + currentLabelX)
+            .attr("y", this.yScale(currentMidY) - currentLabelY)
+            .text(currentText);
+
+        // Apply text styles
+        setStyleFromOptions(textElement, textStyle);
+    }
 };

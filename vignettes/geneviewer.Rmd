@@ -424,6 +424,7 @@ GC_chart(transcript_data, height = "200px") %>%
         # Any other CSS style
       ),
     styleUTRs = list(
+      marker = "boxarrow",
       markerSize = "small",
       fill = "green"
       # Any other CSS style

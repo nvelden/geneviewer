@@ -383,7 +383,7 @@ GC_transcript(
 )
 ```
 
-There is a wide range of options to customize the exons, introns and UTRs. For all options see the documentation by running `?GC_transcript()`. Below is an example of setting custom colors by grouping by "type" and specifying the colors using `customColors`.
+There is a wide range of options to customize the exons, introns and UTRs. For all options see the documentation by running `?GC_transcript()`. Junctions can be added to the transcripts using the [Arc annotation](#arc). Below is an example of setting custom colors by grouping by "type" and specifying the colors using `customColors`.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(
@@ -872,39 +872,35 @@ Below shows an example with all options to place arcs.
 
 ```{r echo=TRUE, results='asis'}
 transcript_data <- data.frame(
-  transcript = c("transcript1", "transcript1", "transcript1", "transcript1",
-                 "transcript2", "transcript2", "transcript2"),
-  type = c("5_utr", "exon", "exon", "3_utr",
-           "5_utr", "exon", "3_utr"),
-  start = c(1, 101, 201, 301,
-            1, 101, 301),
-  end = c(50, 150, 250, 350,
-          50, 150, 350),
-  strand = rep("forward", 7)
+  transcript = c("transcript1", "transcript1", "transcript1", "transcript1"),
+  type = c("5_utr", "exon", "exon", "3_utr"),
+  start = c(1, 101, 201, 301),
+  end = c(50, 150, 250, 350),
+  strand = rep("forward", 4)
 )
 
 GC_chart(
   transcript_data, 
   start = "start",
   end = "end",
-  height = "400px") %>%
+  height = "200px") %>%
 GC_transcript(
   transcript = "transcript", 
   strand = "strand", 
 ) %>%
   GC_annotation(
-    cluster = 1,
+    cluster = NULL,
     type = "arc",
-    x1 = c(150, 150),                   
+    x1 = c(150, 50),                   
     y1 = c(50),                  
     x2 = c(301, 201),                 
     y2 = c(50),                  
     midY = c(80, 20),                
     stroke = c("black"),         
-    strokeWidth = c(0.9, 0.1),         
+    strokeWidth = c(0.8, 0.1),         
     labelX = c(0),               
     labelY = c(0),               
-    text = c(0.9, 0.1),               
+    text = c(0.8, 0.1),               
     lineStyle = list(
       # Any other CSS styles
     ),

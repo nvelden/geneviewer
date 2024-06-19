@@ -12,7 +12,7 @@ function createDivContainer(targetElement) {
   return new DivContainer(div);
 }
 
-//Utils
+// Utils
 
 function getUniqueId(baseId) {
   var i = 1;
@@ -583,6 +583,70 @@ function addScalePadding(startValue, endValue, padding, to) {
   }
 }
 
+function createSaveIcon(widgetId, el) {
+    // Create an icon in the top right corner of the container div
+    var icon = d3.select(el).append("i")
+        .attr("class", "fa-solid fa-download")
+        .attr("id", `saveIcon-${widgetId}`)
+        .style("position", "absolute")
+        .style("z-index", "1000")
+        .style("top", "10px")
+        .style("right", "10px")
+        .style("display", "none")
+        .style("color", "#D3D3D3")
+        .style("padding", "5px")
+        .style("cursor", "pointer");
+
+    // Create tooltip
+    var tooltip = d3.select(el).append("div")
+        .attr("id", `saveIconTooltip-${widgetId}`)
+        .attr("class", "save-tooltip")
+        .style("position", "absolute")
+        .style("top", "40px")
+        .style("right", "10px")
+        .style("display", "none")
+        .style("background-color", "#333")
+        .style("color", "#fff")
+        .style("padding", "5px")
+        .style("border-radius", "3px")
+        .style("font-size", "12px")
+        .style("font-family", "Arial, sans-serif")
+        .style("z-index", "1001")
+        .style("pointer-events", "none")
+        .text("Save as PNG");
+
+    // Ensure icon is displayed on hover and change color
+    d3.select(el).on("mouseenter", function() {
+        d3.select(`#saveIcon-${widgetId}`).style("display", "block");
+    }).on("mouseleave", function() {
+        d3.select(`#saveIcon-${widgetId}`).style("display", "none");
+    });
+
+    // Change icon color on hover and display tooltip
+    d3.select(`#saveIcon-${widgetId}`).on("mouseenter", function() {
+        d3.select(this).style("color", "#555555");
+        tooltip.style("display", "block");
+    }).on("mouseleave", function() {
+        d3.select(this).style("color", "#D3D3D3");
+        tooltip.style("display", "none");
+    });
+
+    // Add save icon functionality
+    document.getElementById(`saveIcon-${widgetId}`).addEventListener("click", function () {
+        // Hide the icon and tooltip temporarily
+        var iconElement = document.getElementById(`saveIcon-${widgetId}`);
+        var tooltipElement = document.getElementById(`saveIconTooltip-${widgetId}`);
+        iconElement.style.display = 'none';
+        tooltipElement.style.display = 'none';
+
+        html2canvas(el, { backgroundColor: null }).then(canvas => {
+            canvas.toBlob(function (blob) {
+                saveAs(blob, "graph.png");
+            });
+        });
+    });
+}
+
 // Make links function
 
 function getLinkCoordinates(graphContainer, data) {
@@ -662,8 +726,8 @@ function makeLinks(graphContainer, links, clusters) {
     };
 
   const graphRect = graphContainer.node().getBoundingClientRect();
-      // Create a container div for the SVG
-    const svgContainer = graphContainer.insert("div", ":first-child")
+  // Create a container div for the SVG
+  const svgContainer = graphContainer.insert("div", ":first-child")
         .style("position", "relative")
         .style("width", "100%")
         .style("height", "100%");
@@ -675,7 +739,7 @@ function makeLinks(graphContainer, links, clusters) {
       .attr("height", graphRect.height)
       .classed("GeneLink", true)
       .style("position", "absolute")
-      .style("z-index", 1)
+      .style("z-index", -1)
       .style("left", `${graphContainer.left}px`)
       .style("top", `${graphContainer.top}px`);
 

@@ -49,6 +49,7 @@ magrittr::`%>%`
 #' # GC_chart(file_path) %>%
 #'
 #' @import htmlwidgets
+#' @import fontawesome
 #' @export
 GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, width = "100%", height = "400px", style = list(), elementId = NULL) {
 
@@ -191,6 +192,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     width = width,
     height = height,
     package = "geneviewer",
+    dependencies = fontawesome::fa_html_dependency(),
     elementId = elementId
   )
 }

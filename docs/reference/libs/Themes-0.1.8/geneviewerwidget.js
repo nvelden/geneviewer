@@ -20,6 +20,7 @@ HTMLWidgets.widget({
       d3.select(el).selectAll('*').remove();
 
       el.style["height"] = "100%"
+      el.style["position"] = "relative"
 
       // Apply styles
       if (style && typeof style === 'object' && Object.keys(style).length > 0) {
@@ -83,6 +84,7 @@ HTMLWidgets.widget({
         .append("div")
         .attr("id", `geneviewer-graph-container-${widgetId}`)
         .style("flex-direction", graphContainer["direction"])
+        .style("position", "relative")
         .classed("geneviewer-container", true);
 
       // Add Clusters
@@ -125,6 +127,7 @@ HTMLWidgets.widget({
 
         var clusterLinks = getClusterLinks(graphLinks, clusterKey);
         var linksOptions = {};
+
         if (Array.isArray(links) && links.length > 0 && links[0].options) {
         linksOptions = links[0].options;
         }
@@ -168,6 +171,9 @@ HTMLWidgets.widget({
           .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, el.id, legendOptions);
 
       }
+
+      // Save icon
+      createSaveIcon(widgetId, el);
 
     };
 

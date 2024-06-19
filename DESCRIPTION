@@ -20,6 +20,7 @@ Depends:
     R (>= 3.5.0)
 Imports:
     htmlwidgets,
+    fontawesome,
     magrittr,
     dplyr,
     tidyr,

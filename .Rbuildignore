@@ -10,6 +10,7 @@
 ^_pkgdown\.yml$
 ^pkgdown$
 ^docs$
+^doc$
 ^LICENSE\.md$
 ^README\.Rmd$
 ^\.github$

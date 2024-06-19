@@ -16,4 +16,11 @@ dependencies:
     src: htmlwidgets
     script: ./lib/D3-7.8.5/d3.min.js
     stylesheet: ./lib/styles.css
-
+  - name: html2canvas
+    version: 1.4.1
+    src: htmlwidgets
+    script: ./lib/html2canvas-1.4.1/html2canvas.min.js
+  - name: FileSaver-2.0.4
+    version: 2.0.4
+    src: htmlwidgets
+    script: ./lib/FileSaver-2.0.4/FileSaver.min.js

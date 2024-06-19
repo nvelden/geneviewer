@@ -583,9 +583,10 @@ function addScalePadding(startValue, endValue, padding, to) {
   }
 }
 
-function createSaveIcon(widgetId, el) {
-    // Create an icon in the top right corner of the container div
-    var icon = d3.select(el).append("i")
+function createSaveIcon(widgetId, el, show = true) {
+
+  if (show) {
+      var icon = d3.select(el).append("i")
         .attr("class", "fa-solid fa-download")
         .attr("id", `saveIcon-${widgetId}`)
         .style("position", "absolute")
@@ -645,6 +646,7 @@ function createSaveIcon(widgetId, el) {
             });
         });
     });
+  }
 }
 
 // Make links function

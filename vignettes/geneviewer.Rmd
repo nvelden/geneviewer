@@ -1352,7 +1352,9 @@ GC_chart(ophA_cluster, group = "class", height = "150px") %>%
 
 ## Saving Plots
 
-The `geneviewer` package does not have build-in functionality for saving plots. However, plots can be saved to images and .pdf by using the `webshot2` package. To do this plots need to be saved to `.html` first after which `webshot2` can make a screenshot.
+You can save plots directly in the browser as PNG images using the save button that appears when hovering over the graph. This option can be disabled by setting the `save_button` parameter to `FALSE` in the `GC_chart` function.
+
+To save plots in different formats, you can use the `webshot2` package as illustrated below:
 
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
 library(webshot2)

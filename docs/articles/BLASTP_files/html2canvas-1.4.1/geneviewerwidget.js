@@ -173,7 +173,7 @@ HTMLWidgets.widget({
       }
 
       // Save icon
-      createSaveIcon(widgetId, el);
+      createSaveIcon(widgetId, el, show = saveButton);
 
     };
 
@@ -203,6 +203,7 @@ HTMLWidgets.widget({
         data = HTMLWidgets.dataframeToD3(input.data);
         links = input.links;
         series = input.series;
+        saveButton = input.saveButton;
         titleOptions = input.title;
         legendOptions = input.legend;
         draw(width, height);

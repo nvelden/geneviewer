@@ -29,6 +29,7 @@ magrittr::`%>%`
 #'   list(backgroundColor = "white", border = "2px solid black"). Default is an
 #'   empty list.
 #' @param elementId Optional identifier string for the widget. Default is NULL.
+#' @param save_button Logical, whether to include a save button. Default is TRUE.
 #'
 #' @return A GC chart widget.
 #'
@@ -51,7 +52,7 @@ magrittr::`%>%`
 #' @import htmlwidgets
 #' @import fontawesome
 #' @export
-GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, width = "100%", height = "400px", style = list(), elementId = NULL) {
+GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, width = "100%", height = "400px", style = list(), elementId = NULL, save_button = TRUE) {
 
   x <- list()
   # Capture all arguments with their current values
@@ -127,6 +128,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     width = width
   )
   x$legend$style <- list(width = "100%", backgroundColor = style$backgroundColor)
+  x$saveButton <- save_button
 
 
   if (is.null(cluster)) {
@@ -185,6 +187,13 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
       )
   }
 
+  # Determine dependencies
+  dependencies <- if (save_button) {
+    list(fontawesome::fa_html_dependency())
+  } else {
+    NULL
+  }
+
   # create the widget
   htmlwidgets::createWidget(
     name = "geneviewer",
@@ -192,7 +201,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     width = width,
     height = height,
     package = "geneviewer",
-    dependencies = fontawesome::fa_html_dependency(),
+    dependencies = dependencies,
     elementId = elementId
   )
 }

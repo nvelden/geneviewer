@@ -14,7 +14,8 @@ GC_chart(
   width = "100\%",
   height = "400px",
   style = list(),
-  elementId = NULL
+  elementId = NULL,
+  save_button = TRUE
 )
 }
 \arguments{
@@ -50,6 +51,8 @@ list(backgroundColor = "white", border = "2px solid black"). Default is an
 empty list.}
 
 \item{elementId}{Optional identifier string for the widget. Default is NULL.}
+
+\item{save_button}{Logical, whether to include a save button. Default is TRUE.}
 }
 \value{
 A GC chart widget.

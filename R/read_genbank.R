@@ -239,7 +239,7 @@ gbk_process_features <- function(lines, key){
   keys <- unlist(regmatches(lines, key_matches))
 
   # Extract values
-  value_pattern <- "(?<=\\=)[^/]+(?=\\/|$)"
+  value_pattern <- '(?<==")([^"]+)(?=")|(?<==)([^\\s"]+)'
   value_matches <- gregexpr(value_pattern, lines, perl=TRUE)
   values <- unlist(regmatches(lines, value_matches))
   values <- gsub("^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", "", values)
@@ -270,7 +270,6 @@ gbk_process_features <- function(lines, key){
 
 #' @noRd
 gbk_get_features <- function(lines, key) {
-
   # Find the starts of the sections
   section_starts <- which(grepl(paste0("^\\s*", key), lines))
 

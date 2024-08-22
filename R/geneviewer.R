@@ -158,7 +158,6 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$sequence <- list(show = TRUE)
     x$series[[clust]]$scale <- list(xMin = min(subset_data$start, subset_data$end), xMax = max(subset_data$start, subset_data$end))
     x$series[[clust]]$transcript <- list(group = group, show = FALSE)
-    x$series[[clust]]$scale <- list(xMin = min(subset_data$start, subset_data$end), xMax = max(subset_data$start, subset_data$end))
     x$series[[clust]]$labels <- list(group = group, show = TRUE)
     x$series[[clust]]$coordinates <- list(show = FALSE)
     x$series[[clust]]$scaleBar <- list()
@@ -2405,6 +2404,105 @@ GC_align <- function(
     # Set scale options for each cluster
     GC_chart$x$series[[cluster]]$scale$start <- cluster_data$start
     GC_chart$x$series[[cluster]]$scale$end <- cluster_data$end
+  }
+
+  return(GC_chart)
+}
+
+normalize_gc_positions <- function(data, gap = NULL, preserve_gene_length = TRUE) {
+
+  data$original_order <- seq_len(nrow(data))
+
+  data <- data %>%
+    dplyr::mutate(
+      is_reverse = end < start,
+      actual_start = pmin(start, end),
+      actual_end = pmax(start, end)
+    ) %>%
+    dplyr::arrange(actual_start)
+
+  total_length <- max(data$actual_end) - min(data$actual_start)
+  num_genes <- nrow(data)
+
+  if (is.null(gap)) {
+    data <- data %>%
+      dplyr::mutate(gene_gap = dplyr::lead(actual_start) - actual_end)
+    total_gap <- sum(data$gene_gap, na.rm = TRUE)
+  } else {
+    total_gap <- total_length * gap * (num_genes - 1)
+  }
+
+  adjusted_total_length <- total_length - total_gap
+
+  if (adjusted_total_length <= 0) {
+    warning("The specified gap is too large, resulting in zero or negative gene lengths. Please reduce the gap.")
+    return(data)
+  }
+
+  mean_gene_length <- adjusted_total_length / num_genes
+  data <- data %>%
+    dplyr::mutate(gene_length = if (preserve_gene_length) abs(actual_end - actual_start) else mean_gene_length)
+
+  data <- data %>%
+    dplyr::arrange(actual_start) %>%
+    dplyr::mutate(
+      new_start = if (preserve_gene_length) {
+        min(actual_start) + cumsum(c(0, head(gene_length + total_gap / nrow(data), -1)))
+      } else {
+        min(actual_start) + (dplyr::row_number() - 1) * (mean_gene_length + total_gap / nrow(data))
+      },
+      new_end = new_start + gene_length,
+      start = dplyr::if_else(is_reverse,
+                             round(new_end),
+                             round(new_start)),
+      end = dplyr::if_else(is_reverse,
+                           round(new_start),
+                           round(new_end))
+    )
+
+  data <- data %>%
+    dplyr::arrange(original_order) %>%
+    dplyr::select(-new_start, -new_end, -actual_start, -actual_end, -original_order, -is_reverse, -gene_length)
+
+  data$gene_gap <- NULL
+
+  return(data)
+}
+
+GC_normalize <-
+  function(
+    GC_chart,
+    cluster = NULL,
+    preserve_gene_length = TRUE,
+    gap = NULL
+    ) {
+
+  # Check if 'cluster' column exists if the cluster parameter is provided
+  if (is.null(GC_chart$x$cluster) && !is.null(cluster)) {
+    warning("Could not normalize selected genes. Please define cluster in the GC_chart function.")
+    return(GC_chart)
+  }
+
+  clusters <- getUpdatedClusters(GC_chart, cluster)
+
+  for (i in seq_along(clusters)) {
+
+    cluster_name <- clusters[i]
+    cluster_data <- GC_chart$x$series[[cluster_name]]$data
+
+    normalized_cluster_data <- normalize_gc_positions(
+      cluster_data,
+      preserve_gene_length = preserve_gene_length[(i - 1) %% length(preserve_gene_length) + 1],
+      gap = gap[(i - 1) %% length(gap) + 1])
+
+    GC_chart$x$series[[cluster_name]]$data <- normalized_cluster_data
+    GC_chart$x$series[[cluster_name]]$scale <-
+      list(xMin = min(normalized_cluster_data$start,
+                      normalized_cluster_data$end),
+           xMax = max(normalized_cluster_data$start,
+                      normalized_cluster_data$end)
+           )
+
   }
 
   return(GC_chart)

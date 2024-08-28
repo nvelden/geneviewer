@@ -2409,66 +2409,47 @@ GC_align <- function(
   return(GC_chart)
 }
 
-normalize_gc_positions <- function(data, gap = NULL, preserve_gene_length = TRUE) {
-
-  data$original_order <- seq_len(nrow(data))
-
-  data <- data %>%
-    dplyr::mutate(
-      is_reverse = end < start,
-      actual_start = pmin(start, end),
-      actual_end = pmax(start, end)
-    ) %>%
-    dplyr::arrange(actual_start)
-
-  total_length <- max(data$actual_end) - min(data$actual_start)
-  num_genes <- nrow(data)
-
-  if (is.null(gap)) {
-    data <- data %>%
-      dplyr::mutate(gene_gap = dplyr::lead(actual_start) - actual_end)
-    total_gap <- sum(data$gene_gap, na.rm = TRUE)
-  } else {
-    total_gap <- total_length * gap * (num_genes - 1)
-  }
-
-  adjusted_total_length <- total_length - total_gap
-
-  if (adjusted_total_length <= 0) {
-    warning("The specified gap is too large, resulting in zero or negative gene lengths. Please reduce the gap.")
-    return(data)
-  }
-
-  mean_gene_length <- adjusted_total_length / num_genes
-  data <- data %>%
-    dplyr::mutate(gene_length = if (preserve_gene_length) abs(actual_end - actual_start) else mean_gene_length)
-
-  data <- data %>%
-    dplyr::arrange(actual_start) %>%
-    dplyr::mutate(
-      new_start = if (preserve_gene_length) {
-        min(actual_start) + cumsum(c(0, head(gene_length + total_gap / nrow(data), -1)))
-      } else {
-        min(actual_start) + (dplyr::row_number() - 1) * (mean_gene_length + total_gap / nrow(data))
-      },
-      new_end = new_start + gene_length,
-      start = dplyr::if_else(is_reverse,
-                             round(new_end),
-                             round(new_start)),
-      end = dplyr::if_else(is_reverse,
-                           round(new_start),
-                           round(new_end))
-    )
-
-  data <- data %>%
-    dplyr::arrange(original_order) %>%
-    dplyr::select(-new_start, -new_end, -actual_start, -actual_end, -original_order, -is_reverse, -gene_length)
-
-  data$gene_gap <- NULL
-
-  return(data)
-}
-
+#' Normalize Gene Clusters in a Genomic Chart
+#'
+#' This function normalizes the genomic coordinates of a set of genes within a
+#' cluster, ensuring that the genes are evenly spaced along the entire range of
+#' the cluster. The function allows for the option to preserve the original gene
+#' lengths and to introduce customized gaps between the genes.
+#'
+#' @param GC_chart A chart object containing genomic data and clustering
+#'   information. The chart object must include a `series` component with data
+#'   for each cluster.
+#' @param cluster A vector of cluster names to be normalized. If `NULL`, all
+#'   clusters in the `GC_chart` will be normalized.
+#' @param preserve_gene_length A logical vector indicating whether to preserve
+#'   the original gene lengths for each cluster. If a single value is provided,
+#'   it is recycled for all clusters.
+#' @param gap A numeric vector specifying the proportion of the total length to
+#'   be used as the gap between genes in each cluster. The value must be between
+#'   0 and 1. If a single value is provided, it is recycled for all clusters. If
+#'   `NULL`, the gaps are calculated based on the actual spacing between the
+#'   genes in the original data.
+#'
+#' @return The modified `GC_chart` object with normalized gene coordinates for
+#'   the specified clusters.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 10, 90, 130),
+#'   end = c(40, 120, 160, 40, 120, 160),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3','Gene 1', 'Gene 2', 'Gene 3'),
+#'   group = c('A', 'B', 'C', 'A', 'B', 'C'),
+#'   cluster =  c(1, 1, 1, 2, 2, 2)
+#' )
+#'
+#' GC_chart(genes_data, group = "group", cluster = "cluster", height = "150px") %>%
+#'   GC_normalize(
+#'     cluster = 2,
+#'     preserve_gene_length = TRUE,
+#'     gap = NULL
+#'  )
+#'
+#' @export
 GC_normalize <-
   function(
     GC_chart,

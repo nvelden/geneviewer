@@ -2419,8 +2419,11 @@ GC_align <- function(
 #' @param GC_chart A chart object containing genomic data and clustering
 #'   information. The chart object must include a `series` component with data
 #'   for each cluster.
+#' @param group Column name containing gene names to apply custom gaps to.
 #' @param cluster A vector of cluster names to be normalized. If `NULL`, all
 #'   clusters in the `GC_chart` will be normalized.
+#' @param normalize A logical value indicating whether to normalize the gene
+#'   positions within each cluster. Default is `TRUE`.
 #' @param preserve_gene_length A logical vector indicating whether to preserve
 #'   the original gene lengths for each cluster. If a single value is provided,
 #'   it is recycled for all clusters.
@@ -2429,6 +2432,8 @@ GC_align <- function(
 #'   0 and 1. If a single value is provided, it is recycled for all clusters. If
 #'   `NULL`, the gaps are calculated based on the actual spacing between the
 #'   genes in the original data.
+#' @param custom_gaps A named list where each name corresponds to a gene name and
+#'   each value is a numeric factor by which to adjust the gap after that gene.
 #'
 #' @return The modified `GC_chart` object with normalized gene coordinates for
 #'   the specified clusters.
@@ -2453,15 +2458,26 @@ GC_align <- function(
 GC_normalize <-
   function(
     GC_chart,
+    group = NULL,
     cluster = NULL,
+    normalize = TRUE,
     preserve_gene_length = TRUE,
-    gap = NULL
+    gap = NULL,
+    custom_gaps = list()
     ) {
 
   # Check if 'cluster' column exists if the cluster parameter is provided
   if (is.null(GC_chart$x$cluster) && !is.null(cluster)) {
     warning("Could not normalize selected genes. Please define cluster in the GC_chart function.")
     return(GC_chart)
+  }
+
+  if (is.null(group) && !is.null(GC_chart$x$group)){
+    group <- GC_chart$x$group
+  }
+
+  if (!is.null(group) && !(group %in% names(GC_chart$x$data))) {
+    stop("group column not found in data")
   }
 
   clusters <- getUpdatedClusters(GC_chart, cluster)
@@ -2471,18 +2487,38 @@ GC_normalize <-
     cluster_name <- clusters[i]
     cluster_data <- GC_chart$x$series[[cluster_name]]$data
 
-    normalized_cluster_data <- normalize_gc_positions(
+    # Normalize genes
+    if(normalize){
+    cluster_data <- normalize_gc_positions(
       cluster_data,
       preserve_gene_length = preserve_gene_length[(i - 1) %% length(preserve_gene_length) + 1],
       gap = gap[(i - 1) %% length(gap) + 1])
+    }
 
-    GC_chart$x$series[[cluster_name]]$data <- normalized_cluster_data
-    GC_chart$x$series[[cluster_name]]$scale <-
-      list(xMin = min(normalized_cluster_data$start,
-                      normalized_cluster_data$end),
-           xMax = max(normalized_cluster_data$start,
-                      normalized_cluster_data$end)
-           )
+    if (length(custom_gaps) > 0) {
+      if (is.null(group)) {
+        warning("Group is NULL. Custom gaps will not be applied because the group column is not specified.")
+      } else {
+        for (gene_name in names(custom_gaps)) {
+          factor <- custom_gaps[[gene_name]]
+          cluster_data <- custom_gaps(
+            cluster_data,
+            group = group,
+            gene_name = gene_name,
+            factor = factor
+          )
+        }
+      }
+    }
+
+    # Update chart and cluster data
+    GC_chart$x$series[[cluster_name]]$data <- cluster_data
+    GC_chart[["x"]][["series"]][[cluster_name]][["scale"]][["xMin"]] <-
+      min(cluster_data$start, cluster_data$end)
+    GC_chart[["x"]][["series"]][[cluster_name]][["scale"]][["xMax"]] <-
+      max(cluster_data$start, cluster_data$end)
+
+    GC_chart$x$data <- update_cluster_data(GC_chart$x$data, cluster_data)
 
   }
 

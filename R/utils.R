@@ -440,3 +440,42 @@ adjust_to_range <- function(data, cluster = "cluster"){
 
   return(data)
 }
+
+#' Update Start and End Columns Based on Merged Data
+#'
+#' This function merges two data frames by a specified column (default is
+#' "rowID") and updates the 'start' and 'end' columns in the original data based
+#' on values in the updated data. If the updated data contains a non-missing
+#' value for 'start' or 'end', it keeps the corresponding value in the
+#' original data.
+#'
+#' @param data A data frame containing the original data.
+#' @param updated_data A data frame containing the updated data with the same
+#'   'rowID' column.
+#' @param by_col A character string specifying the column name to merge the data
+#'   frames by. Default is "rowID".
+#' @return A data frame with updated 'start' and 'end' columns.
+#' @noRd
+update_cluster_data <- function(data, updated_data, by_col = "rowID") {
+  # Check if the 'rowID' column exists in both data frames
+  if (!(by_col %in% names(data))) {
+    stop(paste("The column", by_col, "does not exist in the 'data' data frame."))
+  }
+
+  if (!(by_col %in% names(updated_data))) {
+    stop(paste("The column", by_col, "does not exist in the 'updated_data' data frame."))
+  }
+
+  # Merge the data frames
+  result <- merge(data, updated_data, by = by_col, all.x = TRUE, suffixes = c("", "_new"))
+
+  # Update the 'start' and 'end' columns with new values if available
+  result$start <- ifelse(!is.na(result$start_new), result$start_new, result$start)
+  result$end <- ifelse(!is.na(result$end_new), result$end_new, result$end)
+
+  # Remove the columns with the "_new" suffix
+  result <- result[, !grepl("_new$", names(result))]
+
+  return(result)
+}
+

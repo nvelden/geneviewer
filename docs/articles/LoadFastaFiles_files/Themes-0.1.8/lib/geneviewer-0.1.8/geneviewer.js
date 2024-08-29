@@ -2192,7 +2192,6 @@ container.prototype.tooltip = function (show = true, options = {}) {
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
-
   // Generate CSS for the tooltip and its pseudo-element
   const generateTooltipCSS = (opts, additionalOpts) => {
     let additionalStyles = Object.entries(additionalOpts).map(([key, value]) => `${camelToKebab(key)}: ${value};`).join(' ');

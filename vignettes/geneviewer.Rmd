@@ -336,6 +336,48 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "150px") 
    GC_legend(TRUE)
 ```
 
+## Gene normalization
+
+The `GC_normalize` function can be used to normalize the genomic coordinates of a set of genes within a cluster, ensuring that the genes are evenly spaced along the entire range of the cluster. In the below example we normalize the genes of the first cluster to have even spacing between all genes while preserving their original length. Optionally, a custom spacing between the genes can be set using the `gap` variable.
+
+**Note**: Normalization will adjust the start and end positions of the genes, causing them to differ from the original coordinates. To display the original start and end positions in the tooltip, the `formatter` can be updated to use the original_start and original_end values.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "150px") %>%
+   GC_normalize(
+     group = "class", 
+     cluster = 1, # By default all clusters are normalized
+     gap = NULL, # 0-1
+     preserve_gene_length = TRUE
+     ) %>%
+  # Update tooltip
+  GC_tooltip(
+    cluster = 1,
+    formatter = "<b>Start:</b> {original_start}<br><b>End:</b> {original_end}"
+  ) %>%
+  GC_legend(FALSE)
+```
+
+You can adjust the spacing between specific genes using the `custom_gaps` variable. In the example below, we normalize the spacing between the genes in the first cluster, set a uniform `gap` width for all genes, and increase the gap by 1.5x after the genes ophC and ophB2.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "280px") %>%
+   GC_normalize(
+     group = "name", 
+     cluster = 1, # By default all clusters are normalized
+     gap = 0.01, # 0-1
+     custom_gaps = list(ophC = 1.5, ophB2 = 1.5),
+     preserve_gene_length = FALSE
+     ) %>%
+  GC_labels(label = "name") %>%
+  # Update tooltip
+  GC_tooltip(
+    cluster = 1,
+    formatter = "<b>Start:</b> {original_start}<br><b>End:</b> {original_end}"
+  ) %>%
+  GC_legend(FALSE)
+```
+
 ## BlastP
 
 The `protein_blast()` function can be used to perform a BlastP alignment between clusters. For more information see the [Cluster comparison using BlastP](https://nvelden.github.io/geneviewer/articles/BLASTP.html) tutorial.

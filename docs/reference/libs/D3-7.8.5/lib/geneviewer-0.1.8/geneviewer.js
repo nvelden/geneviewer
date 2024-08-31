@@ -1733,6 +1733,7 @@ container.prototype.coordinates = function (show = true, options = {}) {
     tickValuesTop: null,
     tickValuesBottom: null,
     overlapThreshold: 20,
+    ticksFormat: ",.0f",
     tickStyle: {
       stroke: "black",
       strokeWidth: 1,
@@ -1749,7 +1750,7 @@ container.prototype.coordinates = function (show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'coordinatesOptions', options);
-  const { rotate, yPositionTop, yPositionBottom, tickValuesBottom, tickValuesTop, tickStyle, textStyle } = combinedOptions;
+  const { rotate, yPositionTop, yPositionBottom, tickValuesBottom, tickValuesTop, ticksFormat, tickStyle, textStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultOptions.tickStyle);
@@ -1839,7 +1840,9 @@ container.prototype.coordinates = function (show = true, options = {}) {
   // Create and configure the top axis
   const xAxisTop = g.append("g")
     .attr("transform", "translate(0," + this.yScale(yPositionTop) + ")")
-    .call(d3.axisTop(this.xScale).tickValues(tickValuesTopFinal.map(t => t.value)));
+    .call(d3.axisTop(this.xScale).tickValues(tickValuesTopFinal.map(t => t.value))
+    .tickFormat(d3.format(ticksFormat))
+    );
 
   xAxisTop.selectAll(".tick")
     .data(tickValuesTopFinal)
@@ -1880,7 +1883,9 @@ container.prototype.coordinates = function (show = true, options = {}) {
   // Create and configure the bottom axis
   const xAxisBottom = g.append("g")
     .attr("transform", "translate(0," + this.yScale(yPositionBottom) + ")")
-    .call(d3.axisBottom(this.xScale).tickValues(tickValuesBottomFinal.map(t => t.value)));
+    .call(d3.axisBottom(this.xScale).tickValues(tickValuesBottomFinal.map(t => t.value))
+    .tickFormat(d3.format(ticksFormat))
+    );
 
   xAxisBottom.selectAll(".tick")
     .data(tickValuesBottomFinal)

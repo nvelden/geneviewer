@@ -1323,13 +1323,14 @@ GC_chart(dbophA_cluster, group = "class",height = "100px") %>%
    GC_legend(FALSE)
 ```
 
-By default, the start and end positions of each gene are indicated by coordinates. However, you can customize these by providing your own values for the top and bottom ticks, using the `tickValuesTop` and `tickValuesBottom` options.
+By default, the start and end positions of each gene are indicated by coordinates. However, you can customize these by providing your own values for the top and bottom ticks, using the `tickValuesTop` and `tickValuesBottom` options. The `ticksFormat` parameter is used to define how the numerical labels on the tick marks are formatted (see: [link](https://d3js.org/d3-format)).
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(dbophA_cluster, group = "class",height = "100px") %>%
   GC_coordinates(
     tickValuesTop = c(27371, 28937),
-    tickValuesBottom = c(25288, 27217)                  
+    tickValuesBottom = c(25288, 27217),
+    ticksFormat = ".2s", # Default: ",.0f"
    ) %>%
    GC_legend(FALSE)
 ```

@@ -1351,6 +1351,7 @@ GC_labels <- function(
 #'   the top of the cluster. If NULL, the default tick values are used.
 #' @param tickValuesBottom Numeric vector or NULL, custom tick values to be used
 #'   at the bottom of the cluster. If NULL, the default tick values are used.
+#' @param ticksFormat Format for tick labels. Default is ",.0f".
 #' @param cluster Numeric or character vector or NULL; specifies which clusters
 #' to generate coordinates for.
 #'        If NULL, labels will be applied to all clusters. Default is NULL.
@@ -1381,6 +1382,7 @@ GC_labels <- function(
 #'   show = TRUE,
 #'   tickValuesTop = c(130, 170, 210, 240),
 #'   tickValuesBottom = c(160, 200),
+#'   ticksFormat = ",.0f", # ".2s",
 #'   rotate = -45,
 #'   yPositionTop = 55,
 #'   yPositionBottom = 45,
@@ -1404,6 +1406,7 @@ GC_coordinates <- function(
     show = TRUE,
     tickValuesTop = NULL,
     tickValuesBottom = NULL,
+    ticksFormat = NULL,
     tickStyle = list(),
     textStyle = list(),
     cluster = NULL,
@@ -1425,6 +1428,7 @@ GC_coordinates <- function(
     # Default options
     options <- list(
       show = show[(i-1) %% length(show) + 1],
+      ticksFormat = ticksFormat,
       tickStyle = tickStyle,
       textStyle = textStyle
     )

@@ -9,6 +9,7 @@ GC_coordinates(
   show = TRUE,
   tickValuesTop = NULL,
   tickValuesBottom = NULL,
+  ticksFormat = NULL,
   tickStyle = list(),
   textStyle = list(),
   cluster = NULL,
@@ -26,6 +27,8 @@ the top of the cluster. If NULL, the default tick values are used.}
 
 \item{tickValuesBottom}{Numeric vector or NULL, custom tick values to be used
 at the bottom of the cluster. If NULL, the default tick values are used.}
+
+\item{ticksFormat}{Format for tick labels. Default is ",.0f".}
 
 \item{tickStyle}{List, styling options for the ticks.}
 
@@ -67,6 +70,7 @@ GC_coordinates(
   show = TRUE,
   tickValuesTop = c(130, 170, 210, 240),
   tickValuesBottom = c(160, 200),
+  ticksFormat = ",.0f", # ".2s",
   rotate = -45,
   yPositionTop = 55,
   yPositionBottom = 45,

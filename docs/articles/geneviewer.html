@@ -1656,7 +1656,10 @@ save button that appears when hovering over the graph. This option can
 be disabled by setting the <code>save_button</code> parameter to
 <code>FALSE</code> in the <code>GC_chart</code> function.</p>
 <p>To save plots in different formats, you can use the
-<code>webshot2</code> package as illustrated below:</p>
+<code>webshot2</code> package as illustrated below. If your plots
+contain complex elements like gene links, it is recommended to specify
+the width and height dimensions explicitly to ensure proper
+rendering.</p>
 <div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rstudio.github.io/webshot2/" class="external-link">webshot2</a></span><span class="op">)</span></span>
 <span></span>
@@ -1665,7 +1668,7 @@ be disabled by setting the <code>save_button</code> parameter to
 <span>  <span class="fu"><a href="../reference/GC_chart.html">GC_chart</a></span><span class="op">(</span><span class="va">ophA_clusters</span>, </span>
 <span>           group <span class="op">=</span> <span class="st">"class"</span>, </span>
 <span>           cluster <span class="op">=</span> <span class="st">"cluster"</span>,</span>
-<span>           width <span class="op">=</span> <span class="st">"400px"</span>,</span>
+<span>           width <span class="op">=</span> <span class="st">"400px"</span>, <span class="co"># Essential to prevent misalignment of gene links</span></span>
 <span>           height <span class="op">=</span> <span class="st">"250px"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Save plot to temp.html file</span></span>

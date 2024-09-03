@@ -540,7 +540,7 @@ chart %>%
   GC_labels("name")
 ```
 
-An "identity" or "similarity" column can be added to the data which will be used as measure to set the color intensity of the links. In addition links and labels can be styled using the `linkStyle` and `labelStyle` variable.
+An "identity" or "similarity" column can be added to the data which will be used as measure to set the color intensity of the links. In addition links and labels can be styled using the `linkStyle` and `labelStyle` options. The width of the links can be adjusted using the `linkWidth` parameter.
 
 ```{r echo=TRUE, results='asis'}
 ophA_clusters$identity <- sample(1:100, size = nrow(ophA_clusters), replace = TRUE) 
@@ -584,6 +584,7 @@ chart <- GC_chart(
          # Any other CSS style
        )
      ),
+    linkWidth = 0.5,
     linkStyle = list(
       stroke = "black",
       strokeWidth = 0.5

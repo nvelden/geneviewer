@@ -2949,6 +2949,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     showLinks: true,
     label: true,
     measure: "identity",
+    linkWidth: 1,
     labelStyle: {
         cursor: "pointer",
         fontSize: "12px",
@@ -2965,86 +2966,87 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     },
   };
 
-    if (!links || links.length === 0) {
-        return this;
-    }
+  if (!links || links.length === 0) {
+      return this;
+  }
 
-    const combinedOptions = mergeOptions.call(this, defaultOptions, 'linkOptions', options);
-    const { x, y, cursor, fontSize, fontStyle, fontFamily, textAnchor, showLinks, label, measure, labelStyle, labelAdjustmentOptions } = combinedOptions;
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'linkOptions', options);
+  const { x, y, cursor, fontSize, fontStyle, fontFamily, textAnchor, showLinks, label, measure, labelStyle, labelAdjustmentOptions, linkWidth } = combinedOptions;
 
-    const additionalOptions = extractAdditionalOptions(options, defaultOptions);
-    const additionalOptionsLabelStyle = extractAdditionalOptions(labelStyle, defaultOptions.labelStyle);
+  const additionalOptions = extractAdditionalOptions(options, defaultOptions);
+  const additionalOptionsLabelStyle = extractAdditionalOptions(labelStyle, defaultOptions.labelStyle);
 
-    var group = this.svg.append("g")
-        .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+  var group = this.svg.append("g")
+      .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
-    const hasReverseStrand = this.data.some(item => item.strand === "reverse");
-    const clusterStrandSpacing = hasReverseStrand ? this.geneStrandSpacing * 1 : 0;
+  const hasReverseStrand = this.data.some(item => item.strand === "reverse");
+  const clusterStrandSpacing = hasReverseStrand ? this.geneStrandSpacing * 1 : 0;
 
-    if(showLinks){
+  if(showLinks){
     links.forEach(link => {
+        const widthFactor = (1 - linkWidth) / 2;
+        const adjustedStart1 = link.start1 + (link.end1 - link.start1) * widthFactor;
+        const adjustedEnd1 = link.end1 - (link.end1 - link.start1) * widthFactor;
+        const adjustedStart2 = link.start2 + (link.end2 - link.start2) * widthFactor;
+        const adjustedEnd2 = link.end2 - (link.end2 - link.start2) * widthFactor;
 
         // Check if the link is relevant to cluster1
         if (link.cluster1 === clusterKey) {
-
-          const groupColor1 = link.groupColor ? this.genesColorScale(link.groupColor) : this.genesColorScale(link.group1);
+            const groupColor1 = link.groupColor ? this.genesColorScale(link.groupColor) : this.genesColorScale(link.group1);
 
             group.append("circle")
-                .attr("cx", this.xScale(link.start1))
+                .attr("cx", this.xScale(adjustedStart1))
                 .attr("cy", this.yScale(y) + clusterStrandSpacing)
                 .attr("position", link.start1)
-                .attr("visibility", "hidden")
                 .attr("r", 1)
                 .attr("cluster", clusterKey)
+                .attr("visibility", "hidden")
                 .attr("groupColor", groupColor1)
                 .attr("linkID", link.linkID)
                 .attr("class", "link-marker");
 
             group.append("circle")
-                .attr("cx", this.xScale(link.end1))
+                .attr("cx", this.xScale(adjustedEnd1))
                 .attr("cy", this.yScale(y) + clusterStrandSpacing)
                 .attr("position", link.end1)
                 .attr("class", "link-marker")
                 .attr("groupColor", groupColor1)
+                .attr("visibility", "hidden")
                 .attr("linkID", link.linkID)
                 .attr("cluster", clusterKey)
-                .attr("visibility", "hidden")
                 .attr("r", 1);
-
         }
 
         // Check if the link is relevant to cluster2
         if (link.cluster2 === clusterKey) {
-
-          const groupColor2 = link.groupColor ? this.genesColorScale(link.groupColor) : this.genesColorScale(link.group2);
+            const groupColor2 = link.groupColor ? this.genesColorScale(link.groupColor) : this.genesColorScale(link.group2);
 
             group.append("circle")
-                .attr("cx", this.xScale(link.start2))
+                .attr("cx", this.xScale(adjustedStart2))
                 .attr("cy", this.yScale(y) - clusterStrandSpacing)
                 .attr("position", link.start2)
                 .attr("class", "link-marker")
                 .attr("cluster", clusterKey)
+                .attr("visibility", "hidden")
                 .attr("groupColor", groupColor2)
                 .attr("linkID", link.linkID)
-                .attr("visibility", "hidden")
                 .attr("r", 1);
 
             group.append("circle")
-                .attr("cx", this.xScale(link.end2))
+                .attr("cx", this.xScale(adjustedEnd2))
                 .attr("cy", this.yScale(y) - clusterStrandSpacing)
                 .attr("position", link.end2)
                 .attr("class", "link-marker")
                 .attr("linkID", link.linkID)
                 .attr("cluster", clusterKey)
-                .attr("groupColor", groupColor2)
                 .attr("visibility", "hidden")
+                .attr("groupColor", groupColor2)
                 .attr("r", 1);
-            }
-
+        }
     });
-    }
+  }
 
-    if(label){
+  if(label){
     const self = this;
 
     const labelData = this.data.filter(d =>
@@ -3078,11 +3080,10 @@ container.prototype.links = function (links, clusterKey, options = {}) {
       adjustSpecificLabel(self, ".link-text", currentElement.attr("id"), labelAdjustmentOptions);
       setStyleFromOptions(currentElement, additionalOptionsLabelStyle);
     });
-    }
+  }
 
-    return this;
+  return this;
 };
-
 // Annotations
 
 container.prototype.trackMouse = function(track = true) {

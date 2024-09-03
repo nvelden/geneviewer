@@ -20,6 +20,7 @@ GC_links(
   use_group_colors = FALSE,
   color_bar = TRUE,
   colorBarOptions = list(),
+  linkWidth = NULL,
   linkStyle = list(),
   labelStyle = list(),
   ...
@@ -55,6 +56,9 @@ GC_links(
 \item{color_bar}{Logical; if `TRUE`, the color bar is displayed.}
 
 \item{colorBarOptions}{List of options to customize the color bar appearance.}
+
+\item{linkWidth}{Numeric; specifies the width of the links. A value of `1`
+represents full width, and `0` represents no width.}
 
 \item{linkStyle}{A list of CSS styles to apply to the links.}
 
@@ -143,6 +147,7 @@ GC_chart(genes_data,
         # Any other CSS style
       )
     ),
+    linkWidth = 1,
     linkStyle = list(
       stroke = "black",
       strokeWidth = 0.5,

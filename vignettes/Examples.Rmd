@@ -119,8 +119,6 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
 ```
 </details>
 
-<br>
-
 ```{r echo = FALSE, results='asis'}
   GC_chart(ophA_clusters, 
            start = "start",
@@ -141,6 +139,122 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
     formatter = "<b>Gene:</b> {name}<br> <b>Start:</b> {start}<br><b>end:</b> {end}"
   )
 ```
+
+<br>
+
+<details>
+<summary>Click to see the code</summary>
+```{r echo=TRUE, results='hide'}
+  GC_chart(
+    ophA_clusters,
+    cluster = "cluster",
+    group = "class",
+    width = "800px",
+    height = "400px"
+  ) %>%
+  GC_labels(
+    cluster = 1,
+    label = "name"
+  ) %>%
+  GC_links(
+    "class",
+    use_group_colors = FALSE,
+    measure = "none",
+    normal_color = "#969696",
+    inverted_color = "#969696",
+    curve = TRUE,
+    label = FALSE,
+    linkWidth = 0.2,
+  ) %>%
+  GC_links(
+    group = "name",
+    value1 = "ophA",
+    value2 = "dbophA",
+    use_group_colors = TRUE,
+    linkStyle = list(
+      stroke = "black",
+      strokeWidth = 2
+    )
+  ) %>%
+  GC_clusterLabel(
+    title = c("<i>O.</i> <i>olearius</i>", "<i>D. bispora</i>"),
+    wrapLabel = FALSE
+  ) %>%
+  # Reduce space between legend and cluster
+  GC_grid(
+    cluster = 2,
+    height = "25%"
+  ) %>%
+  GC_legend(
+    legendTextOptions = list(fontSize = "14px")
+  ) %>%
+  GC_annotation(
+    cluster = 1,
+    x = 10884,
+    y = 11,
+    type = "text",
+    text = "90%",
+    style = list(fontSize = "16px", fill = "#1c641c")
+  ) %>%
+  GC_trackMouse()
+```
+</details>
+
+```{r echo = FALSE, results='asis'}
+  GC_chart(
+    ophA_clusters,
+    cluster = "cluster",
+    group = "class",
+    height = "400px"
+  ) %>%
+  GC_labels(
+    cluster = 1,
+    label = "name"
+  ) %>%
+  GC_links(
+    "class",
+    use_group_colors = FALSE,
+    measure = "none",
+    normal_color = "#969696",
+    inverted_color = "#969696",
+    curve = TRUE,
+    label = FALSE,
+    linkWidth = 0.2,
+  ) %>%
+  GC_links(
+    group = "name",
+    value1 = "ophA",
+    value2 = "dbophA",
+    use_group_colors = TRUE,
+    linkStyle = list(
+      stroke = "black",
+      strokeWidth = 2
+    )
+  ) %>%
+  GC_clusterLabel(
+    title = c("<i>O.</i> <i>olearius</i>", "<i>D. bispora</i>"),
+    wrapLabel = FALSE
+  ) %>%
+  # Reduce space between legend and cluster
+  GC_grid(
+    cluster = 2,
+    height = "25%"
+  ) %>%
+  GC_legend(
+    legendTextOptions = list(fontSize = "14px")
+  ) %>%
+  GC_annotation(
+    cluster = 1,
+    x = 10884,
+    y = 11,
+    type = "text",
+    text = "90%",
+    style = list(fontSize = "16px", fill = "#1c641c")
+  ) %>%
+  GC_trackMouse()
+```
+
+<br>
 
 ### *H. sapiens* Hox genes using `biomaRt`
 

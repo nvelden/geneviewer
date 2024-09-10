@@ -70,6 +70,10 @@ For additional examples and the corresponding code to create the plots, please v
 
 <hr>
 
+<img src="man/figures/ophA_gene_links.png"/>
+
+<hr>
+
 <img src="man/figures/erythromycin_cluster.png"/>
 
 <hr>

@@ -110,11 +110,24 @@ function getMarker(markerName, xPos, yPos, size, height = null) {
 }
 
 function getGenePath(marker, length, markerSize, options = {}) {
-    const sizeDefaults = {
-        small: { scale: 0.75 },
-        medium: { scale: 1 },
-        large: { scale: 1.25 }
-    };
+  const sizeDefaults = {
+      extraExtraSmall: { scale: 0.4 },
+      extraSmall: { scale: 0.5 },
+      verySmall: { scale: 0.65 },
+      small: { scale: 0.75 },
+      slightlySmall: { scale: 0.8 },
+      normal: { scale: 0.85 },
+      medium: { scale: 1 },
+      slightlyLarge: { scale: 1.1 },
+      large: { scale: 1.25 },
+      veryLarge: { scale: 1.5 },
+      extraLarge: { scale: 1.75 },
+      extraExtraLarge: { scale: 2.0 },
+      huge: { scale: 2.5 },
+      massive: { scale: 3.0 },
+      custom: { scale: options.scale || 1 }  // Custom scale here
+  };
+
 
     const markerDefaults = {
         arrow: { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 15 },
@@ -126,8 +139,12 @@ function getGenePath(marker, length, markerSize, options = {}) {
         // Add other marker types if needed
     };
 
-    const sizeOptions = sizeDefaults[markerSize] || sizeDefaults.medium;
+    // Check if markerSize is an object to handle custom scale
+    const sizeOptions = typeof markerSize === 'object' && markerSize.type === 'custom'
+        ? { scale: markerSize.scale }
+        : sizeDefaults[markerSize] || sizeDefaults.medium;
     const markerOptions = markerDefaults[marker] || {};
+    const scale = sizeOptions.scale;
 
     const combinedOptions = mergeOptions(markerOptions, "genePathOptions", options);
 

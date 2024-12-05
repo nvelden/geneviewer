@@ -20,3 +20,4 @@
 ^vignettes/BlASTP\.Rmd$
 ^vignettes/MUMMER\.Rmd$
 ^vignettes/LoadGFF\.Rmd$
+^vignettes/Transcripts\.Rmd$

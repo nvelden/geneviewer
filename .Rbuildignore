@@ -18,3 +18,5 @@
 ^vignettes/LoadFastaFiles\.Rmd$
 ^vignettes/LoadGenBankFiles\.Rmd$
 ^vignettes/BlASTP\.Rmd$
+^vignettes/MUMMER\.Rmd$
+^vignettes/LoadGFF\.Rmd$

@@ -588,7 +588,7 @@ GC_grid <- function(
     GC_chart$width <- get_relative_height(GC_chart$width, width)
   }
 
-  if(is.null(cluster) && direction == "row"){
+  if(direction == "row"){
     GC_chart$x$graphContainer$direction <- "row"
   }
 

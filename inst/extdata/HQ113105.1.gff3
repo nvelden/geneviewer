@@ -1,0 +1,895 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+##sequence-region HQ113105.1 1 346754
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=999883
+HQ113105.1	Genbank	region	1	346754	.	+	.	ID=HQ113105.1:1..346754;Dbxref=taxon:999883;Is_circular=true;collection-date=01-Apr-2005;country=France;gbkey=Src;genome=genomic;isolate=7715;mol_type=genomic DNA;nat-host=Acanthamoeba castellanii
+HQ113105.1	Genbank	gene	2	3295	.	-	.	ID=gene-LAU_0001;Name=LAU_0001;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0001
+HQ113105.1	Genbank	CDS	2	3295	.	-	0	ID=cds-AEA06857.1;Parent=gene-LAU_0001;Dbxref=NCBI_GP:AEA06857.1;Name=AEA06857.1;gbkey=CDS;locus_tag=LAU_0001;product=putative helicase;protein_id=AEA06857.1
+HQ113105.1	Genbank	gene	3397	3666	.	+	.	ID=gene-LAU_0002;Name=LAU_0002;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0002
+HQ113105.1	Genbank	CDS	3397	3666	.	+	0	ID=cds-AEA06858.1;Parent=gene-LAU_0002;Dbxref=NCBI_GP:AEA06858.1;Name=AEA06858.1;gbkey=CDS;locus_tag=LAU_0002;product=conserved hypothetical protein;protein_id=AEA06858.1
+HQ113105.1	Genbank	gene	3731	4387	.	-	.	ID=gene-LAU_0003;Name=LAU_0003;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0003
+HQ113105.1	Genbank	CDS	3731	4387	.	-	0	ID=cds-AEA06859.1;Parent=gene-LAU_0003;Dbxref=NCBI_GP:AEA06859.1;Name=AEA06859.1;gbkey=CDS;locus_tag=LAU_0003;product=hypothetical protein;protein_id=AEA06859.1
+HQ113105.1	Genbank	gene	4450	4806	.	-	.	ID=gene-LAU_0004;Name=LAU_0004;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0004
+HQ113105.1	Genbank	CDS	4450	4806	.	-	0	ID=cds-AEA06860.1;Parent=gene-LAU_0004;Dbxref=NCBI_GP:AEA06860.1;Name=AEA06860.1;gbkey=CDS;locus_tag=LAU_0004;product=hypothetical protein;protein_id=AEA06860.1
+HQ113105.1	Genbank	gene	4850	5185	.	+	.	ID=gene-LAU_0005;Name=LAU_0005;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0005
+HQ113105.1	Genbank	CDS	4850	5185	.	+	0	ID=cds-AEA06861.1;Parent=gene-LAU_0005;Dbxref=NCBI_GP:AEA06861.1;Name=AEA06861.1;gbkey=CDS;locus_tag=LAU_0005;product=hypothetical protein;protein_id=AEA06861.1
+HQ113105.1	Genbank	gene	5268	5774	.	-	.	ID=gene-LAU_0006;Name=LAU_0006;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0006
+HQ113105.1	Genbank	CDS	5268	5774	.	-	0	ID=cds-AEA06862.1;Parent=gene-LAU_0006;Dbxref=NCBI_GP:AEA06862.1;Name=AEA06862.1;gbkey=CDS;locus_tag=LAU_0006;product=hypothetical protein;protein_id=AEA06862.1
+HQ113105.1	Genbank	gene	5754	6218	.	+	.	ID=gene-LAU_0007;Name=LAU_0007;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0007
+HQ113105.1	Genbank	CDS	5754	6218	.	+	0	ID=cds-AEA06863.1;Parent=gene-LAU_0007;Dbxref=NCBI_GP:AEA06863.1;Name=AEA06863.1;gbkey=CDS;locus_tag=LAU_0007;product=hypothetical protein;protein_id=AEA06863.1
+HQ113105.1	Genbank	gene	6200	6388	.	+	.	ID=gene-LAU_0008;Name=LAU_0008;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0008
+HQ113105.1	Genbank	CDS	6200	6388	.	+	0	ID=cds-AEA06864.1;Parent=gene-LAU_0008;Dbxref=NCBI_GP:AEA06864.1;Name=AEA06864.1;gbkey=CDS;locus_tag=LAU_0008;product=conserved hypothetical protein;protein_id=AEA06864.1
+HQ113105.1	Genbank	gene	6439	6804	.	+	.	ID=gene-LAU_0009;Name=LAU_0009;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0009
+HQ113105.1	Genbank	CDS	6439	6804	.	+	0	ID=cds-AEA06865.1;Parent=gene-LAU_0009;Dbxref=NCBI_GP:AEA06865.1;Name=AEA06865.1;gbkey=CDS;locus_tag=LAU_0009;product=putative membrane protein;protein_id=AEA06865.1
+HQ113105.1	Genbank	gene	6875	7618	.	+	.	ID=gene-LAU_0010;Name=LAU_0010;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0010
+HQ113105.1	Genbank	CDS	6875	7618	.	+	0	ID=cds-AEA06866.1;Parent=gene-LAU_0010;Dbxref=NCBI_GP:AEA06866.1;Name=AEA06866.1;gbkey=CDS;locus_tag=LAU_0010;product=hypothetical protein;protein_id=AEA06866.1
+HQ113105.1	Genbank	gene	7615	8766	.	+	.	ID=gene-LAU_0011;Name=LAU_0011;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0011
+HQ113105.1	Genbank	CDS	7615	8766	.	+	0	ID=cds-AEA06867.1;Parent=gene-LAU_0011;Dbxref=NCBI_GP:AEA06867.1;Name=AEA06867.1;gbkey=CDS;locus_tag=LAU_0011;product=conserved hypothetical protein;protein_id=AEA06867.1
+HQ113105.1	Genbank	gene	8790	9968	.	+	.	ID=gene-LAU_0012;Name=LAU_0012;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0012
+HQ113105.1	Genbank	CDS	8790	9968	.	+	0	ID=cds-AEA06868.1;Parent=gene-LAU_0012;Dbxref=NCBI_GP:AEA06868.1;Name=AEA06868.1;gbkey=CDS;locus_tag=LAU_0012;product=conserved hypothetical protein;protein_id=AEA06868.1
+HQ113105.1	Genbank	gene	10142	10429	.	-	.	ID=gene-LAU_0013;Name=LAU_0013;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0013
+HQ113105.1	Genbank	CDS	10142	10429	.	-	0	ID=cds-AEA06869.1;Parent=gene-LAU_0013;Dbxref=NCBI_GP:AEA06869.1;Name=AEA06869.1;gbkey=CDS;locus_tag=LAU_0013;product=conserved hypothetical protein;protein_id=AEA06869.1
+HQ113105.1	Genbank	gene	10476	13475	.	-	.	ID=gene-LAU_0014;Name=LAU_0014;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0014
+HQ113105.1	Genbank	CDS	10476	13475	.	-	0	ID=cds-AEA06870.1;Parent=gene-LAU_0014;Dbxref=NCBI_GP:AEA06870.1;Name=AEA06870.1;gbkey=CDS;locus_tag=LAU_0014;product=DNA-directed RNA polymerase subunit alpha;protein_id=AEA06870.1
+HQ113105.1	Genbank	gene	13912	15399	.	-	.	ID=gene-LAU_0015;Name=LAU_0015;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0015
+HQ113105.1	Genbank	CDS	13912	15399	.	-	0	ID=cds-AEA06871.1;Parent=gene-LAU_0015;Dbxref=NCBI_GP:AEA06871.1;Name=AEA06871.1;gbkey=CDS;locus_tag=LAU_0015;product=DNA-directed RNA polymerase subunit alpha;protein_id=AEA06871.1
+HQ113105.1	Genbank	gene	15474	16433	.	-	.	ID=gene-LAU_0016;Name=LAU_0016;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0016
+HQ113105.1	Genbank	CDS	15474	16433	.	-	0	ID=cds-AEA06872.1;Parent=gene-LAU_0016;Dbxref=NCBI_GP:AEA06872.1;Name=AEA06872.1;Note=FOG: WD40 repeat;gbkey=CDS;locus_tag=LAU_0016;product=conserved WD-repeat containing protein;protein_id=AEA06872.1
+HQ113105.1	Genbank	gene	16456	17010	.	-	.	ID=gene-LAU_0017;Name=LAU_0017;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0017
+HQ113105.1	Genbank	CDS	16456	17010	.	-	0	ID=cds-AEA06873.1;Parent=gene-LAU_0017;Dbxref=NCBI_GP:AEA06873.1;Name=AEA06873.1;gbkey=CDS;locus_tag=LAU_0017;product=conserved hypothetical protein;protein_id=AEA06873.1
+HQ113105.1	Genbank	gene	17098	17895	.	-	.	ID=gene-LAU_0018;Name=LAU_0018;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0018
+HQ113105.1	Genbank	CDS	17098	17895	.	-	0	ID=cds-AEA06874.1;Parent=gene-LAU_0018;Dbxref=NCBI_GP:AEA06874.1;Name=AEA06874.1;gbkey=CDS;locus_tag=LAU_0018;product=conserved hypothetical protein;protein_id=AEA06874.1
+HQ113105.1	Genbank	gene	18110	18634	.	+	.	ID=gene-LAU_0019;Name=LAU_0019;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0019
+HQ113105.1	Genbank	CDS	18110	18634	.	+	0	ID=cds-AEA06875.1;Parent=gene-LAU_0019;Dbxref=NCBI_GP:AEA06875.1;Name=AEA06875.1;gbkey=CDS;locus_tag=LAU_0019;product=hypothetical protein;protein_id=AEA06875.1
+HQ113105.1	Genbank	gene	18631	19785	.	-	.	ID=gene-LAU_0020;Name=LAU_0020;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0020
+HQ113105.1	Genbank	CDS	18631	19785	.	-	0	ID=cds-AEA06876.1;Parent=gene-LAU_0020;Dbxref=NCBI_GP:AEA06876.1;Name=AEA06876.1;gbkey=CDS;locus_tag=LAU_0020;product=conserved hypothetical protein;protein_id=AEA06876.1
+HQ113105.1	Genbank	gene	19812	20963	.	-	.	ID=gene-LAU_0021;Name=LAU_0021;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0021
+HQ113105.1	Genbank	CDS	19812	20963	.	-	0	ID=cds-AEA06877.1;Parent=gene-LAU_0021;Dbxref=NCBI_GP:AEA06877.1;Name=AEA06877.1;gbkey=CDS;locus_tag=LAU_0021;product=conserved hypothetical protein;protein_id=AEA06877.1
+HQ113105.1	Genbank	gene	21012	22169	.	-	.	ID=gene-LAU_0022;Name=LAU_0022;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0022
+HQ113105.1	Genbank	CDS	21012	22169	.	-	0	ID=cds-AEA06878.1;Parent=gene-LAU_0022;Dbxref=NCBI_GP:AEA06878.1;Name=AEA06878.1;gbkey=CDS;locus_tag=LAU_0022;product=conserved hypothetical protein;protein_id=AEA06878.1
+HQ113105.1	Genbank	gene	22195	23346	.	-	.	ID=gene-LAU_0023;Name=LAU_0023;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0023
+HQ113105.1	Genbank	CDS	22195	23346	.	-	0	ID=cds-AEA06879.1;Parent=gene-LAU_0023;Dbxref=NCBI_GP:AEA06879.1;Name=AEA06879.1;gbkey=CDS;locus_tag=LAU_0023;product=conserved hypothetical protein;protein_id=AEA06879.1
+HQ113105.1	Genbank	gene	23474	24460	.	+	.	ID=gene-LAU_0024;Name=LAU_0024;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0024
+HQ113105.1	Genbank	CDS	23474	24460	.	+	0	ID=cds-AEA06880.1;Parent=gene-LAU_0024;Dbxref=NCBI_GP:AEA06880.1;Name=AEA06880.1;gbkey=CDS;locus_tag=LAU_0024;product=conserved hypothetical protein;protein_id=AEA06880.1
+HQ113105.1	Genbank	gene	24656	26245	.	-	.	ID=gene-LAU_0025;Name=LAU_0025;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0025
+HQ113105.1	Genbank	CDS	24656	26245	.	-	0	ID=cds-AEA06881.1;Parent=gene-LAU_0025;Dbxref=NCBI_GP:AEA06881.1;Name=AEA06881.1;gbkey=CDS;locus_tag=LAU_0025;product=hypothetical protein;protein_id=AEA06881.1
+HQ113105.1	Genbank	gene	26704	27840	.	-	.	ID=gene-LAU_0026;Name=LAU_0026;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0026
+HQ113105.1	Genbank	CDS	26704	27759	.	-	0	ID=cds-AEA06882.1;Parent=gene-LAU_0026;Dbxref=NCBI_GP:AEA06882.1;Name=AEA06882.1;gbkey=CDS;locus_tag=LAU_0026;product=conserved hypothetical protein;protein_id=AEA06882.1
+HQ113105.1	Genbank	gene	27940	28245	.	-	.	ID=gene-LAU_0027;Name=LAU_0027;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0027
+HQ113105.1	Genbank	CDS	27940	28245	.	-	0	ID=cds-AEA06883.1;Parent=gene-LAU_0027;Dbxref=NCBI_GP:AEA06883.1;Name=AEA06883.1;gbkey=CDS;locus_tag=LAU_0027;product=conserved hypothetical protein;protein_id=AEA06883.1
+HQ113105.1	Genbank	gene	28269	28940	.	-	.	ID=gene-LAU_0028;Name=LAU_0028;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0028
+HQ113105.1	Genbank	CDS	28269	28940	.	-	0	ID=cds-AEA06884.1;Parent=gene-LAU_0028;Dbxref=NCBI_GP:AEA06884.1;Name=AEA06884.1;gbkey=CDS;locus_tag=LAU_0028;product=hypothetical protein;protein_id=AEA06884.1
+HQ113105.1	Genbank	gene	28939	32667	.	+	.	ID=gene-LAU_0029;Name=rpc2;gbkey=Gene;gene=rpc2;gene_biotype=protein_coding;locus_tag=LAU_0029
+HQ113105.1	Genbank	CDS	28939	32667	.	+	0	ID=cds-AEA06885.1;Parent=gene-LAU_0029;Dbxref=NCBI_GP:AEA06885.1;Name=AEA06885.1;gbkey=CDS;gene=rpc2;locus_tag=LAU_0029;product=DNA-directed RNA polymerase subunit 2;protein_id=AEA06885.1
+HQ113105.1	Genbank	gene	32786	34597	.	+	.	ID=gene-LAU_0030;Name=LAU_0030;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0030
+HQ113105.1	Genbank	CDS	32786	34597	.	+	0	ID=cds-AEA06886.1;Parent=gene-LAU_0030;Dbxref=NCBI_GP:AEA06886.1;Name=AEA06886.1;gbkey=CDS;locus_tag=LAU_0030;product=conserved hypothetical protein;protein_id=AEA06886.1
+HQ113105.1	Genbank	gene	34673	35326	.	+	.	ID=gene-LAU_0031;Name=LAU_0031;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0031
+HQ113105.1	Genbank	CDS	34673	35326	.	+	0	ID=cds-AEA06887.1;Parent=gene-LAU_0031;Dbxref=NCBI_GP:AEA06887.1;Name=AEA06887.1;gbkey=CDS;locus_tag=LAU_0031;product=hypothetical protein;protein_id=AEA06887.1
+HQ113105.1	Genbank	gene	35542	36708	.	+	.	ID=gene-LAU_0032;Name=LAU_0032;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0032
+HQ113105.1	Genbank	CDS	35542	36708	.	+	0	ID=cds-AEA06888.1;Parent=gene-LAU_0032;Dbxref=NCBI_GP:AEA06888.1;Name=AEA06888.1;gbkey=CDS;locus_tag=LAU_0032;product=putative DHH superfamily phosphohydrolase;protein_id=AEA06888.1
+HQ113105.1	Genbank	gene	36723	37286	.	-	.	ID=gene-LAU_0033;Name=LAU_0033;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0033
+HQ113105.1	Genbank	CDS	36723	37286	.	-	0	ID=cds-AEA06889.1;Parent=gene-LAU_0033;Dbxref=NCBI_GP:AEA06889.1;Name=AEA06889.1;gbkey=CDS;locus_tag=LAU_0033;product=hypothetical protein;protein_id=AEA06889.1
+HQ113105.1	Genbank	gene	37318	37890	.	-	.	ID=gene-LAU_0034;Name=LAU_0034;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0034
+HQ113105.1	Genbank	CDS	37318	37890	.	-	0	ID=cds-AEA06890.1;Parent=gene-LAU_0034;Dbxref=NCBI_GP:AEA06890.1;Name=AEA06890.1;gbkey=CDS;locus_tag=LAU_0034;product=hypothetical protein;protein_id=AEA06890.1
+HQ113105.1	Genbank	gene	37926	38297	.	-	.	ID=gene-LAU_0035;Name=LAU_0035;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0035
+HQ113105.1	Genbank	CDS	37926	38297	.	-	0	ID=cds-AEA06891.1;Parent=gene-LAU_0035;Dbxref=NCBI_GP:AEA06891.1;Name=AEA06891.1;gbkey=CDS;locus_tag=LAU_0035;product=hypothetical protein;protein_id=AEA06891.1
+HQ113105.1	Genbank	gene	38337	38825	.	-	.	ID=gene-LAU_0036;Name=LAU_0036;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0036
+HQ113105.1	Genbank	CDS	38337	38825	.	-	0	ID=cds-AEA06892.1;Parent=gene-LAU_0036;Dbxref=NCBI_GP:AEA06892.1;Name=AEA06892.1;gbkey=CDS;locus_tag=LAU_0036;product=hypothetical protein;protein_id=AEA06892.1
+HQ113105.1	Genbank	gene	38935	40023	.	-	.	ID=gene-LAU_0037;Name=LAU_0037;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0037
+HQ113105.1	Genbank	CDS	38935	40023	.	-	0	ID=cds-AEA06893.1;Parent=gene-LAU_0037;Dbxref=NCBI_GP:AEA06893.1;Name=AEA06893.1;gbkey=CDS;locus_tag=LAU_0037;product=conserved hypothetical protein;protein_id=AEA06893.1
+HQ113105.1	Genbank	gene	40294	43554	.	-	.	ID=gene-LAU_0038;Name=LAU_0038;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0038
+HQ113105.1	Genbank	CDS	40294	43554	.	-	0	ID=cds-AEA06894.1;Parent=gene-LAU_0038;Dbxref=NCBI_GP:AEA06894.1;Name=AEA06894.1;gbkey=CDS;locus_tag=LAU_0038;product=putative helicase;protein_id=AEA06894.1
+HQ113105.1	Genbank	gene	43608	43883	.	+	.	ID=gene-LAU_0039;Name=LAU_0039;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0039
+HQ113105.1	Genbank	CDS	43608	43883	.	+	0	ID=cds-AEA06895.1;Parent=gene-LAU_0039;Dbxref=NCBI_GP:AEA06895.1;Name=AEA06895.1;gbkey=CDS;locus_tag=LAU_0039;product=hypothetical protein;protein_id=AEA06895.1
+HQ113105.1	Genbank	gene	43949	44467	.	+	.	ID=gene-LAU_0040;Name=LAU_0040;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0040
+HQ113105.1	Genbank	CDS	43949	44467	.	+	0	ID=cds-AEA06896.1;Parent=gene-LAU_0040;Dbxref=NCBI_GP:AEA06896.1;Name=AEA06896.1;gbkey=CDS;locus_tag=LAU_0040;product=putative membrane protein;protein_id=AEA06896.1
+HQ113105.1	Genbank	gene	44552	44710	.	+	.	ID=gene-LAU_0041;Name=LAU_0041;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0041
+HQ113105.1	Genbank	CDS	44552	44710	.	+	0	ID=cds-AEA06897.1;Parent=gene-LAU_0041;Dbxref=NCBI_GP:AEA06897.1;Name=AEA06897.1;gbkey=CDS;locus_tag=LAU_0041;product=hypothetical protein;protein_id=AEA06897.1
+HQ113105.1	Genbank	gene	44735	45181	.	+	.	ID=gene-LAU_0042;Name=LAU_0042;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0042
+HQ113105.1	Genbank	CDS	44735	45181	.	+	0	ID=cds-AEA06898.1;Parent=gene-LAU_0042;Dbxref=NCBI_GP:AEA06898.1;Name=AEA06898.1;gbkey=CDS;locus_tag=LAU_0042;product=hypothetical protein;protein_id=AEA06898.1
+HQ113105.1	Genbank	gene	45214	45663	.	+	.	ID=gene-LAU_0043;Name=LAU_0043;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0043
+HQ113105.1	Genbank	CDS	45214	45663	.	+	0	ID=cds-AEA06899.1;Parent=gene-LAU_0043;Dbxref=NCBI_GP:AEA06899.1;Name=AEA06899.1;gbkey=CDS;locus_tag=LAU_0043;product=hypothetical protein;protein_id=AEA06899.1
+HQ113105.1	Genbank	gene	45685	46308	.	+	.	ID=gene-LAU_0044;Name=LAU_0044;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0044
+HQ113105.1	Genbank	CDS	45685	46308	.	+	0	ID=cds-AEA06900.1;Parent=gene-LAU_0044;Dbxref=NCBI_GP:AEA06900.1;Name=AEA06900.1;gbkey=CDS;locus_tag=LAU_0044;product=hypothetical protein;protein_id=AEA06900.1
+HQ113105.1	Genbank	gene	46327	46782	.	+	.	ID=gene-LAU_0045;Name=LAU_0045;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0045
+HQ113105.1	Genbank	CDS	46327	46782	.	+	0	ID=cds-AEA06901.1;Parent=gene-LAU_0045;Dbxref=NCBI_GP:AEA06901.1;Name=AEA06901.1;gbkey=CDS;locus_tag=LAU_0045;product=hypothetical protein;protein_id=AEA06901.1
+HQ113105.1	Genbank	gene	46799	47707	.	-	.	ID=gene-LAU_0046;Name=LAU_0046;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0046
+HQ113105.1	Genbank	CDS	46799	47707	.	-	0	ID=cds-AEA06902.1;Parent=gene-LAU_0046;Dbxref=NCBI_GP:AEA06902.1;Name=AEA06902.1;gbkey=CDS;locus_tag=LAU_0046;product=putative mannosyltransferase;protein_id=AEA06902.1
+HQ113105.1	Genbank	gene	47866	48054	.	-	.	ID=gene-LAU_0047;Name=LAU_0047;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0047
+HQ113105.1	Genbank	CDS	47866	48054	.	-	0	ID=cds-AEA06903.1;Parent=gene-LAU_0047;Dbxref=NCBI_GP:AEA06903.1;Name=AEA06903.1;gbkey=CDS;locus_tag=LAU_0047;product=conserved hypothetical protein;protein_id=AEA06903.1
+HQ113105.1	Genbank	gene	48092	49324	.	-	.	ID=gene-LAU_0048;Name=EF1A;gbkey=Gene;gene=EF1A;gene_biotype=protein_coding;locus_tag=LAU_0048
+HQ113105.1	Genbank	CDS	48092	49324	.	-	0	ID=cds-AEA06904.1;Parent=gene-LAU_0048;Dbxref=NCBI_GP:AEA06904.1;Name=AEA06904.1;gbkey=CDS;gene=EF1A;locus_tag=LAU_0048;product=putative translation elongation factor 1-alpha;protein_id=AEA06904.1
+HQ113105.1	Genbank	gene	49328	49714	.	-	.	ID=gene-LAU_0049;Name=LAU_0049;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0049
+HQ113105.1	Genbank	CDS	49328	49714	.	-	0	ID=cds-AEA06905.1;Parent=gene-LAU_0049;Dbxref=NCBI_GP:AEA06905.1;Name=AEA06905.1;gbkey=CDS;locus_tag=LAU_0049;product=conserved hypothetical protein;protein_id=AEA06905.1
+HQ113105.1	Genbank	gene	49714	49920	.	-	.	ID=gene-LAU_0050;Name=LAU_0050;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0050
+HQ113105.1	Genbank	CDS	49714	49920	.	-	0	ID=cds-AEA06906.1;Parent=gene-LAU_0050;Dbxref=NCBI_GP:AEA06906.1;Name=AEA06906.1;gbkey=CDS;locus_tag=LAU_0050;product=putative membrane protein;protein_id=AEA06906.1
+HQ113105.1	Genbank	gene	49942	50451	.	+	.	ID=gene-LAU_0051;Name=LAU_0051;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0051
+HQ113105.1	Genbank	CDS	49942	50451	.	+	0	ID=cds-AEA06907.1;Parent=gene-LAU_0051;Dbxref=NCBI_GP:AEA06907.1;Name=AEA06907.1;gbkey=CDS;locus_tag=LAU_0051;product=histone H2A domain-containing protein;protein_id=AEA06907.1
+HQ113105.1	Genbank	gene	50471	51001	.	-	.	ID=gene-LAU_0052;Name=LAU_0052;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0052
+HQ113105.1	Genbank	CDS	50471	51001	.	-	0	ID=cds-AEA06908.1;Parent=gene-LAU_0052;Dbxref=NCBI_GP:AEA06908.1;Name=AEA06908.1;gbkey=CDS;locus_tag=LAU_0052;product=conserved hypothetical protein;protein_id=AEA06908.1
+HQ113105.1	Genbank	gene	51037	51414	.	+	.	ID=gene-LAU_0053;Name=LAU_0053;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0053
+HQ113105.1	Genbank	CDS	51037	51414	.	+	0	ID=cds-AEA06909.1;Parent=gene-LAU_0053;Dbxref=NCBI_GP:AEA06909.1;Name=AEA06909.1;gbkey=CDS;locus_tag=LAU_0053;product=putative mannosyltransferase OCH1-like protein;protein_id=AEA06909.1
+HQ113105.1	Genbank	gene	51421	52554	.	-	.	ID=gene-LAU_0054;Name=LAU_0054;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0054
+HQ113105.1	Genbank	CDS	51421	52554	.	-	0	ID=cds-AEA06910.1;Parent=gene-LAU_0054;Dbxref=NCBI_GP:AEA06910.1;Name=AEA06910.1;gbkey=CDS;locus_tag=LAU_0054;product=hypothetical protein;protein_id=AEA06910.1
+HQ113105.1	Genbank	gene	52588	52923	.	-	.	ID=gene-LAU_0055;Name=LAU_0055;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0055
+HQ113105.1	Genbank	CDS	52588	52923	.	-	0	ID=cds-AEA06911.1;Parent=gene-LAU_0055;Dbxref=NCBI_GP:AEA06911.1;Name=AEA06911.1;gbkey=CDS;locus_tag=LAU_0055;product=hypothetical protein;protein_id=AEA06911.1
+HQ113105.1	Genbank	gene	52947	56219	.	-	.	ID=gene-LAU_0056;Name=top2;gbkey=Gene;gene=top2;gene_biotype=protein_coding;locus_tag=LAU_0056
+HQ113105.1	Genbank	CDS	52947	56219	.	-	0	ID=cds-AEA06912.1;Parent=gene-LAU_0056;Dbxref=NCBI_GP:AEA06912.1;Name=AEA06912.1;gbkey=CDS;gene=top2;locus_tag=LAU_0056;product=DNA topoisomerase II;protein_id=AEA06912.1
+HQ113105.1	Genbank	gene	56297	56650	.	-	.	ID=gene-LAU_0057;Name=LAU_0057;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0057
+HQ113105.1	Genbank	CDS	56297	56650	.	-	0	ID=cds-AEA06913.1;Parent=gene-LAU_0057;Dbxref=NCBI_GP:AEA06913.1;Name=AEA06913.1;gbkey=CDS;locus_tag=LAU_0057;product=hypothetical protein;protein_id=AEA06913.1
+HQ113105.1	Genbank	gene	56681	56884	.	-	.	ID=gene-LAU_0058;Name=LAU_0058;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0058
+HQ113105.1	Genbank	CDS	56681	56884	.	-	0	ID=cds-AEA06914.1;Parent=gene-LAU_0058;Dbxref=NCBI_GP:AEA06914.1;Name=AEA06914.1;gbkey=CDS;locus_tag=LAU_0058;product=hypothetical protein;protein_id=AEA06914.1
+HQ113105.1	Genbank	gene	56905	57180	.	+	.	ID=gene-LAU_0059;Name=LAU_0059;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0059
+HQ113105.1	Genbank	CDS	56905	57180	.	+	0	ID=cds-AEA06915.1;Parent=gene-LAU_0059;Dbxref=NCBI_GP:AEA06915.1;Name=AEA06915.1;gbkey=CDS;locus_tag=LAU_0059;product=hypothetical protein;protein_id=AEA06915.1
+HQ113105.1	Genbank	gene	57194	57568	.	+	.	ID=gene-LAU_0060;Name=LAU_0060;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0060
+HQ113105.1	Genbank	CDS	57194	57568	.	+	0	ID=cds-AEA06916.1;Parent=gene-LAU_0060;Dbxref=NCBI_GP:AEA06916.1;Name=AEA06916.1;gbkey=CDS;locus_tag=LAU_0060;product=hypothetical protein;protein_id=AEA06916.1
+HQ113105.1	Genbank	gene	57517	58065	.	+	.	ID=gene-LAU_0061;Name=LAU_0061;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0061
+HQ113105.1	Genbank	CDS	57517	58065	.	+	0	ID=cds-AEA06917.1;Parent=gene-LAU_0061;Dbxref=NCBI_GP:AEA06917.1;Name=AEA06917.1;gbkey=CDS;locus_tag=LAU_0061;product=hypothetical protein;protein_id=AEA06917.1
+HQ113105.1	Genbank	gene	58322	58552	.	-	.	ID=gene-LAU_0062;Name=LAU_0062;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0062
+HQ113105.1	Genbank	CDS	58322	58552	.	-	0	ID=cds-AEA06918.1;Parent=gene-LAU_0062;Dbxref=NCBI_GP:AEA06918.1;Name=AEA06918.1;gbkey=CDS;locus_tag=LAU_0062;product=conserved hypothetical protein;protein_id=AEA06918.1
+HQ113105.1	Genbank	gene	58803	59384	.	+	.	ID=gene-LAU_0063;Name=LAU_0063;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0063
+HQ113105.1	Genbank	CDS	58803	59384	.	+	0	ID=cds-AEA06919.1;Parent=gene-LAU_0063;Dbxref=NCBI_GP:AEA06919.1;Name=AEA06919.1;gbkey=CDS;locus_tag=LAU_0063;product=hypothetical protein;protein_id=AEA06919.1
+HQ113105.1	Genbank	gene	59581	60000	.	-	.	ID=gene-LAU_0065;Name=LAU_0065;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0065
+HQ113105.1	Genbank	CDS	59581	60000	.	-	0	ID=cds-AEA06920.1;Parent=gene-LAU_0065;Dbxref=NCBI_GP:AEA06920.1;Name=AEA06920.1;gbkey=CDS;locus_tag=LAU_0065;product=conserved hypothetical protein;protein_id=AEA06920.1
+HQ113105.1	Genbank	gene	60069	60512	.	+	.	ID=gene-LAU_0066;Name=LAU_0066;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0066
+HQ113105.1	Genbank	CDS	60069	60512	.	+	0	ID=cds-AEA06921.1;Parent=gene-LAU_0066;Dbxref=NCBI_GP:AEA06921.1;Name=AEA06921.1;gbkey=CDS;locus_tag=LAU_0066;product=ribonuclease H;protein_id=AEA06921.1
+HQ113105.1	Genbank	gene	60905	61306	.	-	.	ID=gene-LAU_0067;Name=LAU_0067;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0067
+HQ113105.1	Genbank	CDS	60905	61306	.	-	0	ID=cds-AEA06922.1;Parent=gene-LAU_0067;Dbxref=NCBI_GP:AEA06922.1;Name=AEA06922.1;gbkey=CDS;locus_tag=LAU_0067;product=hypothetical protein;protein_id=AEA06922.1
+HQ113105.1	Genbank	gene	61303	61791	.	-	.	ID=gene-LAU_0068;Name=LAU_0068;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0068
+HQ113105.1	Genbank	CDS	61303	61791	.	-	0	ID=cds-AEA06923.1;Parent=gene-LAU_0068;Dbxref=NCBI_GP:AEA06923.1;Name=AEA06923.1;gbkey=CDS;locus_tag=LAU_0068;product=hypothetical protein;protein_id=AEA06923.1
+HQ113105.1	Genbank	gene	61900	62421	.	-	.	ID=gene-LAU_0069;Name=LAU_0069;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0069
+HQ113105.1	Genbank	CDS	61900	62421	.	-	0	ID=cds-AEA06924.1;Parent=gene-LAU_0069;Dbxref=NCBI_GP:AEA06924.1;Name=AEA06924.1;gbkey=CDS;locus_tag=LAU_0069;product=hypothetical protein;protein_id=AEA06924.1
+HQ113105.1	Genbank	gene	62549	63241	.	+	.	ID=gene-LAU_0071;Name=LAU_0071;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0071
+HQ113105.1	Genbank	CDS	62549	63241	.	+	0	ID=cds-AEA06925.1;Parent=gene-LAU_0071;Dbxref=NCBI_GP:AEA06925.1;Name=AEA06925.1;gbkey=CDS;locus_tag=LAU_0071;product=conserved putative membrane protein;protein_id=AEA06925.1
+HQ113105.1	Genbank	gene	63430	64038	.	+	.	ID=gene-LAU_0072;Name=LAU_0072;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0072
+HQ113105.1	Genbank	CDS	63430	64038	.	+	0	ID=cds-AEA06926.1;Parent=gene-LAU_0072;Dbxref=NCBI_GP:AEA06926.1;Name=AEA06926.1;gbkey=CDS;locus_tag=LAU_0072;product=hypothetical protein;protein_id=AEA06926.1
+HQ113105.1	Genbank	gene	64052	64510	.	+	.	ID=gene-LAU_0073;Name=LAU_0073;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0073
+HQ113105.1	Genbank	CDS	64052	64510	.	+	0	ID=cds-AEA06927.1;Parent=gene-LAU_0073;Dbxref=NCBI_GP:AEA06927.1;Name=AEA06927.1;gbkey=CDS;locus_tag=LAU_0073;product=hypothetical protein;protein_id=AEA06927.1
+HQ113105.1	Genbank	gene	64540	65082	.	+	.	ID=gene-LAU_0074;Name=LAU_0074;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0074
+HQ113105.1	Genbank	CDS	64540	65082	.	+	0	ID=cds-AEA06928.1;Parent=gene-LAU_0074;Dbxref=NCBI_GP:AEA06928.1;Name=AEA06928.1;gbkey=CDS;locus_tag=LAU_0074;product=hypothetical protein;protein_id=AEA06928.1
+HQ113105.1	Genbank	gene	65105	65575	.	+	.	ID=gene-LAU_0075;Name=LAU_0075;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0075
+HQ113105.1	Genbank	CDS	65105	65575	.	+	0	ID=cds-AEA06929.1;Parent=gene-LAU_0075;Dbxref=NCBI_GP:AEA06929.1;Name=AEA06929.1;gbkey=CDS;locus_tag=LAU_0075;product=dual specificity protein phosphatase;protein_id=AEA06929.1
+HQ113105.1	Genbank	gene	65577	65912	.	+	.	ID=gene-LAU_0076;Name=LAU_0076;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0076
+HQ113105.1	Genbank	CDS	65577	65912	.	+	0	ID=cds-AEA06930.1;Parent=gene-LAU_0076;Dbxref=NCBI_GP:AEA06930.1;Name=AEA06930.1;gbkey=CDS;locus_tag=LAU_0076;product=hypothetical protein;protein_id=AEA06930.1
+HQ113105.1	Genbank	gene	66008	70432	.	+	.	ID=gene-LAU_0077;Name=LAU_0077;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0077
+HQ113105.1	Genbank	CDS	66008	70432	.	+	0	ID=cds-AEA06931.1;Parent=gene-LAU_0077;Dbxref=NCBI_GP:AEA06931.1;Name=AEA06931.1;gbkey=CDS;locus_tag=LAU_0077;product=serine/threonine-protein kinase;protein_id=AEA06931.1
+HQ113105.1	Genbank	gene	70478	71092	.	+	.	ID=gene-LAU_0078;Name=LAU_0078;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0078
+HQ113105.1	Genbank	CDS	70478	71092	.	+	0	ID=cds-AEA06932.1;Parent=gene-LAU_0078;Dbxref=NCBI_GP:AEA06932.1;Name=AEA06932.1;gbkey=CDS;locus_tag=LAU_0078;product=metal-dependent phosphohydrolase;protein_id=AEA06932.1
+HQ113105.1	Genbank	gene	71111	71782	.	-	.	ID=gene-LAU_0079;Name=LAU_0079;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0079
+HQ113105.1	Genbank	CDS	71111	71782	.	-	0	ID=cds-AEA06933.1;Parent=gene-LAU_0079;Dbxref=NCBI_GP:AEA06933.1;Name=AEA06933.1;gbkey=CDS;locus_tag=LAU_0079;product=conserved hypothetical protein;protein_id=AEA06933.1
+HQ113105.1	Genbank	gene	71841	72725	.	+	.	ID=gene-LAU_0080;Name=LAU_0080;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0080
+HQ113105.1	Genbank	CDS	71841	72725	.	+	0	ID=cds-AEA06934.1;Parent=gene-LAU_0080;Dbxref=NCBI_GP:AEA06934.1;Name=AEA06934.1;gbkey=CDS;locus_tag=LAU_0080;product=hypothetical protein;protein_id=AEA06934.1
+HQ113105.1	Genbank	gene	72731	73417	.	-	.	ID=gene-LAU_0081;Name=LAU_0081;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0081
+HQ113105.1	Genbank	CDS	72731	73417	.	-	0	ID=cds-AEA06935.1;Parent=gene-LAU_0081;Dbxref=NCBI_GP:AEA06935.1;Name=AEA06935.1;gbkey=CDS;locus_tag=LAU_0081;product=conserved hypothetical protein;protein_id=AEA06935.1
+HQ113105.1	Genbank	gene	73455	73850	.	+	.	ID=gene-LAU_0082;Name=LAU_0082;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0082
+HQ113105.1	Genbank	CDS	73455	73850	.	+	0	ID=cds-AEA06936.1;Parent=gene-LAU_0082;Dbxref=NCBI_GP:AEA06936.1;Name=AEA06936.1;gbkey=CDS;locus_tag=LAU_0082;product=hypothetical protein;protein_id=AEA06936.1
+HQ113105.1	Genbank	gene	73910	74200	.	+	.	ID=gene-LAU_0083;Name=LAU_0083;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0083
+HQ113105.1	Genbank	CDS	73910	74200	.	+	0	ID=cds-AEA06937.1;Parent=gene-LAU_0083;Dbxref=NCBI_GP:AEA06937.1;Name=AEA06937.1;gbkey=CDS;locus_tag=LAU_0083;product=conserved hypothetical protein;protein_id=AEA06937.1
+HQ113105.1	Genbank	gene	74395	74850	.	+	.	ID=gene-LAU_0085;Name=LAU_0085;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0085
+HQ113105.1	Genbank	CDS	74395	74850	.	+	0	ID=cds-AEA06938.1;Parent=gene-LAU_0085;Dbxref=NCBI_GP:AEA06938.1;Name=AEA06938.1;gbkey=CDS;locus_tag=LAU_0085;product=hypothetical protein;protein_id=AEA06938.1
+HQ113105.1	Genbank	gene	74864	75223	.	+	.	ID=gene-LAU_0086;Name=LAU_0086;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0086
+HQ113105.1	Genbank	CDS	74864	75223	.	+	0	ID=cds-AEA06939.1;Parent=gene-LAU_0086;Dbxref=NCBI_GP:AEA06939.1;Name=AEA06939.1;gbkey=CDS;locus_tag=LAU_0086;product=hypothetical protein;protein_id=AEA06939.1
+HQ113105.1	Genbank	gene	75220	75663	.	+	.	ID=gene-LAU_0087;Name=LAU_0087;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0087
+HQ113105.1	Genbank	CDS	75220	75663	.	+	0	ID=cds-AEA06940.1;Parent=gene-LAU_0087;Dbxref=NCBI_GP:AEA06940.1;Name=AEA06940.1;gbkey=CDS;locus_tag=LAU_0087;product=hypothetical protein;protein_id=AEA06940.1
+HQ113105.1	Genbank	gene	75715	75993	.	+	.	ID=gene-LAU_0088;Name=LAU_0088;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0088
+HQ113105.1	Genbank	CDS	75715	75993	.	+	0	ID=cds-AEA06941.1;Parent=gene-LAU_0088;Dbxref=NCBI_GP:AEA06941.1;Name=AEA06941.1;gbkey=CDS;locus_tag=LAU_0088;product=conserved hypothetical protein;protein_id=AEA06941.1
+HQ113105.1	Genbank	gene	76045	76932	.	+	.	ID=gene-LAU_0089;Name=LAU_0089;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0089
+HQ113105.1	Genbank	CDS	76045	76932	.	+	0	ID=cds-AEA06942.1;Parent=gene-LAU_0089;Dbxref=NCBI_GP:AEA06942.1;Name=AEA06942.1;gbkey=CDS;locus_tag=LAU_0089;product=conserved hypothetical protein;protein_id=AEA06942.1
+HQ113105.1	Genbank	gene	76981	77199	.	-	.	ID=gene-LAU_0090;Name=LAU_0090;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0090
+HQ113105.1	Genbank	CDS	76981	77199	.	-	0	ID=cds-AEA06943.1;Parent=gene-LAU_0090;Dbxref=NCBI_GP:AEA06943.1;Name=AEA06943.1;gbkey=CDS;locus_tag=LAU_0090;product=hypothetical protein;protein_id=AEA06943.1
+HQ113105.1	Genbank	gene	77296	77454	.	-	.	ID=gene-LAU_0091;Name=LAU_0091;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0091
+HQ113105.1	Genbank	CDS	77296	77454	.	-	0	ID=cds-AEA06944.1;Parent=gene-LAU_0091;Dbxref=NCBI_GP:AEA06944.1;Name=AEA06944.1;gbkey=CDS;locus_tag=LAU_0091;product=hypothetical protein;protein_id=AEA06944.1
+HQ113105.1	Genbank	gene	77532	77828	.	+	.	ID=gene-LAU_0092;Name=LAU_0092;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0092
+HQ113105.1	Genbank	CDS	77532	77828	.	+	0	ID=cds-AEA06945.1;Parent=gene-LAU_0092;Dbxref=NCBI_GP:AEA06945.1;Name=AEA06945.1;gbkey=CDS;locus_tag=LAU_0092;product=hypothetical protein;protein_id=AEA06945.1
+HQ113105.1	Genbank	gene	77927	78355	.	+	.	ID=gene-LAU_0093;Name=LAU_0093;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0093
+HQ113105.1	Genbank	CDS	77927	78355	.	+	0	ID=cds-AEA06946.1;Parent=gene-LAU_0093;Dbxref=NCBI_GP:AEA06946.1;Name=AEA06946.1;gbkey=CDS;locus_tag=LAU_0093;product=hypothetical protein;protein_id=AEA06946.1
+HQ113105.1	Genbank	gene	78342	78620	.	-	.	ID=gene-LAU_0094;Name=LAU_0094;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0094
+HQ113105.1	Genbank	CDS	78342	78620	.	-	0	ID=cds-AEA06947.1;Parent=gene-LAU_0094;Dbxref=NCBI_GP:AEA06947.1;Name=AEA06947.1;gbkey=CDS;locus_tag=LAU_0094;product=hypothetical protein;protein_id=AEA06947.1
+HQ113105.1	Genbank	gene	78642	79025	.	-	.	ID=gene-LAU_0095;Name=LAU_0095;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0095
+HQ113105.1	Genbank	CDS	78642	79025	.	-	0	ID=cds-AEA06948.1;Parent=gene-LAU_0095;Dbxref=NCBI_GP:AEA06948.1;Name=AEA06948.1;gbkey=CDS;locus_tag=LAU_0095;product=hypothetical protein;protein_id=AEA06948.1
+HQ113105.1	Genbank	gene	79077	79427	.	+	.	ID=gene-LAU_0096;Name=LAU_0096;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0096
+HQ113105.1	Genbank	CDS	79077	79427	.	+	0	ID=cds-AEA06949.1;Parent=gene-LAU_0096;Dbxref=NCBI_GP:AEA06949.1;Name=AEA06949.1;gbkey=CDS;locus_tag=LAU_0096;product=hypothetical protein;protein_id=AEA06949.1
+HQ113105.1	Genbank	gene	79690	80967	.	-	.	ID=gene-LAU_0097;Name=LAU_0097;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0097
+HQ113105.1	Genbank	CDS	79690	80967	.	-	0	ID=cds-AEA06950.1;Parent=gene-LAU_0097;Dbxref=NCBI_GP:AEA06950.1;Name=AEA06950.1;gbkey=CDS;locus_tag=LAU_0097;product=putative restriction endonuclease;protein_id=AEA06950.1
+HQ113105.1	Genbank	gene	81040	81405	.	+	.	ID=gene-LAU_0098;Name=dut;gbkey=Gene;gene=dut;gene_biotype=protein_coding;locus_tag=LAU_0098
+HQ113105.1	Genbank	CDS	81040	81405	.	+	0	ID=cds-AEA06951.1;Parent=gene-LAU_0098;Dbxref=NCBI_GP:AEA06951.1;Name=AEA06951.1;gbkey=CDS;gene=dut;locus_tag=LAU_0098;product=deoxyuridine 5'-triphosphate nucleotidohydrolase;protein_id=AEA06951.1
+HQ113105.1	Genbank	gene	81425	81934	.	-	.	ID=gene-LAU_0099;Name=LAU_0099;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0099
+HQ113105.1	Genbank	CDS	81425	81934	.	-	0	ID=cds-AEA06952.1;Parent=gene-LAU_0099;Dbxref=NCBI_GP:AEA06952.1;Name=AEA06952.1;gbkey=CDS;locus_tag=LAU_0099;product=conserved hypothetical protein;protein_id=AEA06952.1
+HQ113105.1	Genbank	gene	82287	82469	.	+	.	ID=gene-LAU_0101;Name=LAU_0101;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0101
+HQ113105.1	Genbank	CDS	82287	82469	.	+	0	ID=cds-AEA06953.1;Parent=gene-LAU_0101;Dbxref=NCBI_GP:AEA06953.1;Name=AEA06953.1;gbkey=CDS;locus_tag=LAU_0101;product=putative membrane protein;protein_id=AEA06953.1
+HQ113105.1	Genbank	gene	82495	82782	.	-	.	ID=gene-LAU_0102;Name=LAU_0102;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0102
+HQ113105.1	Genbank	CDS	82495	82782	.	-	0	ID=cds-AEA06954.1;Parent=gene-LAU_0102;Dbxref=NCBI_GP:AEA06954.1;Name=AEA06954.1;gbkey=CDS;locus_tag=LAU_0102;product=conserved hypothetical protein;protein_id=AEA06954.1
+HQ113105.1	Genbank	gene	82767	83381	.	-	.	ID=gene-LAU_0103;Name=LAU_0103;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0103
+HQ113105.1	Genbank	CDS	82767	83381	.	-	0	ID=cds-AEA06955.1;Parent=gene-LAU_0103;Dbxref=NCBI_GP:AEA06955.1;Name=AEA06955.1;gbkey=CDS;locus_tag=LAU_0103;product=hypothetical protein;protein_id=AEA06955.1
+HQ113105.1	Genbank	gene	83406	83918	.	+	.	ID=gene-LAU_0104;Name=LAU_0104;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0104
+HQ113105.1	Genbank	CDS	83406	83918	.	+	0	ID=cds-AEA06956.1;Parent=gene-LAU_0104;Dbxref=NCBI_GP:AEA06956.1;Name=AEA06956.1;gbkey=CDS;locus_tag=LAU_0104;product=conserved hypothetical protein;protein_id=AEA06956.1
+HQ113105.1	Genbank	gene	83954	84433	.	+	.	ID=gene-LAU_0105;Name=LAU_0105;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0105
+HQ113105.1	Genbank	CDS	83954	84433	.	+	0	ID=cds-AEA06957.1;Parent=gene-LAU_0105;Dbxref=NCBI_GP:AEA06957.1;Name=AEA06957.1;gbkey=CDS;locus_tag=LAU_0105;product=hypothetical protein;protein_id=AEA06957.1
+HQ113105.1	Genbank	gene	84458	84661	.	+	.	ID=gene-LAU_0106;Name=LAU_0106;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0106
+HQ113105.1	Genbank	CDS	84458	84661	.	+	0	ID=cds-AEA06958.1;Parent=gene-LAU_0106;Dbxref=NCBI_GP:AEA06958.1;Name=AEA06958.1;gbkey=CDS;locus_tag=LAU_0106;product=putative membrane protein;protein_id=AEA06958.1
+HQ113105.1	Genbank	gene	84700	84999	.	+	.	ID=gene-LAU_0107;Name=LAU_0107;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0107
+HQ113105.1	Genbank	CDS	84700	84999	.	+	0	ID=cds-AEA06959.1;Parent=gene-LAU_0107;Dbxref=NCBI_GP:AEA06959.1;Name=AEA06959.1;gbkey=CDS;locus_tag=LAU_0107;product=putative membrane protein;protein_id=AEA06959.1
+HQ113105.1	Genbank	gene	85017	86024	.	-	.	ID=gene-LAU_0108;Name=LAU_0108;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0108
+HQ113105.1	Genbank	CDS	85017	86024	.	-	0	ID=cds-AEA06960.1;Parent=gene-LAU_0108;Dbxref=NCBI_GP:AEA06960.1;Name=AEA06960.1;gbkey=CDS;locus_tag=LAU_0108;product=putative glycosyltransferase;protein_id=AEA06960.1
+HQ113105.1	Genbank	gene	86059	86532	.	-	.	ID=gene-LAU_0109;Name=LAU_0109;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0109
+HQ113105.1	Genbank	CDS	86059	86532	.	-	0	ID=cds-AEA06961.1;Parent=gene-LAU_0109;Dbxref=NCBI_GP:AEA06961.1;Name=AEA06961.1;gbkey=CDS;locus_tag=LAU_0109;product=conserved hypothetical protein;protein_id=AEA06961.1
+HQ113105.1	Genbank	gene	86539	86907	.	+	.	ID=gene-LAU_0110;Name=LAU_0110;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0110
+HQ113105.1	Genbank	CDS	86539	86907	.	+	0	ID=cds-AEA06962.1;Parent=gene-LAU_0110;Dbxref=NCBI_GP:AEA06962.1;Name=AEA06962.1;gbkey=CDS;locus_tag=LAU_0110;product=conserved putative secreted protein;protein_id=AEA06962.1
+HQ113105.1	Genbank	gene	86912	87361	.	-	.	ID=gene-LAU_0111;Name=LAU_0111;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0111
+HQ113105.1	Genbank	CDS	86912	87361	.	-	0	ID=cds-AEA06963.1;Parent=gene-LAU_0111;Dbxref=NCBI_GP:AEA06963.1;Name=AEA06963.1;gbkey=CDS;locus_tag=LAU_0111;product=hypothetical protein;protein_id=AEA06963.1
+HQ113105.1	Genbank	gene	87393	88175	.	-	.	ID=gene-LAU_0112;Name=LAU_0112;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0112
+HQ113105.1	Genbank	CDS	87393	88175	.	-	0	ID=cds-AEA06964.1;Parent=gene-LAU_0112;Dbxref=NCBI_GP:AEA06964.1;Name=AEA06964.1;gbkey=CDS;locus_tag=LAU_0112;product=ankyrin repeat-containing protein;protein_id=AEA06964.1
+HQ113105.1	Genbank	gene	88162	89430	.	-	.	ID=gene-LAU_0113;Name=LAU_0113;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0113
+HQ113105.1	Genbank	CDS	88162	89430	.	-	0	ID=cds-AEA06965.1;Parent=gene-LAU_0113;Dbxref=NCBI_GP:AEA06965.1;Name=AEA06965.1;gbkey=CDS;locus_tag=LAU_0113;product=ATP-dependent DNA ligase;protein_id=AEA06965.1
+HQ113105.1	Genbank	gene	89463	89894	.	-	.	ID=gene-LAU_0114;Name=LAU_0114;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0114
+HQ113105.1	Genbank	CDS	89463	89894	.	-	0	ID=cds-AEA06966.1;Parent=gene-LAU_0114;Dbxref=NCBI_GP:AEA06966.1;Name=AEA06966.1;gbkey=CDS;locus_tag=LAU_0114;product=hypothetical protein;protein_id=AEA06966.1
+HQ113105.1	Genbank	gene	89891	90193	.	-	.	ID=gene-LAU_0115;Name=LAU_0115;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0115
+HQ113105.1	Genbank	CDS	89891	90193	.	-	0	ID=cds-AEA06967.1;Parent=gene-LAU_0115;Dbxref=NCBI_GP:AEA06967.1;Name=AEA06967.1;gbkey=CDS;locus_tag=LAU_0115;product=putative membrane protein;protein_id=AEA06967.1
+HQ113105.1	Genbank	gene	90165	90596	.	-	.	ID=gene-LAU_0116;Name=LAU_0116;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0116
+HQ113105.1	Genbank	CDS	90165	90596	.	-	0	ID=cds-AEA06968.1;Parent=gene-LAU_0116;Dbxref=NCBI_GP:AEA06968.1;Name=AEA06968.1;gbkey=CDS;locus_tag=LAU_0116;product=hypothetical protein;protein_id=AEA06968.1
+HQ113105.1	Genbank	gene	90597	92039	.	-	.	ID=gene-LAU_0117;Name=LAU_0117;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0117
+HQ113105.1	Genbank	CDS	90597	92039	.	-	0	ID=cds-AEA06969.1;Parent=gene-LAU_0117;Dbxref=NCBI_GP:AEA06969.1;Name=AEA06969.1;gbkey=CDS;locus_tag=LAU_0117;product=autotransporter adhesin;protein_id=AEA06969.1
+HQ113105.1	Genbank	gene	92054	92962	.	-	.	ID=gene-LAU_0118;Name=LAU_0118;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0118
+HQ113105.1	Genbank	CDS	92054	92962	.	-	0	ID=cds-AEA06970.1;Parent=gene-LAU_0118;Dbxref=NCBI_GP:AEA06970.1;Name=AEA06970.1;gbkey=CDS;locus_tag=LAU_0118;product=conserved hypothetical protein;protein_id=AEA06970.1
+HQ113105.1	Genbank	gene	92969	93604	.	+	.	ID=gene-LAU_0119;Name=LAU_0119;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0119
+HQ113105.1	Genbank	CDS	92969	93604	.	+	0	ID=cds-AEA06971.1;Parent=gene-LAU_0119;Dbxref=NCBI_GP:AEA06971.1;Name=AEA06971.1;gbkey=CDS;locus_tag=LAU_0119;product=conserved putative membrane protein;protein_id=AEA06971.1
+HQ113105.1	Genbank	gene	93623	93967	.	-	.	ID=gene-LAU_0120;Name=LAU_0120;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0120
+HQ113105.1	Genbank	CDS	93623	93967	.	-	0	ID=cds-AEA06972.1;Parent=gene-LAU_0120;Dbxref=NCBI_GP:AEA06972.1;Name=AEA06972.1;gbkey=CDS;locus_tag=LAU_0120;product=hypothetical protein;protein_id=AEA06972.1
+HQ113105.1	Genbank	gene	94120	94911	.	+	.	ID=gene-LAU_0121;Name=LAU_0121;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0121
+HQ113105.1	Genbank	CDS	94120	94911	.	+	0	ID=cds-AEA06973.1;Parent=gene-LAU_0121;Dbxref=NCBI_GP:AEA06973.1;Name=AEA06973.1;gbkey=CDS;locus_tag=LAU_0121;product=hypothetical protein;protein_id=AEA06973.1
+HQ113105.1	Genbank	gene	94886	95464	.	+	.	ID=gene-LAU_0122;Name=LAU_0122;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0122
+HQ113105.1	Genbank	CDS	94886	95464	.	+	0	ID=cds-AEA06974.1;Parent=gene-LAU_0122;Dbxref=NCBI_GP:AEA06974.1;Name=AEA06974.1;gbkey=CDS;locus_tag=LAU_0122;product=hypothetical protein;protein_id=AEA06974.1
+HQ113105.1	Genbank	gene	95554	95799	.	-	.	ID=gene-LAU_0124;Name=LAU_0124;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0124
+HQ113105.1	Genbank	CDS	95554	95799	.	-	0	ID=cds-AEA06975.1;Parent=gene-LAU_0124;Dbxref=NCBI_GP:AEA06975.1;Name=AEA06975.1;gbkey=CDS;locus_tag=LAU_0124;product=putative nucleoside deaminase;protein_id=AEA06975.1
+HQ113105.1	Genbank	gene	95854	96324	.	+	.	ID=gene-LAU_0125;Name=LAU_0125;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0125
+HQ113105.1	Genbank	CDS	95854	96324	.	+	0	ID=cds-AEA06976.1;Parent=gene-LAU_0125;Dbxref=NCBI_GP:AEA06976.1;Name=AEA06976.1;gbkey=CDS;locus_tag=LAU_0125;product=hypothetical protein;protein_id=AEA06976.1
+HQ113105.1	Genbank	gene	96350	96631	.	+	.	ID=gene-LAU_0126;Name=LAU_0126;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0126
+HQ113105.1	Genbank	CDS	96350	96631	.	+	0	ID=cds-AEA06977.1;Parent=gene-LAU_0126;Dbxref=NCBI_GP:AEA06977.1;Name=AEA06977.1;gbkey=CDS;locus_tag=LAU_0126;product=hypothetical protein;protein_id=AEA06977.1
+HQ113105.1	Genbank	gene	96642	96857	.	-	.	ID=gene-LAU_0127;Name=LAU_0127;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0127
+HQ113105.1	Genbank	CDS	96642	96857	.	-	0	ID=cds-AEA06978.1;Parent=gene-LAU_0127;Dbxref=NCBI_GP:AEA06978.1;Name=AEA06978.1;gbkey=CDS;locus_tag=LAU_0127;product=hypothetical protein;protein_id=AEA06978.1
+HQ113105.1	Genbank	gene	96854	97129	.	-	.	ID=gene-LAU_0128;Name=LAU_0128;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0128
+HQ113105.1	Genbank	CDS	96854	97129	.	-	0	ID=cds-AEA06979.1;Parent=gene-LAU_0128;Dbxref=NCBI_GP:AEA06979.1;Name=AEA06979.1;gbkey=CDS;locus_tag=LAU_0128;product=hypothetical protein;protein_id=AEA06979.1
+HQ113105.1	Genbank	gene	97135	97563	.	+	.	ID=gene-LAU_0129;Name=LAU_0129;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0129
+HQ113105.1	Genbank	CDS	97135	97563	.	+	0	ID=cds-AEA06980.1;Parent=gene-LAU_0129;Dbxref=NCBI_GP:AEA06980.1;Name=AEA06980.1;gbkey=CDS;locus_tag=LAU_0129;product=conserved hypothetical protein;protein_id=AEA06980.1
+HQ113105.1	Genbank	gene	97581	98618	.	+	.	ID=gene-LAU_0130;Name=LAU_0130;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0130
+HQ113105.1	Genbank	CDS	97581	98618	.	+	0	ID=cds-AEA06981.1;Parent=gene-LAU_0130;Dbxref=NCBI_GP:AEA06981.1;Name=AEA06981.1;gbkey=CDS;locus_tag=LAU_0130;product=putative serine/threonine protein kinase;protein_id=AEA06981.1
+HQ113105.1	Genbank	gene	98637	100013	.	+	.	ID=gene-LAU_0131;Name=LAU_0131;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0131
+HQ113105.1	Genbank	CDS	98637	100013	.	+	0	ID=cds-AEA06982.1;Parent=gene-LAU_0131;Dbxref=NCBI_GP:AEA06982.1;Name=AEA06982.1;gbkey=CDS;locus_tag=LAU_0131;product=putative amine oxidase;protein_id=AEA06982.1
+HQ113105.1	Genbank	gene	100026	100472	.	+	.	ID=gene-LAU_0132;Name=LAU_0132;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0132
+HQ113105.1	Genbank	CDS	100026	100472	.	+	0	ID=cds-AEA06983.1;Parent=gene-LAU_0132;Dbxref=NCBI_GP:AEA06983.1;Name=AEA06983.1;gbkey=CDS;locus_tag=LAU_0132;product=hypothetical protein;protein_id=AEA06983.1
+HQ113105.1	Genbank	gene	100481	100696	.	+	.	ID=gene-LAU_0133;Name=LAU_0133;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0133
+HQ113105.1	Genbank	CDS	100481	100696	.	+	0	ID=cds-AEA06984.1;Parent=gene-LAU_0133;Dbxref=NCBI_GP:AEA06984.1;Name=AEA06984.1;gbkey=CDS;locus_tag=LAU_0133;product=hypothetical protein;protein_id=AEA06984.1
+HQ113105.1	Genbank	gene	100723	101373	.	+	.	ID=gene-LAU_0134;Name=LAU_0134;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0134
+HQ113105.1	Genbank	CDS	100723	101373	.	+	0	ID=cds-AEA06985.1;Parent=gene-LAU_0134;Dbxref=NCBI_GP:AEA06985.1;Name=AEA06985.1;gbkey=CDS;locus_tag=LAU_0134;product=putative serine/threonine protein kinase;protein_id=AEA06985.1
+HQ113105.1	Genbank	gene	101434	102630	.	+	.	ID=gene-LAU_0135;Name=LAU_0135;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0135
+HQ113105.1	Genbank	CDS	101434	102630	.	+	0	ID=cds-AEA06986.1;Parent=gene-LAU_0135;Dbxref=NCBI_GP:AEA06986.1;Name=AEA06986.1;gbkey=CDS;locus_tag=LAU_0135;product=conserved hypothetical protein;protein_id=AEA06986.1
+HQ113105.1	Genbank	gene	102649	103338	.	-	.	ID=gene-LAU_0136;Name=LAU_0136;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0136
+HQ113105.1	Genbank	CDS	102649	103338	.	-	0	ID=cds-AEA06987.1;Parent=gene-LAU_0136;Dbxref=NCBI_GP:AEA06987.1;Name=AEA06987.1;gbkey=CDS;locus_tag=LAU_0136;product=hypothetical protein;protein_id=AEA06987.1
+HQ113105.1	Genbank	gene	103359	105695	.	-	.	ID=gene-LAU_0137;Name=LAU_0137;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0137
+HQ113105.1	Genbank	CDS	103359	105695	.	-	0	ID=cds-AEA06988.1;Parent=gene-LAU_0137;Dbxref=NCBI_GP:AEA06988.1;Name=AEA06988.1;Note=involved in DNA repair;gbkey=CDS;locus_tag=LAU_0137;product=putative ATPase;protein_id=AEA06988.1
+HQ113105.1	Genbank	gene	105729	106460	.	-	.	ID=gene-LAU_0138;Name=LAU_0138;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0138
+HQ113105.1	Genbank	CDS	105729	106460	.	-	0	ID=cds-AEA06989.1;Parent=gene-LAU_0138;Dbxref=NCBI_GP:AEA06989.1;Name=AEA06989.1;gbkey=CDS;locus_tag=LAU_0138;product=hypothetical protein;protein_id=AEA06989.1
+HQ113105.1	Genbank	gene	106429	106749	.	+	.	ID=gene-LAU_0139;Name=LAU_0139;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0139
+HQ113105.1	Genbank	CDS	106429	106749	.	+	0	ID=cds-AEA06990.1;Parent=gene-LAU_0139;Dbxref=NCBI_GP:AEA06990.1;Name=AEA06990.1;gbkey=CDS;locus_tag=LAU_0139;product=conserved hypothetical protein;protein_id=AEA06990.1
+HQ113105.1	Genbank	gene	106758	107093	.	+	.	ID=gene-LAU_0140;Name=LAU_0140;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0140
+HQ113105.1	Genbank	CDS	106758	107093	.	+	0	ID=cds-AEA06991.1;Parent=gene-LAU_0140;Dbxref=NCBI_GP:AEA06991.1;Name=AEA06991.1;gbkey=CDS;locus_tag=LAU_0140;product=conserved hypothetical protein;protein_id=AEA06991.1
+HQ113105.1	Genbank	gene	107342	107770	.	+	.	ID=gene-LAU_0141;Name=LAU_0141;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0141
+HQ113105.1	Genbank	CDS	107342	107770	.	+	0	ID=cds-AEA06992.1;Parent=gene-LAU_0141;Dbxref=NCBI_GP:AEA06992.1;Name=AEA06992.1;gbkey=CDS;locus_tag=LAU_0141;product=conserved hypothetical protein;protein_id=AEA06992.1
+HQ113105.1	Genbank	gene	107785	108240	.	-	.	ID=gene-LAU_0142;Name=LAU_0142;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0142
+HQ113105.1	Genbank	CDS	107785	108240	.	-	0	ID=cds-AEA06993.1;Parent=gene-LAU_0142;Dbxref=NCBI_GP:AEA06993.1;Name=AEA06993.1;gbkey=CDS;locus_tag=LAU_0142;product=hypothetical protein;protein_id=AEA06993.1
+HQ113105.1	Genbank	gene	108275	108940	.	+	.	ID=gene-LAU_0143;Name=LAU_0143;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0143
+HQ113105.1	Genbank	CDS	108275	108940	.	+	0	ID=cds-AEA06994.1;Parent=gene-LAU_0143;Dbxref=NCBI_GP:AEA06994.1;Name=AEA06994.1;gbkey=CDS;locus_tag=LAU_0143;product=conserved hypothetical protein;protein_id=AEA06994.1
+HQ113105.1	Genbank	gene	109148	109654	.	-	.	ID=gene-LAU_0144;Name=LAU_0144;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0144
+HQ113105.1	Genbank	CDS	109148	109654	.	-	0	ID=cds-AEA06995.1;Parent=gene-LAU_0144;Dbxref=NCBI_GP:AEA06995.1;Name=AEA06995.1;gbkey=CDS;locus_tag=LAU_0144;product=hypothetical protein;protein_id=AEA06995.1
+HQ113105.1	Genbank	gene	109688	110131	.	-	.	ID=gene-LAU_0145;Name=LAU_0145;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0145
+HQ113105.1	Genbank	CDS	109688	110131	.	-	0	ID=cds-AEA06996.1;Parent=gene-LAU_0145;Dbxref=NCBI_GP:AEA06996.1;Name=AEA06996.1;gbkey=CDS;locus_tag=LAU_0145;product=hypothetical protein;protein_id=AEA06996.1
+HQ113105.1	Genbank	gene	110134	110706	.	-	.	ID=gene-LAU_0146;Name=LAU_0146;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0146
+HQ113105.1	Genbank	CDS	110134	110706	.	-	0	ID=cds-AEA06997.1;Parent=gene-LAU_0146;Dbxref=NCBI_GP:AEA06997.1;Name=AEA06997.1;gbkey=CDS;locus_tag=LAU_0146;product=hypothetical protein;protein_id=AEA06997.1
+HQ113105.1	Genbank	gene	110817	111503	.	-	.	ID=gene-LAU_0147;Name=LAU_0147;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0147
+HQ113105.1	Genbank	CDS	110817	111503	.	-	0	ID=cds-AEA06998.1;Parent=gene-LAU_0147;Dbxref=NCBI_GP:AEA06998.1;Name=AEA06998.1;gbkey=CDS;locus_tag=LAU_0147;product=hypothetical protein;protein_id=AEA06998.1
+HQ113105.1	Genbank	gene	111806	112483	.	-	.	ID=gene-LAU_0148;Name=LAU_0148;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0148
+HQ113105.1	Genbank	CDS	111806	112483	.	-	0	ID=cds-AEA06999.1;Parent=gene-LAU_0148;Dbxref=NCBI_GP:AEA06999.1;Name=AEA06999.1;gbkey=CDS;locus_tag=LAU_0148;product=hypothetical protein;protein_id=AEA06999.1
+HQ113105.1	Genbank	gene	112517	112795	.	-	.	ID=gene-LAU_0149;Name=LAU_0149;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0149
+HQ113105.1	Genbank	CDS	112517	112795	.	-	0	ID=cds-AEA07000.1;Parent=gene-LAU_0149;Dbxref=NCBI_GP:AEA07000.1;Name=AEA07000.1;gbkey=CDS;locus_tag=LAU_0149;product=hypothetical protein;protein_id=AEA07000.1
+HQ113105.1	Genbank	gene	112868	113116	.	-	.	ID=gene-LAU_0150;Name=LAU_0150;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0150
+HQ113105.1	Genbank	CDS	112868	113116	.	-	0	ID=cds-AEA07001.1;Parent=gene-LAU_0150;Dbxref=NCBI_GP:AEA07001.1;Name=AEA07001.1;gbkey=CDS;locus_tag=LAU_0150;product=hypothetical protein;protein_id=AEA07001.1
+HQ113105.1	Genbank	gene	113142	113633	.	+	.	ID=gene-LAU_0151;Name=LAU_0151;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0151
+HQ113105.1	Genbank	CDS	113142	113633	.	+	0	ID=cds-AEA07002.1;Parent=gene-LAU_0151;Dbxref=NCBI_GP:AEA07002.1;Name=AEA07002.1;gbkey=CDS;locus_tag=LAU_0151;product=hypothetical protein;protein_id=AEA07002.1
+HQ113105.1	Genbank	gene	113630	114244	.	-	.	ID=gene-LAU_0152;Name=LAU_0152;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0152
+HQ113105.1	Genbank	CDS	113630	114244	.	-	0	ID=cds-AEA07003.1;Parent=gene-LAU_0152;Dbxref=NCBI_GP:AEA07003.1;Name=AEA07003.1;gbkey=CDS;locus_tag=LAU_0152;product=hypothetical protein;protein_id=AEA07003.1
+HQ113105.1	Genbank	gene	114263	114700	.	-	.	ID=gene-LAU_0153;Name=LAU_0153;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0153
+HQ113105.1	Genbank	CDS	114263	114700	.	-	0	ID=cds-AEA07004.1;Parent=gene-LAU_0153;Dbxref=NCBI_GP:AEA07004.1;Name=AEA07004.1;gbkey=CDS;locus_tag=LAU_0153;product=hypothetical protein;protein_id=AEA07004.1
+HQ113105.1	Genbank	gene	114669	115514	.	+	.	ID=gene-LAU_0154;Name=LAU_0154;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0154
+HQ113105.1	Genbank	CDS	114669	115514	.	+	0	ID=cds-AEA07005.1;Parent=gene-LAU_0154;Dbxref=NCBI_GP:AEA07005.1;Name=AEA07005.1;gbkey=CDS;locus_tag=LAU_0154;product=putative serine/threonine protein kinase;protein_id=AEA07005.1
+HQ113105.1	Genbank	gene	115526	116074	.	+	.	ID=gene-LAU_0155;Name=LAU_0155;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0155
+HQ113105.1	Genbank	CDS	115526	116074	.	+	0	ID=cds-AEA07006.1;Parent=gene-LAU_0155;Dbxref=NCBI_GP:AEA07006.1;Name=AEA07006.1;gbkey=CDS;locus_tag=LAU_0155;product=hypothetical protein;protein_id=AEA07006.1
+HQ113105.1	Genbank	gene	116090	116527	.	+	.	ID=gene-LAU_0156;Name=LAU_0156;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0156
+HQ113105.1	Genbank	CDS	116090	116527	.	+	0	ID=cds-AEA07007.1;Parent=gene-LAU_0156;Dbxref=NCBI_GP:AEA07007.1;Name=AEA07007.1;gbkey=CDS;locus_tag=LAU_0156;product=hypothetical protein;protein_id=AEA07007.1
+HQ113105.1	Genbank	gene	116574	117008	.	+	.	ID=gene-LAU_0157;Name=LAU_0157;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0157
+HQ113105.1	Genbank	CDS	116574	117008	.	+	0	ID=cds-AEA07008.1;Parent=gene-LAU_0157;Dbxref=NCBI_GP:AEA07008.1;Name=AEA07008.1;gbkey=CDS;locus_tag=LAU_0157;product=hypothetical protein;protein_id=AEA07008.1
+HQ113105.1	Genbank	gene	117019	117234	.	-	.	ID=gene-LAU_0158;Name=LAU_0158;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0158
+HQ113105.1	Genbank	CDS	117019	117234	.	-	0	ID=cds-AEA07009.1;Parent=gene-LAU_0158;Dbxref=NCBI_GP:AEA07009.1;Name=AEA07009.1;gbkey=CDS;locus_tag=LAU_0158;product=hypothetical protein;protein_id=AEA07009.1
+HQ113105.1	Genbank	gene	117238	117540	.	-	.	ID=gene-LAU_0159;Name=LAU_0159;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0159
+HQ113105.1	Genbank	CDS	117238	117540	.	-	0	ID=cds-AEA07010.1;Parent=gene-LAU_0159;Dbxref=NCBI_GP:AEA07010.1;Name=AEA07010.1;gbkey=CDS;locus_tag=LAU_0159;product=hypothetical protein;protein_id=AEA07010.1
+HQ113105.1	Genbank	gene	117513	118766	.	-	.	ID=gene-LAU_0160;Name=LAU_0160;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0160
+HQ113105.1	Genbank	CDS	117513	118766	.	-	0	ID=cds-AEA07011.1;Parent=gene-LAU_0160;Dbxref=NCBI_GP:AEA07011.1;Name=AEA07011.1;gbkey=CDS;locus_tag=LAU_0160;product=putative restriction endonuclease;protein_id=AEA07011.1
+HQ113105.1	Genbank	gene	118918	119700	.	+	.	ID=gene-LAU_0161;Name=LAU_0161;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0161
+HQ113105.1	Genbank	CDS	118918	119700	.	+	0	ID=cds-AEA07012.1;Parent=gene-LAU_0161;Dbxref=NCBI_GP:AEA07012.1;Name=AEA07012.1;gbkey=CDS;locus_tag=LAU_0161;product=putative A32-like packaging ATPase;protein_id=AEA07012.1
+HQ113105.1	Genbank	gene	119723	120313	.	-	.	ID=gene-LAU_0162;Name=LAU_0162;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0162
+HQ113105.1	Genbank	CDS	119723	120313	.	-	0	ID=cds-AEA07013.1;Parent=gene-LAU_0162;Dbxref=NCBI_GP:AEA07013.1;Name=AEA07013.1;gbkey=CDS;locus_tag=LAU_0162;product=hypothetical protein;protein_id=AEA07013.1
+HQ113105.1	Genbank	gene	120558	121376	.	-	.	ID=gene-LAU_0163;Name=LAU_0163;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0163
+HQ113105.1	Genbank	CDS	120558	121376	.	-	0	ID=cds-AEA07014.1;Parent=gene-LAU_0163;Dbxref=NCBI_GP:AEA07014.1;Name=AEA07014.1;gbkey=CDS;locus_tag=LAU_0163;product=conserved hypothetical protein;protein_id=AEA07014.1
+HQ113105.1	Genbank	gene	121479	124187	.	+	.	ID=gene-LAU_0164;Name=LAU_0164;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0164
+HQ113105.1	Genbank	CDS	121479	124187	.	+	0	ID=cds-AEA07015.1;Parent=gene-LAU_0164;Dbxref=NCBI_GP:AEA07015.1;Name=AEA07015.1;gbkey=CDS;locus_tag=LAU_0164;product=putative primase;protein_id=AEA07015.1
+HQ113105.1	Genbank	gene	124212	124487	.	-	.	ID=gene-LAU_0165;Name=LAU_0165;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0165
+HQ113105.1	Genbank	CDS	124212	124487	.	-	0	ID=cds-AEA07016.1;Parent=gene-LAU_0165;Dbxref=NCBI_GP:AEA07016.1;Name=AEA07016.1;gbkey=CDS;locus_tag=LAU_0165;product=hypothetical protein;protein_id=AEA07016.1
+HQ113105.1	Genbank	gene	124541	124966	.	-	.	ID=gene-LAU_0166;Name=LAU_0166;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0166
+HQ113105.1	Genbank	CDS	124541	124966	.	-	0	ID=cds-AEA07017.1;Parent=gene-LAU_0166;Dbxref=NCBI_GP:AEA07017.1;Name=AEA07017.1;gbkey=CDS;locus_tag=LAU_0166;product=hypothetical protein;protein_id=AEA07017.1
+HQ113105.1	Genbank	gene	125023	126177	.	+	.	ID=gene-LAU_0167;Name=ERF1;gbkey=Gene;gene=ERF1;gene_biotype=protein_coding;locus_tag=LAU_0167
+HQ113105.1	Genbank	CDS	125023	126177	.	+	0	ID=cds-AEA07018.1;Parent=gene-LAU_0167;Dbxref=NCBI_GP:AEA07018.1;Name=AEA07018.1;gbkey=CDS;gene=ERF1;locus_tag=LAU_0167;product=eukaryotic peptide chain release factor subunit 1;protein_id=AEA07018.1
+HQ113105.1	Genbank	gene	126199	126441	.	+	.	ID=gene-LAU_0168;Name=LAU_0168;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0168
+HQ113105.1	Genbank	CDS	126199	126441	.	+	0	ID=cds-AEA07019.1;Parent=gene-LAU_0168;Dbxref=NCBI_GP:AEA07019.1;Name=AEA07019.1;gbkey=CDS;locus_tag=LAU_0168;product=hypothetical protein;protein_id=AEA07019.1
+HQ113105.1	Genbank	gene	126456	126695	.	-	.	ID=gene-LAU_0169;Name=LAU_0169;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0169
+HQ113105.1	Genbank	CDS	126456	126695	.	-	0	ID=cds-AEA07020.1;Parent=gene-LAU_0169;Dbxref=NCBI_GP:AEA07020.1;Name=AEA07020.1;gbkey=CDS;locus_tag=LAU_0169;product=hypothetical protein;protein_id=AEA07020.1
+HQ113105.1	Genbank	gene	126725	126967	.	-	.	ID=gene-LAU_0170;Name=LAU_0170;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0170
+HQ113105.1	Genbank	CDS	126725	126967	.	-	0	ID=cds-AEA07021.1;Parent=gene-LAU_0170;Dbxref=NCBI_GP:AEA07021.1;Name=AEA07021.1;gbkey=CDS;locus_tag=LAU_0170;product=hypothetical protein;protein_id=AEA07021.1
+HQ113105.1	Genbank	gene	127077	127451	.	+	.	ID=gene-LAU_0171;Name=LAU_0171;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0171
+HQ113105.1	Genbank	CDS	127077	127451	.	+	0	ID=cds-AEA07022.1;Parent=gene-LAU_0171;Dbxref=NCBI_GP:AEA07022.1;Name=AEA07022.1;gbkey=CDS;locus_tag=LAU_0171;product=conserved hypothetical protein;protein_id=AEA07022.1
+HQ113105.1	Genbank	gene	127475	128008	.	-	.	ID=gene-LAU_0172;Name=LAU_0172;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0172
+HQ113105.1	Genbank	CDS	127475	128008	.	-	0	ID=cds-AEA07023.1;Parent=gene-LAU_0172;Dbxref=NCBI_GP:AEA07023.1;Name=AEA07023.1;gbkey=CDS;locus_tag=LAU_0172;product=conserved hypothetical protein;protein_id=AEA07023.1
+HQ113105.1	Genbank	gene	128045	128482	.	-	.	ID=gene-LAU_0173;Name=LAU_0173;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0173
+HQ113105.1	Genbank	CDS	128045	128482	.	-	0	ID=cds-AEA07024.1;Parent=gene-LAU_0173;Dbxref=NCBI_GP:AEA07024.1;Name=AEA07024.1;gbkey=CDS;locus_tag=LAU_0173;product=hypothetical protein;protein_id=AEA07024.1
+HQ113105.1	Genbank	gene	128505	130019	.	-	.	ID=gene-LAU_0174;Name=LAU_0174;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0174
+HQ113105.1	Genbank	CDS	128505	130019	.	-	0	ID=cds-AEA07025.1;Parent=gene-LAU_0174;Dbxref=NCBI_GP:AEA07025.1;Name=AEA07025.1;gbkey=CDS;locus_tag=LAU_0174;product=hypothetical protein;protein_id=AEA07025.1
+HQ113105.1	Genbank	gene	130051	130416	.	+	.	ID=gene-LAU_0175;Name=LAU_0175;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0175
+HQ113105.1	Genbank	CDS	130051	130416	.	+	0	ID=cds-AEA07026.1;Parent=gene-LAU_0175;Dbxref=NCBI_GP:AEA07026.1;Name=AEA07026.1;gbkey=CDS;locus_tag=LAU_0175;product=hypothetical protein;protein_id=AEA07026.1
+HQ113105.1	Genbank	gene	130434	130916	.	+	.	ID=gene-LAU_0176;Name=LAU_0176;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0176
+HQ113105.1	Genbank	CDS	130434	130916	.	+	0	ID=cds-AEA07027.1;Parent=gene-LAU_0176;Dbxref=NCBI_GP:AEA07027.1;Name=AEA07027.1;gbkey=CDS;locus_tag=LAU_0176;product=conserved hypothetical protein;protein_id=AEA07027.1
+HQ113105.1	Genbank	gene	130939	131424	.	-	.	ID=gene-LAU_0177;Name=LAU_0177;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0177
+HQ113105.1	Genbank	CDS	130939	131424	.	-	0	ID=cds-AEA07028.1;Parent=gene-LAU_0177;Dbxref=NCBI_GP:AEA07028.1;Name=AEA07028.1;gbkey=CDS;locus_tag=LAU_0177;product=hypothetical protein;protein_id=AEA07028.1
+HQ113105.1	Genbank	gene	131450	132007	.	-	.	ID=gene-LAU_0178;Name=LAU_0178;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0178
+HQ113105.1	Genbank	CDS	131450	132007	.	-	0	ID=cds-AEA07029.1;Parent=gene-LAU_0178;Dbxref=NCBI_GP:AEA07029.1;Name=AEA07029.1;gbkey=CDS;locus_tag=LAU_0178;product=conserved hypothetical protein;protein_id=AEA07029.1
+HQ113105.1	Genbank	gene	131980	132345	.	+	.	ID=gene-LAU_0179;Name=LAU_0179;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0179
+HQ113105.1	Genbank	CDS	131980	132345	.	+	0	ID=cds-AEA07030.1;Parent=gene-LAU_0179;Dbxref=NCBI_GP:AEA07030.1;Name=AEA07030.1;gbkey=CDS;locus_tag=LAU_0179;product=conserved hypothetical protein;protein_id=AEA07030.1
+HQ113105.1	Genbank	gene	132367	132633	.	-	.	ID=gene-LAU_0180;Name=LAU_0180;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0180
+HQ113105.1	Genbank	CDS	132367	132633	.	-	0	ID=cds-AEA07031.1;Parent=gene-LAU_0180;Dbxref=NCBI_GP:AEA07031.1;Name=AEA07031.1;gbkey=CDS;locus_tag=LAU_0180;product=hypothetical protein;protein_id=AEA07031.1
+HQ113105.1	Genbank	gene	132726	133346	.	+	.	ID=gene-LAU_0181;Name=LAU_0181;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0181
+HQ113105.1	Genbank	CDS	132726	133346	.	+	0	ID=cds-AEA07032.1;Parent=gene-LAU_0181;Dbxref=NCBI_GP:AEA07032.1;Name=AEA07032.1;gbkey=CDS;locus_tag=LAU_0181;product=hypothetical protein;protein_id=AEA07032.1
+HQ113105.1	Genbank	gene	133520	133912	.	-	.	ID=gene-LAU_0182;Name=LAU_0182;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0182
+HQ113105.1	Genbank	CDS	133520	133912	.	-	0	ID=cds-AEA07033.1;Parent=gene-LAU_0182;Dbxref=NCBI_GP:AEA07033.1;Name=AEA07033.1;gbkey=CDS;locus_tag=LAU_0182;product=conserved hypothetical protein;protein_id=AEA07033.1
+HQ113105.1	Genbank	gene	134102	137416	.	-	.	ID=gene-LAU_0183;Name=LAU_0183;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0183
+HQ113105.1	Genbank	CDS	134102	137416	.	-	0	ID=cds-AEA07034.1;Parent=gene-LAU_0183;Dbxref=NCBI_GP:AEA07034.1;Name=AEA07034.1;Note=DNA or RNA helicases of superfamily II;gbkey=CDS;locus_tag=LAU_0183;product=putative replication origin-binding protein;protein_id=AEA07034.1
+HQ113105.1	Genbank	gene	137505	137822	.	+	.	ID=gene-LAU_0184;Name=LAU_0184;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0184
+HQ113105.1	Genbank	CDS	137505	137822	.	+	0	ID=cds-AEA07035.1;Parent=gene-LAU_0184;Dbxref=NCBI_GP:AEA07035.1;Name=AEA07035.1;gbkey=CDS;locus_tag=LAU_0184;product=conserved hypothetical protein;protein_id=AEA07035.1
+HQ113105.1	Genbank	gene	137843	138328	.	-	.	ID=gene-LAU_0185;Name=LAU_0185;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0185
+HQ113105.1	Genbank	CDS	137843	138328	.	-	0	ID=cds-AEA07036.1;Parent=gene-LAU_0185;Dbxref=NCBI_GP:AEA07036.1;Name=AEA07036.1;gbkey=CDS;locus_tag=LAU_0185;product=hypothetical protein;protein_id=AEA07036.1
+HQ113105.1	Genbank	gene	138470	138805	.	+	.	ID=gene-LAU_0186;Name=LAU_0186;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0186
+HQ113105.1	Genbank	CDS	138470	138805	.	+	0	ID=cds-AEA07037.1;Parent=gene-LAU_0186;Dbxref=NCBI_GP:AEA07037.1;Name=AEA07037.1;gbkey=CDS;locus_tag=LAU_0186;product=conserved hypothetical protein;protein_id=AEA07037.1
+HQ113105.1	Genbank	gene	138821	139498	.	-	.	ID=gene-LAU_0187;Name=LAU_0187;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0187
+HQ113105.1	Genbank	CDS	138821	139498	.	-	0	ID=cds-AEA07038.1;Parent=gene-LAU_0187;Dbxref=NCBI_GP:AEA07038.1;Name=AEA07038.1;gbkey=CDS;locus_tag=LAU_0187;product=hypothetical protein;protein_id=AEA07038.1
+HQ113105.1	Genbank	gene	139505	139879	.	-	.	ID=gene-LAU_0188;Name=LAU_0188;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0188
+HQ113105.1	Genbank	CDS	139505	139879	.	-	0	ID=cds-AEA07039.1;Parent=gene-LAU_0188;Dbxref=NCBI_GP:AEA07039.1;Name=AEA07039.1;gbkey=CDS;locus_tag=LAU_0188;product=hypothetical protein;protein_id=AEA07039.1
+HQ113105.1	Genbank	gene	139924	140226	.	-	.	ID=gene-LAU_0189;Name=LAU_0189;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0189
+HQ113105.1	Genbank	CDS	139924	140226	.	-	0	ID=cds-AEA07040.1;Parent=gene-LAU_0189;Dbxref=NCBI_GP:AEA07040.1;Name=AEA07040.1;gbkey=CDS;locus_tag=LAU_0189;product=conserved hypothetical protein;protein_id=AEA07040.1
+HQ113105.1	Genbank	gene	140204	140413	.	+	.	ID=gene-LAU_0190;Name=LAU_0190;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0190
+HQ113105.1	Genbank	CDS	140204	140413	.	+	0	ID=cds-AEA07041.1;Parent=gene-LAU_0190;Dbxref=NCBI_GP:AEA07041.1;Name=AEA07041.1;gbkey=CDS;locus_tag=LAU_0190;product=hypothetical protein;protein_id=AEA07041.1
+HQ113105.1	Genbank	gene	140650	140868	.	-	.	ID=gene-LAU_0191;Name=LAU_0191;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0191
+HQ113105.1	Genbank	CDS	140650	140868	.	-	0	ID=cds-AEA07042.1;Parent=gene-LAU_0191;Dbxref=NCBI_GP:AEA07042.1;Name=AEA07042.1;gbkey=CDS;locus_tag=LAU_0191;product=hypothetical protein;protein_id=AEA07042.1
+HQ113105.1	Genbank	gene	140921	141391	.	-	.	ID=gene-LAU_0192;Name=LAU_0192;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0192
+HQ113105.1	Genbank	CDS	140921	141391	.	-	0	ID=cds-AEA07043.1;Parent=gene-LAU_0192;Dbxref=NCBI_GP:AEA07043.1;Name=AEA07043.1;gbkey=CDS;locus_tag=LAU_0192;product=hypothetical protein;protein_id=AEA07043.1
+HQ113105.1	Genbank	gene	141412	142056	.	+	.	ID=gene-LAU_0193;Name=LAU_0193;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0193
+HQ113105.1	Genbank	CDS	141412	142056	.	+	0	ID=cds-AEA07044.1;Parent=gene-LAU_0193;Dbxref=NCBI_GP:AEA07044.1;Name=AEA07044.1;gbkey=CDS;locus_tag=LAU_0193;product=hypothetical protein;protein_id=AEA07044.1
+HQ113105.1	Genbank	gene	142076	142969	.	-	.	ID=gene-LAU_0194;Name=LAU_0194;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0194
+HQ113105.1	Genbank	CDS	142076	142969	.	-	0	ID=cds-AEA07045.1;Parent=gene-LAU_0194;Dbxref=NCBI_GP:AEA07045.1;Name=AEA07045.1;gbkey=CDS;locus_tag=LAU_0194;product=class 3 lipase;protein_id=AEA07045.1
+HQ113105.1	Genbank	gene	143032	144369	.	-	.	ID=gene-LAU_0195;Name=LAU_0195;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0195
+HQ113105.1	Genbank	CDS	143032	144369	.	-	0	ID=cds-AEA07046.1;Parent=gene-LAU_0195;Dbxref=NCBI_GP:AEA07046.1;Name=AEA07046.1;gbkey=CDS;locus_tag=LAU_0195;product=conserved zinc-finger protein;protein_id=AEA07046.1
+HQ113105.1	Genbank	gene	144415	145506	.	-	.	ID=gene-LAU_0196;Name=LAU_0196;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0196
+HQ113105.1	Genbank	CDS	144415	145506	.	-	0	ID=cds-AEA07047.1;Parent=gene-LAU_0196;Dbxref=NCBI_GP:AEA07047.1;Name=AEA07047.1;Note=includes N-terminal domain of PolI;gbkey=CDS;locus_tag=LAU_0196;product=putative Flap endonuclease;protein_id=AEA07047.1
+HQ113105.1	Genbank	gene	145554	145850	.	+	.	ID=gene-LAU_0197;Name=LAU_0197;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0197
+HQ113105.1	Genbank	CDS	145554	145850	.	+	0	ID=cds-AEA07048.1;Parent=gene-LAU_0197;Dbxref=NCBI_GP:AEA07048.1;Name=AEA07048.1;gbkey=CDS;locus_tag=LAU_0197;product=conserved hypothetical protein;protein_id=AEA07048.1
+HQ113105.1	Genbank	gene	145843	146352	.	-	.	ID=gene-LAU_0198;Name=LAU_0198;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0198
+HQ113105.1	Genbank	CDS	145843	146352	.	-	0	ID=cds-AEA07049.1;Parent=gene-LAU_0198;Dbxref=NCBI_GP:AEA07049.1;Name=AEA07049.1;gbkey=CDS;locus_tag=LAU_0198;product=hypothetical protein;protein_id=AEA07049.1
+HQ113105.1	Genbank	gene	146402	146656	.	+	.	ID=gene-LAU_0199;Name=LAU_0199;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0199
+HQ113105.1	Genbank	CDS	146402	146656	.	+	0	ID=cds-AEA07050.1;Parent=gene-LAU_0199;Dbxref=NCBI_GP:AEA07050.1;Name=AEA07050.1;gbkey=CDS;locus_tag=LAU_0199;product=hypothetical protein;protein_id=AEA07050.1
+HQ113105.1	Genbank	gene	146678	147760	.	+	.	ID=gene-LAU_0200;Name=LAU_0200;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0200
+HQ113105.1	Genbank	CDS	146678	147760	.	+	0	ID=cds-AEA07051.1;Parent=gene-LAU_0200;Dbxref=NCBI_GP:AEA07051.1;Name=AEA07051.1;gbkey=CDS;locus_tag=LAU_0200;product=putative ankyrin repeat protein;protein_id=AEA07051.1
+HQ113105.1	Genbank	gene	147782	151669	.	-	.	ID=gene-LAU_0201;Name=LAU_0201;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0201
+HQ113105.1	Genbank	CDS	147782	151669	.	-	0	ID=cds-AEA07052.1;Parent=gene-LAU_0201;Dbxref=NCBI_GP:AEA07052.1;Name=AEA07052.1;gbkey=CDS;locus_tag=LAU_0201;product=conserved hypothetical protein;protein_id=AEA07052.1
+HQ113105.1	Genbank	gene	151724	152584	.	-	.	ID=gene-LAU_0202;Name=LAU_0202;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0202
+HQ113105.1	Genbank	CDS	151724	152584	.	-	0	ID=cds-AEA07053.1;Parent=gene-LAU_0202;Dbxref=NCBI_GP:AEA07053.1;Name=AEA07053.1;gbkey=CDS;locus_tag=LAU_0202;product=serine/threonine-protein kinase;protein_id=AEA07053.1
+HQ113105.1	Genbank	gene	152605	152874	.	+	.	ID=gene-LAU_0203;Name=LAU_0203;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0203
+HQ113105.1	Genbank	CDS	152605	152874	.	+	0	ID=cds-AEA07054.1;Parent=gene-LAU_0203;Dbxref=NCBI_GP:AEA07054.1;Name=AEA07054.1;gbkey=CDS;locus_tag=LAU_0203;product=conserved hypothetical protein;protein_id=AEA07054.1
+HQ113105.1	Genbank	gene	152892	154394	.	-	.	ID=gene-LAU_0204;Name=LAU_0204;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0204
+HQ113105.1	Genbank	CDS	152892	154394	.	-	0	ID=cds-AEA07055.1;Parent=gene-LAU_0204;Dbxref=NCBI_GP:AEA07055.1;Name=AEA07055.1;gbkey=CDS;locus_tag=LAU_0204;product=conserved hypothetical protein;protein_id=AEA07055.1
+HQ113105.1	Genbank	gene	154656	155540	.	+	.	ID=gene-LAU_0205;Name=LAU_0205;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0205
+HQ113105.1	Genbank	CDS	154656	155540	.	+	0	ID=cds-AEA07056.1;Parent=gene-LAU_0205;Dbxref=NCBI_GP:AEA07056.1;Name=AEA07056.1;gbkey=CDS;locus_tag=LAU_0205;product=putative serine/threonine protein kinase;protein_id=AEA07056.1
+HQ113105.1	Genbank	gene	155560	157113	.	-	.	ID=gene-LAU_0206;Name=LAU_0206;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0206
+HQ113105.1	Genbank	CDS	155560	157113	.	-	0	ID=cds-AEA07057.1;Parent=gene-LAU_0206;Dbxref=NCBI_GP:AEA07057.1;Name=AEA07057.1;gbkey=CDS;locus_tag=LAU_0206;product=conserved hypothetical protein;protein_id=AEA07057.1
+HQ113105.1	Genbank	gene	157153	157542	.	+	.	ID=gene-LAU_0207;Name=LAU_0207;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0207
+HQ113105.1	Genbank	CDS	157153	157542	.	+	0	ID=cds-AEA07058.1;Parent=gene-LAU_0207;Dbxref=NCBI_GP:AEA07058.1;Name=AEA07058.1;gbkey=CDS;locus_tag=LAU_0207;product=conserved hypothetical protein;protein_id=AEA07058.1
+HQ113105.1	Genbank	gene	157539	157868	.	+	.	ID=gene-LAU_0208;Name=LAU_0208;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0208
+HQ113105.1	Genbank	CDS	157539	157868	.	+	0	ID=cds-AEA07059.1;Parent=gene-LAU_0208;Dbxref=NCBI_GP:AEA07059.1;Name=AEA07059.1;gbkey=CDS;locus_tag=LAU_0208;product=conserved hypothetical protein;protein_id=AEA07059.1
+HQ113105.1	Genbank	gene	157889	158701	.	-	.	ID=gene-LAU_0209;Name=LAU_0209;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0209
+HQ113105.1	Genbank	CDS	157889	158701	.	-	0	ID=cds-AEA07060.1;Parent=gene-LAU_0209;Dbxref=NCBI_GP:AEA07060.1;Name=AEA07060.1;gbkey=CDS;locus_tag=LAU_0209;product=putative transcription initiation factor TFIIB;protein_id=AEA07060.1
+HQ113105.1	Genbank	gene	158754	159572	.	-	.	ID=gene-LAU_0210;Name=LAU_0210;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0210
+HQ113105.1	Genbank	CDS	158754	159572	.	-	0	ID=cds-AEA07061.1;Parent=gene-LAU_0210;Dbxref=NCBI_GP:AEA07061.1;Name=AEA07061.1;gbkey=CDS;locus_tag=LAU_0210;product=proliferating cell nuclear antigen;protein_id=AEA07061.1
+HQ113105.1	Genbank	gene	159689	162772	.	+	.	ID=gene-LAU_0211;Name=LAU_0211;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0211
+HQ113105.1	Genbank	CDS	159689	162772	.	+	0	ID=cds-AEA07062.1;Parent=gene-LAU_0211;Dbxref=NCBI_GP:AEA07062.1;Name=AEA07062.1;gbkey=CDS;locus_tag=LAU_0211;product=ribonucleoside-diphosphate reductase large chain;protein_id=AEA07062.1
+HQ113105.1	Genbank	gene	162822	163481	.	+	.	ID=gene-LAU_0212;Name=LAU_0212;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0212
+HQ113105.1	Genbank	CDS	162822	163481	.	+	0	ID=cds-AEA07063.1;Parent=gene-LAU_0212;Dbxref=NCBI_GP:AEA07063.1;Name=AEA07063.1;gbkey=CDS;locus_tag=LAU_0212;product=conserved hypothetical protein;protein_id=AEA07063.1
+HQ113105.1	Genbank	gene	163488	163880	.	-	.	ID=gene-LAU_0213;Name=LAU_0213;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0213
+HQ113105.1	Genbank	CDS	163488	163880	.	-	0	ID=cds-AEA07064.1;Parent=gene-LAU_0213;Dbxref=NCBI_GP:AEA07064.1;Name=AEA07064.1;gbkey=CDS;locus_tag=LAU_0213;product=conserved putative secreted protein;protein_id=AEA07064.1
+HQ113105.1	Genbank	gene	163975	164229	.	+	.	ID=gene-LAU_0214;Name=LAU_0214;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0214
+HQ113105.1	Genbank	CDS	163975	164229	.	+	0	ID=cds-AEA07065.1;Parent=gene-LAU_0214;Dbxref=NCBI_GP:AEA07065.1;Name=AEA07065.1;gbkey=CDS;locus_tag=LAU_0214;product=conserved hypothetical protein;protein_id=AEA07065.1
+HQ113105.1	Genbank	gene	164252	164812	.	-	.	ID=gene-LAU_0215;Name=LAU_0215;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0215
+HQ113105.1	Genbank	CDS	164252	164812	.	-	0	ID=cds-AEA07066.1;Parent=gene-LAU_0215;Dbxref=NCBI_GP:AEA07066.1;Name=AEA07066.1;gbkey=CDS;locus_tag=LAU_0215;product=conserved hypothetical protein;protein_id=AEA07066.1
+HQ113105.1	Genbank	gene	164854	165243	.	+	.	ID=gene-LAU_0216;Name=LAU_0216;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0216
+HQ113105.1	Genbank	CDS	164854	165243	.	+	0	ID=cds-AEA07067.1;Parent=gene-LAU_0216;Dbxref=NCBI_GP:AEA07067.1;Name=AEA07067.1;gbkey=CDS;locus_tag=LAU_0216;product=putative RING finger E3 ubiquitin ligase;protein_id=AEA07067.1
+HQ113105.1	Genbank	gene	165243	165827	.	+	.	ID=gene-LAU_0217;Name=LAU_0217;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0217
+HQ113105.1	Genbank	CDS	165243	165827	.	+	0	ID=cds-AEA07068.1;Parent=gene-LAU_0217;Dbxref=NCBI_GP:AEA07068.1;Name=AEA07068.1;gbkey=CDS;locus_tag=LAU_0217;product=conserved hypothetical protein;protein_id=AEA07068.1
+HQ113105.1	Genbank	gene	165848	166231	.	-	.	ID=gene-LAU_0218;Name=LAU_0218;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0218
+HQ113105.1	Genbank	CDS	165848	166231	.	-	0	ID=cds-AEA07069.1;Parent=gene-LAU_0218;Dbxref=NCBI_GP:AEA07069.1;Name=AEA07069.1;gbkey=CDS;locus_tag=LAU_0218;product=hypothetical protein;protein_id=AEA07069.1
+HQ113105.1	Genbank	gene	166224	168638	.	+	.	ID=gene-LAU_0219;Name=LAU_0219;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0219
+HQ113105.1	Genbank	CDS	166224	168638	.	+	0	ID=cds-AEA07070.1;Parent=gene-LAU_0219;Dbxref=NCBI_GP:AEA07070.1;Name=AEA07070.1;gbkey=CDS;locus_tag=LAU_0219;product=D6/D11-like helicase;protein_id=AEA07070.1
+HQ113105.1	Genbank	gene	168659	168886	.	-	.	ID=gene-LAU_0220;Name=LAU_0220;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0220
+HQ113105.1	Genbank	CDS	168659	168886	.	-	0	ID=cds-AEA07071.1;Parent=gene-LAU_0220;Dbxref=NCBI_GP:AEA07071.1;Name=AEA07071.1;gbkey=CDS;locus_tag=LAU_0220;product=conserved hypothetical protein;protein_id=AEA07071.1
+HQ113105.1	Genbank	gene	168913	169311	.	-	.	ID=gene-LAU_0221;Name=LAU_0221;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0221
+HQ113105.1	Genbank	CDS	168913	169311	.	-	0	ID=cds-AEA07072.1;Parent=gene-LAU_0221;Dbxref=NCBI_GP:AEA07072.1;Name=AEA07072.1;gbkey=CDS;locus_tag=LAU_0221;product=conserved hypothetical protein;protein_id=AEA07072.1
+HQ113105.1	Genbank	gene	169312	170046	.	-	.	ID=gene-LAU_0222;Name=LAU_0222;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0222
+HQ113105.1	Genbank	CDS	169312	170046	.	-	0	ID=cds-AEA07073.1;Parent=gene-LAU_0222;Dbxref=NCBI_GP:AEA07073.1;Name=AEA07073.1;gbkey=CDS;locus_tag=LAU_0222;product=putative RuvC-like Holliday junction resolvase;protein_id=AEA07073.1
+HQ113105.1	Genbank	gene	170114	170581	.	-	.	ID=gene-LAU_0223;Name=LAU_0223;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0223
+HQ113105.1	Genbank	CDS	170114	170581	.	-	0	ID=cds-AEA07074.1;Parent=gene-LAU_0223;Dbxref=NCBI_GP:AEA07074.1;Name=AEA07074.1;gbkey=CDS;locus_tag=LAU_0223;product=putative deoxynucleotide monophosphate kinase;protein_id=AEA07074.1
+HQ113105.1	Genbank	gene	170927	171592	.	-	.	ID=gene-LAU_0224;Name=LAU_0224;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0224
+HQ113105.1	Genbank	CDS	170927	171592	.	-	0	ID=cds-AEA07075.1;Parent=gene-LAU_0224;Dbxref=NCBI_GP:AEA07075.1;Name=AEA07075.1;gbkey=CDS;locus_tag=LAU_0224;product=conserved hypothetical protein;protein_id=AEA07075.1
+HQ113105.1	Genbank	gene	171862	172518	.	+	.	ID=gene-LAU_0225;Name=LAU_0225;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0225
+HQ113105.1	Genbank	CDS	171862	172518	.	+	0	ID=cds-AEA07076.1;Parent=gene-LAU_0225;Dbxref=NCBI_GP:AEA07076.1;Name=AEA07076.1;gbkey=CDS;locus_tag=LAU_0225;product=conserved hypothetical protein;protein_id=AEA07076.1
+HQ113105.1	Genbank	gene	172536	173000	.	-	.	ID=gene-LAU_0226;Name=LAU_0226;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0226
+HQ113105.1	Genbank	CDS	172536	173000	.	-	0	ID=cds-AEA07077.1;Parent=gene-LAU_0226;Dbxref=NCBI_GP:AEA07077.1;Name=AEA07077.1;gbkey=CDS;locus_tag=LAU_0226;product=putative DNA-directed RNA polymerase 30 kDa polypeptide;protein_id=AEA07077.1
+HQ113105.1	Genbank	gene	173050	174090	.	+	.	ID=gene-LAU_0227;Name=LAU_0227;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0227
+HQ113105.1	Genbank	CDS	173050	174090	.	+	0	ID=cds-AEA07078.1;Parent=gene-LAU_0227;Dbxref=NCBI_GP:AEA07078.1;Name=AEA07078.1;gbkey=CDS;locus_tag=LAU_0227;product=putative class 3 lipase;protein_id=AEA07078.1
+HQ113105.1	Genbank	gene	174122	174877	.	-	.	ID=gene-LAU_0228;Name=LAU_0228;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0228
+HQ113105.1	Genbank	CDS	174122	174877	.	-	0	ID=cds-AEA07079.1;Parent=gene-LAU_0228;Dbxref=NCBI_GP:AEA07079.1;Name=AEA07079.1;gbkey=CDS;locus_tag=LAU_0228;product=conserved hypothetical protein;protein_id=AEA07079.1
+HQ113105.1	Genbank	gene	174917	175291	.	-	.	ID=gene-LAU_0229;Name=LAU_0229;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0229
+HQ113105.1	Genbank	CDS	174917	175291	.	-	0	ID=cds-AEA07080.1;Parent=gene-LAU_0229;Dbxref=NCBI_GP:AEA07080.1;Name=AEA07080.1;gbkey=CDS;locus_tag=LAU_0229;product=hypothetical protein;protein_id=AEA07080.1
+HQ113105.1	Genbank	gene	175281	177647	.	-	.	ID=gene-LAU_0230;Name=LAU_0230;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0230
+HQ113105.1	Genbank	CDS	175281	177647	.	-	0	ID=cds-AEA07081.1;Parent=gene-LAU_0230;Dbxref=NCBI_GP:AEA07081.1;Name=AEA07081.1;gbkey=CDS;locus_tag=LAU_0230;product=conserved hypothetical protein;protein_id=AEA07081.1
+HQ113105.1	Genbank	gene	177689	178315	.	+	.	ID=gene-LAU_0231;Name=LAU_0231;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0231
+HQ113105.1	Genbank	CDS	177689	178315	.	+	0	ID=cds-AEA07082.1;Parent=gene-LAU_0231;Dbxref=NCBI_GP:AEA07082.1;Name=AEA07082.1;gbkey=CDS;locus_tag=LAU_0231;product=putative RNA methyltransferase;protein_id=AEA07082.1
+HQ113105.1	Genbank	gene	178336	179235	.	+	.	ID=gene-LAU_0232;Name=LAU_0232;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0232
+HQ113105.1	Genbank	CDS	178336	179235	.	+	0	ID=cds-AEA07083.1;Parent=gene-LAU_0232;Dbxref=NCBI_GP:AEA07083.1;Name=AEA07083.1;gbkey=CDS;locus_tag=LAU_0232;product=putative patatin-like phospholipase;protein_id=AEA07083.1
+HQ113105.1	Genbank	gene	179309	180472	.	+	.	ID=gene-LAU_0233;Name=LAU_0233;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0233
+HQ113105.1	Genbank	CDS	179309	180472	.	+	0	ID=cds-AEA07084.1;Parent=gene-LAU_0233;Dbxref=NCBI_GP:AEA07084.1;Name=AEA07084.1;gbkey=CDS;locus_tag=LAU_0233;product=conserved hypothetical protein;protein_id=AEA07084.1
+HQ113105.1	Genbank	gene	180495	181682	.	-	.	ID=gene-LAU_0234;Name=LAU_0234;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0234
+HQ113105.1	Genbank	CDS	180495	181682	.	-	0	ID=cds-AEA07085.1;Parent=gene-LAU_0234;Dbxref=NCBI_GP:AEA07085.1;Name=AEA07085.1;gbkey=CDS;locus_tag=LAU_0234;product=conserved hypothetical protein;protein_id=AEA07085.1
+HQ113105.1	Genbank	gene	181716	182126	.	-	.	ID=gene-LAU_0235;Name=LAU_0235;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0235
+HQ113105.1	Genbank	CDS	181716	182126	.	-	0	ID=cds-AEA07086.1;Parent=gene-LAU_0235;Dbxref=NCBI_GP:AEA07086.1;Name=AEA07086.1;gbkey=CDS;locus_tag=LAU_0235;product=thioredoxin;protein_id=AEA07086.1
+HQ113105.1	Genbank	gene	182123	182563	.	-	.	ID=gene-LAU_0236;Name=LAU_0236;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0236
+HQ113105.1	Genbank	CDS	182123	182563	.	-	0	ID=cds-AEA07087.1;Parent=gene-LAU_0236;Dbxref=NCBI_GP:AEA07087.1;Name=AEA07087.1;gbkey=CDS;locus_tag=LAU_0236;product=conserved hypothetical protein;protein_id=AEA07087.1
+HQ113105.1	Genbank	gene	182566	183513	.	-	.	ID=gene-LAU_0237;Name=LAU_0237;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0237
+HQ113105.1	Genbank	CDS	182566	183513	.	-	0	ID=cds-AEA07088.1;Parent=gene-LAU_0237;Dbxref=NCBI_GP:AEA07088.1;Name=AEA07088.1;gbkey=CDS;locus_tag=LAU_0237;product=conserved hypothetical protein;protein_id=AEA07088.1
+HQ113105.1	Genbank	gene	183557	184186	.	-	.	ID=gene-LAU_0238;Name=LAU_0238;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0238
+HQ113105.1	Genbank	CDS	183557	184186	.	-	0	ID=cds-AEA07089.1;Parent=gene-LAU_0238;Dbxref=NCBI_GP:AEA07089.1;Name=AEA07089.1;gbkey=CDS;locus_tag=LAU_0238;product=conserved hypothetical protein;protein_id=AEA07089.1
+HQ113105.1	Genbank	gene	184215	184538	.	+	.	ID=gene-LAU_0239;Name=LAU_0239;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0239
+HQ113105.1	Genbank	CDS	184215	184538	.	+	0	ID=cds-AEA07090.1;Parent=gene-LAU_0239;Dbxref=NCBI_GP:AEA07090.1;Name=AEA07090.1;gbkey=CDS;locus_tag=LAU_0239;product=conserved hypothetical protein;protein_id=AEA07090.1
+HQ113105.1	Genbank	gene	184560	185120	.	-	.	ID=gene-LAU_0240;Name=TK;gbkey=Gene;gene=TK;gene_biotype=protein_coding;locus_tag=LAU_0240
+HQ113105.1	Genbank	CDS	184560	185120	.	-	0	ID=cds-AEA07091.1;Parent=gene-LAU_0240;Dbxref=NCBI_GP:AEA07091.1;Name=AEA07091.1;gbkey=CDS;gene=TK;locus_tag=LAU_0240;product=thymidine kinase;protein_id=AEA07091.1
+HQ113105.1	Genbank	gene	185153	185725	.	+	.	ID=gene-LAU_0241;Name=LAU_0241;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0241
+HQ113105.1	Genbank	CDS	185153	185725	.	+	0	ID=cds-AEA07092.1;Parent=gene-LAU_0241;Dbxref=NCBI_GP:AEA07092.1;Name=AEA07092.1;gbkey=CDS;locus_tag=LAU_0241;product=putative zinc finger/DNA-binding protein;protein_id=AEA07092.1
+HQ113105.1	Genbank	gene	185753	186247	.	+	.	ID=gene-LAU_0242;Name=LAU_0242;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0242
+HQ113105.1	Genbank	CDS	185753	186247	.	+	0	ID=cds-AEA07093.1;Parent=gene-LAU_0242;Dbxref=NCBI_GP:AEA07093.1;Name=AEA07093.1;gbkey=CDS;locus_tag=LAU_0242;product=conserved hypothetical protein;protein_id=AEA07093.1
+HQ113105.1	Genbank	gene	186244	187074	.	-	.	ID=gene-LAU_0243;Name=LAU_0243;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0243
+HQ113105.1	Genbank	CDS	186244	187074	.	-	0	ID=cds-AEA07094.1;Parent=gene-LAU_0243;Dbxref=NCBI_GP:AEA07094.1;Name=AEA07094.1;gbkey=CDS;locus_tag=LAU_0243;product=conserved hypothetical protein;protein_id=AEA07094.1
+HQ113105.1	Genbank	gene	187120	187671	.	+	.	ID=gene-LAU_0244;Name=LAU_0244;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0244
+HQ113105.1	Genbank	CDS	187120	187671	.	+	0	ID=cds-AEA07095.1;Parent=gene-LAU_0244;Dbxref=NCBI_GP:AEA07095.1;Name=AEA07095.1;gbkey=CDS;locus_tag=LAU_0244;product=hypothetical protein;protein_id=AEA07095.1
+HQ113105.1	Genbank	gene	187703	188266	.	+	.	ID=gene-LAU_0245;Name=LAU_0245;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0245
+HQ113105.1	Genbank	CDS	187703	188266	.	+	0	ID=cds-AEA07096.1;Parent=gene-LAU_0245;Dbxref=NCBI_GP:AEA07096.1;Name=AEA07096.1;gbkey=CDS;locus_tag=LAU_0245;product=hypothetical protein;protein_id=AEA07096.1
+HQ113105.1	Genbank	gene	188292	192869	.	-	.	ID=gene-LAU_0246;Name=LAU_0246;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0246
+HQ113105.1	Genbank	CDS	188292	192869	.	-	0	ID=cds-AEA07097.1;Parent=gene-LAU_0246;Dbxref=NCBI_GP:AEA07097.1;Name=AEA07097.1;gbkey=CDS;locus_tag=LAU_0246;product=putative D6/D11-like helicase;protein_id=AEA07097.1
+HQ113105.1	Genbank	gene	192964	193491	.	-	.	ID=gene-LAU_0247;Name=LAU_0247;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0247
+HQ113105.1	Genbank	CDS	192964	193491	.	-	0	ID=cds-AEA07098.1;Parent=gene-LAU_0247;Dbxref=NCBI_GP:AEA07098.1;Name=AEA07098.1;gbkey=CDS;locus_tag=LAU_0247;product=putative NUDIX hydrolase;protein_id=AEA07098.1
+HQ113105.1	Genbank	gene	193571	194530	.	-	.	ID=gene-LAU_0248;Name=LAU_0248;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0248
+HQ113105.1	Genbank	CDS	193571	194530	.	-	0	ID=cds-AEA07099.1;Parent=gene-LAU_0248;Dbxref=NCBI_GP:AEA07099.1;Name=AEA07099.1;gbkey=CDS;locus_tag=LAU_0248;product=putative ribonuclease III;protein_id=AEA07099.1
+HQ113105.1	Genbank	gene	194580	194873	.	-	.	ID=gene-LAU_0249;Name=LAU_0249;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0249
+HQ113105.1	Genbank	CDS	194580	194873	.	-	0	ID=cds-AEA07100.1;Parent=gene-LAU_0249;Dbxref=NCBI_GP:AEA07100.1;Name=AEA07100.1;gbkey=CDS;locus_tag=LAU_0249;product=hypothetical protein;protein_id=AEA07100.1
+HQ113105.1	Genbank	gene	194916	195140	.	-	.	ID=gene-LAU_0250;Name=LAU_0250;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0250
+HQ113105.1	Genbank	CDS	194916	195140	.	-	0	ID=cds-AEA07101.1;Parent=gene-LAU_0250;Dbxref=NCBI_GP:AEA07101.1;Name=AEA07101.1;gbkey=CDS;locus_tag=LAU_0250;product=ubiquitin;protein_id=AEA07101.1
+HQ113105.1	Genbank	gene	195594	195953	.	+	.	ID=gene-LAU_0251;Name=LAU_0251;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0251
+HQ113105.1	Genbank	CDS	195594	195953	.	+	0	ID=cds-AEA07102.1;Parent=gene-LAU_0251;Dbxref=NCBI_GP:AEA07102.1;Name=AEA07102.1;gbkey=CDS;locus_tag=LAU_0251;product=putative restriction endonuclease;protein_id=AEA07102.1
+HQ113105.1	Genbank	gene	195962	197308	.	+	.	ID=gene-LAU_0252;Name=LAU_0252;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0252
+HQ113105.1	Genbank	CDS	195962	197308	.	+	0	ID=cds-AEA07103.1;Parent=gene-LAU_0252;Dbxref=NCBI_GP:AEA07103.1;Name=AEA07103.1;gbkey=CDS;locus_tag=LAU_0252;product=putative restriction endonuclease;protein_id=AEA07103.1
+HQ113105.1	Genbank	gene	197286	197963	.	+	.	ID=gene-LAU_0253;Name=LAU_0253;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0253
+HQ113105.1	Genbank	CDS	197286	197963	.	+	0	ID=cds-AEA07104.1;Parent=gene-LAU_0253;Dbxref=NCBI_GP:AEA07104.1;Name=AEA07104.1;gbkey=CDS;locus_tag=LAU_0253;product=hypothetical protein;protein_id=AEA07104.1
+HQ113105.1	Genbank	gene	197997	198665	.	+	.	ID=gene-LAU_0254;Name=LAU_0254;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0254
+HQ113105.1	Genbank	CDS	197997	198665	.	+	0	ID=cds-AEA07105.1;Parent=gene-LAU_0254;Dbxref=NCBI_GP:AEA07105.1;Name=AEA07105.1;gbkey=CDS;locus_tag=LAU_0254;product=hypothetical protein;protein_id=AEA07105.1
+HQ113105.1	Genbank	gene	198698	199378	.	+	.	ID=gene-LAU_0255;Name=LAU_0255;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0255
+HQ113105.1	Genbank	CDS	198698	199378	.	+	0	ID=cds-AEA07106.1;Parent=gene-LAU_0255;Dbxref=NCBI_GP:AEA07106.1;Name=AEA07106.1;gbkey=CDS;locus_tag=LAU_0255;product=hypothetical protein;protein_id=AEA07106.1
+HQ113105.1	Genbank	gene	199392	200129	.	+	.	ID=gene-LAU_0256;Name=LAU_0256;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0256
+HQ113105.1	Genbank	CDS	199392	200129	.	+	0	ID=cds-AEA07107.1;Parent=gene-LAU_0256;Dbxref=NCBI_GP:AEA07107.1;Name=AEA07107.1;gbkey=CDS;locus_tag=LAU_0256;product=hypothetical protein;protein_id=AEA07107.1
+HQ113105.1	Genbank	gene	200173	201567	.	+	.	ID=gene-LAU_0257;Name=LAU_0257;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0257
+HQ113105.1	Genbank	CDS	200173	201567	.	+	0	ID=cds-AEA07108.1;Parent=gene-LAU_0257;Dbxref=NCBI_GP:AEA07108.1;Name=AEA07108.1;gbkey=CDS;locus_tag=LAU_0257;product=conserved hypothetical protein;protein_id=AEA07108.1
+HQ113105.1	Genbank	gene	201619	201891	.	+	.	ID=gene-LAU_0258;Name=LAU_0258;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0258
+HQ113105.1	Genbank	CDS	201619	201891	.	+	0	ID=cds-AEA07109.1;Parent=gene-LAU_0258;Dbxref=NCBI_GP:AEA07109.1;Name=AEA07109.1;gbkey=CDS;locus_tag=LAU_0258;product=conserved hypothetical protein;protein_id=AEA07109.1
+HQ113105.1	Genbank	gene	201894	202148	.	+	.	ID=gene-LAU_0259;Name=LAU_0259;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0259
+HQ113105.1	Genbank	CDS	201894	202148	.	+	0	ID=cds-AEA07110.1;Parent=gene-LAU_0259;Dbxref=NCBI_GP:AEA07110.1;Name=AEA07110.1;gbkey=CDS;locus_tag=LAU_0259;product=conserved hypothetical protein;protein_id=AEA07110.1
+HQ113105.1	Genbank	gene	202178	204937	.	+	.	ID=gene-LAU_0260;Name=LAU_0260;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0260
+HQ113105.1	Genbank	CDS	202178	204937	.	+	0	ID=cds-AEA07111.1;Parent=gene-LAU_0260;Dbxref=NCBI_GP:AEA07111.1;Name=AEA07111.1;gbkey=CDS;locus_tag=LAU_0260;product=putative serine/threonine protein kinase;protein_id=AEA07111.1
+HQ113105.1	Genbank	gene	204967	205662	.	+	.	ID=gene-LAU_0261;Name=LAU_0261;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0261
+HQ113105.1	Genbank	CDS	204967	205662	.	+	0	ID=cds-AEA07112.1;Parent=gene-LAU_0261;Dbxref=NCBI_GP:AEA07112.1;Name=AEA07112.1;gbkey=CDS;locus_tag=LAU_0261;product=hypothetical protein;protein_id=AEA07112.1
+HQ113105.1	Genbank	gene	205688	205909	.	+	.	ID=gene-LAU_0262;Name=LAU_0262;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0262
+HQ113105.1	Genbank	CDS	205688	205909	.	+	0	ID=cds-AEA07113.1;Parent=gene-LAU_0262;Dbxref=NCBI_GP:AEA07113.1;Name=AEA07113.1;gbkey=CDS;locus_tag=LAU_0262;product=conserved hypothetical protein;protein_id=AEA07113.1
+HQ113105.1	Genbank	gene	205878	206114	.	-	.	ID=gene-LAU_0263;Name=LAU_0263;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0263
+HQ113105.1	Genbank	CDS	205878	206114	.	-	0	ID=cds-AEA07114.1;Parent=gene-LAU_0263;Dbxref=NCBI_GP:AEA07114.1;Name=AEA07114.1;gbkey=CDS;locus_tag=LAU_0263;product=putative ubiquitin;protein_id=AEA07114.1
+HQ113105.1	Genbank	gene	206139	207944	.	-	.	ID=gene-LAU_0264;Name=LAU_0264;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0264
+HQ113105.1	Genbank	CDS	206139	207944	.	-	0	ID=cds-AEA07115.1;Parent=gene-LAU_0264;Dbxref=NCBI_GP:AEA07115.1;Name=AEA07115.1;gbkey=CDS;locus_tag=LAU_0264;product=conserved putative membrane protein;protein_id=AEA07115.1
+HQ113105.1	Genbank	gene	208011	209495	.	-	.	ID=gene-LAU_0265;Name=LAU_0265;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0265
+HQ113105.1	Genbank	CDS	208011	209495	.	-	0	ID=cds-AEA07116.1;Parent=gene-LAU_0265;Dbxref=NCBI_GP:AEA07116.1;Name=AEA07116.1;gbkey=CDS;locus_tag=LAU_0265;product=putative MutH/Vsr/archaeal HJR-like endonuclease;protein_id=AEA07116.1
+HQ113105.1	Genbank	gene	209477	209788	.	-	.	ID=gene-LAU_0266;Name=LAU_0266;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0266
+HQ113105.1	Genbank	CDS	209477	209788	.	-	0	ID=cds-AEA07117.1;Parent=gene-LAU_0266;Dbxref=NCBI_GP:AEA07117.1;Name=AEA07117.1;gbkey=CDS;locus_tag=LAU_0266;product=hypothetical protein;protein_id=AEA07117.1
+HQ113105.1	Genbank	gene	209869	210864	.	+	.	ID=gene-LAU_0267;Name=LAU_0267;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0267
+HQ113105.1	Genbank	CDS	209869	210864	.	+	0	ID=cds-AEA07118.1;Parent=gene-LAU_0267;Dbxref=NCBI_GP:AEA07118.1;Name=AEA07118.1;gbkey=CDS;locus_tag=LAU_0267;product=conserved hypothetical protein;protein_id=AEA07118.1
+HQ113105.1	Genbank	gene	210883	211182	.	-	.	ID=gene-LAU_0268;Name=LAU_0268;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0268
+HQ113105.1	Genbank	CDS	210883	211182	.	-	0	ID=cds-AEA07119.1;Parent=gene-LAU_0268;Dbxref=NCBI_GP:AEA07119.1;Name=AEA07119.1;gbkey=CDS;locus_tag=LAU_0268;product=putative membrane protein;protein_id=AEA07119.1
+HQ113105.1	Genbank	gene	211213	211455	.	-	.	ID=gene-LAU_0269;Name=LAU_0269;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0269
+HQ113105.1	Genbank	CDS	211213	211455	.	-	0	ID=cds-AEA07120.1;Parent=gene-LAU_0269;Dbxref=NCBI_GP:AEA07120.1;Name=AEA07120.1;gbkey=CDS;locus_tag=LAU_0269;product=conserved hypothetical protein;protein_id=AEA07120.1
+HQ113105.1	Genbank	gene	211484	212077	.	-	.	ID=gene-LAU_0270;Name=alkB;gbkey=Gene;gene=alkB;gene_biotype=protein_coding;locus_tag=LAU_0270
+HQ113105.1	Genbank	CDS	211484	212077	.	-	0	ID=cds-AEA07121.1;Parent=gene-LAU_0270;Dbxref=NCBI_GP:AEA07121.1;Name=AEA07121.1;gbkey=CDS;gene=alkB;locus_tag=LAU_0270;product=putative alkylated DNA repair protein;protein_id=AEA07121.1
+HQ113105.1	Genbank	gene	212083	212658	.	-	.	ID=gene-LAU_0271;Name=LAU_0271;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0271
+HQ113105.1	Genbank	CDS	212083	212658	.	-	0	ID=cds-AEA07122.1;Parent=gene-LAU_0271;Dbxref=NCBI_GP:AEA07122.1;Name=AEA07122.1;gbkey=CDS;locus_tag=LAU_0271;product=conserved hypothetical protein;protein_id=AEA07122.1
+HQ113105.1	Genbank	gene	212943	213335	.	-	.	ID=gene-LAU_0272;Name=LAU_0272;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0272
+HQ113105.1	Genbank	CDS	212943	213335	.	-	0	ID=cds-AEA07123.1;Parent=gene-LAU_0272;Dbxref=NCBI_GP:AEA07123.1;Name=AEA07123.1;gbkey=CDS;locus_tag=LAU_0272;product=hypothetical protein;protein_id=AEA07123.1
+HQ113105.1	Genbank	gene	213371	214462	.	-	.	ID=gene-LAU_0273;Name=LAU_0273;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0273
+HQ113105.1	Genbank	CDS	213371	214462	.	-	0	ID=cds-AEA07124.1;Parent=gene-LAU_0273;Dbxref=NCBI_GP:AEA07124.1;Name=AEA07124.1;gbkey=CDS;locus_tag=LAU_0273;product=putative serine/threonine protein kinase;protein_id=AEA07124.1
+HQ113105.1	Genbank	gene	214489	214779	.	-	.	ID=gene-LAU_0274;Name=LAU_0274;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0274
+HQ113105.1	Genbank	CDS	214489	214779	.	-	0	ID=cds-AEA07125.1;Parent=gene-LAU_0274;Dbxref=NCBI_GP:AEA07125.1;Name=AEA07125.1;gbkey=CDS;locus_tag=LAU_0274;product=hypothetical protein;protein_id=AEA07125.1
+HQ113105.1	Genbank	gene	214857	215471	.	-	.	ID=gene-LAU_0275;Name=LAU_0275;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0275
+HQ113105.1	Genbank	CDS	214857	215471	.	-	0	ID=cds-AEA07126.1;Parent=gene-LAU_0275;Dbxref=NCBI_GP:AEA07126.1;Name=AEA07126.1;gbkey=CDS;locus_tag=LAU_0275;product=conserved hypothetical protein;protein_id=AEA07126.1
+HQ113105.1	Genbank	gene	215524	216150	.	-	.	ID=gene-LAU_0276;Name=LAU_0276;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0276
+HQ113105.1	Genbank	CDS	215524	216150	.	-	0	ID=cds-AEA07127.1;Parent=gene-LAU_0276;Dbxref=NCBI_GP:AEA07127.1;Name=AEA07127.1;gbkey=CDS;locus_tag=LAU_0276;product=conserved hypothetical protein;protein_id=AEA07127.1
+HQ113105.1	Genbank	gene	216205	217164	.	+	.	ID=gene-LAU_0277;Name=RRM2;gbkey=Gene;gene=RRM2;gene_biotype=protein_coding;locus_tag=LAU_0277
+HQ113105.1	Genbank	CDS	216205	217164	.	+	0	ID=cds-AEA07128.1;Parent=gene-LAU_0277;Dbxref=NCBI_GP:AEA07128.1;Name=AEA07128.1;gbkey=CDS;gene=RRM2;locus_tag=LAU_0277;product=ribonucleoside-diphosphate reductase small chain;protein_id=AEA07128.1
+HQ113105.1	Genbank	gene	217187	218005	.	-	.	ID=gene-LAU_0278;Name=LAU_0278;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0278
+HQ113105.1	Genbank	CDS	217187	218005	.	-	0	ID=cds-AEA07129.1;Parent=gene-LAU_0278;Dbxref=NCBI_GP:AEA07129.1;Name=AEA07129.1;Note=contains C-terminal Zn finger domain;gbkey=CDS;locus_tag=LAU_0278;product=chaperone protein DnaJ;protein_id=AEA07129.1
+HQ113105.1	Genbank	gene	218055	218300	.	-	.	ID=gene-LAU_0279;Name=LAU_0279;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0279
+HQ113105.1	Genbank	CDS	218055	218300	.	-	0	ID=cds-AEA07130.1;Parent=gene-LAU_0279;Dbxref=NCBI_GP:AEA07130.1;Name=AEA07130.1;gbkey=CDS;locus_tag=LAU_0279;product=hypothetical protein;protein_id=AEA07130.1
+HQ113105.1	Genbank	gene	218362	219657	.	+	.	ID=gene-LAU_0280;Name=LAU_0280;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0280
+HQ113105.1	Genbank	CDS	218362	219657	.	+	0	ID=cds-AEA07131.1;Parent=gene-LAU_0280;Dbxref=NCBI_GP:AEA07131.1;Name=AEA07131.1;gbkey=CDS;locus_tag=LAU_0280;product=putative superfamily II helicase;protein_id=AEA07131.1
+HQ113105.1	Genbank	gene	219667	220752	.	-	.	ID=gene-LAU_0281;Name=LAU_0281;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0281
+HQ113105.1	Genbank	CDS	219667	220752	.	-	0	ID=cds-AEA07132.1;Parent=gene-LAU_0281;Dbxref=NCBI_GP:AEA07132.1;Name=AEA07132.1;gbkey=CDS;locus_tag=LAU_0281;product=conserved putative membrane protein;protein_id=AEA07132.1
+HQ113105.1	Genbank	gene	220937	222151	.	+	.	ID=gene-LAU_0282;Name=LAU_0282;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0282
+HQ113105.1	Genbank	CDS	220937	222151	.	+	0	ID=cds-AEA07133.1;Parent=gene-LAU_0282;Dbxref=NCBI_GP:AEA07133.1;Name=AEA07133.1;gbkey=CDS;locus_tag=LAU_0282;product=conserved putative membrane protein;protein_id=AEA07133.1
+HQ113105.1	Genbank	gene	222155	222670	.	-	.	ID=gene-LAU_0283;Name=LAU_0283;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0283
+HQ113105.1	Genbank	CDS	222155	222670	.	-	0	ID=cds-AEA07134.1;Parent=gene-LAU_0283;Dbxref=NCBI_GP:AEA07134.1;Name=AEA07134.1;gbkey=CDS;locus_tag=LAU_0283;product=putative nuclease;protein_id=AEA07134.1
+HQ113105.1	Genbank	gene	222737	223210	.	-	.	ID=gene-LAU_0284;Name=LAU_0284;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0284
+HQ113105.1	Genbank	CDS	222737	223210	.	-	0	ID=cds-AEA07135.1;Parent=gene-LAU_0284;Dbxref=NCBI_GP:AEA07135.1;Name=AEA07135.1;gbkey=CDS;locus_tag=LAU_0284;product=hypothetical protein;protein_id=AEA07135.1
+HQ113105.1	Genbank	gene	223304	225178	.	+	.	ID=gene-LAU_0285;Name=LAU_0285;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0285
+HQ113105.1	Genbank	CDS	223304	225178	.	+	0	ID=cds-AEA07136.1;Parent=gene-LAU_0285;Dbxref=NCBI_GP:AEA07136.1;Name=AEA07136.1;gbkey=CDS;locus_tag=LAU_0285;product=putative glycosyltransferase;protein_id=AEA07136.1
+HQ113105.1	Genbank	gene	225192	225653	.	+	.	ID=gene-LAU_0286;Name=LAU_0286;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0286
+HQ113105.1	Genbank	CDS	225192	225653	.	+	0	ID=cds-AEA07137.1;Parent=gene-LAU_0286;Dbxref=NCBI_GP:AEA07137.1;Name=AEA07137.1;gbkey=CDS;locus_tag=LAU_0286;product=hypothetical protein;protein_id=AEA07137.1
+HQ113105.1	Genbank	gene	225632	226129	.	+	.	ID=gene-LAU_0287;Name=LAU_0287;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0287
+HQ113105.1	Genbank	CDS	225632	226129	.	+	0	ID=cds-AEA07138.1;Parent=gene-LAU_0287;Dbxref=NCBI_GP:AEA07138.1;Name=AEA07138.1;gbkey=CDS;locus_tag=LAU_0287;product=conserved putative membrane protein;protein_id=AEA07138.1
+HQ113105.1	Genbank	gene	226126	226458	.	+	.	ID=gene-LAU_0288;Name=LAU_0288;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0288
+HQ113105.1	Genbank	CDS	226126	226458	.	+	0	ID=cds-AEA07139.1;Parent=gene-LAU_0288;Dbxref=NCBI_GP:AEA07139.1;Name=AEA07139.1;gbkey=CDS;locus_tag=LAU_0288;product=conserved hypothetical protein;protein_id=AEA07139.1
+HQ113105.1	Genbank	gene	226473	227069	.	-	.	ID=gene-LAU_0289;Name=LAU_0289;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0289
+HQ113105.1	Genbank	CDS	226473	227069	.	-	0	ID=cds-AEA07140.1;Parent=gene-LAU_0289;Dbxref=NCBI_GP:AEA07140.1;Name=AEA07140.1;gbkey=CDS;locus_tag=LAU_0289;product=conserved hypothetical protein;protein_id=AEA07140.1
+HQ113105.1	Genbank	gene	227112	227603	.	-	.	ID=gene-LAU_0290;Name=LAU_0290;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0290
+HQ113105.1	Genbank	CDS	227112	227603	.	-	0	ID=cds-AEA07141.1;Parent=gene-LAU_0290;Dbxref=NCBI_GP:AEA07141.1;Name=AEA07141.1;gbkey=CDS;locus_tag=LAU_0290;product=putative metallopeptidase WLM;protein_id=AEA07141.1
+HQ113105.1	Genbank	gene	227576	228394	.	-	.	ID=gene-LAU_0291;Name=LAU_0291;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0291
+HQ113105.1	Genbank	CDS	227576	228394	.	-	0	ID=cds-AEA07142.1;Parent=gene-LAU_0291;Dbxref=NCBI_GP:AEA07142.1;Name=AEA07142.1;gbkey=CDS;locus_tag=LAU_0291;product=Nudix hydrolase;protein_id=AEA07142.1
+HQ113105.1	Genbank	gene	228466	230046	.	+	.	ID=gene-LAU_0292;Name=LAU_0292;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0292
+HQ113105.1	Genbank	CDS	228466	230046	.	+	0	ID=cds-AEA07143.1;Parent=gene-LAU_0292;Dbxref=NCBI_GP:AEA07143.1;Name=AEA07143.1;gbkey=CDS;locus_tag=LAU_0292;product=papain-like cysteine peptidase;protein_id=AEA07143.1
+HQ113105.1	Genbank	gene	230075	231364	.	+	.	ID=gene-LAU_0293;Name=LAU_0293;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0293
+HQ113105.1	Genbank	CDS	230075	231364	.	+	0	ID=cds-AEA07144.1;Parent=gene-LAU_0293;Dbxref=NCBI_GP:AEA07144.1;Name=AEA07144.1;gbkey=CDS;locus_tag=LAU_0293;product=conserved putative membrane protein;protein_id=AEA07144.1
+HQ113105.1	Genbank	gene	231367	231900	.	+	.	ID=gene-LAU_0294;Name=LAU_0294;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0294
+HQ113105.1	Genbank	CDS	231367	231900	.	+	0	ID=cds-AEA07145.1;Parent=gene-LAU_0294;Dbxref=NCBI_GP:AEA07145.1;Name=AEA07145.1;gbkey=CDS;locus_tag=LAU_0294;product=hypothetical protein;protein_id=AEA07145.1
+HQ113105.1	Genbank	gene	231893	232057	.	+	.	ID=gene-LAU_0295;Name=LAU_0295;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0295
+HQ113105.1	Genbank	CDS	231893	232057	.	+	0	ID=cds-AEA07146.1;Parent=gene-LAU_0295;Dbxref=NCBI_GP:AEA07146.1;Name=AEA07146.1;gbkey=CDS;locus_tag=LAU_0295;product=conserved hypothetical protein;protein_id=AEA07146.1
+HQ113105.1	Genbank	gene	232080	232703	.	+	.	ID=gene-LAU_0296;Name=LAU_0296;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0296
+HQ113105.1	Genbank	CDS	232080	232703	.	+	0	ID=cds-AEA07147.1;Parent=gene-LAU_0296;Dbxref=NCBI_GP:AEA07147.1;Name=AEA07147.1;gbkey=CDS;locus_tag=LAU_0296;product=conserved hypothetical protein;protein_id=AEA07147.1
+HQ113105.1	Genbank	gene	232718	233311	.	-	.	ID=gene-LAU_0297;Name=LAU_0297;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0297
+HQ113105.1	Genbank	CDS	232718	233311	.	-	0	ID=cds-AEA07148.1;Parent=gene-LAU_0297;Dbxref=NCBI_GP:AEA07148.1;Name=AEA07148.1;gbkey=CDS;locus_tag=LAU_0297;product=hypothetical protein;protein_id=AEA07148.1
+HQ113105.1	Genbank	gene	233357	233842	.	+	.	ID=gene-LAU_0298;Name=LAU_0298;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0298
+HQ113105.1	Genbank	CDS	233357	233842	.	+	0	ID=cds-AEA07149.1;Parent=gene-LAU_0298;Dbxref=NCBI_GP:AEA07149.1;Name=AEA07149.1;gbkey=CDS;locus_tag=LAU_0298;product=conserved hypothetical protein;protein_id=AEA07149.1
+HQ113105.1	Genbank	gene	233888	235207	.	+	.	ID=gene-LAU_0299;Name=LAU_0299;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0299
+HQ113105.1	Genbank	CDS	233888	235207	.	+	0	ID=cds-AEA07150.1;Parent=gene-LAU_0299;Dbxref=NCBI_GP:AEA07150.1;Name=AEA07150.1;gbkey=CDS;locus_tag=LAU_0299;product=putative papain family cysteine protease;protein_id=AEA07150.1
+HQ113105.1	Genbank	gene	235333	236253	.	-	.	ID=gene-LAU_0300;Name=LAU_0300;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0300
+HQ113105.1	Genbank	CDS	235333	236253	.	-	0	ID=cds-AEA07151.1;Parent=gene-LAU_0300;Dbxref=NCBI_GP:AEA07151.1;Name=AEA07151.1;gbkey=CDS;locus_tag=LAU_0300;product=hypothetical protein;protein_id=AEA07151.1
+HQ113105.1	Genbank	gene	236255	236404	.	-	.	ID=gene-LAU_0301;Name=LAU_0301;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0301
+HQ113105.1	Genbank	CDS	236255	236404	.	-	0	ID=cds-AEA07152.1;Parent=gene-LAU_0301;Dbxref=NCBI_GP:AEA07152.1;Name=AEA07152.1;gbkey=CDS;locus_tag=LAU_0301;product=hypothetical protein;protein_id=AEA07152.1
+HQ113105.1	Genbank	gene	236508	237179	.	-	.	ID=gene-LAU_0302;Name=LAU_0302;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0302
+HQ113105.1	Genbank	CDS	236508	237179	.	-	0	ID=cds-AEA07153.1;Parent=gene-LAU_0302;Dbxref=NCBI_GP:AEA07153.1;Name=AEA07153.1;gbkey=CDS;locus_tag=LAU_0302;product=SWIB/MDM2 domain-containing protein;protein_id=AEA07153.1
+HQ113105.1	Genbank	gene	237309	238205	.	+	.	ID=gene-LAU_0303;Name=LAU_0303;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0303
+HQ113105.1	Genbank	CDS	237309	238205	.	+	0	ID=cds-AEA07154.1;Parent=gene-LAU_0303;Dbxref=NCBI_GP:AEA07154.1;Name=AEA07154.1;gbkey=CDS;locus_tag=LAU_0303;product=conserved hypothetical protein;protein_id=AEA07154.1
+HQ113105.1	Genbank	gene	238252	239115	.	+	.	ID=gene-LAU_0304;Name=nfo;gbkey=Gene;gene=nfo;gene_biotype=protein_coding;locus_tag=LAU_0304
+HQ113105.1	Genbank	CDS	238252	239115	.	+	0	ID=cds-AEA07155.1;Parent=gene-LAU_0304;Dbxref=NCBI_GP:AEA07155.1;Name=AEA07155.1;gbkey=CDS;gene=nfo;locus_tag=LAU_0304;product=putative endonuclease 4;protein_id=AEA07155.1
+HQ113105.1	Genbank	gene	239153	239806	.	-	.	ID=gene-LAU_0305;Name=LAU_0305;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0305
+HQ113105.1	Genbank	CDS	239153	239806	.	-	0	ID=cds-AEA07156.1;Parent=gene-LAU_0305;Dbxref=NCBI_GP:AEA07156.1;Name=AEA07156.1;gbkey=CDS;locus_tag=LAU_0305;product=conserved hypothetical protein;protein_id=AEA07156.1
+HQ113105.1	Genbank	gene	239972	240259	.	-	.	ID=gene-LAU_0306;Name=LAU_0306;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0306
+HQ113105.1	Genbank	CDS	239972	240259	.	-	0	ID=cds-AEA07157.1;Parent=gene-LAU_0306;Dbxref=NCBI_GP:AEA07157.1;Name=AEA07157.1;gbkey=CDS;locus_tag=LAU_0306;product=hypothetical protein;protein_id=AEA07157.1
+HQ113105.1	Genbank	gene	240235	241821	.	+	.	ID=gene-LAU_0307;Name=LAU_0307;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0307
+HQ113105.1	Genbank	CDS	240235	241821	.	+	0	ID=cds-AEA07158.1;Parent=gene-LAU_0307;Dbxref=NCBI_GP:AEA07158.1;Name=AEA07158.1;gbkey=CDS;locus_tag=LAU_0307;product=putative Vsr/MutH/archaeal HJR family endonuclease;protein_id=AEA07158.1
+HQ113105.1	Genbank	gene	241862	242458	.	-	.	ID=gene-LAU_0308;Name=LAU_0308;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0308
+HQ113105.1	Genbank	CDS	241862	242458	.	-	0	ID=cds-AEA07159.1;Parent=gene-LAU_0308;Dbxref=NCBI_GP:AEA07159.1;Name=AEA07159.1;gbkey=CDS;locus_tag=LAU_0308;product=hypothetical protein;protein_id=AEA07159.1
+HQ113105.1	Genbank	gene	242427	242588	.	-	.	ID=gene-LAU_0309;Name=LAU_0309;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0309
+HQ113105.1	Genbank	CDS	242427	242588	.	-	0	ID=cds-AEA07160.1;Parent=gene-LAU_0309;Dbxref=NCBI_GP:AEA07160.1;Name=AEA07160.1;gbkey=CDS;locus_tag=LAU_0309;product=hypothetical protein;protein_id=AEA07160.1
+HQ113105.1	Genbank	gene	242572	242757	.	+	.	ID=gene-LAU_0310;Name=LAU_0310;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0310
+HQ113105.1	Genbank	CDS	242572	242757	.	+	0	ID=cds-AEA07161.1;Parent=gene-LAU_0310;Dbxref=NCBI_GP:AEA07161.1;Name=AEA07161.1;gbkey=CDS;locus_tag=LAU_0310;product=hypothetical protein;protein_id=AEA07161.1
+HQ113105.1	Genbank	gene	242774	243289	.	-	.	ID=gene-LAU_0311;Name=LAU_0311;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0311
+HQ113105.1	Genbank	CDS	242774	243289	.	-	0	ID=cds-AEA07162.1;Parent=gene-LAU_0311;Dbxref=NCBI_GP:AEA07162.1;Name=AEA07162.1;gbkey=CDS;locus_tag=LAU_0311;product=conserved hypothetical protein;protein_id=AEA07162.1
+HQ113105.1	Genbank	gene	243362	243604	.	+	.	ID=gene-LAU_0312;Name=LAU_0312;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0312
+HQ113105.1	Genbank	CDS	243362	243604	.	+	0	ID=cds-AEA07163.1;Parent=gene-LAU_0312;Dbxref=NCBI_GP:AEA07163.1;Name=AEA07163.1;gbkey=CDS;locus_tag=LAU_0312;product=hypothetical protein;protein_id=AEA07163.1
+HQ113105.1	Genbank	gene	243673	243816	.	+	.	ID=gene-LAU_0313;Name=LAU_0313;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0313
+HQ113105.1	Genbank	CDS	243673	243816	.	+	0	ID=cds-AEA07164.1;Parent=gene-LAU_0313;Dbxref=NCBI_GP:AEA07164.1;Name=AEA07164.1;gbkey=CDS;locus_tag=LAU_0313;product=hypothetical protein;protein_id=AEA07164.1
+HQ113105.1	Genbank	gene	243865	244494	.	+	.	ID=gene-LAU_0314;Name=LAU_0314;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0314
+HQ113105.1	Genbank	CDS	243865	244494	.	+	0	ID=cds-AEA07165.1;Parent=gene-LAU_0314;Dbxref=NCBI_GP:AEA07165.1;Name=AEA07165.1;gbkey=CDS;locus_tag=LAU_0314;product=putative membrane protein;protein_id=AEA07165.1
+HQ113105.1	Genbank	gene	244526	244792	.	-	.	ID=gene-LAU_0315;Name=LAU_0315;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0315
+HQ113105.1	Genbank	CDS	244526	244792	.	-	0	ID=cds-AEA07166.1;Parent=gene-LAU_0315;Dbxref=NCBI_GP:AEA07166.1;Name=AEA07166.1;gbkey=CDS;locus_tag=LAU_0315;product=hypothetical protein;protein_id=AEA07166.1
+HQ113105.1	Genbank	gene	244804	244971	.	+	.	ID=gene-LAU_0316;Name=LAU_0316;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0316
+HQ113105.1	Genbank	CDS	244804	244971	.	+	0	ID=cds-AEA07167.1;Parent=gene-LAU_0316;Dbxref=NCBI_GP:AEA07167.1;Name=AEA07167.1;gbkey=CDS;locus_tag=LAU_0316;product=hypothetical protein;protein_id=AEA07167.1
+HQ113105.1	Genbank	gene	245253	245948	.	-	.	ID=gene-LAU_0317;Name=LAU_0317;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0317
+HQ113105.1	Genbank	CDS	245253	245948	.	-	0	ID=cds-AEA07168.1;Parent=gene-LAU_0317;Dbxref=NCBI_GP:AEA07168.1;Name=AEA07168.1;gbkey=CDS;locus_tag=LAU_0317;product=hypothetical protein;protein_id=AEA07168.1
+HQ113105.1	Genbank	gene	245935	246270	.	-	.	ID=gene-LAU_0318;Name=LAU_0318;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0318
+HQ113105.1	Genbank	CDS	245935	246270	.	-	0	ID=cds-AEA07169.1;Parent=gene-LAU_0318;Dbxref=NCBI_GP:AEA07169.1;Name=AEA07169.1;gbkey=CDS;locus_tag=LAU_0318;product=hypothetical protein;protein_id=AEA07169.1
+HQ113105.1	Genbank	gene	246330	246611	.	+	.	ID=gene-LAU_0319;Name=LAU_0319;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0319
+HQ113105.1	Genbank	CDS	246330	246611	.	+	0	ID=cds-AEA07170.1;Parent=gene-LAU_0319;Dbxref=NCBI_GP:AEA07170.1;Name=AEA07170.1;gbkey=CDS;locus_tag=LAU_0319;product=hypothetical protein;protein_id=AEA07170.1
+HQ113105.1	Genbank	gene	246648	247157	.	-	.	ID=gene-LAU_0320;Name=LAU_0320;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0320
+HQ113105.1	Genbank	CDS	246648	247157	.	-	0	ID=cds-AEA07171.1;Parent=gene-LAU_0320;Dbxref=NCBI_GP:AEA07171.1;Name=AEA07171.1;gbkey=CDS;locus_tag=LAU_0320;product=conserved hypothetical protein;protein_id=AEA07171.1
+HQ113105.1	Genbank	gene	247233	250637	.	-	.	ID=gene-LAU_0321;Name=LAU_0321;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0321
+HQ113105.1	Genbank	CDS	247233	250637	.	-	0	ID=cds-AEA07172.1;Parent=gene-LAU_0321;Dbxref=NCBI_GP:AEA07172.1;Name=AEA07172.1;gbkey=CDS;locus_tag=LAU_0321;product=putative early transcription factor large subunit;protein_id=AEA07172.1
+HQ113105.1	Genbank	gene	250675	251343	.	+	.	ID=gene-LAU_0322;Name=LAU_0322;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0322
+HQ113105.1	Genbank	CDS	250675	251343	.	+	0	ID=cds-AEA07173.1;Parent=gene-LAU_0322;Dbxref=NCBI_GP:AEA07173.1;Name=AEA07173.1;gbkey=CDS;locus_tag=LAU_0322;product=conserved putative secreted protein;protein_id=AEA07173.1
+HQ113105.1	Genbank	gene	251365	252045	.	-	.	ID=gene-LAU_0323;Name=LAU_0323;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0323
+HQ113105.1	Genbank	CDS	251365	252045	.	-	0	ID=cds-AEA07174.1;Parent=gene-LAU_0323;Dbxref=NCBI_GP:AEA07174.1;Name=AEA07174.1;gbkey=CDS;locus_tag=LAU_0323;product=hypothetical protein;protein_id=AEA07174.1
+HQ113105.1	Genbank	gene	252087	252308	.	-	.	ID=gene-LAU_0324;Name=LAU_0324;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0324
+HQ113105.1	Genbank	CDS	252087	252308	.	-	0	ID=cds-AEA07175.1;Parent=gene-LAU_0324;Dbxref=NCBI_GP:AEA07175.1;Name=AEA07175.1;gbkey=CDS;locus_tag=LAU_0324;product=conserved hypothetical protein;protein_id=AEA07175.1
+HQ113105.1	Genbank	gene	252351	252749	.	+	.	ID=gene-LAU_0325;Name=LAU_0325;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0325
+HQ113105.1	Genbank	CDS	252351	252749	.	+	0	ID=cds-AEA07176.1;Parent=gene-LAU_0325;Dbxref=NCBI_GP:AEA07176.1;Name=AEA07176.1;gbkey=CDS;locus_tag=LAU_0325;product=disulfide oxidoreductase;protein_id=AEA07176.1
+HQ113105.1	Genbank	gene	252788	253168	.	+	.	ID=gene-LAU_0326;Name=LAU_0326;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0326
+HQ113105.1	Genbank	CDS	252788	253168	.	+	0	ID=cds-AEA07177.1;Parent=gene-LAU_0326;Dbxref=NCBI_GP:AEA07177.1;Name=AEA07177.1;gbkey=CDS;locus_tag=LAU_0326;product=conserved hypothetical protein;protein_id=AEA07177.1
+HQ113105.1	Genbank	gene	253174	253326	.	+	.	ID=gene-LAU_0327;Name=LAU_0327;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0327
+HQ113105.1	Genbank	CDS	253174	253326	.	+	0	ID=cds-AEA07178.1;Parent=gene-LAU_0327;Dbxref=NCBI_GP:AEA07178.1;Name=AEA07178.1;gbkey=CDS;locus_tag=LAU_0327;product=hypothetical protein;protein_id=AEA07178.1
+HQ113105.1	Genbank	gene	253371	254798	.	+	.	ID=gene-LAU_0328;Name=LAU_0328;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0328
+HQ113105.1	Genbank	CDS	253371	254798	.	+	0	ID=cds-AEA07179.1;Parent=gene-LAU_0328;Dbxref=NCBI_GP:AEA07179.1;Name=AEA07179.1;gbkey=CDS;locus_tag=LAU_0328;product=hypothetical protein;protein_id=AEA07179.1
+HQ113105.1	Genbank	gene	254854	255408	.	+	.	ID=gene-LAU_0329;Name=LAU_0329;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0329
+HQ113105.1	Genbank	CDS	254854	255408	.	+	0	ID=cds-AEA07180.1;Parent=gene-LAU_0329;Dbxref=NCBI_GP:AEA07180.1;Name=AEA07180.1;gbkey=CDS;locus_tag=LAU_0329;product=putative thioredoxin;protein_id=AEA07180.1
+HQ113105.1	Genbank	gene	255456	257849	.	+	.	ID=gene-LAU_0330;Name=LAU_0330;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0330
+HQ113105.1	Genbank	CDS	255456	257849	.	+	0	ID=cds-AEA07181.1;Parent=gene-LAU_0330;Dbxref=NCBI_GP:AEA07181.1;Name=AEA07181.1;gbkey=CDS;locus_tag=LAU_0330;product=putative mRNA-capping enzyme;protein_id=AEA07181.1
+HQ113105.1	Genbank	gene	257874	258110	.	+	.	ID=gene-LAU_0331;Name=LAU_0331;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0331
+HQ113105.1	Genbank	CDS	257874	258110	.	+	0	ID=cds-AEA07182.1;Parent=gene-LAU_0331;Dbxref=NCBI_GP:AEA07182.1;Name=AEA07182.1;gbkey=CDS;locus_tag=LAU_0331;product=hypothetical protein;protein_id=AEA07182.1
+HQ113105.1	Genbank	gene	258159	259151	.	+	.	ID=gene-LAU_0332;Name=LAU_0332;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0332
+HQ113105.1	Genbank	CDS	258159	259151	.	+	0	ID=cds-AEA07183.1;Parent=gene-LAU_0332;Dbxref=NCBI_GP:AEA07183.1;Name=AEA07183.1;gbkey=CDS;locus_tag=LAU_0332;product=putative DNA repair exonuclease;protein_id=AEA07183.1
+HQ113105.1	Genbank	gene	259227	261323	.	+	.	ID=gene-LAU_0333;Name=LAU_0333;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0333
+HQ113105.1	Genbank	CDS	259227	261323	.	+	0	ID=cds-AEA07184.1;Parent=gene-LAU_0333;Dbxref=NCBI_GP:AEA07184.1;Name=AEA07184.1;gbkey=CDS;locus_tag=LAU_0333;product=conserved ankyrin repeat-containing protein;protein_id=AEA07184.1
+HQ113105.1	Genbank	gene	261336	261647	.	+	.	ID=gene-LAU_0334;Name=LAU_0334;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0334
+HQ113105.1	Genbank	CDS	261336	261647	.	+	0	ID=cds-AEA07185.1;Parent=gene-LAU_0334;Dbxref=NCBI_GP:AEA07185.1;Name=AEA07185.1;gbkey=CDS;locus_tag=LAU_0334;product=hypothetical protein;protein_id=AEA07185.1
+HQ113105.1	Genbank	gene	261641	262258	.	-	.	ID=gene-LAU_0335;Name=LAU_0335;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0335
+HQ113105.1	Genbank	CDS	261641	262258	.	-	0	ID=cds-AEA07186.1;Parent=gene-LAU_0335;Dbxref=NCBI_GP:AEA07186.1;Name=AEA07186.1;gbkey=CDS;locus_tag=LAU_0335;product=putative restriction endonuclease;protein_id=AEA07186.1
+HQ113105.1	Genbank	gene	262389	262805	.	-	.	ID=gene-LAU_0336;Name=LAU_0336;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0336
+HQ113105.1	Genbank	CDS	262389	262805	.	-	0	ID=cds-AEA07187.1;Parent=gene-LAU_0336;Dbxref=NCBI_GP:AEA07187.1;Name=AEA07187.1;gbkey=CDS;locus_tag=LAU_0336;product=putative restriction endonuclease;protein_id=AEA07187.1
+HQ113105.1	Genbank	gene	262893	264380	.	+	.	ID=gene-LAU_0337;Name=LAU_0337;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0337
+HQ113105.1	Genbank	CDS	262893	264380	.	+	0	ID=cds-AEA07188.1;Parent=gene-LAU_0337;Dbxref=NCBI_GP:AEA07188.1;Name=AEA07188.1;gbkey=CDS;locus_tag=LAU_0337;product=XRN1 5'-3' exoribonuclease;protein_id=AEA07188.1
+HQ113105.1	Genbank	gene	264404	264811	.	-	.	ID=gene-LAU_0338;Name=LAU_0338;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0338
+HQ113105.1	Genbank	CDS	264404	264811	.	-	0	ID=cds-AEA07189.1;Parent=gene-LAU_0338;Dbxref=NCBI_GP:AEA07189.1;Name=AEA07189.1;gbkey=CDS;locus_tag=LAU_0338;product=hypothetical protein;protein_id=AEA07189.1
+HQ113105.1	Genbank	gene	264828	265187	.	+	.	ID=gene-LAU_0339;Name=LAU_0339;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0339
+HQ113105.1	Genbank	CDS	264828	265187	.	+	0	ID=cds-AEA07190.1;Parent=gene-LAU_0339;Dbxref=NCBI_GP:AEA07190.1;Name=AEA07190.1;gbkey=CDS;locus_tag=LAU_0339;product=hypothetical protein;protein_id=AEA07190.1
+HQ113105.1	Genbank	gene	265249	266133	.	+	.	ID=gene-LAU_0340;Name=LAU_0340;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0340
+HQ113105.1	Genbank	CDS	265249	266133	.	+	0	ID=cds-AEA07191.1;Parent=gene-LAU_0340;Dbxref=NCBI_GP:AEA07191.1;Name=AEA07191.1;gbkey=CDS;locus_tag=LAU_0340;product=putative glycosyltransferase;protein_id=AEA07191.1
+HQ113105.1	Genbank	gene	266268	266918	.	-	.	ID=gene-LAU_0341;Name=LAU_0341;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0341
+HQ113105.1	Genbank	CDS	266268	266918	.	-	0	ID=cds-AEA07192.1;Parent=gene-LAU_0341;Dbxref=NCBI_GP:AEA07192.1;Name=AEA07192.1;gbkey=CDS;locus_tag=LAU_0341;product=putative ankyrin repeat-containing protein;protein_id=AEA07192.1
+HQ113105.1	Genbank	gene	266974	267402	.	+	.	ID=gene-LAU_0342;Name=LAU_0342;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0342
+HQ113105.1	Genbank	CDS	266974	267402	.	+	0	ID=cds-AEA07193.1;Parent=gene-LAU_0342;Dbxref=NCBI_GP:AEA07193.1;Name=AEA07193.1;gbkey=CDS;locus_tag=LAU_0342;product=thioredoxin;protein_id=AEA07193.1
+HQ113105.1	Genbank	gene	267399	267806	.	+	.	ID=gene-LAU_0343;Name=LAU_0343;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0343
+HQ113105.1	Genbank	CDS	267399	267806	.	+	0	ID=cds-AEA07194.1;Parent=gene-LAU_0343;Dbxref=NCBI_GP:AEA07194.1;Name=AEA07194.1;gbkey=CDS;locus_tag=LAU_0343;product=conserved hypothetical protein;protein_id=AEA07194.1
+HQ113105.1	Genbank	gene	267833	268279	.	+	.	ID=gene-LAU_0344;Name=LAU_0344;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0344
+HQ113105.1	Genbank	CDS	267833	268279	.	+	0	ID=cds-AEA07195.1;Parent=gene-LAU_0344;Dbxref=NCBI_GP:AEA07195.1;Name=AEA07195.1;gbkey=CDS;locus_tag=LAU_0344;product=putative inactivated thioredoxin/glutaredoxin;protein_id=AEA07195.1
+HQ113105.1	Genbank	gene	268302	271691	.	-	.	ID=gene-LAU_0345;Name=LAU_0345;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0345
+HQ113105.1	Genbank	CDS	268302	271691	.	-	0	ID=cds-AEA07196.1;Parent=gene-LAU_0345;Dbxref=NCBI_GP:AEA07196.1;Name=AEA07196.1;gbkey=CDS;locus_tag=LAU_0345;product=DNA polymerase delta catalytic subunit;protein_id=AEA07196.1
+HQ113105.1	Genbank	gene	271744	273183	.	+	.	ID=gene-LAU_0346;Name=LAU_0346;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0346
+HQ113105.1	Genbank	CDS	271744	273183	.	+	0	ID=cds-AEA07197.1;Parent=gene-LAU_0346;Dbxref=NCBI_GP:AEA07197.1;Name=AEA07197.1;gbkey=CDS;locus_tag=LAU_0346;product=conserved ankyrin repeat-containing protein;protein_id=AEA07197.1
+HQ113105.1	Genbank	gene	273189	273335	.	-	.	ID=gene-LAU_0347;Name=LAU_0347;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0347
+HQ113105.1	Genbank	CDS	273189	273335	.	-	0	ID=cds-AEA07198.1;Parent=gene-LAU_0347;Dbxref=NCBI_GP:AEA07198.1;Name=AEA07198.1;gbkey=CDS;locus_tag=LAU_0347;product=hypothetical protein;protein_id=AEA07198.1
+HQ113105.1	Genbank	gene	273371	273892	.	-	.	ID=gene-LAU_0348;Name=LAU_0348;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0348
+HQ113105.1	Genbank	CDS	273371	273892	.	-	0	ID=cds-AEA07199.1;Parent=gene-LAU_0348;Dbxref=NCBI_GP:AEA07199.1;Name=AEA07199.1;gbkey=CDS;locus_tag=LAU_0348;product=hypothetical protein;protein_id=AEA07199.1
+HQ113105.1	Genbank	gene	274079	274399	.	-	.	ID=gene-LAU_0349;Name=LAU_0349;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0349
+HQ113105.1	Genbank	CDS	274079	274399	.	-	0	ID=cds-AEA07200.1;Parent=gene-LAU_0349;Dbxref=NCBI_GP:AEA07200.1;Name=AEA07200.1;gbkey=CDS;locus_tag=LAU_0349;product=putative secreted protein;protein_id=AEA07200.1
+HQ113105.1	Genbank	gene	274374	275012	.	+	.	ID=gene-LAU_0350;Name=LAU_0350;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0350
+HQ113105.1	Genbank	CDS	274374	275012	.	+	0	ID=cds-AEA07201.1;Parent=gene-LAU_0350;Dbxref=NCBI_GP:AEA07201.1;Name=AEA07201.1;gbkey=CDS;locus_tag=LAU_0350;product=conserved putative membrane protein;protein_id=AEA07201.1
+HQ113105.1	Genbank	gene	275167	275889	.	-	.	ID=gene-LAU_0351;Name=LAU_0351;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0351
+HQ113105.1	Genbank	CDS	275167	275889	.	-	0	ID=cds-AEA07202.1;Parent=gene-LAU_0351;Dbxref=NCBI_GP:AEA07202.1;Name=AEA07202.1;gbkey=CDS;locus_tag=LAU_0351;product=conserved hypothetical protein;protein_id=AEA07202.1
+HQ113105.1	Genbank	gene	275943	276983	.	-	.	ID=gene-LAU_0352;Name=LAU_0352;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0352
+HQ113105.1	Genbank	CDS	275943	276983	.	-	0	ID=cds-AEA07203.1;Parent=gene-LAU_0352;Dbxref=NCBI_GP:AEA07203.1;Name=AEA07203.1;gbkey=CDS;locus_tag=LAU_0352;product=putative transcription factor A2-like protein;protein_id=AEA07203.1
+HQ113105.1	Genbank	gene	277097	278521	.	+	.	ID=gene-LAU_0353;Name=mcp;gbkey=Gene;gene=mcp;gene_biotype=protein_coding;locus_tag=LAU_0353
+HQ113105.1	Genbank	CDS	277097	278521	.	+	0	ID=cds-AEA07204.1;Parent=gene-LAU_0353;Dbxref=NCBI_GP:AEA07204.1;Name=AEA07204.1;gbkey=CDS;gene=mcp;locus_tag=LAU_0353;product=major capsid protein;protein_id=AEA07204.1
+HQ113105.1	Genbank	gene	278613	279194	.	-	.	ID=gene-LAU_0354;Name=LAU_0354;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0354
+HQ113105.1	Genbank	CDS	278613	279194	.	-	0	ID=cds-AEA07205.1;Parent=gene-LAU_0354;Dbxref=NCBI_GP:AEA07205.1;Name=AEA07205.1;gbkey=CDS;locus_tag=LAU_0354;product=conserved hypothetical protein;protein_id=AEA07205.1
+HQ113105.1	Genbank	gene	279443	279946	.	+	.	ID=gene-LAU_0356;Name=LAU_0356;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0356
+HQ113105.1	Genbank	CDS	279443	279946	.	+	0	ID=cds-AEA07206.1;Parent=gene-LAU_0356;Dbxref=NCBI_GP:AEA07206.1;Name=AEA07206.1;gbkey=CDS;locus_tag=LAU_0356;product=hypothetical protein;protein_id=AEA07206.1
+HQ113105.1	Genbank	gene	279997	280452	.	-	.	ID=gene-LAU_0357;Name=LAU_0357;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0357
+HQ113105.1	Genbank	CDS	279997	280452	.	-	0	ID=cds-AEA07207.1;Parent=gene-LAU_0357;Dbxref=NCBI_GP:AEA07207.1;Name=AEA07207.1;gbkey=CDS;locus_tag=LAU_0357;product=hypothetical protein;protein_id=AEA07207.1
+HQ113105.1	Genbank	gene	280541	281161	.	+	.	ID=gene-LAU_0358;Name=LAU_0358;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0358
+HQ113105.1	Genbank	CDS	280541	281161	.	+	0	ID=cds-AEA07208.1;Parent=gene-LAU_0358;Dbxref=NCBI_GP:AEA07208.1;Name=AEA07208.1;gbkey=CDS;locus_tag=LAU_0358;product=hypothetical protein;protein_id=AEA07208.1
+HQ113105.1	Genbank	gene	281231	281818	.	+	.	ID=gene-LAU_0359;Name=LAU_0359;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0359
+HQ113105.1	Genbank	CDS	281231	281818	.	+	0	ID=cds-AEA07209.1;Parent=gene-LAU_0359;Dbxref=NCBI_GP:AEA07209.1;Name=AEA07209.1;gbkey=CDS;locus_tag=LAU_0359;product=putative serine/threonine protein kinase;protein_id=AEA07209.1
+HQ113105.1	Genbank	gene	281871	282488	.	+	.	ID=gene-LAU_0360;Name=LAU_0360;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0360
+HQ113105.1	Genbank	CDS	281871	282488	.	+	0	ID=cds-AEA07210.1;Parent=gene-LAU_0360;Dbxref=NCBI_GP:AEA07210.1;Name=AEA07210.1;gbkey=CDS;locus_tag=LAU_0360;product=hypothetical protein;protein_id=AEA07210.1
+HQ113105.1	Genbank	gene	282559	283149	.	+	.	ID=gene-LAU_0361;Name=LAU_0361;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0361
+HQ113105.1	Genbank	CDS	282559	283149	.	+	0	ID=cds-AEA07211.1;Parent=gene-LAU_0361;Dbxref=NCBI_GP:AEA07211.1;Name=AEA07211.1;gbkey=CDS;locus_tag=LAU_0361;product=putative serine/threonine protein kinase;protein_id=AEA07211.1
+HQ113105.1	Genbank	gene	283279	283500	.	-	.	ID=gene-LAU_0362;Name=LAU_0362;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0362
+HQ113105.1	Genbank	CDS	283279	283500	.	-	0	ID=cds-AEA07212.1;Parent=gene-LAU_0362;Dbxref=NCBI_GP:AEA07212.1;Name=AEA07212.1;gbkey=CDS;locus_tag=LAU_0362;product=hypothetical protein;protein_id=AEA07212.1
+HQ113105.1	Genbank	gene	283525	284121	.	-	.	ID=gene-LAU_0363;Name=LAU_0363;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0363
+HQ113105.1	Genbank	CDS	283525	284121	.	-	0	ID=cds-AEA07213.1;Parent=gene-LAU_0363;Dbxref=NCBI_GP:AEA07213.1;Name=AEA07213.1;gbkey=CDS;locus_tag=LAU_0363;product=conserved hypothetical protein;protein_id=AEA07213.1
+HQ113105.1	Genbank	gene	284166	284612	.	+	.	ID=gene-LAU_0364;Name=LAU_0364;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0364
+HQ113105.1	Genbank	CDS	284166	284612	.	+	0	ID=cds-AEA07214.1;Parent=gene-LAU_0364;Dbxref=NCBI_GP:AEA07214.1;Name=AEA07214.1;gbkey=CDS;locus_tag=LAU_0364;product=conserved hypothetical protein;protein_id=AEA07214.1
+HQ113105.1	Genbank	gene	284686	285090	.	+	.	ID=gene-LAU_0365;Name=LAU_0365;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0365
+HQ113105.1	Genbank	CDS	284686	285090	.	+	0	ID=cds-AEA07215.1;Parent=gene-LAU_0365;Dbxref=NCBI_GP:AEA07215.1;Name=AEA07215.1;gbkey=CDS;locus_tag=LAU_0365;product=conserved MORN repeat-containing protein;protein_id=AEA07215.1
+HQ113105.1	Genbank	gene	285280	285981	.	-	.	ID=gene-LAU_0366;Name=LAU_0366;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0366
+HQ113105.1	Genbank	CDS	285280	285981	.	-	0	ID=cds-AEA07216.1;Parent=gene-LAU_0366;Dbxref=NCBI_GP:AEA07216.1;Name=AEA07216.1;gbkey=CDS;locus_tag=LAU_0366;product=hypothetical protein;protein_id=AEA07216.1
+HQ113105.1	Genbank	gene	285914	286621	.	-	.	ID=gene-LAU_0367;Name=LAU_0367;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0367
+HQ113105.1	Genbank	CDS	285914	286621	.	-	0	ID=cds-AEA07217.1;Parent=gene-LAU_0367;Dbxref=NCBI_GP:AEA07217.1;Name=AEA07217.1;gbkey=CDS;locus_tag=LAU_0367;product=hypothetical protein;protein_id=AEA07217.1
+HQ113105.1	Genbank	gene	286675	288117	.	+	.	ID=gene-LAU_0368;Name=LAU_0368;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0368
+HQ113105.1	Genbank	CDS	286675	288117	.	+	0	ID=cds-AEA07218.1;Parent=gene-LAU_0368;Dbxref=NCBI_GP:AEA07218.1;Name=AEA07218.1;gbkey=CDS;locus_tag=LAU_0368;product=putative calcineurin-like phosphoesterase;protein_id=AEA07218.1
+HQ113105.1	Genbank	gene	288166	289086	.	-	.	ID=gene-LAU_0369;Name=LAU_0369;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0369
+HQ113105.1	Genbank	CDS	288166	289086	.	-	0	ID=cds-AEA07219.1;Parent=gene-LAU_0369;Dbxref=NCBI_GP:AEA07219.1;Name=AEA07219.1;gbkey=CDS;locus_tag=LAU_0369;product=putative nuclease;protein_id=AEA07219.1
+HQ113105.1	Genbank	gene	289197	290657	.	+	.	ID=gene-LAU_0370;Name=LAU_0370;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0370
+HQ113105.1	Genbank	CDS	289197	290657	.	+	0	ID=cds-AEA07220.1;Parent=gene-LAU_0370;Dbxref=NCBI_GP:AEA07220.1;Name=AEA07220.1;gbkey=CDS;locus_tag=LAU_0370;product=conserved hypothetical protein;protein_id=AEA07220.1
+HQ113105.1	Genbank	gene	290733	291455	.	+	.	ID=gene-LAU_0371;Name=LAU_0371;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0371
+HQ113105.1	Genbank	CDS	290733	291455	.	+	0	ID=cds-AEA07221.1;Parent=gene-LAU_0371;Dbxref=NCBI_GP:AEA07221.1;Name=AEA07221.1;gbkey=CDS;locus_tag=LAU_0371;product=conserved hypothetical protein;protein_id=AEA07221.1
+HQ113105.1	Genbank	gene	291486	291974	.	+	.	ID=gene-LAU_0372;Name=LAU_0372;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0372
+HQ113105.1	Genbank	CDS	291486	291974	.	+	0	ID=cds-AEA07222.1;Parent=gene-LAU_0372;Dbxref=NCBI_GP:AEA07222.1;Name=AEA07222.1;gbkey=CDS;locus_tag=LAU_0372;product=hypothetical protein;protein_id=AEA07222.1
+HQ113105.1	Genbank	gene	291995	292759	.	-	.	ID=gene-LAU_0373;Name=LAU_0373;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0373
+HQ113105.1	Genbank	CDS	291995	292759	.	-	0	ID=cds-AEA07223.1;Parent=gene-LAU_0373;Dbxref=NCBI_GP:AEA07223.1;Name=AEA07223.1;gbkey=CDS;locus_tag=LAU_0373;product=putative serine/threonine protein kinase;protein_id=AEA07223.1
+HQ113105.1	Genbank	gene	292747	293145	.	-	.	ID=gene-LAU_0374;Name=LAU_0374;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0374
+HQ113105.1	Genbank	CDS	292747	293145	.	-	0	ID=cds-AEA07224.1;Parent=gene-LAU_0374;Dbxref=NCBI_GP:AEA07224.1;Name=AEA07224.1;gbkey=CDS;locus_tag=LAU_0374;product=putative Vsr/MutH/archaeal HJR family endonuclease;protein_id=AEA07224.1
+HQ113105.1	Genbank	gene	293169	293348	.	-	.	ID=gene-LAU_0375;Name=LAU_0375;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0375
+HQ113105.1	Genbank	CDS	293169	293348	.	-	0	ID=cds-AEA07225.1;Parent=gene-LAU_0375;Dbxref=NCBI_GP:AEA07225.1;Name=AEA07225.1;gbkey=CDS;locus_tag=LAU_0375;product=conserved hypothetical protein;protein_id=AEA07225.1
+HQ113105.1	Genbank	gene	293350	293982	.	-	.	ID=gene-LAU_0376;Name=LAU_0376;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0376
+HQ113105.1	Genbank	CDS	293350	293982	.	-	0	ID=cds-AEA07226.1;Parent=gene-LAU_0376;Dbxref=NCBI_GP:AEA07226.1;Name=AEA07226.1;gbkey=CDS;locus_tag=LAU_0376;product=putative serine/threonine protein kinase;protein_id=AEA07226.1
+HQ113105.1	Genbank	gene	293995	294405	.	-	.	ID=gene-LAU_0377;Name=LAU_0377;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0377
+HQ113105.1	Genbank	CDS	293995	294405	.	-	0	ID=cds-AEA07227.1;Parent=gene-LAU_0377;Dbxref=NCBI_GP:AEA07227.1;Name=AEA07227.1;gbkey=CDS;locus_tag=LAU_0377;product=conserved hypothetical protein;protein_id=AEA07227.1
+HQ113105.1	Genbank	gene	294505	294651	.	+	.	ID=gene-LAU_0378;Name=LAU_0378;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0378
+HQ113105.1	Genbank	CDS	294505	294651	.	+	0	ID=cds-AEA07228.1;Parent=gene-LAU_0378;Dbxref=NCBI_GP:AEA07228.1;Name=AEA07228.1;gbkey=CDS;locus_tag=LAU_0378;product=hypothetical protein;protein_id=AEA07228.1
+HQ113105.1	Genbank	gene	294651	295139	.	+	.	ID=gene-LAU_0379;Name=LAU_0379;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0379
+HQ113105.1	Genbank	CDS	294651	295139	.	+	0	ID=cds-AEA07229.1;Parent=gene-LAU_0379;Dbxref=NCBI_GP:AEA07229.1;Name=AEA07229.1;gbkey=CDS;locus_tag=LAU_0379;product=conserved hypothetical protein;protein_id=AEA07229.1
+HQ113105.1	Genbank	gene	294933	295814	.	-	.	ID=gene-LAU_0380;Name=LAU_0380;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0380
+HQ113105.1	Genbank	CDS	294933	295814	.	-	0	ID=cds-AEA07230.1;Parent=gene-LAU_0380;Dbxref=NCBI_GP:AEA07230.1;Name=AEA07230.1;gbkey=CDS;locus_tag=LAU_0380;product=conserved hypothetical protein;protein_id=AEA07230.1
+HQ113105.1	Genbank	gene	295866	296249	.	+	.	ID=gene-LAU_0381;Name=LAU_0381;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0381
+HQ113105.1	Genbank	CDS	295866	296249	.	+	0	ID=cds-AEA07231.1;Parent=gene-LAU_0381;Dbxref=NCBI_GP:AEA07231.1;Name=AEA07231.1;gbkey=CDS;locus_tag=LAU_0381;product=conserved hypothetical protein;protein_id=AEA07231.1
+HQ113105.1	Genbank	gene	296246	296512	.	+	.	ID=gene-LAU_0382;Name=LAU_0382;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0382
+HQ113105.1	Genbank	CDS	296246	296512	.	+	0	ID=cds-AEA07232.1;Parent=gene-LAU_0382;Dbxref=NCBI_GP:AEA07232.1;Name=AEA07232.1;gbkey=CDS;locus_tag=LAU_0382;product=conserved hypothetical protein;protein_id=AEA07232.1
+HQ113105.1	Genbank	gene	296515	297129	.	-	.	ID=gene-LAU_0383;Name=LAU_0383;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0383
+HQ113105.1	Genbank	CDS	296515	297129	.	-	0	ID=cds-AEA07233.1;Parent=gene-LAU_0383;Dbxref=NCBI_GP:AEA07233.1;Name=AEA07233.1;gbkey=CDS;locus_tag=LAU_0383;product=conserved hypothetical protein;protein_id=AEA07233.1
+HQ113105.1	Genbank	gene	297179	297790	.	+	.	ID=gene-LAU_0384;Name=LAU_0384;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0384
+HQ113105.1	Genbank	CDS	297179	297790	.	+	0	ID=cds-AEA07234.1;Parent=gene-LAU_0384;Dbxref=NCBI_GP:AEA07234.1;Name=AEA07234.1;gbkey=CDS;locus_tag=LAU_0384;product=putative peptidoglycan peptidase;protein_id=AEA07234.1
+HQ113105.1	Genbank	gene	297819	298415	.	+	.	ID=gene-LAU_0385;Name=LAU_0385;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0385
+HQ113105.1	Genbank	CDS	297819	298415	.	+	0	ID=cds-AEA07235.1;Parent=gene-LAU_0385;Dbxref=NCBI_GP:AEA07235.1;Name=AEA07235.1;gbkey=CDS;locus_tag=LAU_0385;product=conserved hypothetical protein;protein_id=AEA07235.1
+HQ113105.1	Genbank	gene	298804	299637	.	-	.	ID=gene-LAU_0386;Name=LAU_0386;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0386
+HQ113105.1	Genbank	CDS	298804	299637	.	-	0	ID=cds-AEA07236.1;Parent=gene-LAU_0386;Dbxref=NCBI_GP:AEA07236.1;Name=AEA07236.1;gbkey=CDS;locus_tag=LAU_0386;product=histone H2B/H2A fusion protein;protein_id=AEA07236.1
+HQ113105.1	Genbank	gene	299736	300389	.	+	.	ID=gene-LAU_0387;Name=LAU_0387;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0387
+HQ113105.1	Genbank	CDS	299736	300389	.	+	0	ID=cds-AEA07237.1;Parent=gene-LAU_0387;Dbxref=NCBI_GP:AEA07237.1;Name=AEA07237.1;gbkey=CDS;locus_tag=LAU_0387;product=histone H3-like protein;protein_id=AEA07237.1
+HQ113105.1	Genbank	gene	300414	300569	.	+	.	ID=gene-LAU_0388;Name=LAU_0388;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0388
+HQ113105.1	Genbank	CDS	300414	300569	.	+	0	ID=cds-AEA07238.1;Parent=gene-LAU_0388;Dbxref=NCBI_GP:AEA07238.1;Name=AEA07238.1;gbkey=CDS;locus_tag=LAU_0388;product=hypothetical protein;protein_id=AEA07238.1
+HQ113105.1	Genbank	gene	300576	300959	.	-	.	ID=gene-LAU_0389;Name=LAU_0389;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0389
+HQ113105.1	Genbank	CDS	300576	300959	.	-	0	ID=cds-AEA07239.1;Parent=gene-LAU_0389;Dbxref=NCBI_GP:AEA07239.1;Name=AEA07239.1;gbkey=CDS;locus_tag=LAU_0389;product=conserved hypothetical protein;protein_id=AEA07239.1
+HQ113105.1	Genbank	gene	301044	301991	.	-	.	ID=gene-LAU_0390;Name=LAU_0390;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0390
+HQ113105.1	Genbank	CDS	301044	301991	.	-	0	ID=cds-AEA07240.1;Parent=gene-LAU_0390;Dbxref=NCBI_GP:AEA07240.1;Name=AEA07240.1;gbkey=CDS;locus_tag=LAU_0390;product=conserved hypothetical protein;protein_id=AEA07240.1
+HQ113105.1	Genbank	gene	302440	303513	.	-	.	ID=gene-LAU_0391;Name=LAU_0391;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0391
+HQ113105.1	Genbank	CDS	302440	303513	.	-	0	ID=cds-AEA07241.1;Parent=gene-LAU_0391;Dbxref=NCBI_GP:AEA07241.1;Name=AEA07241.1;gbkey=CDS;locus_tag=LAU_0391;product=putative restriction endonuclease;protein_id=AEA07241.1
+HQ113105.1	Genbank	gene	303598	304317	.	-	.	ID=gene-LAU_0392;Name=LAU_0392;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0392
+HQ113105.1	Genbank	CDS	303598	304317	.	-	0	ID=cds-AEA07242.1;Parent=gene-LAU_0392;Dbxref=NCBI_GP:AEA07242.1;Name=AEA07242.1;gbkey=CDS;locus_tag=LAU_0392;product=conserved hypothetical protein;protein_id=AEA07242.1
+HQ113105.1	Genbank	gene	304359	304664	.	+	.	ID=gene-LAU_0393;Name=LAU_0393;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0393
+HQ113105.1	Genbank	CDS	304359	304664	.	+	0	ID=cds-AEA07243.1;Parent=gene-LAU_0393;Dbxref=NCBI_GP:AEA07243.1;Name=AEA07243.1;gbkey=CDS;locus_tag=LAU_0393;product=hypothetical protein;protein_id=AEA07243.1
+HQ113105.1	Genbank	gene	304834	306246	.	-	.	ID=gene-LAU_0394;Name=LAU_0394;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0394
+HQ113105.1	Genbank	CDS	304834	306246	.	-	0	ID=cds-AEA07244.1;Parent=gene-LAU_0394;Dbxref=NCBI_GP:AEA07244.1;Name=AEA07244.1;gbkey=CDS;locus_tag=LAU_0394;product=ATP-dependent exoDNAse alpha subunit;protein_id=AEA07244.1
+HQ113105.1	Genbank	gene	306286	306459	.	+	.	ID=gene-LAU_0395;Name=LAU_0395;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0395
+HQ113105.1	Genbank	CDS	306286	306459	.	+	0	ID=cds-AEA07245.1;Parent=gene-LAU_0395;Dbxref=NCBI_GP:AEA07245.1;Name=AEA07245.1;gbkey=CDS;locus_tag=LAU_0395;product=putative membrane protein;protein_id=AEA07245.1
+HQ113105.1	Genbank	gene	306506	306853	.	+	.	ID=gene-LAU_0396;Name=LAU_0396;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0396
+HQ113105.1	Genbank	CDS	306506	306853	.	+	0	ID=cds-AEA07246.1;Parent=gene-LAU_0396;Dbxref=NCBI_GP:AEA07246.1;Name=AEA07246.1;gbkey=CDS;locus_tag=LAU_0396;product=ubiquitin-like protein;protein_id=AEA07246.1
+HQ113105.1	Genbank	gene	307111	307407	.	-	.	ID=gene-LAU_0397;Name=LAU_0397;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0397
+HQ113105.1	Genbank	CDS	307111	307407	.	-	0	ID=cds-AEA07247.1;Parent=gene-LAU_0397;Dbxref=NCBI_GP:AEA07247.1;Name=AEA07247.1;gbkey=CDS;locus_tag=LAU_0397;product=conserved hypothetical protein;protein_id=AEA07247.1
+HQ113105.1	Genbank	gene	307448	307783	.	-	.	ID=gene-LAU_0398;Name=LAU_0398;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0398
+HQ113105.1	Genbank	CDS	307448	307783	.	-	0	ID=cds-AEA07248.1;Parent=gene-LAU_0398;Dbxref=NCBI_GP:AEA07248.1;Name=AEA07248.1;gbkey=CDS;locus_tag=LAU_0398;product=hypothetical protein;protein_id=AEA07248.1
+HQ113105.1	Genbank	gene	307871	308389	.	-	.	ID=gene-LAU_0399;Name=LAU_0399;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0399
+HQ113105.1	Genbank	CDS	307871	308389	.	-	0	ID=cds-AEA07249.1;Parent=gene-LAU_0399;Dbxref=NCBI_GP:AEA07249.1;Name=AEA07249.1;gbkey=CDS;locus_tag=LAU_0399;product=hypothetical protein;protein_id=AEA07249.1
+HQ113105.1	Genbank	gene	308346	310946	.	-	.	ID=gene-LAU_0400;Name=LAU_0400;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0400
+HQ113105.1	Genbank	CDS	308346	310946	.	-	0	ID=cds-AEA07250.1;Parent=gene-LAU_0400;Dbxref=NCBI_GP:AEA07250.1;Name=AEA07250.1;gbkey=CDS;locus_tag=LAU_0400;product=AAA-family ATPase;protein_id=AEA07250.1
+HQ113105.1	Genbank	gene	310992	312755	.	-	.	ID=gene-LAU_0401;Name=LAU_0401;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0401
+HQ113105.1	Genbank	CDS	310992	312755	.	-	0	ID=cds-AEA07251.1;Parent=gene-LAU_0401;Dbxref=NCBI_GP:AEA07251.1;Name=AEA07251.1;Note=COG0513: superfamily II DNA and RNA helicases;gbkey=CDS;locus_tag=LAU_0401;product=putative helicase;protein_id=AEA07251.1
+HQ113105.1	Genbank	gene	312825	315362	.	+	.	ID=gene-LAU_0402;Name=LAU_0402;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0402
+HQ113105.1	Genbank	CDS	312825	315362	.	+	0	ID=cds-AEA07252.1;Parent=gene-LAU_0402;Dbxref=NCBI_GP:AEA07252.1;Name=AEA07252.1;gbkey=CDS;locus_tag=LAU_0402;product=conserved hypothetical protein;protein_id=AEA07252.1
+HQ113105.1	Genbank	gene	315379	315549	.	-	.	ID=gene-LAU_0403;Name=LAU_0403;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0403
+HQ113105.1	Genbank	CDS	315379	315549	.	-	0	ID=cds-AEA07253.1;Parent=gene-LAU_0403;Dbxref=NCBI_GP:AEA07253.1;Name=AEA07253.1;gbkey=CDS;locus_tag=LAU_0403;product=hypothetical protein;protein_id=AEA07253.1
+HQ113105.1	Genbank	gene	315842	316240	.	-	.	ID=gene-LAU_0404;Name=LAU_0404;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0404
+HQ113105.1	Genbank	CDS	315842	316240	.	-	0	ID=cds-AEA07254.1;Parent=gene-LAU_0404;Dbxref=NCBI_GP:AEA07254.1;Name=AEA07254.1;gbkey=CDS;locus_tag=LAU_0404;product=conserved hypothetical protein;protein_id=AEA07254.1
+HQ113105.1	Genbank	gene	316280	317083	.	-	.	ID=gene-LAU_0405;Name=LAU_0405;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0405
+HQ113105.1	Genbank	CDS	316280	317083	.	-	0	ID=cds-AEA07255.1;Parent=gene-LAU_0405;Dbxref=NCBI_GP:AEA07255.1;Name=AEA07255.1;gbkey=CDS;locus_tag=LAU_0405;product=putative CDC123-like protein;protein_id=AEA07255.1
+HQ113105.1	Genbank	gene	317105	318313	.	-	.	ID=gene-LAU_0406;Name=LAU_0406;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0406
+HQ113105.1	Genbank	CDS	317105	318313	.	-	0	ID=cds-AEA07256.1;Parent=gene-LAU_0406;Dbxref=NCBI_GP:AEA07256.1;Name=AEA07256.1;gbkey=CDS;locus_tag=LAU_0406;product=uracil-DNA glycosylase;protein_id=AEA07256.1
+HQ113105.1	Genbank	gene	318353	318766	.	-	.	ID=gene-LAU_0407;Name=LAU_0407;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0407
+HQ113105.1	Genbank	CDS	318353	318766	.	-	0	ID=cds-AEA07257.1;Parent=gene-LAU_0407;Dbxref=NCBI_GP:AEA07257.1;Name=AEA07257.1;gbkey=CDS;locus_tag=LAU_0407;product=conserved hypothetical protein;protein_id=AEA07257.1
+HQ113105.1	Genbank	gene	318794	319474	.	-	.	ID=gene-LAU_0408;Name=LAU_0408;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0408
+HQ113105.1	Genbank	CDS	318794	319474	.	-	0	ID=cds-AEA07258.1;Parent=gene-LAU_0408;Dbxref=NCBI_GP:AEA07258.1;Name=AEA07258.1;gbkey=CDS;locus_tag=LAU_0408;product=conserved hypothetical protein;protein_id=AEA07258.1
+HQ113105.1	Genbank	gene	319498	320088	.	+	.	ID=gene-LAU_0409;Name=LAU_0409;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0409
+HQ113105.1	Genbank	CDS	319498	320088	.	+	0	ID=cds-AEA07259.1;Parent=gene-LAU_0409;Dbxref=NCBI_GP:AEA07259.1;Name=AEA07259.1;gbkey=CDS;locus_tag=LAU_0409;product=conserved putative secreted protein;protein_id=AEA07259.1
+HQ113105.1	Genbank	gene	320111	320584	.	-	.	ID=gene-LAU_0410;Name=LAU_0410;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0410
+HQ113105.1	Genbank	CDS	320111	320584	.	-	0	ID=cds-AEA07260.1;Parent=gene-LAU_0410;Dbxref=NCBI_GP:AEA07260.1;Name=AEA07260.1;gbkey=CDS;locus_tag=LAU_0410;product=hypothetical protein;protein_id=AEA07260.1
+HQ113105.1	Genbank	gene	320635	321120	.	-	.	ID=gene-LAU_0411;Name=LAU_0411;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0411
+HQ113105.1	Genbank	CDS	320635	321120	.	-	0	ID=cds-AEA07261.1;Parent=gene-LAU_0411;Dbxref=NCBI_GP:AEA07261.1;Name=AEA07261.1;gbkey=CDS;locus_tag=LAU_0411;product=hypothetical protein;protein_id=AEA07261.1
+HQ113105.1	Genbank	gene	321103	321366	.	+	.	ID=gene-LAU_0412;Name=LAU_0412;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0412
+HQ113105.1	Genbank	CDS	321103	321366	.	+	0	ID=cds-AEA07262.1;Parent=gene-LAU_0412;Dbxref=NCBI_GP:AEA07262.1;Name=AEA07262.1;gbkey=CDS;locus_tag=LAU_0412;product=hypothetical protein;protein_id=AEA07262.1
+HQ113105.1	Genbank	gene	321414	321743	.	+	.	ID=gene-LAU_0413;Name=LAU_0413;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0413
+HQ113105.1	Genbank	CDS	321414	321743	.	+	0	ID=cds-AEA07263.1;Parent=gene-LAU_0413;Dbxref=NCBI_GP:AEA07263.1;Name=AEA07263.1;gbkey=CDS;locus_tag=LAU_0413;product=hypothetical protein;protein_id=AEA07263.1
+HQ113105.1	Genbank	gene	322175	322792	.	+	.	ID=gene-LAU_0414;Name=LAU_0414;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0414
+HQ113105.1	Genbank	CDS	322175	322792	.	+	0	ID=cds-AEA07264.1;Parent=gene-LAU_0414;Dbxref=NCBI_GP:AEA07264.1;Name=AEA07264.1;gbkey=CDS;locus_tag=LAU_0414;product=conserved hypothetical protein;protein_id=AEA07264.1
+HQ113105.1	Genbank	gene	323083	324351	.	+	.	ID=gene-LAU_0415;Name=LAU_0415;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0415
+HQ113105.1	Genbank	CDS	323083	324351	.	+	0	ID=cds-AEA07265.1;Parent=gene-LAU_0415;Dbxref=NCBI_GP:AEA07265.1;Name=AEA07265.1;gbkey=CDS;locus_tag=LAU_0415;product=hypothetical protein;protein_id=AEA07265.1
+HQ113105.1	Genbank	gene	324400	324747	.	+	.	ID=gene-LAU_0416;Name=LAU_0416;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0416
+HQ113105.1	Genbank	CDS	324400	324747	.	+	0	ID=cds-AEA07266.1;Parent=gene-LAU_0416;Dbxref=NCBI_GP:AEA07266.1;Name=AEA07266.1;gbkey=CDS;locus_tag=LAU_0416;product=hypothetical protein;protein_id=AEA07266.1
+HQ113105.1	Genbank	gene	325084	325743	.	-	.	ID=gene-LAU_0417;Name=LAU_0417;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0417
+HQ113105.1	Genbank	CDS	325084	325743	.	-	0	ID=cds-AEA07267.1;Parent=gene-LAU_0417;Dbxref=NCBI_GP:AEA07267.1;Name=AEA07267.1;gbkey=CDS;locus_tag=LAU_0417;product=hypothetical protein;protein_id=AEA07267.1
+HQ113105.1	Genbank	gene	325772	327394	.	+	.	ID=gene-LAU_0418;Name=LAU_0418;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0418
+HQ113105.1	Genbank	CDS	325772	327394	.	+	0	ID=cds-AEA07268.1;Parent=gene-LAU_0418;Dbxref=NCBI_GP:AEA07268.1;Name=AEA07268.1;gbkey=CDS;locus_tag=LAU_0418;product=HNH homing endonuclease;protein_id=AEA07268.1
+HQ113105.1	Genbank	gene	327416	327724	.	-	.	ID=gene-LAU_0419;Name=LAU_0419;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0419
+HQ113105.1	Genbank	CDS	327416	327724	.	-	0	ID=cds-AEA07269.1;Parent=gene-LAU_0419;Dbxref=NCBI_GP:AEA07269.1;Name=AEA07269.1;gbkey=CDS;locus_tag=LAU_0419;product=hypothetical protein;protein_id=AEA07269.1
+HQ113105.1	Genbank	gene	327754	328581	.	-	.	ID=gene-LAU_0420;Name=LAU_0420;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0420
+HQ113105.1	Genbank	CDS	327754	328581	.	-	0	ID=cds-AEA07270.1;Parent=gene-LAU_0420;Dbxref=NCBI_GP:AEA07270.1;Name=AEA07270.1;gbkey=CDS;locus_tag=LAU_0420;product=conserved hypothetical protein;protein_id=AEA07270.1
+HQ113105.1	Genbank	gene	328630	329226	.	+	.	ID=gene-LAU_0421;Name=LAU_0421;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0421
+HQ113105.1	Genbank	CDS	328630	329226	.	+	0	ID=cds-AEA07271.1;Parent=gene-LAU_0421;Dbxref=NCBI_GP:AEA07271.1;Name=AEA07271.1;gbkey=CDS;locus_tag=LAU_0421;product=DNA-directed RNA polymerase subunit RPB5;protein_id=AEA07271.1
+HQ113105.1	Genbank	gene	329254	329514	.	+	.	ID=gene-LAU_0422;Name=LAU_0422;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0422
+HQ113105.1	Genbank	CDS	329254	329514	.	+	0	ID=cds-AEA07272.1;Parent=gene-LAU_0422;Dbxref=NCBI_GP:AEA07272.1;Name=AEA07272.1;gbkey=CDS;locus_tag=LAU_0422;product=conserved hypothetical protein;protein_id=AEA07272.1
+HQ113105.1	Genbank	gene	329482	329700	.	-	.	ID=gene-LAU_0423;Name=LAU_0423;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0423
+HQ113105.1	Genbank	CDS	329482	329700	.	-	0	ID=cds-AEA07273.1;Parent=gene-LAU_0423;Dbxref=NCBI_GP:AEA07273.1;Name=AEA07273.1;gbkey=CDS;locus_tag=LAU_0423;product=hypothetical protein;protein_id=AEA07273.1
+HQ113105.1	Genbank	gene	329762	330331	.	+	.	ID=gene-LAU_0424;Name=LAU_0424;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0424
+HQ113105.1	Genbank	CDS	329762	330331	.	+	0	ID=cds-AEA07274.1;Parent=gene-LAU_0424;Dbxref=NCBI_GP:AEA07274.1;Name=AEA07274.1;gbkey=CDS;locus_tag=LAU_0424;product=hypothetical protein;protein_id=AEA07274.1
+HQ113105.1	Genbank	gene	330367	330681	.	-	.	ID=gene-LAU_0425;Name=LAU_0425;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0425
+HQ113105.1	Genbank	CDS	330367	330681	.	-	0	ID=cds-AEA07275.1;Parent=gene-LAU_0425;Dbxref=NCBI_GP:AEA07275.1;Name=AEA07275.1;gbkey=CDS;locus_tag=LAU_0425;product=conserved hypothetical protein;protein_id=AEA07275.1
+HQ113105.1	Genbank	gene	330685	331422	.	-	.	ID=gene-LAU_0426;Name=LAU_0426;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0426
+HQ113105.1	Genbank	CDS	330685	331422	.	-	0	ID=cds-AEA07276.1;Parent=gene-LAU_0426;Dbxref=NCBI_GP:AEA07276.1;Name=AEA07276.1;gbkey=CDS;locus_tag=LAU_0426;product=conserved hypothetical protein;protein_id=AEA07276.1
+HQ113105.1	Genbank	gene	331474	332814	.	-	.	ID=gene-LAU_0427;Name=LAU_0427;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0427
+HQ113105.1	Genbank	CDS	331474	332814	.	-	0	ID=cds-AEA07277.1;Parent=gene-LAU_0427;Dbxref=NCBI_GP:AEA07277.1;Name=AEA07277.1;gbkey=CDS;locus_tag=LAU_0427;product=dihydrofolate reductase-thymidylate synthase;protein_id=AEA07277.1
+HQ113105.1	Genbank	gene	332842	333090	.	+	.	ID=gene-LAU_0428;Name=LAU_0428;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0428
+HQ113105.1	Genbank	CDS	332842	333090	.	+	0	ID=cds-AEA07278.1;Parent=gene-LAU_0428;Dbxref=NCBI_GP:AEA07278.1;Name=AEA07278.1;gbkey=CDS;locus_tag=LAU_0428;product=conserved hypothetical protein;protein_id=AEA07278.1
+HQ113105.1	Genbank	gene	333106	334287	.	-	.	ID=gene-LAU_0429;Name=LAU_0429;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0429
+HQ113105.1	Genbank	CDS	333106	334287	.	-	0	ID=cds-AEA07279.1;Parent=gene-LAU_0429;Dbxref=NCBI_GP:AEA07279.1;Name=AEA07279.1;gbkey=CDS;locus_tag=LAU_0429;product=conserved hypothetical protein;protein_id=AEA07279.1
+HQ113105.1	Genbank	gene	334310	335458	.	-	.	ID=gene-LAU_0430;Name=LAU_0430;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0430
+HQ113105.1	Genbank	CDS	334310	335458	.	-	0	ID=cds-AEA07280.1;Parent=gene-LAU_0430;Dbxref=NCBI_GP:AEA07280.1;Name=AEA07280.1;gbkey=CDS;locus_tag=LAU_0430;product=conserved hypothetical protein;protein_id=AEA07280.1
+HQ113105.1	Genbank	gene	335485	335934	.	-	.	ID=gene-LAU_0431;Name=LAU_0431;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0431
+HQ113105.1	Genbank	CDS	335485	335934	.	-	0	ID=cds-AEA07281.1;Parent=gene-LAU_0431;Dbxref=NCBI_GP:AEA07281.1;Name=AEA07281.1;gbkey=CDS;locus_tag=LAU_0431;product=hypothetical protein;protein_id=AEA07281.1
+HQ113105.1	Genbank	gene	336178	337752	.	+	.	ID=gene-LAU_0432;Name=LAU_0432;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0432
+HQ113105.1	Genbank	CDS	336178	337752	.	+	0	ID=cds-AEA07282.1;Parent=gene-LAU_0432;Dbxref=NCBI_GP:AEA07282.1;Name=AEA07282.1;gbkey=CDS;locus_tag=LAU_0432;product=conserved hypothetical protein;protein_id=AEA07282.1
+HQ113105.1	Genbank	gene	337994	338530	.	-	.	ID=gene-LAU_0433;Name=LAU_0433;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0433
+HQ113105.1	Genbank	CDS	337994	338530	.	-	0	ID=cds-AEA07283.1;Parent=gene-LAU_0433;Dbxref=NCBI_GP:AEA07283.1;Name=AEA07283.1;gbkey=CDS;locus_tag=LAU_0433;product=hypothetical protein;protein_id=AEA07283.1
+HQ113105.1	Genbank	gene	338598	339524	.	-	.	ID=gene-LAU_0434;Name=LAU_0434;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0434
+HQ113105.1	Genbank	CDS	338598	339524	.	-	0	ID=cds-AEA07284.1;Parent=gene-LAU_0434;Dbxref=NCBI_GP:AEA07284.1;Name=AEA07284.1;gbkey=CDS;locus_tag=LAU_0434;product=hypothetical protein;protein_id=AEA07284.1
+HQ113105.1	Genbank	gene	339575	340051	.	+	.	ID=gene-LAU_0435;Name=LAU_0435;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0435
+HQ113105.1	Genbank	CDS	339575	340051	.	+	0	ID=cds-AEA07285.1;Parent=gene-LAU_0435;Dbxref=NCBI_GP:AEA07285.1;Name=AEA07285.1;gbkey=CDS;locus_tag=LAU_0435;product=conserved hypothetical protein;protein_id=AEA07285.1
+HQ113105.1	Genbank	gene	340012	340407	.	+	.	ID=gene-LAU_0436;Name=LAU_0436;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0436
+HQ113105.1	Genbank	CDS	340012	340407	.	+	0	ID=cds-AEA07286.1;Parent=gene-LAU_0436;Dbxref=NCBI_GP:AEA07286.1;Name=AEA07286.1;gbkey=CDS;locus_tag=LAU_0436;product=conserved hypothetical protein;protein_id=AEA07286.1
+HQ113105.1	Genbank	gene	340488	341153	.	+	.	ID=gene-LAU_0437;Name=LAU_0437;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0437
+HQ113105.1	Genbank	CDS	340488	341153	.	+	0	ID=cds-AEA07287.1;Parent=gene-LAU_0437;Dbxref=NCBI_GP:AEA07287.1;Name=AEA07287.1;gbkey=CDS;locus_tag=LAU_0437;product=hypothetical protein;protein_id=AEA07287.1
+HQ113105.1	Genbank	gene	341339	341617	.	+	.	ID=gene-LAU_0438;Name=LAU_0438;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0438
+HQ113105.1	Genbank	CDS	341339	341617	.	+	0	ID=cds-AEA07288.1;Parent=gene-LAU_0438;Dbxref=NCBI_GP:AEA07288.1;Name=AEA07288.1;gbkey=CDS;locus_tag=LAU_0438;product=hypothetical protein;protein_id=AEA07288.1
+HQ113105.1	Genbank	gene	341883	342167	.	+	.	ID=gene-LAU_0439;Name=LAU_0439;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0439
+HQ113105.1	Genbank	CDS	341883	342167	.	+	0	ID=cds-AEA07289.1;Parent=gene-LAU_0439;Dbxref=NCBI_GP:AEA07289.1;Name=AEA07289.1;gbkey=CDS;locus_tag=LAU_0439;product=conserved hypothetical protein;protein_id=AEA07289.1
+HQ113105.1	Genbank	gene	342205	342696	.	-	.	ID=gene-LAU_0440;Name=LAU_0440;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0440
+HQ113105.1	Genbank	CDS	342205	342696	.	-	0	ID=cds-AEA07290.1;Parent=gene-LAU_0440;Dbxref=NCBI_GP:AEA07290.1;Name=AEA07290.1;gbkey=CDS;locus_tag=LAU_0440;product=hypothetical protein;protein_id=AEA07290.1
+HQ113105.1	Genbank	gene	342893	343078	.	-	.	ID=gene-LAU_0441;Name=LAU_0441;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0441
+HQ113105.1	Genbank	CDS	342893	343078	.	-	0	ID=cds-AEA07291.1;Parent=gene-LAU_0441;Dbxref=NCBI_GP:AEA07291.1;Name=AEA07291.1;gbkey=CDS;locus_tag=LAU_0441;product=conserved hypothetical protein;protein_id=AEA07291.1
+HQ113105.1	Genbank	gene	343082	343531	.	-	.	ID=gene-LAU_0442;Name=LAU_0442;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0442
+HQ113105.1	Genbank	CDS	343082	343531	.	-	0	ID=cds-AEA07292.1;Parent=gene-LAU_0442;Dbxref=NCBI_GP:AEA07292.1;Name=AEA07292.1;gbkey=CDS;locus_tag=LAU_0442;product=hypothetical protein;protein_id=AEA07292.1
+HQ113105.1	Genbank	gene	343584	343958	.	+	.	ID=gene-LAU_0443;Name=LAU_0443;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0443
+HQ113105.1	Genbank	CDS	343584	343958	.	+	0	ID=cds-AEA07293.1;Parent=gene-LAU_0443;Dbxref=NCBI_GP:AEA07293.1;Name=AEA07293.1;gbkey=CDS;locus_tag=LAU_0443;product=hypothetical protein;protein_id=AEA07293.1
+HQ113105.1	Genbank	gene	343994	344587	.	+	.	ID=gene-LAU_0444;Name=LAU_0444;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0444
+HQ113105.1	Genbank	CDS	343994	344587	.	+	0	ID=cds-AEA07294.1;Parent=gene-LAU_0444;Dbxref=NCBI_GP:AEA07294.1;Name=AEA07294.1;gbkey=CDS;locus_tag=LAU_0444;product=hypothetical protein;protein_id=AEA07294.1
+HQ113105.1	Genbank	gene	344628	344957	.	-	.	ID=gene-LAU_0445;Name=LAU_0445;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0445
+HQ113105.1	Genbank	CDS	344628	344957	.	-	0	ID=cds-AEA07295.1;Parent=gene-LAU_0445;Dbxref=NCBI_GP:AEA07295.1;Name=AEA07295.1;gbkey=CDS;locus_tag=LAU_0445;product=conserved hypothetical protein;protein_id=AEA07295.1
+HQ113105.1	Genbank	gene	345071	345403	.	-	.	ID=gene-LAU_0446;Name=LAU_0446;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0446
+HQ113105.1	Genbank	CDS	345071	345403	.	-	0	ID=cds-AEA07296.1;Parent=gene-LAU_0446;Dbxref=NCBI_GP:AEA07296.1;Name=AEA07296.1;gbkey=CDS;locus_tag=LAU_0446;product=hypothetical protein;protein_id=AEA07296.1
+HQ113105.1	Genbank	gene	345427	345789	.	+	.	ID=gene-LAU_0447;Name=LAU_0447;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0447
+HQ113105.1	Genbank	CDS	345427	345789	.	+	0	ID=cds-AEA07297.1;Parent=gene-LAU_0447;Dbxref=NCBI_GP:AEA07297.1;Name=AEA07297.1;gbkey=CDS;locus_tag=LAU_0447;product=hypothetical protein;protein_id=AEA07297.1
+HQ113105.1	Genbank	gene	345792	345938	.	+	.	ID=gene-LAU_0448;Name=LAU_0448;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0448
+HQ113105.1	Genbank	CDS	345792	345938	.	+	0	ID=cds-AEA07298.1;Parent=gene-LAU_0448;Dbxref=NCBI_GP:AEA07298.1;Name=AEA07298.1;gbkey=CDS;locus_tag=LAU_0448;product=hypothetical protein;protein_id=AEA07298.1
+HQ113105.1	Genbank	gene	345958	346230	.	-	.	ID=gene-LAU_0449;Name=LAU_0449;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0449
+HQ113105.1	Genbank	CDS	345958	346230	.	-	0	ID=cds-AEA07299.1;Parent=gene-LAU_0449;Dbxref=NCBI_GP:AEA07299.1;Name=AEA07299.1;gbkey=CDS;locus_tag=LAU_0449;product=conserved hypothetical protein;protein_id=AEA07299.1
+HQ113105.1	Genbank	gene	346314	346652	.	+	.	ID=gene-LAU_0450;Name=LAU_0450;gbkey=Gene;gene_biotype=protein_coding;locus_tag=LAU_0450
+HQ113105.1	Genbank	CDS	346314	346652	.	+	0	ID=cds-AEA07300.1;Parent=gene-LAU_0450;Dbxref=NCBI_GP:AEA07300.1;Name=AEA07300.1;gbkey=CDS;locus_tag=LAU_0450;product=conserved hypothetical protein;protein_id=AEA07300.1
+

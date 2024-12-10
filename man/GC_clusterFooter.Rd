@@ -8,7 +8,6 @@ GC_clusterFooter(
   GC_chart,
   title = NULL,
   subtitle = NULL,
-  height = NULL,
   show = TRUE,
   cluster = NULL,
   subtitleFont = list(),
@@ -25,9 +24,6 @@ if there are more clusters than titles. Default is NULL.}
 
 \item{subtitle}{Character vector or NULL. Subtitles to accompany the main titles.
 Default is NULL.}
-
-\item{height}{Character vector or NULL. The height of the footer, which can vary
-between clusters. Default is NULL.}
 
 \item{show}{Logical vector. Controls the visibility of each footer.
 Default is TRUE for all clusters.}
@@ -58,17 +54,16 @@ genes_data <- data.frame(
 )
 
 # Add a simple footer with subtitle to all clusters
-GC_chart(genes_data, cluster = "cluster", group = "group", height = "300px") \%>\%
+GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
   GC_clusterFooter(
     title = "Cluster Footer",
     subtitle = "Cluster subtitle"
   )
-# Add styling to the title and sub title
-GC_chart(genes_data, cluster = "cluster", group = "group", height = "300px") \%>\%
+# Add styling to the title and subtitle
+GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
   GC_clusterFooter(
     title = "This is a footer",
     subtitle = "Subtitle for the footer",
-    height = "15px",
     spacing = 15,
     show = TRUE,
     cluster = 1,

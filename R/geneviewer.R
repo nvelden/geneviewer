@@ -1112,8 +1112,6 @@ GC_clusterLabel <- function(
 #'        if there are more clusters than titles. Default is NULL.
 #' @param subtitle Character vector or NULL. Subtitles to accompany the main titles.
 #'        Default is NULL.
-#' @param height Character vector or NULL. The height of the footer, which can vary
-#'        between clusters. Default is NULL.
 #' @param show Logical vector. Controls the visibility of each footer.
 #'        Default is TRUE for all clusters.
 #' @param cluster Numeric or character vector specifying which clusters should have footers added or updated.
@@ -1134,17 +1132,16 @@ GC_clusterLabel <- function(
 #' )
 #'
 #' # Add a simple footer with subtitle to all clusters
-#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "300px") %>%
+#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
 #'   GC_clusterFooter(
 #'     title = "Cluster Footer",
 #'     subtitle = "Cluster subtitle"
 #'   )
-#' # Add styling to the title and sub title
-#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "300px") %>%
+#' # Add styling to the title and subtitle
+#' GC_chart(genes_data, cluster = "cluster", group = "group") %>%
 #'   GC_clusterFooter(
 #'     title = "This is a footer",
 #'     subtitle = "Subtitle for the footer",
-#'     height = "15px",
 #'     spacing = 15,
 #'     show = TRUE,
 #'     cluster = 1,
@@ -1173,7 +1170,6 @@ GC_clusterFooter <- function(
     GC_chart,
     title = NULL,
     subtitle = NULL,
-    height = NULL,
     show = TRUE,
     cluster = NULL,
     subtitleFont = list(),
@@ -1193,18 +1189,6 @@ GC_clusterFooter <- function(
 
   for(i in seq_along(clusters)){
 
-    # Determine the height based on title and subtitle
-    if (!is.null(title) && !is.null(subtitle)) {
-      currentHeight <- "20px"
-    } else {
-      currentHeight <- "10px"
-    }
-
-    # Override with user-specified height if provided
-    if (!is.null(height)) {
-      currentHeight <- height[(i-1) %% length(height) + 1]
-    }
-
     # Default options
     options <- list(
       title = title[(i-1) %% length(title) + 1],
@@ -1221,14 +1205,11 @@ GC_clusterFooter <- function(
 
     # Set footer options for each cluster
     GC_chart$x$series[[clusters[i]]]$footer <- options
-
-    # Set height for each cluster
-    GC_chart$x$series[[clusters[i]]]$grid$bottom <- currentHeight
-
   }
 
   return(GC_chart)
 }
+
 
 #' Add Labels to Each Cluster in a GC Chart
 #'

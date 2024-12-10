@@ -1081,16 +1081,23 @@ GC_clusterLabel <- function(
     # Set clusterLabel options for each cluster
     GC_chart$x$series[[clusters[i]]]$clusterLabel <- options
 
-  }
+    # Set width for each cluster based on position
+    if (currentPosition == "left") {
+      GC_chart <- GC_grid(
+        GC_chart,
+        margin = list(left = width[(i-1) %% length(width) + 1]),
+        cluster = clusters[i]
+      )
+      #GC_chart$x$series[[clusters[i]]]$grid$margin$left <- width[(i-1) %% length(width) + 1]
+    } else if (currentPosition == "right") {
+      GC_chart <- GC_grid(
+        GC_chart,
+        margin = list(right = width[(i-1) %% length(width) + 1]),
+        cluster = clusters[i]
+      )
+    }
 
-  # Set width for each cluster based on position
-  if (currentPosition == "left") {
-    GC_chart <- GC_grid(GC_chart, margin = list(left = width[(i-1) %% length(width) + 1]))
-    #GC_chart$x$series[[clusters[i]]]$grid$margin$left <- width[(i-1) %% length(width) + 1]
-  } else if (currentPosition == "right") {
-    GC_chart <- GC_grid(GC_chart, margin = list(right = width[(i-1) %% length(width) + 1]))
   }
-
   return(GC_chart)
 }
 

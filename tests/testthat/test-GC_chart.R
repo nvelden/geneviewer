@@ -213,6 +213,7 @@ test_that("GC_grid updates grid settings for specified clusters correctly", {
 
 })
 
+#GC_scale
 test_that("GC_scale updates scale settings for specified clusters correctly", {
 
   # Load ophA_clusters data
@@ -284,6 +285,271 @@ test_that("GC_scale updates scale settings for specified clusters correctly", {
   expect_equal(dbophA_scale$textStyle$fontSize, "12px")
   expect_equal(dbophA_scale$lineStyle$stroke, "black")
   expect_equal(dbophA_scale$lineStyle$strokeWidth, 2)
+
+})
+
+# GC_scaleBar
+test_that("GC_scaleBar updates scale bar settings for specified clusters correctly", {
+
+  # Load ophA_clusters data
+  data("ophA_clusters", package = "geneviewer")
+
+  # Generate a GC chart
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "400px")
+
+  # Update scale bar settings for specific clusters
+  updated_chart <- GC_scaleBar(
+    GC_chart = chart,
+    show = TRUE,
+    cluster = c("ophA", "dbophA"),
+    scaleBarLineStyle = list(stroke = "black", strokeWidth = 1),
+    scaleBarTickStyle = list(stroke = "grey", strokeWidth = 2),
+    labelStyle = list(
+      labelPosition = "left",
+      fontSize = "12px",
+      fontFamily = "Arial",
+      fill = "blue"
+    ),
+    title = c("1 kb", "2 kb"),
+    scaleBarUnit = c(1000, 2000)
+  )
+
+  # Assertions
+  expect_s3_class(updated_chart, "htmlwidget")
+
+  # Check if scale bar settings are applied to the specified clusters
+  expect_true("scaleBar" %in% names(updated_chart$x$series$ophA))
+  expect_true("scaleBar" %in% names(updated_chart$x$series$dbophA))
+
+  # Verify scale bar settings for `ophA` cluster
+  ophA_scaleBar <- updated_chart$x$series$ophA$scaleBar
+  expect_true(ophA_scaleBar$show)
+  expect_equal(ophA_scaleBar$scaleBarLineStyle$stroke, "black")
+  expect_equal(ophA_scaleBar$scaleBarLineStyle$strokeWidth, 1)
+  expect_equal(ophA_scaleBar$scaleBarTickStyle$stroke, "grey")
+  expect_equal(ophA_scaleBar$scaleBarTickStyle$strokeWidth, 2)
+  expect_equal(ophA_scaleBar$labelStyle$labelPosition, "left")
+  expect_equal(ophA_scaleBar$labelStyle$fontSize, "12px")
+  expect_equal(ophA_scaleBar$labelStyle$fontFamily, "Arial")
+  expect_equal(ophA_scaleBar$labelStyle$fill, "blue")
+  expect_equal(ophA_scaleBar$title, "1 kb")
+  expect_equal(ophA_scaleBar$scaleBarUnit, 1000)
+
+  # Verify scale bar settings for `dbophA` cluster
+  dbophA_scaleBar <- updated_chart$x$series$dbophA$scaleBar
+  expect_true(dbophA_scaleBar$show)
+  expect_equal(dbophA_scaleBar$scaleBarLineStyle$stroke, "black")
+  expect_equal(dbophA_scaleBar$scaleBarLineStyle$strokeWidth, 1)
+  expect_equal(dbophA_scaleBar$scaleBarTickStyle$stroke, "grey")
+  expect_equal(dbophA_scaleBar$scaleBarTickStyle$strokeWidth, 2)
+  expect_equal(dbophA_scaleBar$labelStyle$labelPosition, "left")
+  expect_equal(dbophA_scaleBar$labelStyle$fontSize, "12px")
+  expect_equal(dbophA_scaleBar$labelStyle$fontFamily, "Arial")
+  expect_equal(dbophA_scaleBar$labelStyle$fill, "blue")
+  expect_equal(dbophA_scaleBar$title, "2 kb")
+  expect_equal(dbophA_scaleBar$scaleBarUnit, 2000)
+})
+
+# GC_clusterLabel
+test_that("GC_clusterLabel updates cluster labels for specified clusters correctly", {
+
+  # Load ophA_clusters data
+  data("ophA_clusters", package = "geneviewer")
+
+  # Generate a GC chart
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "400px")
+
+  # Update cluster labels for specific clusters
+  updated_chart <- GC_clusterLabel(
+    GC_chart = chart,
+    title = c("Cluster A", "Cluster B"),
+    cluster = c("ophA", "dbophA"),
+    position = c("left", "right"),
+    width = "150px",
+    wrapLabel = TRUE,
+    wrapOptions = list(
+      dyAdjust = 0,
+      lineHeightEms = 1.1,
+      splitOnHyphen = TRUE
+    ),
+    fontSize = "14px",
+    fontStyle = "italic",
+    fontWeight = "bold",
+    fontFamily = "Arial",
+    cursor = "pointer"
+  )
+
+  # Assertions
+  expect_s3_class(updated_chart, "htmlwidget")
+
+  # Check if cluster label settings are applied to the specified clusters
+  expect_true("clusterLabel" %in% names(updated_chart$x$series$ophA))
+  expect_true("clusterLabel" %in% names(updated_chart$x$series$dbophA))
+
+  # Verify cluster label settings for `ophA` cluster
+  ophA_label <- updated_chart$x$series$ophA$clusterLabel
+  expect_equal(ophA_label$title, "Cluster A")
+  expect_true(ophA_label$show)
+  expect_equal(ophA_label$position, "left")
+  expect_true(ophA_label$wrapLabel)
+  expect_equal(ophA_label$wrapOptions$dyAdjust, 0)
+  expect_equal(ophA_label$wrapOptions$lineHeightEms, 1.1)
+  expect_true(ophA_label$wrapOptions$splitOnHyphen)
+  expect_equal(ophA_label$fontSize, "14px")
+  expect_equal(ophA_label$fontStyle, "italic")
+  expect_equal(ophA_label$fontWeight, "bold")
+  expect_equal(ophA_label$fontFamily, "Arial")
+  expect_equal(ophA_label$cursor, "pointer")
+
+  # Verify cluster label settings for `dbophA` cluster
+  dbophA_label <- updated_chart$x$series$dbophA$clusterLabel
+  expect_equal(dbophA_label$title, "Cluster B")
+  expect_true(dbophA_label$show)
+  expect_equal(dbophA_label$position, "right")
+  expect_true(dbophA_label$wrapLabel)
+  expect_equal(dbophA_label$wrapOptions$dyAdjust, 0)
+  expect_equal(dbophA_label$wrapOptions$lineHeightEms, 1.1)
+  expect_true(dbophA_label$wrapOptions$splitOnHyphen)
+  expect_equal(dbophA_label$fontSize, "14px")
+  expect_equal(dbophA_label$fontStyle, "italic")
+  expect_equal(dbophA_label$fontWeight, "bold")
+  expect_equal(dbophA_label$fontFamily, "Arial")
+  expect_equal(dbophA_label$cursor, "pointer")
+
+  # Verify grid settings for label width
+  expect_equal(updated_chart$x$series$ophA$container$margin$left, "150px")
+  expect_equal(updated_chart$x$series$dbophA$container$margin$right, "150px")
+
+})
+
+# GC_clusterFooter
+test_that("GC_clusterFooter updates footers with all options correctly", {
+
+  # Load ophA_clusters data
+  data("ophA_clusters", package = "geneviewer")
+
+  # Generate a GC chart
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
+
+  # Update footers with all options
+  updated_chart <- GC_clusterFooter(
+    GC_chart = chart,
+    title = c("Footer for ophA", "Footer for dbophA"),
+    subtitle = c("Subtitle for ophA", "Subtitle for dbophA"),
+    spacing = c(15, 20),
+    show = TRUE,
+    cluster = c("ophA", "dbophA"),
+    x = c(6, 8),
+    y = c(-20, -25),
+    align = c("center", "right"),
+    titleFont = list(
+      fontSize = "12px",
+      fontWeight = "bold",
+      fontFamily = "sans-serif",
+      fill = "black",
+      cursor = "default"
+    ),
+    subtitleFont = list(
+      fill = "grey",
+      fontSize = "10px",
+      fontStyle = "normal",
+      fontFamily = "sans-serif",
+      cursor = "default"
+    )
+  )
+
+  # Assertions
+  expect_s3_class(updated_chart, "htmlwidget")
+
+  # Verify footer settings for cluster ophA
+  ophA_footer <- updated_chart$x$series$ophA$footer
+  expect_equal(ophA_footer$title, "Footer for ophA")
+  expect_equal(ophA_footer$subtitle, "Subtitle for ophA")
+  expect_true(ophA_footer$show)
+  expect_equal(ophA_footer$titleFont$fontSize, "12px")
+  expect_equal(ophA_footer$titleFont$fontWeight, "bold")
+  expect_equal(ophA_footer$titleFont$fontFamily, "sans-serif")
+  expect_equal(ophA_footer$titleFont$fill, "black")
+  expect_equal(ophA_footer$titleFont$cursor, "default")
+  expect_equal(ophA_footer$subtitleFont$fontSize, "10px")
+  expect_equal(ophA_footer$subtitleFont$fontStyle, "normal")
+  expect_equal(ophA_footer$subtitleFont$fontFamily, "sans-serif")
+  expect_equal(ophA_footer$subtitleFont$fill, "grey")
+  expect_equal(ophA_footer$subtitleFont$cursor, "default")
+  expect_equal(ophA_footer$x, 6)
+  expect_equal(ophA_footer$y, -20)
+
+  # Verify footer settings for cluster dbophA
+  dbophA_footer <- updated_chart$x$series$dbophA$footer
+  expect_equal(dbophA_footer$title, "Footer for dbophA")
+  expect_equal(dbophA_footer$subtitle, "Subtitle for dbophA")
+  expect_true(dbophA_footer$show)
+  expect_equal(dbophA_footer$titleFont$fontSize, "12px")
+  expect_equal(dbophA_footer$titleFont$fontWeight, "bold")
+  expect_equal(dbophA_footer$titleFont$fontFamily, "sans-serif")
+  expect_equal(dbophA_footer$titleFont$fill, "black")
+  expect_equal(dbophA_footer$titleFont$cursor, "default")
+  expect_equal(dbophA_footer$subtitleFont$fontSize, "10px")
+  expect_equal(dbophA_footer$subtitleFont$fontStyle, "normal")
+  expect_equal(dbophA_footer$subtitleFont$fontFamily, "sans-serif")
+  expect_equal(dbophA_footer$subtitleFont$fill, "grey")
+  expect_equal(dbophA_footer$subtitleFont$cursor, "default")
+  expect_equal(dbophA_footer$x, 8)
+  expect_equal(dbophA_footer$y, -25)
+
+})
+
+test_that("GC_labels updates labels with all options correctly", {
+
+  # Load ophA_clusters data
+  data("ophA_clusters", package = "geneviewer")
+
+  # Generate a GC chart
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
+
+  # Update labels with all options
+  updated_chart <- GC_labels(
+    GC_chart = chart,
+    label = "name",
+    show = TRUE,
+    cluster = c("ophA", "dbophA"),
+    itemStyle = list(
+      list(index = 0, fill = "red", fontSize = "14px", fontWeight = "bold"),
+      list(index = 1, fill = "blue", fontSize = "12px", fontWeight = "normal")
+    ),
+    x = 10,
+    y = -5,
+    adjustLabels = TRUE,
+    fontSize = "12px",
+    fontStyle = "italic",
+    fill = "black",
+    fontFamily = "sans-serif",
+    textAnchor = "middle",
+    cursor = "default"
+  )
+
+  # Assertions
+  expect_s3_class(updated_chart, "htmlwidget")
+
+  # Verify label settings for cluster ophA
+  ophA_label <- updated_chart$x$series$ophA$labels
+  expect_equal(ophA_label$label, "name")
+  expect_true(ophA_label$show)
+  expect_equal(ophA_label$itemStyle[[1]]$fill, "red")
+  expect_equal(ophA_label$itemStyle[[1]]$fontSize, "14px")
+  expect_equal(ophA_label$itemStyle[[1]]$fontWeight, "bold")
+  expect_equal(ophA_label$x, 10)
+  expect_equal(ophA_label$y, -5)
+
+  # Verify label settings for cluster dbophA
+  dbophA_label <- updated_chart$x$series$dbophA$labels
+  expect_equal(dbophA_label$label, "name")
+  expect_true(dbophA_label$show)
+  expect_equal(dbophA_label$itemStyle[[2]]$fill, "blue")
+  expect_equal(dbophA_label$itemStyle[[2]]$fontSize, "12px")
+  expect_equal(dbophA_label$itemStyle[[2]]$fontWeight, "normal")
+  expect_equal(dbophA_label$x, 10)
+  expect_equal(dbophA_label$y, -5)
 
 })
 

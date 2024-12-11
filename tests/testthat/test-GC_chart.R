@@ -499,6 +499,7 @@ test_that("GC_clusterFooter updates footers with all options correctly", {
 
 })
 
+# GC_labels
 test_that("GC_labels updates labels with all options correctly", {
 
   # Load ophA_clusters data
@@ -552,6 +553,62 @@ test_that("GC_labels updates labels with all options correctly", {
   expect_equal(dbophA_label$y, -5)
 
 })
+
+# GC_coordinates
+test_that("GC_coordinates updates coordinates with all options correctly", {
+
+  # Load ophA_clusters data
+  data("ophA_clusters", package = "geneviewer")
+
+  # Generate a GC chart
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
+
+  # Update coordinates with all options
+  updated_chart <- GC_coordinates(
+    GC_chart = chart,
+    show = TRUE,
+    tickValuesTop = c(2522, 5286, 9536),
+    tickValuesBottom = c(4276, 4718, 10904),
+    ticksFormat = ",.0f",
+    tickStyle = list(
+      fontSize = "10px",
+      fontWeight = "normal",
+      fontFamily = "sans-serif",
+      fill = "grey",
+      cursor = "default"
+    ),
+    textStyle = list(
+      fontSize = "12px",
+      fontStyle = "italic",
+      fontFamily = "sans-serif",
+      fill = "black",
+      textAnchor = "middle",
+      cursor = "default"
+    ),
+    cluster = c("ophA"),
+    x = c(10, 15),
+    y = c(-5, -10)
+  )
+
+  # Assertions
+  expect_s3_class(updated_chart, "htmlwidget")
+
+  # Verify coordinate settings for cluster ophA
+  ophA_coordinates <- updated_chart$x$series$ophA$coordinates
+  expect_true(ophA_coordinates$show)
+  expect_equal(ophA_coordinates$tickValuesTop, c(2522, 5286, 9536))
+  expect_equal(ophA_coordinates$tickValuesBottom, c(4276, 4718, 10904))
+  expect_equal(ophA_coordinates$ticksFormat, ",.0f")
+  expect_equal(ophA_coordinates$tickStyle$fontSize, "10px")
+  expect_equal(ophA_coordinates$tickStyle$fill, "grey")
+  expect_equal(ophA_coordinates$textStyle$fontSize, "12px")
+  expect_equal(ophA_coordinates$textStyle$fill, "black")
+  expect_equal(ophA_coordinates$x, 10)
+  expect_equal(ophA_coordinates$y, -5)
+
+})
+
+
 
 
 

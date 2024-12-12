@@ -608,6 +608,146 @@ test_that("GC_coordinates updates coordinates with all options correctly", {
 
 })
 
+# GC_genes test
+test_that("GC_genes updates gene characteristics with all options correctly", {
+
+  # Load ophA_clusters data
+  data("ophA_clusters", package = "geneviewer")
+
+  # Generate a GC chart
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
+
+  # Update genes with all options
+  updated_chart <- GC_genes(
+    GC_chart = chart,
+    group = "class",
+    show = TRUE,
+    marker = "arrow",
+    marker_size = "medium",
+    colorScheme = "schemeCategory10",
+    customColors = c("red", "blue", "green"),
+    cluster = c("ophA", "dbophA"),
+    itemStyle = list(
+      list(index = 0, fill = "red", stroke = "black"),
+      list(index = 1, fill = "blue", stroke = "grey")
+    ),
+    x = c(10, 15),
+    y = c(-5, -10),
+    stroke = "black",
+    strokeWidth = 1,
+    arrowheadWidth = NULL,
+    arrowheadHeight = NULL,
+    arrowHeight = NULL,
+    markerHeight = NULL
+  )
+
+  # Assertions
+  expect_s3_class(updated_chart, "htmlwidget")
+
+  # Verify gene settings for cluster ophA
+  ophA_genes <- updated_chart$x$series$ophA$genes
+  expect_equal(ophA_genes$group, "class")
+  expect_true(ophA_genes$show)
+  expect_equal(ophA_genes$marker, "arrow")
+  expect_equal(ophA_genes$markerSize, "medium")
+  expect_equal(ophA_genes$colorScheme, "schemeCategory10")
+  expect_equal(ophA_genes$customColors, c("red", "blue", "green"))
+  expect_equal(ophA_genes$itemStyle[[1]]$fill, "red")
+  expect_equal(ophA_genes$itemStyle[[1]]$stroke, "black")
+  expect_equal(ophA_genes$itemStyle[[2]]$fill, "blue")
+  expect_equal(ophA_genes$itemStyle[[2]]$stroke, "grey")
+  expect_equal(ophA_genes$x, c(10, 15))
+  expect_equal(ophA_genes$y, c(-5, -10))
+  expect_equal(ophA_genes$stroke, "black")
+  expect_equal(ophA_genes$strokeWidth, 1)
+
+  # Verify gene settings for cluster dbophA
+  dbophA_genes <- updated_chart$x$series$dbophA$genes
+  expect_equal(dbophA_genes$group, "class")
+  expect_true(dbophA_genes$show)
+  expect_equal(dbophA_genes$marker, "arrow")
+  expect_equal(dbophA_genes$markerSize, "medium")
+  expect_equal(dbophA_genes$colorScheme, "schemeCategory10")
+  expect_equal(dbophA_genes$customColors, c("red", "blue", "green"))
+  expect_equal(dbophA_genes$itemStyle[[1]]$fill, "red")
+  expect_equal(dbophA_genes$itemStyle[[1]]$stroke, "black")
+  expect_equal(dbophA_genes$itemStyle[[2]]$fill, "blue")
+  expect_equal(dbophA_genes$itemStyle[[2]]$stroke, "grey")
+  expect_equal(dbophA_genes$x, c(10, 15))
+  expect_equal(dbophA_genes$y, c(-5, -10))
+  expect_equal(dbophA_genes$stroke, "black")
+  expect_equal(dbophA_genes$strokeWidth, 1)
+
+})
+
+#GC_color
+test_that("GC_color updates color scheme with all options correctly", {
+
+  # Load ophA_clusters data
+  data("ophA_clusters", package = "geneviewer")
+
+  # Generate a GC chart
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "100px")
+
+  # Update color scheme with predefined scheme
+  updated_chart1 <- GC_color(
+    GC_chart = chart,
+    colorScheme = "schemeCategory10"
+  )
+
+  # Assertions for predefined color scheme
+  expect_s3_class(updated_chart1, "htmlwidget")
+  expect_equal(updated_chart1$x$legend$legendOptions$colorScheme, "schemeCategory10")
+  expect_null(updated_chart1$x$legend$legendOptions$customColors)
+
+  # Validate series colorScheme
+  clusters <- names(updated_chart1$x$series)
+  for (cluster_name in clusters) {
+    expect_equal(updated_chart1$x$series[[cluster_name]]$genes$colorScheme, "schemeCategory10")
+    expect_null(updated_chart1$x$series[[cluster_name]]$genes$customColors)
+    expect_equal(updated_chart1$x$series[[cluster_name]]$transcript$colorScheme, "schemeCategory10")
+    expect_null(updated_chart1$x$series[[cluster_name]]$transcript$customColors)
+  }
+
+  # Update color scheme with custom colors
+  updated_chart2 <- GC_color(
+    GC_chart = chart,
+    customColors = c("red", "orange", "green")
+  )
+
+  # Assertions for custom colors
+  expect_s3_class(updated_chart2, "htmlwidget")
+  expect_null(updated_chart2$x$legend$legendOptions$colorScheme)
+  expect_equal(updated_chart2$x$legend$legendOptions$customColors, c("red", "orange", "green"))
+
+  # Validate series customColors
+  for (cluster_name in clusters) {
+    expect_null(updated_chart2$x$series[[cluster_name]]$genes$colorScheme)
+    expect_equal(updated_chart2$x$series[[cluster_name]]$genes$customColors, c("red", "orange", "green"))
+    expect_null(updated_chart2$x$series[[cluster_name]]$transcript$colorScheme)
+    expect_equal(updated_chart2$x$series[[cluster_name]]$transcript$customColors, c("red", "orange", "green"))
+  }
+
+  # Update color scheme with named custom colors
+  updated_chart3 <- GC_color(
+    GC_chart = chart,
+    customColors = list(A = "yellow", B = "pink", C = "purple")
+  )
+
+  # Assertions for named custom colors
+  expect_s3_class(updated_chart3, "htmlwidget")
+  expect_null(updated_chart3$x$legend$legendOptions$colorScheme)
+  expect_equal(updated_chart3$x$legend$legendOptions$customColors, list(A = "yellow", B = "pink", C = "purple"))
+
+  # Validate series named customColors
+  for (cluster_name in clusters) {
+    expect_null(updated_chart3$x$series[[cluster_name]]$genes$colorScheme)
+    expect_equal(updated_chart3$x$series[[cluster_name]]$genes$customColors, list(A = "yellow", B = "pink", C = "purple"))
+    expect_null(updated_chart3$x$series[[cluster_name]]$transcript$colorScheme)
+    expect_equal(updated_chart3$x$series[[cluster_name]]$transcript$customColors, list(A = "yellow", B = "pink", C = "purple"))
+  }
+
+})
 
 
 

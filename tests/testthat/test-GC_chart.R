@@ -749,7 +749,122 @@ test_that("GC_color updates color scheme with all options correctly", {
 
 })
 
+test_that("GC_legend updates legend options with all options correctly", {
 
+  # Load ophA_clusters data
+  data("ophA_clusters", package = "geneviewer")
 
+  # Generate a GC chart
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "200px")
+
+  # Update legend with all options
+  updated_chart <- GC_legend(
+    GC_chart = chart,
+    group = "class",
+    show = TRUE,
+    backgroundColor = "#0000",
+    order = rev(unique(ophA_clusters$class)),
+    position = "bottom",
+    orientation = "horizontal",
+    x = 0,
+    y = 0,
+    adjustHeight = TRUE,
+    style = list(
+      backgroundColor = "red"
+    ),
+    legendOptions = list(
+      cursor = "pointer",
+      colorScheme = NULL,
+      customColors = NULL
+    ),
+    legendTextOptions = list(
+      cursor = "pointer",
+      textAnchor = "start",
+      dy = ".35em",
+      fontSize = "14px",
+      fontFamily = "sans-serif",
+      fill = "blue"
+    )
+  )
+
+  # Assertions for all options
+  expect_s3_class(updated_chart, "htmlwidget")
+
+  # Verify legend settings
+  expect_equal(updated_chart$x$legend$group, "class")
+  expect_true(updated_chart$x$legend$show)
+  expect_equal(updated_chart$x$legend$backgroundColor, "#0000")
+  expect_equal(updated_chart$x$legend$order, rev(unique(ophA_clusters$class)))
+  expect_equal(updated_chart$x$legend$position, "bottom")
+  expect_equal(updated_chart$x$legend$orientation, "horizontal")
+  expect_equal(updated_chart$x$legend$x, 0)
+  expect_equal(updated_chart$x$legend$y, 0)
+  expect_true(updated_chart$x$legend$adjustHeight)
+  expect_equal(updated_chart$x$legend$style$backgroundColor, "red")
+  expect_equal(updated_chart$x$legend$legendOptions$cursor, "pointer")
+  expect_null(updated_chart$x$legend$legendOptions$colorScheme)
+  expect_null(updated_chart$x$legend$legendOptions$customColors)
+  expect_equal(updated_chart$x$legend$legendTextOptions$cursor, "pointer")
+  expect_equal(updated_chart$x$legend$legendTextOptions$textAnchor, "start")
+  expect_equal(updated_chart$x$legend$legendTextOptions$dy, ".35em")
+  expect_equal(updated_chart$x$legend$legendTextOptions$fontSize, "14px")
+  expect_equal(updated_chart$x$legend$legendTextOptions$fontFamily, "sans-serif")
+  expect_equal(updated_chart$x$legend$legendTextOptions$fill, "blue")
+
+})
+
+# GC_annotation
+test_that("GC_annotation adds annotations to GC chart correctly", {
+
+  data("ophA_clusters", package = "geneviewer")
+
+  # Generate a GC chart
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px")
+
+  # Add multiple annotations
+  updated_chart <- chart %>%
+    GC_annotation(type = "textMarker", cluster = 1, position = 24, text = "Gene 1", arrowSize = 8) %>%
+    GC_annotation(type = "text", text = "feature 1", x = 91, y = 71) %>%
+    GC_annotation(type = "symbol", symbol = "triangle", x = 95, y = 64, size = 10, rotation = 180) %>%
+    GC_annotation(type = "terminator", x = 81) %>%
+    GC_annotation(type = "promoter", x = 49)
+
+  # Assertions
+  expect_s3_class(updated_chart, "htmlwidget")
+
+  # Verify textMarker annotation
+  text_marker <- updated_chart$x$series[[1]]$annotations[[1]]
+  expect_equal(text_marker$type, "textMarker")
+  expect_equal(text_marker$position, 24)
+  expect_equal(text_marker$text, "Gene 1")
+  expect_equal(text_marker$arrowSize, 8)
+
+  # Verify text annotation
+  text_annotation <- updated_chart$x$series[[1]]$annotations[[2]]
+  expect_equal(text_annotation$type, "text")
+  expect_equal(text_annotation$text, "feature 1")
+  expect_equal(text_annotation$x, 91)
+  expect_equal(text_annotation$y, 71)
+
+  # Verify symbol annotation
+  symbol_annotation <- updated_chart$x$series[[1]]$annotations[[3]]
+  expect_equal(symbol_annotation$type, "symbol")
+  expect_equal(symbol_annotation$symbol, "triangle")
+  expect_equal(symbol_annotation$x, 95)
+  expect_equal(symbol_annotation$y, 64)
+  expect_equal(symbol_annotation$size, 10)
+  expect_equal(symbol_annotation$rotation, 180)
+
+  # Verify terminator annotation
+  terminator_annotation <- updated_chart$x$series[[1]]$annotations[[4]]
+  expect_equal(terminator_annotation$type, "terminator")
+  expect_equal(terminator_annotation$x, 81)
+
+  # Verify promoter annotation
+  promoter_annotation <- updated_chart$x$series[[1]]$annotations[[5]]
+  expect_equal(promoter_annotation$type, "promoter")
+  expect_equal(promoter_annotation$x, 49)
+
+})
 
 

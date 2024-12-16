@@ -1140,7 +1140,6 @@ GC_chart(
     x = 0,
     y = 0,
     margin = list(top = 0, left = 50, bottom = 0,  right = 50),
-    width = NULL,
     adjustHeight = TRUE,
     order = list(),
     style = list(

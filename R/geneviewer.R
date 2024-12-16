@@ -1885,22 +1885,24 @@ GC_color <- function(
 
 #' Set Legend for a Gene Chart
 #'
-#' This function configures the legend for a gene chart. It allows toggling the legend's visibility,
-#' setting a background color, and assigning custom labels for the legend entries.
-#' The function can also handle additional customizations through various options.
+#' This function configures the legend for a gene chart. It allows toggling the
+#' legend's visibility, setting a background color, and assigning custom labels
+#' for the legend entries. The function can also handle additional
+#' customizations through various options.
 #'
 #' @param GC_chart The gene chart object to be modified.
-#' @param group Optional; character or NULL, specifies the groups to include in the legend.
-#'   If NULL, groups are taken from the 'group' attribute of the 'GC_chart' object.
+#' @param group Optional; character or NULL, specifies the groups to include in
+#'   the legend. If NULL, groups are taken from the 'group' attribute of the
+#'   'GC_chart' object.
 #' @param show Logical, specifies whether to display the legend.
 #' @param backgroundColor String, the background color of the legend.
 #' @param order Optional; list, specifies the order of the legend labels.
 #' @param position Character. Position of the legend, either "top" or "bottom".
-#' Default is "bottom".
+#'   Default is "bottom".
 #' @param style A list of CSS styles to be applied to the chart container. Each
 #'   element of the list should be a valid CSS property-value pair. For example,
-#'   list(backgroundColor = "white", border = "2px solid black").
-#'   Default is an empty list.
+#'   list(backgroundColor = "white", border = "2px solid black"). Default is an
+#'   empty list.
 #' @param legendOptions List, additional options for the legend.
 #' @param legendTextOptions List, additional text options for the legend.
 #' @param ... Additional arguments to be passed to the legend configuration.
@@ -1923,7 +1925,6 @@ GC_color <- function(
 #'     orientation = "horizontal", #vertical
 #'     x = 0,
 #'     y = 0,
-#'     width = NULL, # 100 / "100px" / 50%
 #'     adjustHeight = TRUE,
 #'     backgroundColor = "#0000",
 #'     order = list(),
@@ -2010,14 +2011,17 @@ GC_legend <- function(
 #' Add Annotations to a GC_chart
 #'
 #' This function adds annotations to specified clusters within a GC chart.
-#' Annotations can be of various types and are positioned based on provided coordinates.
-#' The types of annotations available are: text, textMarker, line, arrow, symbol,
-#' rectangle, promoter, and terminator.
+#' Annotations can be of various types and are positioned based on provided
+#' coordinates. The types of annotations available are: text, textMarker, line,
+#' arrow, symbol, rectangle, promoter, and terminator.
 #'
 #' @param GC_chart A GC chart object to which the annotations will be added.
-#' @param cluster Numeric or character vector specifying the clusters to which annotations should be added.
-#' @param type Character vector specifying the type of annotations to add. The default is "text".
-#' @param ... Additional parameters for customization of annotations, depending on the type.
+#' @param cluster Numeric or character vector specifying the clusters to which
+#'   annotations should be added.
+#' @param type Character vector specifying the type of annotations to add. The
+#'   default is "text".
+#' @param ... Additional parameters for customization of annotations, depending
+#'   on the type.
 #'
 #' @return Updated GC chart object with added annotations.
 #'

@@ -867,4 +867,83 @@ test_that("GC_annotation adds annotations to GC chart correctly", {
 
 })
 
+test_that("GC_trackMouse enables or disables mouse tracking correctly", {
+
+  data("ophA_clusters", package = "geneviewer")
+
+  # Generate a GC chart
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "200px")
+
+  # Enable mouse tracking on all clusters
+  updated_chart <- GC_trackMouse(GC_chart = chart, show = TRUE)
+
+  # Assertions
+  expect_s3_class(updated_chart, "htmlwidget")
+  clusters <- names(updated_chart$x$series)
+  for (cluster_name in clusters) {
+    expect_true(updated_chart$x$series[[cluster_name]]$trackMouse$show)
+  }
+
+  # Disable mouse tracking on all clusters
+  updated_chart <- GC_trackMouse(GC_chart = chart, show = FALSE)
+
+  # Assertions
+  for (cluster_name in clusters) {
+    expect_false(updated_chart$x$series[[cluster_name]]$trackMouse$show)
+  }
+
+})
+
+# Test for GC_cluster function
+test_that("GC_cluster applies prevent_gene_overlap and other options correctly", {
+
+  # Load or create the human_hox_genes dataset
+  data("human_hox_genes", package = "geneviewer")
+
+  # Create a basic GC_chart object
+  chart <- GC_chart(human_hox_genes, cluster = "cluster", group = "name", height = "600px")
+
+  # Apply GC_cluster function with specified options
+  updated_chart <- GC_cluster(
+    GC_chart = chart,
+    separate_strands = NULL,
+    prevent_gene_overlap = TRUE,
+    cluster = NULL,
+    strand_spacing = 5,
+    overlap_spacing = 10,
+    style = list(backgroundColor = "lightgrey"),
+    tooltip = TRUE
+  )
+
+  # Assertions
+  expect_s3_class(updated_chart, "htmlwidget") # Ensure output remains an htmlwidget
+
+  # Check that 'prevent_gene_overlap' has been applied
+  clusters <- updated_chart$x$series
+  for (i in seq_along(clusters)) {
+    cluster_options <- clusters[[i]]$cluster
+    expect_true(cluster_options$subset_data)  # Check if gene overlap prevention is applied
+    expect_equal(cluster_options$overlapSpacing, 10)  # Verify overlap spacing
+  }
+
+  # Check that 'strand_spacing' is set correctly if applicable
+  for (i in seq_along(clusters)) {
+    cluster_options <- clusters[[i]]$cluster
+    expect_equal(cluster_options$strandSpacing, 5) # Validate strand spacing
+  }
+
+  # Verify style settings
+  for (i in seq_along(clusters)) {
+    container_style <- clusters[[i]]$container$style
+    expect_equal(container_style$backgroundColor, "lightgrey") # Verify background color
+  }
+
+  # Verify tooltip option
+  for (i in seq_along(clusters)) {
+    container_tooltip <- clusters[[i]]$container$tooltip
+    expect_true(container_tooltip)  # Ensure tooltips are enabled
+  }
+
+})
+
 

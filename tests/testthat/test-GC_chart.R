@@ -916,26 +916,26 @@ test_that("GC_cluster applies prevent_gene_overlap and other options correctly",
   )
 
   # Assertions
-  expect_s3_class(updated_chart, "htmlwidget") # Ensure output remains an htmlwidget
+  expect_s3_class(updated_chart, "htmlwidget")
 
   # Check that 'prevent_gene_overlap' has been applied
   clusters <- updated_chart$x$series
   for (i in seq_along(clusters)) {
     cluster_options <- clusters[[i]]$cluster
-    expect_true(cluster_options$subset_data)  # Check if gene overlap prevention is applied
-    expect_equal(cluster_options$overlapSpacing, 10)  # Verify overlap spacing
+    expect_true(cluster_options$subset_data)
+    expect_equal(cluster_options$overlapSpacing, 10)
   }
 
   # Check that 'strand_spacing' is set correctly if applicable
   for (i in seq_along(clusters)) {
     cluster_options <- clusters[[i]]$cluster
-    expect_equal(cluster_options$strandSpacing, 5) # Validate strand spacing
+    expect_equal(cluster_options$strandSpacing, 5)
   }
 
   # Verify style settings
   for (i in seq_along(clusters)) {
     container_style <- clusters[[i]]$container$style
-    expect_equal(container_style$backgroundColor, "lightgrey") # Verify background color
+    expect_equal(container_style$backgroundColor, "lightgrey")
   }
 
   # Verify tooltip option
@@ -946,4 +946,78 @@ test_that("GC_cluster applies prevent_gene_overlap and other options correctly",
 
 })
 
+test_that("GC_transcript modifies transcript characteristics correctly", {
 
+  # Load or create the transcript dataset
+  transcript_data <- data.frame(
+    transcript = c("transcript1", "transcript1", "transcript1",
+                   "transcript2", "transcript2", "transcript2"),
+    type = c("5_utr", "exon", "3_utr", "5_utr", "exon", "3_utr"),
+    start = c(1, 101, 301, 1, 101, 301),
+    end = c(50, 200, 350, 50, 200, 350),
+    strand = c("forward", "forward", "forward", "forward", "forward", "forward")
+  )
+
+  # Create a basic GC_chart object
+  chart <- GC_chart(
+    transcript_data,
+    start = "start",
+    end = "end",
+    height = "300px"
+  )
+
+  # Apply GC_transcript with various options
+  updated_chart <- GC_transcript(
+    GC_chart = chart,
+    transcript = "transcript",
+    type = "type",
+    strand = "strand",
+    group = "transcript",
+    selection = "transcript1",
+    show = TRUE,
+    colorScheme = "schemeCategory10",
+    customColors = list("red", "blue", "green"),
+    styleExons = list(marker = "box", fill = "yellow", strokeWidth = 2),
+    styleIntrons = list(marker = "intron", fill = "grey", strokeWidth = 1),
+    styleUTRs = list(fill = "lightblue", strokeWidth = 0.5),
+    itemStyleExons = list(list(index = 1, fill = "orange")),
+    labelOptions = list(fontSize = "12px", color = "black", xOffset = 2)
+  )
+
+  # Assertions
+  expect_s3_class(updated_chart, "htmlwidget") # Verify object type
+
+  # Check transcript settings for 'transcript1'
+  transcript1 <- updated_chart$x$series$transcript1$transcript
+
+  expect_equal(transcript1$group, "transcript") # Verify grouping column
+  expect_true(transcript1$show) # Ensure show option is TRUE
+  expect_equal(transcript1$colorScheme, "schemeCategory10") # Color scheme
+  expect_equal(transcript1$customColors, list("red", "blue", "green")) # Custom colors
+
+  # Verify exon styles
+  expect_equal(transcript1$styleExons$marker, "box")
+  expect_equal(transcript1$styleExons$fill, "yellow")
+  expect_equal(transcript1$styleExons$strokeWidth, 2)
+
+  # Verify intron styles
+  expect_equal(transcript1$styleIntrons$marker, "intron")
+  expect_equal(transcript1$styleIntrons$fill, "grey")
+  expect_equal(transcript1$styleIntrons$strokeWidth, 1)
+
+  # Verify UTR styles
+  expect_equal(transcript1$styleUTRs$fill, "lightblue")
+  expect_equal(transcript1$styleUTRs$strokeWidth, 0.5)
+
+  # Verify item style for specific exon
+  expect_equal(transcript1$itemStyleExons[[1]]$index, 1)
+  expect_equal(transcript1$itemStyleExons[[1]]$fill, "orange")
+
+  # Verify label options
+  expect_equal(transcript1$labelOptions$fontSize, "12px")
+  expect_equal(transcript1$labelOptions$color, "black")
+  expect_equal(transcript1$labelOptions$xOffset, 2)
+
+  # Verify strand information
+  expect_equal(updated_chart$x$params$strand, "strand")
+})

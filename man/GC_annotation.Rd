@@ -9,20 +9,23 @@ GC_annotation(GC_chart, type = "textAnnotation", cluster = NULL, ...)
 \arguments{
 \item{GC_chart}{A GC chart object to which the annotations will be added.}
 
-\item{type}{Character vector specifying the type of annotations to add. The default is "text".}
+\item{type}{Character vector specifying the type of annotations to add. The
+default is "text".}
 
-\item{cluster}{Numeric or character vector specifying the clusters to which annotations should be added.}
+\item{cluster}{Numeric or character vector specifying the clusters to which
+annotations should be added.}
 
-\item{...}{Additional parameters for customization of annotations, depending on the type.}
+\item{...}{Additional parameters for customization of annotations, depending
+on the type.}
 }
 \value{
 Updated GC chart object with added annotations.
 }
 \description{
 This function adds annotations to specified clusters within a GC chart.
-Annotations can be of various types and are positioned based on provided coordinates.
-The types of annotations available are: text, textMarker, line, arrow, symbol,
-rectangle, promoter, and terminator.
+Annotations can be of various types and are positioned based on provided
+coordinates. The types of annotations available are: text, textMarker, line,
+arrow, symbol, rectangle, promoter, and terminator.
 }
 \examples{
 genes_data <- data.frame(

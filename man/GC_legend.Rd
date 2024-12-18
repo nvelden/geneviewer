@@ -20,8 +20,9 @@ GC_legend(
 \arguments{
 \item{GC_chart}{The gene chart object to be modified.}
 
-\item{group}{Optional; character or NULL, specifies the groups to include in the legend.
-If NULL, groups are taken from the 'group' attribute of the 'GC_chart' object.}
+\item{group}{Optional; character or NULL, specifies the groups to include in
+the legend. If NULL, groups are taken from the 'group' attribute of the
+'GC_chart' object.}
 
 \item{show}{Logical, specifies whether to display the legend.}
 
@@ -34,8 +35,8 @@ Default is "bottom".}
 
 \item{style}{A list of CSS styles to be applied to the chart container. Each
 element of the list should be a valid CSS property-value pair. For example,
-list(backgroundColor = "white", border = "2px solid black").
-Default is an empty list.}
+list(backgroundColor = "white", border = "2px solid black"). Default is an
+empty list.}
 
 \item{legendOptions}{List, additional options for the legend.}
 
@@ -47,9 +48,10 @@ Default is an empty list.}
 Returns the modified gene chart object with the legend configured.
 }
 \description{
-This function configures the legend for a gene chart. It allows toggling the legend's visibility,
-setting a background color, and assigning custom labels for the legend entries.
-The function can also handle additional customizations through various options.
+This function configures the legend for a gene chart. It allows toggling the
+legend's visibility, setting a background color, and assigning custom labels
+for the legend entries. The function can also handle additional
+customizations through various options.
 }
 \examples{
 genes_data <- data.frame(
@@ -67,7 +69,6 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
     orientation = "horizontal", #vertical
     x = 0,
     y = 0,
-    width = NULL, # 100 / "100px" / 50\%
     adjustHeight = TRUE,
     backgroundColor = "#0000",
     order = list(),

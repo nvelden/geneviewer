@@ -1,3 +1,11 @@
+# geneviewer 0.1.9
+
+### Enhancements:
+- Added tests for all core functions.
+- Fix for applying custom colors in GC_color.
+- Fix for setting direction in GC_grid.
+- Prepared the package for CRAN release
+
 # geneviewer 0.1.8
 
 ### Enhancements:

@@ -80,7 +80,7 @@ BlastP_results <- geneviewer::protein_blast(
 )
 ```
 
-After running the BlastP, the dataset will contain three additional columns. These colums are:
+After running the BlastP, the dataset will contain three additional columns. These columns are:
 
 -   **BlastP**: Indicates the top BlastP match found within the query cluster, characterized by its unique protein id.
 -   **identity**: The percentage identity to the BlastP hit.
@@ -91,7 +91,7 @@ After running the BlastP, the dataset will contain three additional columns. The
 kable(head(BlastP_results %>% select(-translation)))
 ```
 
-We can visualize the results using `geneviewer`. In the graph the clusters are ordered based on the synteny score. The genes are colored by the BlasP hit found in the query cluster. Genes that remain uncolored did not have any significant homologous. By hoovering over the genes one can see the percentage identity and similarity.
+We can visualize the results using `geneviewer`. In the graph the clusters are ordered based on the synteny score. The genes are colored by the BlastP hit found in the query cluster. Genes that remain uncolored did not have any significant homologous. By hoovering over the genes one can see the percentage identity and similarity.
 
 ```{r echo = TRUE, results='asis'}
 GC_chart(

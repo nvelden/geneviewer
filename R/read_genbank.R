@@ -1,6 +1,6 @@
 #' Read Data from GenBank Files
 #'
-#' This function reads data from a single GenBank file or directorty with
+#' This function reads data from a single GenBank file or directory with
 #' GenBank files. It allows selective extraction of information by specifying
 #' sections and features.
 #'

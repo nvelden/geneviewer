@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 
 ### Intro
 
-This tutorial guides you through the process of performing genome alignments using [MUMmer](https://mummer4.github.io/index.html), an alignment tool widely used for comparing genomic sequences. As an example we will align the plasmids from serveral species of *B. thuringiensis*. Following the alignment, we'll show you how to visualize the results using **`geneviewer`**.
+This tutorial guides you through the process of performing genome alignments using [MUMmer](https://mummer4.github.io/index.html), an alignment tool widely used for comparing genomic sequences. As an example we will align the plasmids from several species of *B. thuringiensis*. Following the alignment, we'll show you how to visualize the results using **`geneviewer`**.
 
 ### Materials
 

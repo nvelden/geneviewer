@@ -29,7 +29,7 @@ A list containing the contents of the specified sections and features
   list element.
 }
 \description{
-This function reads data from a single GenBank file or directorty with
+This function reads data from a single GenBank file or directory with
 GenBank files. It allows selective extraction of information by specifying
 sections and features.
 }

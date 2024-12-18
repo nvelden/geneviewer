@@ -135,7 +135,7 @@ chart %>%
 
 ### Loading Multiple GenBank files
 
-The above functions to read and transfom .gbk files can also be used to load multiple .gbk files from a folder and shown the clusters side by side. To demonstrate this we can go to the cluster page for [BGC0000001](https://mibig.secondarymetabolites.org/repository/BGC0000001/index.html#r1c1) and navigate to the "KnownClusterBlast" page. Click on the homologous clusters and download the .gbk files for [BGC0001694](https://mibig.secondarymetabolites.org/repository/BGC0001694/index.html#r1c1), [BGC0001492](https://mibig.secondarymetabolites.org/repository/BGC0001492/index.html#r1c1), [BGC0001288](https://mibig.secondarymetabolites.org/repository/BGC0001288/index.html#r1c1) and [BGC0000133](https://mibig.secondarymetabolites.org/repository/BGC0000133/index.html#r1c1).  
+The above functions to read and transform .gbk files can also be used to load multiple .gbk files from a folder and shown the clusters side by side. To demonstrate this we can go to the cluster page for [BGC0000001](https://mibig.secondarymetabolites.org/repository/BGC0000001/index.html#r1c1) and navigate to the "KnownClusterBlast" page. Click on the homologous clusters and download the .gbk files for [BGC0001694](https://mibig.secondarymetabolites.org/repository/BGC0001694/index.html#r1c1), [BGC0001492](https://mibig.secondarymetabolites.org/repository/BGC0001492/index.html#r1c1), [BGC0001288](https://mibig.secondarymetabolites.org/repository/BGC0001288/index.html#r1c1) and [BGC0000133](https://mibig.secondarymetabolites.org/repository/BGC0000133/index.html#r1c1).  
 
 We place all the.gbk files in the same directory and can load them all together as we have done previously.
 

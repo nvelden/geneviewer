@@ -12,3 +12,5 @@ gff_files/
 renv.lock
 inst/doc
 geneviewer.Rproj
+revdep/
+inst/.DS_Store

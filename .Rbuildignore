@@ -11,8 +11,6 @@
 ^pkgdown$
 ^docs/$
 ^doc/$
-^revdep/$
-^inst\.DS_Store$
 ^LICENSE\.md$
 ^README\.Rmd$
 ^\.github$

@@ -25,3 +25,6 @@
 ^revdep$
 ^cran-comments\.md$
 ^docs$
+^CRAN-SUBMISSION$
+^inst/doc/*.R
+^inst/doc/*.Rmd

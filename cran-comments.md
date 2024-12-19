@@ -1,3 +1,10 @@
+19.12.2024
+
+## Submission comments
+
+* Added the `Authors@R` field in the DESCRIPTION file to comply with CRAN requirements.
+* Revised the `Description` field in the DESCRIPTION file to avoid starting with the package name or phrases like 'This package'.
+
 ## Test environments
 * macOS (macos-latest), R devel (via GitHub Actions)
 * Windows (windows-latest), R devel (via GitHub Actions)
@@ -6,7 +13,3 @@
 
 ## R CMD check results
 There were no ERRORs, WARNINGs, or NOTEs.
-
-## Additional notes
-* This workflow was derived from the r-lib/actions examples (https://github.com/r-lib/actions/tree/v2/examples).
-* All checks passed successfully across multiple operating systems and R versions.

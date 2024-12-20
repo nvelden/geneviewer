@@ -22,7 +22,7 @@ writes it to a new file in FASTA format. It parses the DEFINITION and VERSION
 for the header and sequences from the ORIGIN section.
 }
 \examples{
-\dontrun{
+\donttest{
 genbank_to_fasta("path/to/input.gb")
 }
 

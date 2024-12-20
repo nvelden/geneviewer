@@ -63,7 +63,7 @@ alignment and the dplyr package for data manipulation. Ensure these packages
 are installed and loaded into your R session.
 }
 \examples{
-\dontrun{
+\donttest{
 path_to_folder <- "path/to/gbk/folder/"
 data_updated <- protein_blast(
                          path_to_folder,

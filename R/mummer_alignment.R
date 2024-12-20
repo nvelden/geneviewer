@@ -28,7 +28,7 @@
 #'   during processing.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # Basic alignment with default options
 #' mummer_alignment(
 #'   path = "/path/to/sequences",
@@ -362,7 +362,7 @@ parse_procmer <- function(path, reference, query){
 #' @return None explicitly, but writes the FASTA formatted data to a file.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' genbank_to_fasta("path/to/input.gb")
 #' }
 #'

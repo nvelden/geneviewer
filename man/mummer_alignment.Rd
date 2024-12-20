@@ -53,7 +53,7 @@ It can handle GenBank and FASTA file formats. and performs checks to ensure
 necessary files are present.
 }
 \examples{
-\dontrun{
+\donttest{
 # Basic alignment with default options
 mummer_alignment(
   path = "/path/to/sequences",

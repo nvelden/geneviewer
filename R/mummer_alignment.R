@@ -173,7 +173,8 @@ mummer_alignment <- function(
       return(coords)
 
     }, error = function(e) {
-      cat(sprintf("Error in aligning %s vs %s: %s\n", pair[1], pair[2], e$message))
+      warning(sprintf("Error in aligning %s vs %s: %s", pair[1], pair[2], e$message))
+      return(NULL)
     })
   })
 

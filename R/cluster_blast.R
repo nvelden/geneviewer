@@ -68,7 +68,6 @@ get_protein_combinations <- function(data, cluster_pair, rowIDs = NULL) {
 #' patterns <- c("ACDEFGHIKLMNPQRSTVWY", "ACDGFHIKLMNPQRSTVWY")
 #' subjects <- c("ACDEFGHIKLMNPQRSTVWY", "TCDGFHIKLMNPQRSTVWY")
 #' result <- compute_identity(patterns, subjects)
-#' print(result)
 #'
 #' @noRd
 compute_identity <- function(patterns, subjects) {

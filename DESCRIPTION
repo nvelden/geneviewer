@@ -1,6 +1,6 @@
 Package: geneviewer
 Type: Package
-Title: Gene Cluster Visualizations in R
+Title: Gene Cluster Visualizations
 Version: 0.1.9
 Authors@R: person(given = "Niels",
                   family = "van der Velden",
@@ -8,10 +8,11 @@ Authors@R: person(given = "Niels",
                   email = "n.s.j.vandervelden@gmail.com")
 Maintainer: Niels van der Velden <n.s.j.vandervelden@gmail.com>
 Description: Provides tools for plotting gene clusters and transcripts by 
-  importing data from GenBank, FASTA, and GFF files. It performs BlastP and 
-  MUMmer alignments and displays results on gene arrow maps. Extensive 
-  customization options are available, including legends, labels, annotations, 
-  scales, colors, tooltips, and more.
+  importing data from GenBank, FASTA, and GFF files. It performs BLASTP and 
+  MUMmer alignments [Altschul et al. (1990) <doi:10.1016/S0022-2836(05)80360-2>;
+  Delcher et al. (1999) <doi:10.1093/nar/27.11.2369>] and displays results on 
+  gene arrow maps. Extensive customization options are available, including 
+  legends, labels, annotations, scales, colors, tooltips, and more.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

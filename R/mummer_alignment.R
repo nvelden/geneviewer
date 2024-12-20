@@ -28,20 +28,22 @@
 #'   during processing.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Basic alignment with default options
 #' mummer_alignment(
 #'   path = "/path/to/sequences",
 #'   maptype = "many-to-many",
 #'   seqtype = "protein"
 #' )
+#'
 #' # Alignment with specific MUMmer options
 #' mummer_alignment(
-#'   path = "/path/to/sequences", maptype = "one-to-one", seqtype = "protein",
+#'   path = "/path/to/sequences",
+#'   maptype = "one-to-one",
+#'   seqtype = "protein",
 #'   mummer_options = "--maxgap=500 --mincluster=100",
 #'   filter_options = "-i 90"
-#'   )
-#'
+#' )
 #' }
 #' @references Kurtz S, Phillippy A, Delcher AL, Smoot M, Shumway M, Antonescu
 #' C, Salzberg SL (2004). Versatile and open software for comparing large
@@ -363,7 +365,11 @@ parse_procmer <- function(path, reference, query){
 #'
 #' @examples
 #' \donttest{
-#' genbank_to_fasta("path/to/input.gb")
+#' # Path to the example GenBank file in the package
+#' gbk_file <- system.file("extdata", "BGC0000001.gbk", package = "geneviewer")
+#'
+#' # Convert the GenBank file to FASTA format
+#' genbank_to_fasta(gbk_file)
 #' }
 #'
 #'

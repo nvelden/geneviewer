@@ -53,20 +53,22 @@ It can handle GenBank and FASTA file formats. and performs checks to ensure
 necessary files are present.
 }
 \examples{
-\donttest{
+\dontrun{
 # Basic alignment with default options
 mummer_alignment(
   path = "/path/to/sequences",
   maptype = "many-to-many",
   seqtype = "protein"
 )
+
 # Alignment with specific MUMmer options
 mummer_alignment(
-  path = "/path/to/sequences", maptype = "one-to-one", seqtype = "protein",
+  path = "/path/to/sequences",
+  maptype = "one-to-one",
+  seqtype = "protein",
   mummer_options = "--maxgap=500 --mincluster=100",
   filter_options = "-i 90"
-  )
-
+)
 }
 }
 \references{

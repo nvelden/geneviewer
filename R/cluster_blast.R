@@ -205,7 +205,7 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #'   additional columns for BLAST results (identity, similarity).
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' path_to_folder <- "path/to/gbk/folder/"
 #' data_updated <- protein_blast(
 #'                          path_to_folder,

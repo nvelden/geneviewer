@@ -21,24 +21,25 @@
 #'   list element.
 #'
 #' @examples
-#' \dontrun{
-#' # Read all data from a GenBank file
-#' gbk_data <- read_gbk("path/to/genbank_file.gbk")
+#' \donttest{
+#' # Path to example GenBank file in the package
+#' genbank_file <- system.file(
+#'   "extdata",
+#'   "BGC0000001.gbk",
+#'   package = "geneviewer"
+#'   )
 #'
-#' # Read all data from a directory of GenBank files
-#' gbk_data <- read_gbk("path/to/genbank/directory")
+#' # Read all data from the example GenBank file
+#' gbk_data <- read_gbk(genbank_file)
 #'
-#' # Read only specific sections from a GenBank file
-#' gbk_data <- read_gbk(
-#'   "path/to/genbank_file.gbk",
-#'   sections = c("LOCUS", "DEFINITION")
-#' )
+#' # Read only specific sections from the example GenBank file
+#' gbk_data <- read_gbk(genbank_file, sections = c("LOCUS", "DEFINITION"))
 #'
-#' # Read specific features from the FEATURES section of a GenBank file
-#' gbk_data <- read_gbk("path/to/genbank_file.gbk", features = c("gene", "CDS"))
+#' # Read specific features from the FEATURES section of the example GenBank file
+#' gbk_data <- read_gbk(genbank_file, features = c("gene", "CDS"))
 #'
 #' # Read data without the origin sequence
-#' gbk_data <- read_gbk("path/to/genbank_file.gbk", origin = FALSE)
+#' gbk_data <- read_gbk(genbank_file, origin = FALSE)
 #' }
 #' @export
 read_gbk <- function(path, sections = NULL, features = NULL, origin = TRUE) {

@@ -280,7 +280,6 @@ mummer <- function(reference, query, maptype = "many-to-many", seqtype = "protei
   if (system(show_coords_cmd) != 0) {
     stop("Failed to run show-coords.")
   }
-  cat("Alignment process completed successfully.\n")
 }
 
 #' @noRd

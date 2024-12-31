@@ -21,8 +21,8 @@
 #'   view all filtering options, run `delta-filter --help` in the terminal.
 #' @param remove_files Logical indicating whether to remove intermediate files
 #'   generated during the process, defaults to TRUE.
-#' @param output_dir Optional directory to save output files; defaults to NULL,
-#'                   which uses the input file directory for outputs.
+#' @param output_dir Optional directory for output files; defaults to
+#'  \code{tempdir()}
 #'
 #' @return A data frame combining all alignment results, or NULL if errors occur
 #'   during processing.
@@ -59,31 +59,30 @@ mummer_alignment <- function(
     mummer_options = "",
     filter_options = "",
     remove_files = TRUE,
-    output_dir = NULL
+    output_dir = tempdir()
     ){
 
   if (!dir.exists(path)) {
     stop("The specified directory does not exist. Please check the file path.")
   }
 
-  # Check if the file_path contains spaces
+  # Ensure the output directory exists
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+
   if (grepl(" ", path)) {
     stop("MUMmer requires a directory path without spaces.")
   }
 
-  if (!is.null(output_dir) && !dir.exists(output_dir)) {
-    stop("The specified output directory does not exist. Please check the file path.")
-  }
-
-  # Check if the file_path contains spaces
-  if (!is.null(output_dir) &&  grepl(" ", output_dir)) {
-    stop("MUMmer requires a output directory path without spaces.")
+  if (grepl(" ", output_dir)) {
+    stop("MUMmer requires an output directory path without spaces.")
   }
 
   all_files <- list.files(path, full.names = TRUE, pattern = "\\.gbk$|\\.gb$|\\.fasta$")
 
   # Move all files to the output dir if specified
-  if(!is.null(output_dir)){
+  if(output_dir != path){
     sapply(all_files, function(x) file.copy(x, output_dir, overwrite = TRUE))
     path <- output_dir
     all_files <- list.files(path, full.names = TRUE, pattern = "\\.gbk$|\\.gb$|\\.fasta$")
@@ -181,9 +180,17 @@ mummer_alignment <- function(
   links <- Filter(Negate(is.null), links)
   links <- do.call(rbind, links)
 
-  if (!is.null(gbk_files) && length(gbk_files) > 0 && remove_files) {
-      remove_files <- sub("\\.gbk$|\\.gb$", ".fasta", gbk_files)
-      file.remove(remove_files)
+  if (remove_files) {
+    if (output_dir == tempdir()) {
+
+      files_to_remove <- all_files
+      files_to_remove <- files_to_remove[file.exists(files_to_remove)]
+      file.remove(files_to_remove)
+    } else if (!is.null(gbk_files) && length(gbk_files) > 0) {
+      fasta_files_to_remove <- sub("\\.gbk$|\\.gb$", ".fasta", gbk_files)
+      fasta_files_to_remove <- fasta_files_to_remove[file.exists(fasta_files_to_remove)]
+      file.remove(fasta_files_to_remove)
+    }
   }
 
   return(links)

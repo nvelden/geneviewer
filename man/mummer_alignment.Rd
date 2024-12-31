@@ -12,7 +12,7 @@ mummer_alignment(
   mummer_options = "",
   filter_options = "",
   remove_files = TRUE,
-  output_dir = NULL
+  output_dir = tempdir()
 )
 }
 \arguments{
@@ -39,8 +39,8 @@ view all filtering options, run `delta-filter --help` in the terminal.}
 \item{remove_files}{Logical indicating whether to remove intermediate files
 generated during the process, defaults to TRUE.}
 
-\item{output_dir}{Optional directory to save output files; defaults to NULL,
-which uses the input file directory for outputs.}
+\item{output_dir}{Optional directory for output files; defaults to
+\code{tempdir()}}
 }
 \value{
 A data frame combining all alignment results, or NULL if errors occur

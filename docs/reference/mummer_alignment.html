@@ -16,7 +16,7 @@ necessary files are present."><meta property="og:image" content="https://nvelden
     
     <a class="navbar-brand me-2" href="../index.html">geneviewer</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.10</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -83,7 +83,7 @@ necessary files are present.</p>
 <span>  mummer_options <span class="op">=</span> <span class="st">""</span>,</span>
 <span>  filter_options <span class="op">=</span> <span class="st">""</span>,</span>
 <span>  remove_files <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -127,8 +127,8 @@ generated during the process, defaults to TRUE.</p></dd>
 
 
 <dt>output_dir</dt>
-<dd><p>Optional directory to save output files; defaults to NULL,
-which uses the input file directory for outputs.</p></dd>
+<dd><p>Optional directory for output files; defaults to
+<code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code></p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -154,13 +154,15 @@ genomes. Genome Biology, 5(R12).</p>
 <span class="r-in"><span>  maptype <span class="op">=</span> <span class="st">"many-to-many"</span>,</span></span>
 <span class="r-in"><span>  seqtype <span class="op">=</span> <span class="st">"protein"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Alignment with specific MUMmer options</span></span></span>
 <span class="r-in"><span><span class="fu">mummer_alignment</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  path <span class="op">=</span> <span class="st">"/path/to/sequences"</span>, maptype <span class="op">=</span> <span class="st">"one-to-one"</span>, seqtype <span class="op">=</span> <span class="st">"protein"</span>,</span></span>
+<span class="r-in"><span>  path <span class="op">=</span> <span class="st">"/path/to/sequences"</span>,</span></span>
+<span class="r-in"><span>  maptype <span class="op">=</span> <span class="st">"one-to-one"</span>,</span></span>
+<span class="r-in"><span>  seqtype <span class="op">=</span> <span class="st">"protein"</span>,</span></span>
 <span class="r-in"><span>  mummer_options <span class="op">=</span> <span class="st">"--maxgap=500 --mincluster=100"</span>,</span></span>
 <span class="r-in"><span>  filter_options <span class="op">=</span> <span class="st">"-i 90"</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>

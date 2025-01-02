@@ -1,3 +1,8 @@
+# geneviewer 0.1.10
+
+### Enhancements:
+- Several fixes to comply with CRAN policies.
+
 # geneviewer 0.1.9
 
 ### Enhancements:

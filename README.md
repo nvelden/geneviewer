@@ -5,7 +5,7 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/nvelden/geneviewer/workflows/R-CMD-check/badge.svg)](https://github.com/nvelden/geneviewer/actions) [![CRAN status](https://www.r-pkg.org/badges/version/geneviewer)](https://CRAN.R-project.org/package=geneviewer) ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+[![R-CMD-check](https://github.com/nvelden/geneviewer/workflows/R-CMD-check/badge.svg)](https://github.com/nvelden/geneviewer/actions) [![CRAN status](https://www.r-pkg.org/badges/version/geneviewer)](https://CRAN.R-project.org/package=geneviewer) [![Metacran downloads](https://cranlogs.r-pkg.org/badges/grand-total/geneviewer)](https://cran.r-project.org/package=geneviewer) ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 <!-- badges: end -->
 
@@ -15,7 +15,13 @@
 
 ## Installation
 
-**geneviewer** is still in the development stage which might lead to breaking changes and thus not yet released on CRAN. You can install the development version from [GitHub](https://github.com/) with:
+You can install the released version of **geneviewer** from CRAN with:
+
+```r
+install.packages("geneviewer")
+```
+
+And the development version from GitHub with: 
 
 ``` r
 # install.packages("devtools")

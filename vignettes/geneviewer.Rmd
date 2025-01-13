@@ -17,7 +17,13 @@ knitr::opts_chunk$set(
 
 ## Installation
 
-**geneviewer** is available through GitHub
+You can install the released version of **geneviewer** from CRAN with:
+
+```r
+install.packages("geneviewer")
+```
+
+And the development version from GitHub with: 
 
 ``` r
 # install.packages("devtools")

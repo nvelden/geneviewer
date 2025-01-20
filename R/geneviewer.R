@@ -590,6 +590,18 @@ GC_grid <- function(
 
   if(direction == "row"){
     GC_chart$x$graphContainer$direction <- "row"
+    # compute the % width for each cluster
+    num_clusters <- length(update_clusters)
+    if (num_clusters > 0) {
+      # Round to 3 decimals
+      cluster_width_pct <- round(100 / num_clusters, 3)
+      for (cluster_name in update_clusters) {
+        # Convert numeric to character and append '%'
+        pct_str <- paste0(cluster_width_pct, "%")
+        GC_chart$x$series[[cluster_name]]$container$style$width <- pct_str
+        GC_chart$x$series[[cluster_name]]$container$width <- pct_str
+      }
+    }
   }
 
   # Update margins

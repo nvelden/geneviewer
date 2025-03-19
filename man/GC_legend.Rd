@@ -72,7 +72,6 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
     adjustHeight = TRUE,
     backgroundColor = "#0000",
     order = list(),
-    positions = "bottom",
     style = list(
       backgroundColor = "#0000"
       # Any other CSS styles

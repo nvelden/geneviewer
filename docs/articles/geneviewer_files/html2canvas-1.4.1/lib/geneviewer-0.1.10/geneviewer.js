@@ -351,8 +351,6 @@ function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
 function getColorScale(colorScheme, customColors, uniqueGroups) {
   let colorScale;
 
-  //customColors = { ...(customColors || {}), null: "#FFF" };
-
   const schemeCategory30 = [
     "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
     "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
@@ -362,9 +360,18 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
     "#8c6d31", "#e7cb94", "#e7969c", "#7b4173", "#a55194"
   ];
 
-  // Check if customColors is an object and not an array
-  if (customColors && typeof customColors === 'object' && !Array.isArray(customColors)) {
-    // Create a color scale based on the customColors object
+  if (customColors && typeof customColors === "string") {
+    // Handle customColors as a single color
+    colorScale = d3.scaleOrdinal()
+      .domain(uniqueGroups)
+      .range(uniqueGroups.map(() => customColors));
+  } else if (customColors && Array.isArray(customColors)) {
+    // Handle customColors as an array
+    colorScale = d3.scaleOrdinal()
+      .domain(uniqueGroups)
+      .range(uniqueGroups.map((group, index) => customColors[index % customColors.length] || "#FFF"));
+  } else if (customColors && typeof customColors === 'object') {
+    // Handle customColors as an object
     colorScale = d3.scaleOrdinal()
       .domain(uniqueGroups)
       .range(uniqueGroups.map(group => customColors[group] || "#FFF"));
@@ -381,14 +388,17 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
       }
     }
   } else {
+    // Default to schemeCategory30
     colorScale = d3.scaleOrdinal(schemeCategory30)
       .domain(uniqueGroups)
       .range(uniqueGroups.map(group =>
         group === "No Hit" || group === null ? "#FFF" : schemeCategory30[uniqueGroups.indexOf(group) % schemeCategory30.length]
       ));
   }
+
   return colorScale;
 }
+
 
 function isInAnyDiscontinuity(value, breaks) {
   for (let gap of breaks) {

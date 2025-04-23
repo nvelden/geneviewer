@@ -147,10 +147,12 @@ gbk_features_to_df <- function(gbk_list, feature = "CDS", keys = NULL, process_r
     df <- df[, colSums(is.na(df)) < nrow(df)]
 
     if (process_region && "region" %in% names(df)) {
-      df$strand <- ifelse(is.na(df$region), NA,
-                          ifelse(grepl("\\(", df$region),
-                                 trimws(sub("\\(.*", "", df$region)),
-                                 "forward"))
+      df$strand <- ifelse(
+        is.na(df$region), NA,
+        ifelse(grepl("complement", df$region, ignore.case = TRUE),
+               "complement",
+               "forward")
+      )
 
       df$start <- as.numeric(sub("[^0-9]*(\\d+)\\.\\..*$", "\\1", df$region))
       df$end <- as.numeric(gsub(".*\\.\\.[^0-9]*([0-9]+).*", "\\1", df$region))

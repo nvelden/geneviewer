@@ -1975,10 +1975,6 @@ GC_legend <- function(
     ...
 ) {
 
-  if (!show) {
-    return(GC_chart)
-  }
-
   if (is.logical(group) && length(group) == 1) {
     show <- group
     group <- NULL

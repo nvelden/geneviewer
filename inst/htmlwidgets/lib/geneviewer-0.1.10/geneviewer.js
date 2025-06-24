@@ -764,7 +764,7 @@ function makeLinks(graphContainer, links, clusters) {
       .attr("height", graphRect.height)
       .classed("GeneLink", true)
       .style("position", "absolute")
-      .style("z-index", -1)
+      .style("z-index", 1)
       .style("left", `${graphContainer.left}px`)
       .style("top", `${graphContainer.top}px`);
 

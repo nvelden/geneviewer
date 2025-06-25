@@ -325,23 +325,36 @@ function removeNullKeys(obj) {
 }
 
 function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
-  // Start with default options
   let combinedOptions = { ...defaultOptions };
-  let themeOpts = removeNullKeys(this.themeOptions?.[themeOptionsKey] ?? {});
+  let themeOpts    = removeNullKeys(this.themeOptions?.[themeOptionsKey] ?? {});
+  userOptions      = removeNullKeys(userOptions);
 
-  userOptions = removeNullKeys(userOptions);
-
-  // Iterate over the keys in defaultOptions
+  // existing deep-merge for keys you know about
   for (let key in defaultOptions) {
-    if (typeof defaultOptions[key] === 'object' && !Array.isArray(defaultOptions[key]) && defaultOptions[key] !== null) {
+    if (
+      typeof defaultOptions[key] === 'object' &&
+      !Array.isArray(defaultOptions[key]) &&
+      defaultOptions[key] !== null
+    ) {
       combinedOptions[key] = {
         ...defaultOptions[key],
-        ...(themeOpts[key] || {}), // Safeguard against undefined values
-        ...(userOptions[key] || {}) // Safeguard against undefined values
+        ...(themeOpts[key]  || {}),
+        ...(userOptions[key] || {})
       };
-    } else {
-      // Direct merge for non-object or null properties
-      combinedOptions[key] = userOptions[key] !== undefined ? userOptions[key] : (themeOpts[key] !== undefined ? themeOpts[key] : defaultOptions[key]);
+    }
+    else {
+      combinedOptions[key] = userOptions[key] !== undefined
+        ? userOptions[key]
+        : (themeOpts[key] !== undefined
+           ? themeOpts[key]
+           : defaultOptions[key]);
+    }
+  }
+
+  // ← new: copy any extra flat keys from userOptions
+  for (let key in userOptions) {
+    if (!(key in defaultOptions)) {
+      combinedOptions[key] = userOptions[key];
     }
   }
 
@@ -751,7 +764,7 @@ function makeLinks(graphContainer, links, clusters) {
       .attr("height", graphRect.height)
       .classed("GeneLink", true)
       .style("position", "absolute")
-      .style("z-index", -1)
+      .style("z-index", 1)
       .style("left", `${graphContainer.left}px`)
       .style("top", `${graphContainer.top}px`);
 
@@ -1551,6 +1564,7 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
 
   // Merge the options using the generic function
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'clusterLabelOptions', options);
+
   const {
     x,
     y,
@@ -1575,6 +1589,7 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     family: fontFamily,
     cursor: cursor
   };
+
 
   // calculate middle y position
   const adjustedHeight = this.height - this.margin.top - this.margin.bottom;
@@ -1651,6 +1666,7 @@ container.prototype.sequence = function (show = true, options = {}) {
 
   // Merge the default options with any predefined sequenceOptions and the provided options
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'sequenceOptions', options);
+
   const { y, start, end, markerStyle, sequenceStyle } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions for sequenceStyle

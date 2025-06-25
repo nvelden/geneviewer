@@ -1,4 +1,4 @@
-pandoc: 3.1.11
+pandoc: '3.4'
 pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
@@ -10,7 +10,7 @@ articles:
   LoadGFF: LoadGFF.html
   MUMMER: MUMMER.html
   Transcripts: Transcripts.html
-last_built: 2025-02-14T19:31Z
+last_built: 2025-06-25T13:20Z
 urls:
   reference: https://nvelden.github.io/geneviewer/reference
   article: https://nvelden.github.io/geneviewer/articles

@@ -2193,7 +2193,7 @@ GC_tooltip <- function(
 ) {
 
   if (!show) {
-    return(GC_chart)
+    show <- FALSE
   }
 
   if (is.logical(formatter) && length(formatter) == 1) {

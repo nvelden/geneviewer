@@ -1,18 +1,17 @@
-# Build and upload Wasm binary assets when a release is published
 # Workflow derived from https://github.com/r-wasm/actions/tree/v2/examples
 # Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
-
 on:
   release:
-    types: [published]  # Trigger only when a release is published
+    # Must republish release to update assets
+    types: [ published ]
 
 name: Build and deploy wasm R package image
 
 jobs:
   release-file-system-image:
     uses: r-wasm/actions/.github/workflows/release-file-system-image.yml@v2
-    with:
-      pre-install-packages: htmlwidgets,fontawesome,tidyr  # comma-separated
     permissions:
-      contents: write                # Required to upload release assets
+      # For publishing artifact files to the release
+      contents: write
+      # To download GitHub Packages within action
       repository-projects: read

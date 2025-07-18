@@ -1,3 +1,12 @@
+# geneviewer 0.1.11
+
+### Enhancements:
+- Fix for setting tooltip and legend to FALSE
+- Fix for links displayed behind graph
+- Fix for getting proper strand directions in .gbk files
+- Fix for passing additional CSS styles
+- Add github actions to build Wasm assets for Shinylive 
+
 # geneviewer 0.1.10
 
 ### Enhancements:

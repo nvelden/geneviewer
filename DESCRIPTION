@@ -1,7 +1,7 @@
 Package: geneviewer
 Type: Package
 Title: Gene Cluster Visualizations
-Version: 0.1.10
+Version: 0.1.11
 Authors@R: person(given = "Niels",
                   family = "van der Velden",
                   role = c("aut", "cre"),

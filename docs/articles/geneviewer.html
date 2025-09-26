@@ -35,7 +35,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">geneviewer</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.11</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,7 +86,7 @@
 
 
 
-<script src="geneviewer_files/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="geneviewer_files/geneviewerwidget-0.1.10/geneviewerwidget.js"></script><script src="geneviewer_files/Themes-0.1.10/./lib/geneviewer-0.1.10/Themes.js"></script><script src="geneviewer_files/geneviewer-0.1.10/./lib/geneviewer-0.1.10/geneviewer.js"></script><link href="geneviewer_files/D3-7.8.5/./lib/styles.css" rel="stylesheet">
+<script src="geneviewer_files/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="geneviewer_files/geneviewerwidget-0.1.11/geneviewerwidget.js"></script><script src="geneviewer_files/Themes-0.1.11/./lib/geneviewer-0.1.11/Themes.js"></script><script src="geneviewer_files/geneviewer-0.1.11/./lib/geneviewer-0.1.11/geneviewer.js"></script><link href="geneviewer_files/D3-7.8.5/./lib/styles.css" rel="stylesheet">
 <script src="geneviewer_files/D3-7.8.5/./lib/D3-7.8.5/d3.min.js"></script><script src="geneviewer_files/html2canvas-1.4.1/./lib/html2canvas-1.4.1/html2canvas.min.js"></script><script src="geneviewer_files/FileSaver-2.0.4-2.0.4/./lib/FileSaver-2.0.4/FileSaver.min.js"></script><link href="geneviewer_files/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
 <link href="geneviewer_files/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
 <div class="row">
@@ -113,6 +113,16 @@ from CRAN with:</p>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"nvelden/geneviewer"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="interactive-dashboard">Interactive Dashboard<a class="anchor" aria-label="anchor" href="#interactive-dashboard"></a>
+</h2>
+<p>For users who prefer a point-and-click interface, try the <strong><a href="https://nvelden.github.io/geneviewer-shinylive/">Gene Cluster
+Dashboard</a></strong> - a web application that provides intuitive
+access to geneviewer’s visualization features. Upload data, customize
+plots, and export publication-ready figures through an easy-to-use
+interface. <em>(Allow 1-2 minutes for loading)</em></p>
+<p>The dashboard repository and source code can be found at: <strong><a href="https://github.com/nvelden/geneviewer-shinylive" class="external-link">github.com/nvelden/geneviewer-shinylive</a></strong></p>
+</div>
+<div class="section level2">
 <h2 id="cluster-visualization">Cluster Visualization<a class="anchor" aria-label="anchor" href="#cluster-visualization"></a>
 </h2>
 <div class="section level3">
@@ -125,7 +135,7 @@ genes and is used by default as the categorical variable for the
 legend.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Example data for a single Gene cluster</span></span>
-<span><span class="va">ophA_cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">ophA_clusters</span>, <span class="va">cluster</span> <span class="op">==</span> <span class="st">"ophA"</span><span class="op">)</span></span>
+<span><span class="va">ophA_cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">ophA_clusters</span>, <span class="va">cluster</span> <span class="op">==</span> <span class="st">"ophA"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/GC_chart.html">GC_chart</a></span><span class="op">(</span><span class="va">ophA_cluster</span>, </span>
 <span>         start <span class="op">=</span> <span class="st">"start"</span>, </span>
@@ -336,7 +346,7 @@ and the spacing for the second cluster is increased from 40 to 50.</p>
 prevent_gene_overlap to TRUE is not supported at the moment.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/GC_chart.html">GC_chart</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">human_hox_genes</span>, <span class="va">cluster</span> <span class="op"><a href="https://rdrr.io/pkg/BiocGenerics/man/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"HOXA"</span>, <span class="st">"HOXB"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">human_hox_genes</span>, <span class="va">cluster</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"HOXA"</span>, <span class="st">"HOXB"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  group <span class="op">=</span> <span class="st">"name"</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="st">"cluster"</span>,</span>
 <span>  height <span class="op">=</span> <span class="st">"300px"</span> </span>
@@ -705,7 +715,7 @@ addition links and labels can be styled using the <code>linkStyle</code>
 and <code>labelStyle</code> options. The width of the links can be
 adjusted using the <code>linkWidth</code> parameter.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ophA_clusters</span><span class="op">$</span><span class="va">identity</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ophA_clusters</span><span class="op">)</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> </span>
+<code class="sourceCode R"><span><span class="va">ophA_clusters</span><span class="op">$</span><span class="va">identity</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ophA_clusters</span><span class="op">)</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> </span>
 <span><span class="va">ophA_clusters</span><span class="op">$</span><span class="va">identity</span><span class="op">[</span><span class="va">ophA_clusters</span><span class="op">$</span><span class="va">cluster</span> <span class="op">==</span> <span class="st">"ophA"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>
 <span></span>
 <span><span class="va">chart</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GC_chart.html">GC_chart</a></span><span class="op">(</span></span>
@@ -842,7 +852,7 @@ label and a footer as shown in the example below.</p>
 <span>    titleFont <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fontWeight <span class="op">=</span> <span class="st">"normal"</span><span class="op">)</span></span>
 <span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/GC_labels.html">GC_labels</a></span><span class="op">(</span><span class="st">"name"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/GC_clusterLabel.html">GC_clusterLabel</a></span><span class="op">(</span>title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ophA_clusters</span><span class="op">$</span><span class="va">cluster</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/GC_clusterLabel.html">GC_clusterLabel</a></span><span class="op">(</span>title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ophA_clusters</span><span class="op">$</span><span class="va">cluster</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/GC_clusterFooter.html">GC_clusterFooter</a></span><span class="op">(</span></span>
 <span>    x <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>    title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Nr. of Genes: 7"</span>, <span class="st">"Nr. of Genes: 10"</span><span class="op">)</span>, </span>
@@ -1289,8 +1299,8 @@ list for direct mapping, such as
 <span><span class="va">custom_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#D62728"</span>, <span class="st">"#2CA02C"</span>, <span class="st">"#1F77B4"</span>, <span class="st">"#9467BD"</span>, <span class="st">"#FF7F0E"</span>, <span class="st">"#17BECF"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Create a named list of colors</span></span>
-<span><span class="va">named_vector</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="va">custom_colors</span>, <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ophA_cluster</span><span class="op">$</span><span class="va">class</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">custom_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/as.list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">named_vector</span><span class="op">)</span></span>
+<span><span class="va">named_vector</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="va">custom_colors</span>, <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ophA_cluster</span><span class="op">$</span><span class="va">class</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">custom_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">named_vector</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/GC_chart.html">GC_chart</a></span><span class="op">(</span><span class="va">ophA_cluster</span>, group <span class="op">=</span> <span class="st">"class"</span>, height <span class="op">=</span> <span class="st">"100px"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/GC_color.html">GC_color</a></span><span class="op">(</span>customColors <span class="op">=</span> <span class="va">custom_colors</span> <span class="op">)</span></span></code></pre></div>
@@ -1305,8 +1315,8 @@ custom_colors are overwritten by the color settings in the
 <span><span class="va">custom_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#D62728"</span>, <span class="st">"#D62728"</span>, <span class="st">"#D62728"</span>, <span class="st">"#D62728"</span>, <span class="st">"#D62728"</span>, <span class="st">"#D62728"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Create a named list of colors</span></span>
-<span><span class="va">named_vector</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="va">custom_colors</span>, <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ophA_cluster</span><span class="op">$</span><span class="va">class</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">custom_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/as.list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">named_vector</span><span class="op">)</span></span>
+<span><span class="va">named_vector</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="va">custom_colors</span>, <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ophA_cluster</span><span class="op">$</span><span class="va">class</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">custom_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">named_vector</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/GC_chart.html">GC_chart</a></span><span class="op">(</span><span class="va">ophA_cluster</span>, group <span class="op">=</span> <span class="st">"class"</span>, height <span class="op">=</span> <span class="st">"100px"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/GC_color.html">GC_color</a></span><span class="op">(</span>customColors <span class="op">=</span> <span class="va">custom_colors</span> <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -1374,7 +1384,7 @@ adjusts the colors of the legend and genes.</p>
 <span>    y <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>    position <span class="op">=</span> <span class="st">"top"</span>,</span>
 <span>    width <span class="op">=</span> <span class="st">"60%"</span>,</span>
-<span>    order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ophA_clusters</span><span class="op">$</span><span class="va">class</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ophA_clusters</span><span class="op">$</span><span class="va">class</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    legendTextOptions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>      fontSize <span class="op">=</span> <span class="st">"14px"</span></span>
 <span>    <span class="op">)</span>,</span>
@@ -1540,7 +1550,7 @@ occur, they are, by default, shifted to the top axis for clearer
 visualization. By default the <code>overlapThreshold</code> parameter is
 set to 20.</p>
 <div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">dbophA_cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">ophA_clusters</span>, <span class="va">cluster</span> <span class="op">==</span> <span class="st">"dbophA"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">dbophA_cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">ophA_clusters</span>, <span class="va">cluster</span> <span class="op">==</span> <span class="st">"dbophA"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/GC_chart.html">GC_chart</a></span><span class="op">(</span><span class="va">dbophA_cluster</span>, group <span class="op">=</span> <span class="st">"class"</span>,height <span class="op">=</span> <span class="st">"100px"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/GC_coordinates.html">GC_coordinates</a></span><span class="op">(</span></span>

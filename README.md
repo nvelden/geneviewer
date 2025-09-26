@@ -13,6 +13,14 @@
 
 **geneviewer** is an R package for plotting gene clusters and transcripts. It imports data from GenBank, FASTA, and GFF files, performs BlastP and MUMmer alignments, and displays results on gene arrow maps. The package offers extensive customization options, including legends, labels, annotations, scales, colors, tooltips, and more. To explore all features visit the [package website](https://nvelden.github.io/geneviewer/articles/geneviewer.html).
 
+## Interactive Shiny Dashboard
+
+Try the **[Gene Cluster Dashboard](https://nvelden.github.io/geneviewer-shinylive/)** - a web interface that provides point-and-click access to geneviewer's visualization features. *(Allow 1-2 minutes for loading)*
+
+**[Dashboard Repository](https://github.com/nvelden/geneviewer-shinylive)**
+
+
+
 ## Installation
 
 You can install the released version of **geneviewer** from CRAN with:

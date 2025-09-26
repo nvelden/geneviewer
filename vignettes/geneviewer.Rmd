@@ -30,13 +30,6 @@ And the development version from GitHub with:
 devtools::install_github("nvelden/geneviewer")
 ```
 
-## Interactive Dashboard
-
-For users who prefer a point-and-click interface, try the **[Gene Cluster Dashboard](https://nvelden.github.io/geneviewer-shinylive/)** - a web application that provides intuitive access to geneviewer's visualization features. Upload data, customize plots, and export publication-ready figures through an easy-to-use interface. *(Allow 1-2 minutes for loading)*
-
-The dashboard repository and source code can be found at: **[github.com/nvelden/geneviewer-shinylive](https://github.com/nvelden/geneviewer-shinylive)**
-
-
 ## Cluster Visualization
 
 ### Single Gene Cluster

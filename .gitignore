@@ -4,8 +4,6 @@
 .Ruserdata
 .Rprofile
 .DS_Store
-man/.DS_Store
-pkgdown/.DS_Store
 renv/
 fasta_files/
 bed_files/

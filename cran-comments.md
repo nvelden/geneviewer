@@ -1,3 +1,22 @@
+29.09.2025
+
+## Submission comments
+
+* Fixed issue with setting tooltip and legend to FALSE.
+* Fixed rendering issue where links were displayed behind the graph.
+* Fixed strand direction parsing in GenBank (.gbk) files.
+* Fixed passing of additional CSS styles to chart components.
+* Added GitHub Actions workflow to build Wasm assets for Shinylive compatibility.
+
+## Test environments
+* macOS (macos-latest), R devel (via GitHub Actions)
+* Windows (windows-latest), R devel (via GitHub Actions)
+* Ubuntu (ubuntu-latest), R devel (via GitHub Actions)
+* Local R installation, R 4.4.0 on macOS Sequoia
+
+## R CMD check results
+There were no ERRORs, WARNINGs, or NOTEs.
+
 02.01.2024
 
 ## Submission comments

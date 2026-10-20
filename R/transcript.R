@@ -58,11 +58,11 @@ get_introns <- function(data) {
       end = .data$next_start - 1,
       type = "intron"
     ) %>%
-    dplyr::select(-.data$next_start, -.data$next_end)
+    dplyr::select(-dplyr::all_of(c("next_start", "next_end")))
 
   combined_results <- dplyr::bind_rows(data, intron_results) %>%
     dplyr::arrange(.data$original_transcript_order, .data$start) %>%
-    dplyr::select(-.data$original_transcript_order)
+    dplyr::select(-"original_transcript_order")
 
   return(combined_results)
 }

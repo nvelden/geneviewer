@@ -71,8 +71,8 @@ custom_gaps <- function(data, group, gene_name, factor = 2) {
 
   data <- data %>%
     dplyr::arrange(.data$original_order) %>%
-    dplyr::select(-.data$actual_start, -.data$actual_end, -.data$original_order,
-                  -.data$new_start, -.data$new_end, -.data$is_reverse)
+    dplyr::select(-dplyr::all_of(c("actual_start", "actual_end", "original_order",
+                                   "new_start", "new_end", "is_reverse")))
 
   return(data)
 }
@@ -160,9 +160,9 @@ normalize_gc_positions <- function(data, gap = NULL, preserve_gene_length = TRUE
 
   data <- data %>%
     dplyr::arrange(.data$original_order) %>%
-    dplyr::select(
-      -.data$new_start, -.data$new_end, -.data$actual_start, -.data$actual_end,
-      -.data$original_order, -.data$is_reverse, -.data$gene_length)
+    dplyr::select(-dplyr::all_of(c(
+      "new_start", "new_end", "actual_start", "actual_end",
+      "original_order", "is_reverse", "gene_length")))
 
   data$gene_gap <- NULL
 

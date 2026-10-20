@@ -118,10 +118,10 @@ process_gff <- function(path, fields = NULL){
     df_attributes <- dplyr::bind_rows(list_attributes, .id = "id")
 
     if (nrow(df_attributes) > 0) {
-      df_attributes <- tidyr::pivot_wider(df_attributes, names_from = .data$key, values_from = .data$value)
+      df_attributes <- tidyr::pivot_wider(df_attributes, names_from = "key", values_from = "value")
       # Rows without attributes have no id; match back by row number
       df_attributes <- df_attributes[match(seq_len(nrow(data)), as.integer(df_attributes$id)), ] %>%
-        select(-.data$id)
+        select(-"id")
       data <- cbind(data %>% dplyr::select(-attributes), df_attributes)
     } else {
       data <- data %>% dplyr::select(-attributes)

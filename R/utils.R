@@ -427,7 +427,7 @@ adjust_to_range <- function(data, cluster = "cluster"){
       start = .data$start - .data$min_start_end + 1,
       end = .data$end - .data$min_start_end +1
     ) %>%
-    dplyr::select(-.data$min_start_end)
+    dplyr::select(-"min_start_end")
   } else {
     data <- data %>%
       dplyr::mutate(
@@ -435,7 +435,7 @@ adjust_to_range <- function(data, cluster = "cluster"){
         start = .data$start - .data$min_start_end + 1,
         end = .data$end - .data$min_start_end + 1
       ) %>%
-      dplyr::select(-.data$min_start_end)
+      dplyr::select(-"min_start_end")
   }
 
   return(data)

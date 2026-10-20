@@ -141,7 +141,7 @@ calculate_relative_positions <- function(data, cluster, group, gene, align = "le
     dplyr::ungroup()
 
   data <- data %>%
-    dplyr::select(!! dplyr::sym(cluster_column), !! dplyr::sym(group), .data$start, .data$end) %>%
+    dplyr::select(dplyr::all_of(c(cluster_column, group, "start", "end"))) %>%
     dplyr::left_join(cluster_min_max, by = cluster_column) %>%
     dplyr::filter(.data[[group]] == gene_name)
 

@@ -118,8 +118,8 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
 
       # Bind the data frames together, then spread the key-value pairs into columns
       df <- dplyr::bind_rows(df_list, .id = "id") %>%
-        tidyr::pivot_wider(names_from = .data$key, values_from = .data$value) %>%
-        dplyr::select(-.data$id) # Remove the id column if not needed
+        tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+        dplyr::select(-"id") # Remove the id column if not needed
 
       # Replace 'NA' with actual NA where applicable
       df[df == "NA"] <- NA

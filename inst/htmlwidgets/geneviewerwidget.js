@@ -12,7 +12,8 @@ HTMLWidgets.widget({
       titleOptions,
       legendOptions;
 
-    var widgetId = el.id.split('-')[1];
+    // Unique per chart on the page; used in container and save button ids
+    var widgetId = el.id.replace(/[^A-Za-z0-9_-]/g, '_');
 
     var draw = function (width, height) {
 

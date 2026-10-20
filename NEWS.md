@@ -2,6 +2,7 @@
 
 ### Bug fixes:
 - `GC_chart()` no longer errors when `height` is a percentage (e.g. `height = "100%"`).
+- `GC_cluster(prevent_gene_overlap = TRUE, cluster = ...)` now stacks overlapping genes in the selected clusters instead of the first ones.
 
 # geneviewer 0.1.11
 

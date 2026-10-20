@@ -922,7 +922,7 @@ test_that("GC_cluster applies prevent_gene_overlap and other options correctly",
   clusters <- updated_chart$x$series
   for (i in seq_along(clusters)) {
     cluster_options <- clusters[[i]]$cluster
-    expect_true(cluster_options$subset_data)
+    expect_true(cluster_options$preventGeneOverlap)
     expect_equal(cluster_options$overlapSpacing, 10)
   }
 
@@ -1036,4 +1036,43 @@ test_that("GC_chart accepts a percentage height (B01)", {
   # Pixel heights are still split into numbers
   chart <- GC_chart(genes_data, cluster = "cluster", height = "400px")
   expect_equal(chart$x$series[["A"]]$container$height, 200)
+})
+
+test_that("GC_cluster prevent_gene_overlap only changes the selected cluster (B02)", {
+  genes_data <- data.frame(
+    start = c(10, 40, 10, 40),
+    end = c(80, 120, 80, 120),
+    cluster = c("A", "A", "B", "B")
+  )
+
+  chart <- GC_chart(genes_data, cluster = "cluster") %>%
+    GC_cluster(prevent_gene_overlap = TRUE, cluster = 2)
+
+  expect_null(chart$x$series[["A"]]$data$geneTrack)
+  expect_setequal(chart$x$series[["B"]]$data$geneTrack, c(1, 2))
+  expect_true(chart$x$series[["B"]]$cluster$preventGeneOverlap)
+  expect_null(chart$x$series[["B"]]$cluster$subset_data)
+
+  # More than two clusters, selected by index and by name
+  genes_data <- data.frame(
+    start = rep(c(10, 40), 4),
+    end = rep(c(80, 120), 4),
+    cluster = rep(c("A", "B", "C", "D"), each = 2)
+  )
+  has_tracks <- function(chart) {
+    vapply(chart$x$series, function(s) !is.null(s$data$geneTrack), logical(1))
+  }
+
+  chart <- GC_chart(genes_data, cluster = "cluster") %>%
+    GC_cluster(prevent_gene_overlap = TRUE, cluster = c(2, 4))
+  expect_equal(unname(has_tracks(chart)), c(FALSE, TRUE, FALSE, TRUE))
+
+  chart <- GC_chart(genes_data, cluster = "cluster") %>%
+    GC_cluster(prevent_gene_overlap = TRUE, cluster = "C")
+  expect_equal(unname(has_tracks(chart)), c(FALSE, FALSE, TRUE, FALSE))
+
+  # A single cluster
+  chart <- GC_chart(genes_data[1:2, ], cluster = "cluster") %>%
+    GC_cluster(prevent_gene_overlap = TRUE)
+  expect_setequal(chart$x$series[["A"]]$data$geneTrack, c(1, 2))
 })

@@ -2293,9 +2293,9 @@ GC_cluster <- function(
 
   # Add gene track
   if(!is.null(prevent_gene_overlap) && prevent_gene_overlap){
-    subset_data <- GC_chart$x$series[[i]]$data
+    subset_data <- GC_chart$x$series[[clusters[i]]]$data
     subset_data <- subset_data[with(subset_data, order(-pmax(start, end), abs(end - start))), ]
-    GC_chart$x$series[[i]]$data <- add_gene_track(subset_data)
+    GC_chart$x$series[[clusters[i]]]$data <- add_gene_track(subset_data)
   }
 
   # Update style options
@@ -2310,7 +2310,7 @@ GC_cluster <- function(
   clusterOptions <- Filter(function(x) !is.null(x) && length(x) > 0, list(
     separateStrands = separate_strands,
     strandSpacing = strand_spacing,
-    subset_data = prevent_gene_overlap,
+    preventGeneOverlap = prevent_gene_overlap,
     overlapSpacing = overlap_spacing,
     ...
   ))

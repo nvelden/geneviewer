@@ -10,7 +10,8 @@ HTMLWidgets.widget({
       links,
       series,
       titleOptions,
-      legendOptions;
+      legendOptions,
+      saveButton;
 
     // Unique per chart on the page; used in container and save button ids
     var widgetId = el.id.replace(/[^A-Za-z0-9_-]/g, '_');
@@ -114,10 +115,10 @@ HTMLWidgets.widget({
             sequenceOptions = cluster.sequence,
             geneOptions = cluster.genes,
             transcriptOptions = cluster.transcript,
-            coordinateOptions = cluster.coordinates;
-            scaleBarOptions = cluster.scaleBar;
-            annotationOptions = cluster.annotations;
-            trackMouse = cluster.trackMouse;
+            coordinateOptions = cluster.coordinates,
+            scaleBarOptions = cluster.scaleBar,
+            annotationOptions = cluster.annotations,
+            trackMouse = cluster.trackMouse,
             tooltipOptions = cluster.tooltip;
 
         var clonedContainerOptions = JSON.parse(JSON.stringify(containerOptions));
@@ -174,7 +175,7 @@ HTMLWidgets.widget({
       }
 
       // Save icon
-      createSaveIcon(widgetId, el, show = saveButton);
+      createSaveIcon(widgetId, el, saveButton);
 
     };
 

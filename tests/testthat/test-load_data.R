@@ -260,3 +260,21 @@ test_that("genbank_to_fasta writes one FASTA record per GenBank record (B19)", {
   expect_equal(readLines(file.path(out_dir, sub("\\.gbk$", ".fasta", basename(gbk_file)))),
                c(">AAA.1 Record AAA", "ACGTACGTACGTACGTACGT"))
 })
+
+test_that("mummer_alignment matches files exactly and only removes its own files (B20)", {
+  skip_if(Sys.which("nucmer") == "", "MUMmer is not installed")
+  set.seed(1)
+  seq1 <- paste(sample(c("A", "C", "G", "T"), 3000, TRUE), collapse = "")
+  seq2 <- paste0(substr(seq1, 1, 1500), paste(sample(c("A", "C", "G", "T"), 200, TRUE), collapse = ""), substr(seq1, 1501, 3000))
+  dir <- tempfile("mummer"); dir.create(dir)
+  writeLines(c(">a", seq1), file.path(dir, "BGC1+2.fasta"))
+  writeLines(c(">b", seq2), file.path(dir, "BGC2.fasta"))
+  writeLines("my notes", file.path(dir, "BGC1+2_BGC2_notes.txt"))
+
+  links <- suppressWarnings(mummer_alignment(dir, cluster = c("BGC1+2", "BGC2"), seqtype = "nucleotide", output_dir = dir))
+  expect_true(is.data.frame(links) && nrow(links) > 0)
+  expect_true(file.exists(file.path(dir, "BGC1+2_BGC2_notes.txt")))
+  expect_false(any(grepl("\\.(delta|coords)$", list.files(dir))))
+
+  expect_error(mummer_alignment(dir, cluster = c("BGC 1", "BGC2"), output_dir = dir), "without spaces")
+})

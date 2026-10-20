@@ -100,9 +100,12 @@ mummer_alignment <- function(
     stop("At least two clusters must be provided.")
   }
 
-  # Check if FASTA files and matching cluster names
-  cluster_pattern <- paste0("^(", paste(cluster, collapse = "|"), ")\\.fasta$")
-  fasta_files <- all_files[grep(cluster_pattern, basename(all_files))]
+  if (any(grepl(" ", cluster))) {
+    stop("MUMmer requires file names without spaces: ", paste(cluster[grepl(" ", cluster)], collapse = ", "))
+  }
+
+  # Check if FASTA files and matching cluster names (exact file names)
+  fasta_files <- all_files[basename(all_files) %in% paste0(cluster, ".fasta")]
 
   found_fasta_names <- gsub("\\.fasta$", "", basename(fasta_files))
   missing_files <- cluster[!cluster %in% found_fasta_names]
@@ -110,18 +113,17 @@ mummer_alignment <- function(
   gbk_files <- NULL
   # Check for GenBank and convert to FASTA if missing
   if(length(missing_files) > 0){
-    cluster_pattern <- paste0("^(", paste(missing_files, collapse = "|"), ")(\\.gbk|\\.gb)$")
-    gbk_files <- all_files[grep(cluster_pattern, basename(all_files))]
+    is_gbk <- grepl("\\.gbk$|\\.gb$", all_files)
+    gbk_files <- all_files[is_gbk & sub("\\.gbk$|\\.gb$", "", basename(all_files)) %in% missing_files]
 
     if (length(gbk_files) > 0) {
       sapply(gbk_files, function(file) {
         genbank_to_fasta(file)
       })
-      fasta_files <- all_files[grep(cluster_pattern, basename(all_files))]
     }
 
-    pattern <- paste0("^(", paste(cluster, collapse = "|"), ")\\.fasta$")
-    fasta_files <- list.files(path, pattern = pattern, full.names = TRUE)
+    fasta_files <- file.path(path, paste0(cluster, ".fasta"))
+    fasta_files <- fasta_files[file.exists(fasta_files)]
     found_clusters <- gsub("\\.fasta$", "", basename(fasta_files))
     missing_files <- setdiff(cluster, found_clusters)
 
@@ -135,10 +137,12 @@ mummer_alignment <- function(
 
   links <- lapply(cluster_pairs, function(pair) {
 
-    pattern_reference <- paste0(pair[1], "\\.fasta$")
-    pattern_query <- paste0(pair[2], "\\.fasta$")
-    reference_seq <- fasta_files[grep(pattern_reference, fasta_files)]
-    query_seq <- fasta_files[grep(pattern_query, fasta_files)]
+    # Files written by mummer() for this pair
+    output_prefix <- file.path(path, sprintf("%s_%s_%s", pair[1], pair[2], seqtype))
+    output_files <- paste0(output_prefix, c(".delta", sprintf("_%s.delta", gsub("-", "_", maptype)), sprintf("_%s.coords", gsub("-", "_", maptype))))
+
+    reference_seq <- fasta_files[basename(fasta_files) == paste0(pair[1], ".fasta")]
+    query_seq <- fasta_files[basename(fasta_files) == paste0(pair[2], ".fasta")]
 
     tryCatch({
       # Call the mummer_alignment function
@@ -166,12 +170,15 @@ mummer_alignment <- function(
       }
 
       if (remove_files) {
-        file.remove(list.files(path=path, pattern=sprintf("%s_%s", pair[1], pair[2]), full.names=TRUE))
+        file.remove(output_files[file.exists(output_files)])
       }
 
       return(coords)
 
     }, error = function(e) {
+      if (remove_files) {
+        file.remove(output_files[file.exists(output_files)])
+      }
       warning(sprintf("Error in aligning %s vs %s: %s", pair[1], pair[2], e$message))
       return(NULL)
     })
@@ -242,28 +249,28 @@ mummer <- function(reference, query, maptype = "many-to-many", seqtype = "protei
 
   # Construct and run the MUMmer command
   mummer_cmd <- sprintf(
-    "%s --prefix=%s_%s %s %s %s",
+    "%s --prefix=%s %s %s %s",
     command_type,
-    prefix,
-    seqtype,
+    shQuote(paste0(prefix, "_", seqtype)),
     mummer_options,
-    reference,
-    query)
+    shQuote(reference),
+    shQuote(query))
 
   if (system(mummer_cmd) != 0) {
     stop(sprintf("Failed to run %s.", command_type))
   }
 
   # Run delta-filter with the specified alignment type
+  delta_file <- sprintf("%s_%s.delta", prefix, seqtype)
+  filtered_delta_file <- sprintf("%s_%s_%s.delta", prefix, seqtype, gsub("-", "_", maptype))
+  coords_file <- sprintf("%s_%s_%s.coords", prefix, seqtype, gsub("-", "_", maptype))
+
   delta_filter_cmd <- sprintf(
-    "delta-filter %s %s %s_%s.delta > %s_%s_%s.delta",
+    "delta-filter %s %s %s > %s",
     maptype_flag,
     filter_options,
-    prefix,
-    seqtype,
-    prefix,
-    seqtype,
-    gsub("-", "_", maptype)
+    shQuote(delta_file),
+    shQuote(filtered_delta_file)
   )
 
   if (system(delta_filter_cmd) != 0) {
@@ -274,14 +281,10 @@ mummer <- function(reference, query, maptype = "many-to-many", seqtype = "protei
   # Add -k flag if sequence type is 'protein'
   show_coords_options <- if (seqtype == "protein") "-H -T -r -k" else "-H -T -r"
   show_coords_cmd <- sprintf(
-    "show-coords %s %s_%s_%s.delta > %s_%s_%s.coords",
+    "show-coords %s %s > %s",
     show_coords_options,
-    prefix,
-    seqtype,
-    gsub("-", "_", maptype),
-    prefix,
-    seqtype,
-    gsub("-", "_", maptype)
+    shQuote(filtered_delta_file),
+    shQuote(coords_file)
   )
 
   if (system(show_coords_cmd) != 0) {

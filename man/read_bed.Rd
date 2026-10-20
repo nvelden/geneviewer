@@ -17,6 +17,11 @@ A data frame combining data from the BED files.
 This function reads BED files from a specified directory or file path and
 combines them into a single data frame. BED files use 0-based coordinate starts,
 while this function transforms the coordinates to 1-based during import.
+\code{chromStart} and \code{thickStart} are increased by 1; end positions
+and \code{blockSizes} are kept as they are. \code{blockStarts} become
+1-based positions relative to \code{chromStart} (the first block starts at
+1), as in \code{rtracklayer::import.bed()}, so the start of a block is
+\code{chromStart + blockStart - 1}.
 }
 \details{
 This function can read multiple BED files from a directory or a

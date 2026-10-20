@@ -3,6 +3,11 @@
 #' This function reads BED files from a specified directory or file path and
 #' combines them into a single data frame. BED files use 0-based coordinate starts,
 #' while this function transforms the coordinates to 1-based during import.
+#' \code{chromStart} and \code{thickStart} are increased by 1; end positions
+#' and \code{blockSizes} are kept as they are. \code{blockStarts} become
+#' 1-based positions relative to \code{chromStart} (the first block starts at
+#' 1), as in \code{rtracklayer::import.bed()}, so the start of a block is
+#' \code{chromStart + blockStart - 1}.
 #'
 #' @param path A character string specifying the directory containing BED files
 #'   or the file path to a single BED file.
@@ -63,7 +68,7 @@ read_bed <- function(path){
 
 #' @noRd
 block_to_numeric <- function(x) {
-  as.numeric(unlist(strsplit(x, ","))) + 1
+  as.numeric(unlist(strsplit(x, ",")))
 }
 
 #' @noRd
@@ -101,25 +106,20 @@ process_bed <- function(path){
       col.names = used_fields
     )
 
-    # Add +1 to Start and End
+    # Add +1 to starts (0-based to 1-based). BED ends are exclusive, so they
+    # are already the 1-based end positions.
     if ("chromStart" %in% colnames(data)) {
     data$chromStart <- data$chromStart + 1
-    }
-    if("chromEnd" %in% colnames(data)){
-    data$chromEnd <- data$chromEnd + 1
     }
     if ("thickStart" %in% colnames(data)) {
       data$thickStart <- data$thickStart + 1
     }
-    if("thickEnd" %in% colnames(data)){
-      data$thickEnd <- data$thickEnd + 1
-    }
-    # Convert blocks to numeric vector
+    # Convert blocks to a list of numeric vectors (one element per row)
     if ("blockSizes" %in% colnames(data)) {
-      data$blockSizes <- sapply(data$blockSizes, block_to_numeric)
+      data$blockSizes <- lapply(data$blockSizes, block_to_numeric)
     }
     if ("blockStarts" %in% colnames(data)) {
-      data$blockStarts <- sapply(data$blockStarts, block_to_numeric)
+      data$blockStarts <- lapply(data$blockStarts, function(x) block_to_numeric(x) + 1)
     }
 
   } else {

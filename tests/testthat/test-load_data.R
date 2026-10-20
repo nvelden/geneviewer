@@ -119,3 +119,29 @@ test_that("read_gbk keeps qualifier values intact (B04)", {
   expect_equal(unname(cds[[2]]["function"]), "says \"hello\"")
   expect_equal(unname(cds[[2]]["product"]), "(R)-3-hydroxybutyryl-CoA dehydrogenase")
 })
+
+test_that("read_bed converts BED coordinates like rtracklayer (B05)", {
+  bed_file <- tempfile(fileext = ".bed")
+  writeLines(c(
+    "chr1\t1000\t5000\ttx1\t0\t+\t1200\t4800\t0\t3\t500,400,600\t0,2000,3400",
+    "chr1\t6000\t7000\ttx2\t0\t-\t6000\t7000\t0\t3\t300,200,100\t0,500,900"
+  ), bed_file)
+
+  bed <- read_bed(bed_file)
+  expect_equal(bed$chromStart, c(1001, 6001))
+  expect_equal(bed$chromEnd, c(5000, 7000))
+  expect_equal(bed$thickStart, c(1201, 6001))
+  expect_equal(bed$thickEnd, c(4800, 7000))
+  # Same number of blocks in every row: still one list element per row
+  expect_type(bed$blockSizes, "list")
+  expect_equal(bed$blockSizes[[1]], c(500, 400, 600))
+  expect_equal(bed$blockStarts[[1]], c(1, 2001, 3401))
+  expect_equal(bed$blockSizes[[2]], c(300, 200, 100))
+
+  # A single BED12 row
+  writeLines("chr1\t0\t100\ta\t0\t+\t0\t100\t0\t2\t10,20\t0,80", bed_file)
+  bed <- read_bed(bed_file)
+  expect_equal(bed$chromEnd, 100)
+  expect_equal(bed$blockSizes[[1]], c(10, 20))
+  expect_equal(bed$blockStarts[[1]], c(1, 81))
+})

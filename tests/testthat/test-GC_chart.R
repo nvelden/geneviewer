@@ -1179,3 +1179,11 @@ test_that("vector arguments are recycled per cluster or give a clear error (B13)
   expect_error(chart %>% GC_transcript(type = c("type", "name")), "single column name")
   expect_error(chart %>% GC_normalize(group = c("name", "cluster")), "single column name")
 })
+
+test_that("GC_legend checks the group column (B14)", {
+  genes <- data.frame(start = c(1, 50), end = c(40, 90), class = c("x", "y"))
+  expect_error(GC_chart(genes) %>% GC_legend(group = "nope"), "group column not found")
+  expect_error(GC_chart(genes) %>% GC_legend(), "Please define a group")
+  expect_s3_class(GC_chart(genes) %>% GC_legend(FALSE), "htmlwidget")
+  expect_equal((GC_chart(genes) %>% GC_legend(group = "class"))$x$legend$group, "class")
+})

@@ -2003,7 +2003,7 @@ GC_legend <- function(
     group <- NULL
   }
 
-  if (is.null(group) && is.null(GC_chart$x$group) && is.null(labels)){
+  if (isTRUE(show) && is.null(group) && is.null(GC_chart$x$group)){
     stop("Please define a group")
   }
 
@@ -2011,7 +2011,7 @@ GC_legend <- function(
     group <- GC_chart$x$group
   }
 
-  if (is.null(labels) && !(group %in% names(GC_chart$x$data))) {
+  if (!is.null(group) && !(group %in% names(GC_chart$x$data))) {
     stop("group column not found in data")
   }
 

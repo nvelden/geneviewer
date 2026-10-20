@@ -47,3 +47,41 @@ test_that("Read .gff3 from file path", {
   missing_fields <- setdiff(expected_fields, names(chart$x$data))
   expect_equal(length(missing_fields), 0, info = paste("Missing fields:", paste(missing_fields, collapse = ", ")))
 })
+
+test_that("read_gbk only starts features on feature key lines (B03)", {
+  gbk_lines <- c(
+    "LOCUS       DEMO01                   600 bp    DNA     linear   BCT 01-JAN-2024",
+    "FEATURES             Location/Qualifiers",
+    "     source          1..600",
+    "     gene            10..300",
+    "                     /gene=\"abcA\"",
+    "     CDS             10..300",
+    "                     /gene=\"abcA\"",
+    "                     /note=\"part of a biosynthetic",
+    "                     gene cluster for a polyketide\"",
+    "                     /locus_tag=\"DEMO_0001\"",
+    "     CDS_motif       20..80",
+    "                     /note=\"motif\"",
+    "     gene            350..580",
+    "                     /gene=\"abcB\"",
+    "     CDS             350..580",
+    "                     /gene=\"abcB\"",
+    "ORIGIN",
+    "        1 atgaaacgca",
+    "//"
+  )
+  gbk_file <- tempfile(fileext = ".gbk")
+  writeLines(gbk_lines, gbk_file)
+
+  features <- read_gbk(gbk_file)[[1]]$FEATURES
+  expect_length(features$gene, 2)
+  expect_length(features$CDS, 2)
+  expect_equal(unname(sapply(features$gene, `[[`, "region")), c("10..300", "350..580"))
+  expect_equal(unname(features$CDS[[1]]["locus_tag"]), "DEMO_0001")
+
+  # Packaged example: 28 CDS and 27 gene features (also has CDS_motif features)
+  gbk_file <- system.file("extdata", "BGC0000001.gbk", package = "geneviewer")
+  features <- read_gbk(gbk_file)[[1]]$FEATURES
+  expect_length(features$CDS, 28)
+  expect_length(features$gene, 27)
+})

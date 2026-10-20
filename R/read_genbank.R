@@ -273,8 +273,8 @@ gbk_process_features <- function(lines, key){
 
 #' @noRd
 gbk_get_features <- function(lines, key) {
-  # Find the starts of the sections
-  section_starts <- which(grepl(paste0("^\\s*", key), lines))
+  # Find the starts of the sections (feature keys start in column 6)
+  section_starts <- which(grepl(paste0("^ {5}", key, "(\\s|$)"), lines))
 
   # If the section is not found, return NULL
   if (length(section_starts) == 0) {

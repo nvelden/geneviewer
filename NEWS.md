@@ -19,6 +19,7 @@
 - Arguments with one value per cluster no longer error in `if()` checks: e.g. `GC_labels(label = c("a", "b"))`, `GC_genes(group = ...)` and `show = c(TRUE, FALSE)` in `GC_labels()`, `GC_clusterLabel()`, `GC_clusterTitle()`, `GC_clusterFooter()`, `GC_coordinates()`, `GC_scaleBar()` and `GC_tooltip()`. Arguments that take a single value (`GC_title(show)`, `GC_align(id, id_column)`, `GC_transcript(type, transcript)`, `GC_normalize(group)`) now give a clear error.
 - `GC_legend()` now gives an error for a `group` column that is not in the data, and when a legend is shown without any group. The checks tested `labels`, which is not an argument (it found `base::labels`), so they never ran.
 - Links no longer take the colour of another link when a link cannot be drawn. Removed unused link label code that referred to an undefined `identityLabel`.
+- `GC_grid(margin = list(top = , bottom = ))` now works for charts with a percentage height (it errored), and the margins stay inside the chart height on standalone pages.
 - Several geneviewer charts in one Shiny app (output IDs without a `-`, or Shiny modules) no longer draw into each other's containers. The widget now uses its full element ID.
 - Charts on the same page no longer share settings through global JavaScript variables (e.g. `save_button` of one chart was used by another chart after a resize).
 - Removed deprecated `.data$` use in tidyselect calls (`select()`, `pivot_wider()`), which gave warnings with tidyselect >= 1.2.0.

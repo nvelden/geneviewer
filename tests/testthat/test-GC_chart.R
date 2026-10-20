@@ -1187,3 +1187,22 @@ test_that("GC_legend checks the group column (B14)", {
   expect_s3_class(GC_chart(genes) %>% GC_legend(FALSE), "htmlwidget")
   expect_equal((GC_chart(genes) %>% GC_legend(group = "class"))$x$legend$group, "class")
 })
+
+test_that("GC_grid margins work with pixel and percentage heights (B18)", {
+  genes <- data.frame(start = c(1, 50, 1, 50), end = c(40, 90, 40, 90), cluster = c("A", "A", "B", "B"))
+  heights <- function(chart) unname(sapply(chart$x$series, function(s) s$container$height))
+
+  # Pixel heights: both margins are taken from the clusters
+  chart <- GC_chart(genes, cluster = "cluster", height = "400px") %>% GC_grid(margin = list(top = 40, bottom = 20))
+  expect_equal(heights(chart), c(170, 170))
+  expect_equal(chart$x$style$paddingTop, "40px")
+  expect_equal(chart$x$style$paddingBottom, "20px")
+
+  # Percentage heights stay percentages (reduced in the browser)
+  chart <- GC_chart(genes, cluster = "cluster", height = "100%") %>% GC_grid(margin = list(top = 40, bottom = 20))
+  expect_equal(heights(chart), c("50%", "50%"))
+  expect_equal(chart$x$style$paddingBottom, "20px")
+
+  expect_error(GC_chart(genes, cluster = "cluster", height = "100%") %>% GC_grid(margin = list(top = "10%")),
+               "pixel values")
+})

@@ -23,6 +23,8 @@ HTMLWidgets.widget({
 
       el.style["height"] = "100%"
       el.style["position"] = "relative"
+      // Keep padding (GC_grid top/bottom margins) inside the chart height
+      el.style["boxSizing"] = "border-box"
 
       // Apply styles
       if (style && typeof style === 'object' && Object.keys(style).length > 0) {
@@ -125,6 +127,11 @@ HTMLWidgets.widget({
         clonedContainerOptions.height = computeSize(clonedContainerOptions.height, el.clientHeight);
         clonedContainerOptions.height -= titleOptions.height ? (titleOptions.height / clusters.length) : 0;
         clonedContainerOptions.height -= legendHeight ? (legendHeight / clusters.length) : 0;
+        // Percentage heights: take the top and bottom margins (padding) from the clusters
+        if (typeof containerOptions.height === "string" && containerOptions.height.endsWith("%")) {
+          var padding = (parseFloat(style?.paddingTop) || 0) + (parseFloat(style?.paddingBottom) || 0);
+          clonedContainerOptions.height -= padding / clusters.length;
+        }
         clonedContainerOptions.width = computeSize(clonedContainerOptions.width, el.clientWidth);
 
         var clusterLinks = getClusterLinks(graphLinks, clusterKey);

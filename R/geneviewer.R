@@ -619,6 +619,10 @@ GC_grid <- function(
     paddingTop <- if (!is.null(margin[["top"]])) get_relative_height(chart_height, margin[["top"]]) else 0
     paddingBottom <- if (!is.null(margin[["bottom"]])) get_relative_height(chart_height, margin[["bottom"]]) else 0
 
+    if (!is.numeric(paddingTop) || !is.numeric(paddingBottom)) {
+      stop("Use pixel values for the top and bottom margins when the chart height is a percentage.")
+    }
+
     margin[["top"]] <- NULL
     margin[["bottom"]] <- NULL
 
@@ -628,23 +632,24 @@ GC_grid <- function(
 
     # Update top and bottom margins
     if(paddingTop > 0){
-
       GC_chart$x$style[["paddingTop"]] <- paste0(as.character(paddingTop), "px")
-      GC_chart$height <- "100%"
-      for (i in seq_along(all_clusters)) {
-        cluster_name <- update_clusters[i]
-        current_height <- get_relative_height(GC_chart$x$series[[cluster_name]]$container$height, GC_chart$x$series[[cluster_name]]$container$height)
-        GC_chart$x$series[[cluster_name]]$container$height <- current_height - (paddingTop / length(all_clusters))
-      }
+    }
+    if(paddingBottom > 0){
+      GC_chart$x$style[["paddingBottom"]] <- paste0(as.character(paddingBottom), "px")
     }
 
-    if(paddingBottom > 0){
+    # Take the margins from the cluster heights. Percentage heights are
+    # reduced in the browser, once the height in pixels is known.
+    if(paddingTop > 0 || paddingBottom > 0){
       GC_chart$height <- "100%"
-      GC_chart$x$style[["paddingBottom"]] <- paste0(as.character(paddingBottom), "px")
-      for (i in seq_along(all_clusters)) {
-        cluster_name <- update_clusters[i]
-        current_height <- get_relative_height(GC_chart$x$series[[cluster_name]]$container$height, GC_chart$x$series[[cluster_name]]$container$height)
-        GC_chart$x$series[[cluster_name]]$container$height <- GC_chart$x$series[[cluster_name]]$container$height - (paddingBottom / length(all_clusters))
+      for (cluster_name in all_clusters) {
+        container_height <- GC_chart$x$series[[cluster_name]]$container$height
+        if (is.character(container_height) && grepl("%$", container_height)) {
+          next
+        }
+        current_height <- get_relative_height(container_height, container_height)
+        GC_chart$x$series[[cluster_name]]$container$height <-
+          current_height - ((paddingTop + paddingBottom) / length(all_clusters))
       }
     }
 

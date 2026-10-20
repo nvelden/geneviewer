@@ -1076,3 +1076,14 @@ test_that("GC_cluster prevent_gene_overlap only changes the selected cluster (B0
     GC_cluster(prevent_gene_overlap = TRUE)
   expect_setequal(chart$x$series[["A"]]$data$geneTrack, c(1, 2))
 })
+
+test_that("scale breaks work with one gene or one merged region (B09)", {
+  expect_equal(get_scale_breaks(data.frame(start = 100, end = 400)), list())
+  expect_equal(get_scale_breaks(data.frame(start = c(100, 200), end = c(400, 500))), list())
+  expect_length(get_scale_breaks(data.frame(start = c(100, 5000), end = c(400, 5600))), 1)
+
+  genes_data <- data.frame(start = c(100, 5000, 9000), end = c(400, 5600, 9500), cluster = c("A", "B", "B"))
+  chart <- GC_chart(genes_data, cluster = "cluster") %>% GC_scale(scale_breaks = TRUE)
+  expect_equal(chart$x$series[["A"]]$scale$breaks, list())
+  expect_length(chart$x$series[["B"]]$scale$breaks, 1)
+})

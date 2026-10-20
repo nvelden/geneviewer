@@ -179,7 +179,7 @@ get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
   merged_regions <- list()
   current_region <- genes[1,]
 
-  for(i in 2:nrow(genes)){
+  for(i in seq_len(nrow(genes))[-1]){
     if(genes$start[i] <= current_region$end){
       current_region$end <- max(current_region$end, genes$end[i])
     } else {
@@ -193,7 +193,7 @@ get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
   # Extract non-coding regions
   non_coding_regions <- data.frame(start=integer(), end=integer())
 
-  for(i in 1:(length(merged_regions)-1)){
+  for(i in seq_len(length(merged_regions) - 1)){
     non_coding_start <- merged_regions[[i]]$end + 1
     non_coding_end <- merged_regions[[i+1]]$start - 1
     gap_length <- non_coding_end - non_coding_start + 1

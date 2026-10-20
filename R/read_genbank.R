@@ -236,16 +236,16 @@ gbk_get_sections <- function(lines, keys) {
 #' @noRd
 gbk_process_features <- function(lines, key){
 
-  # Extract keys
-  key_pattern <- "(?<=/)([^/=]+)(?==)"
-  key_matches <- gregexpr(key_pattern, lines, perl=TRUE)
-  keys <- unlist(regmatches(lines, key_matches))
+  # Extract qualifiers as /key=value pairs. A quoted value runs to its closing
+  # quote ("" is an escaped quote), so it can contain "/" and "=".
+  qualifier_pattern <- '(?:^|(?<= ))/([^\\s/="]+)=("(?:[^"]|"")*"|[^\\s"]*)'
+  qualifier_matches <- gregexpr(qualifier_pattern, lines, perl=TRUE)
+  qualifiers <- unlist(regmatches(lines, qualifier_matches))
 
-  # Extract values
-  value_pattern <- '(?<==")([^"]+)(?=")|(?<==)([^\\s"]+)'
-  value_matches <- gregexpr(value_pattern, lines, perl=TRUE)
-  values <- unlist(regmatches(lines, value_matches))
-  values <- gsub("^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", "", values)
+  keys <- sub("^/([^=]+)=.*$", "\\1", qualifiers)
+  values <- sub("^/[^=]+=", "", qualifiers)
+  values <- sub('^"(.*)"$', "\\1", values)
+  values <- trimws(gsub('""', '"', values))
 
   # Combine keys and values into a named vector
   key_values <- setNames(values, keys)

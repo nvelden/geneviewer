@@ -85,3 +85,37 @@ test_that("read_gbk only starts features on feature key lines (B03)", {
   expect_length(features$CDS, 28)
   expect_length(features$gene, 27)
 })
+
+test_that("read_gbk keeps qualifier values intact (B04)", {
+  gbk_lines <- c(
+    "LOCUS       DEMO01                   600 bp    DNA     linear   BCT 01-JAN-2024",
+    "FEATURES             Location/Qualifiers",
+    "     CDS             10..300",
+    "                     /locus_tag=\"DEMO_0001\"",
+    "                     /product=\"4'-phosphopantetheinyl transferase (PPTase)\"",
+    "                     /note=\"[pseudo] see ref. 12.\"",
+    "                     /codon_start=1",
+    "     CDS             350..580",
+    "                     /locus_tag=\"DEMO_0002\"",
+    "                     /note=\"similar to /gene=abcX in other",
+    "                     strains\"",
+    "                     /pseudo=\"\"",
+    "                     /function=\"says \"\"hello\"\"\"",
+    "                     /product=\"(R)-3-hydroxybutyryl-CoA dehydrogenase\"",
+    "ORIGIN",
+    "        1 atgaaacgca",
+    "//"
+  )
+  gbk_file <- tempfile(fileext = ".gbk")
+  writeLines(gbk_lines, gbk_file)
+
+  cds <- read_gbk(gbk_file)[[1]]$FEATURES$CDS
+  expect_equal(unname(cds[[1]]["product"]), "4'-phosphopantetheinyl transferase (PPTase)")
+  expect_equal(unname(cds[[1]]["note"]), "[pseudo] see ref. 12.")
+  expect_equal(unname(cds[[1]]["codon_start"]), "1")
+  expect_equal(unname(cds[[2]]["note"]), "similar to /gene=abcX in other strains")
+  expect_false("gene" %in% names(cds[[2]]))
+  expect_equal(unname(cds[[2]]["pseudo"]), "")
+  expect_equal(unname(cds[[2]]["function"]), "says \"hello\"")
+  expect_equal(unname(cds[[2]]["product"]), "(R)-3-hydroxybutyryl-CoA dehydrogenase")
+})

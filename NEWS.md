@@ -8,6 +8,7 @@
 - `read_bed()` no longer adds 1 to `chromEnd`, `thickEnd` and `blockSizes` (BED ends are already 1-based), matching `rtracklayer::import.bed()`. Values in these columns are now 1 lower than before. Block columns are now always lists, so single-row BED12 files no longer error and files where every row has the same number of blocks are read correctly.
 - `protein_blast()` now works when the cluster column has a name other than `"cluster"` (set with the `cluster` argument).
 - `read_gff()` now URL-decodes attribute values (e.g. `%2C` to `,`), keeps values that contain `=`, trims spaces around keys, keeps `#` inside lines, stops at a `##FASTA` section and no longer errors on rows with empty or missing attributes.
+- `read_fasta()` now reads files with a single sequence that has a `location`, keeps header values with spaces or square brackets intact (e.g. `[protein=3-oxoacyl-[acyl-carrier-protein] reductase]`, `OS=Homo sapiens`), and uses the full span of `join()` locations for `start` and `end`.
 
 # geneviewer 0.1.11
 

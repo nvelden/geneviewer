@@ -174,3 +174,65 @@ test_that("read_gff parses attributes robustly (B07)", {
   expect_equal(gff$description[4], "WD40 &#946; propellers")
   expect_equal(gff$gene_id[4], "G4")
 })
+
+test_that("read_fasta reads single sequences and values with spaces (B08)", {
+  skip_if_not_installed("Biostrings")
+  fasta_file <- tempfile(fileext = ".fasta")
+
+  # A single sequence with a location
+  writeLines(c(">seq1 [protein_id=ABC1.1] [location=complement(100..400)] [gbkey=CDS]", "MKTAYIAKQR"), fasta_file)
+  fasta <- read_fasta(fasta_file, sequence = FALSE)
+  expect_equal(nrow(fasta), 1)
+  expect_equal(fasta$start, 100)
+  expect_equal(fasta$end, 400)
+  expect_equal(fasta$strand, "complement")
+
+  # Values with spaces: NCBI brackets, no brackets and UniProt
+  writeLines(c(
+    ">lcl|X_1 [gene=sigD] [protein=putative RNA polymerase sigma factor] [protein_id=ADX66476.1] [location=3301..3870]", "MKTAYIAKQR",
+    ">lcl|X_2 [protein=ScnRII] [protein_id=ADX66474.1] [location=complement(5576..6154)]", "MSDNELLKRL"
+  ), fasta_file)
+  fasta <- read_fasta(fasta_file, sequence = FALSE)
+  expect_equal(fasta$protein, c("putative RNA polymerase sigma factor", "ScnRII"))
+  expect_equal(fasta$gene, c("sigD", NA))
+
+  writeLines(c(">X_1 protein=putative phosphoenolpyruvate synthase protein_id=ADX66475.1 location=complement(<1..2247)", "MKTAYIAKQR"), fasta_file)
+  fasta <- read_fasta(fasta_file, sequence = FALSE)
+  expect_equal(fasta$protein, "putative phosphoenolpyruvate synthase")
+  expect_equal(fasta$protein_id, "ADX66475.1")
+
+  writeLines(c(">sp|Q9NWW9|PLAT2_HUMAN Phospholipase A and acyltransferase 2 OS=Homo sapiens OX=9606 GN=PLAAT2 PE=1 SV=1", "MKTAYIAKQR"), fasta_file)
+  fasta <- read_fasta(fasta_file, sequence = FALSE)
+  expect_equal(fasta$OS, "Homo sapiens")
+  expect_equal(fasta$GN, "PLAAT2")
+})
+
+test_that("read_fasta keeps square brackets inside values (B08)", {
+  skip_if_not_installed("Biostrings")
+  fasta_file <- tempfile(fileext = ".fasta")
+  writeLines(c(
+    ">no keys in this header", "MKTAYIAKQR",
+    ">X_1 [protein=3-oxoacyl-[acyl-carrier-protein] reductase FabG] [protein_id=NP_1.1] [location=1..300]", "MKTAYIAKQR",
+    ">X_2 [protein=autoinhibited H[+]-ATPase isoform 10] [protein_id=NP_2.1] [location=400..900]", "MSDNELLKRL",
+    ">sp|Q1|FIP1_ARATH FIP1 OS=Arabidopsis thaliana OX=3702 GN=FIP1[V] PE=1 SV=1", "MSDNELLKRL"
+  ), fasta_file)
+  fasta <- suppressWarnings(read_fasta(fasta_file, sequence = FALSE))
+  expect_equal(fasta$protein[1:2], c("3-oxoacyl-[acyl-carrier-protein] reductase FabG", "autoinhibited H[+]-ATPase isoform 10"))
+  expect_equal(fasta$protein_id[1:2], c("NP_1.1", "NP_2.1"))
+  expect_equal(fasta$GN[3], "FIP1[V]")
+})
+
+test_that("read_fasta uses the full span of join() locations (B08)", {
+  skip_if_not_installed("Biostrings")
+  fasta_file <- tempfile(fileext = ".fasta")
+  writeLines(c(
+    ">X_1 [gene=ORF1ab] [location=join(266..13468,13468..21555)]", "MKTAYIAKQR",
+    ">X_2 [gene=ARV1] [location=complement(join(6915..7069,7157..7232,8571..8666))]", "MSDNELLKRL",
+    ">X_3 [gene=abc] [location=complement(<1..2247)]", "MSDNELLKRL",
+    ">X_4 [gene=ori] [location=join(30883..31317,1..108)]", "MSDNELLKRL"
+  ), fasta_file)
+  fasta <- read_fasta(fasta_file, sequence = FALSE)
+  expect_equal(fasta$start, c(266, 6915, 1, 30883))
+  expect_equal(fasta$end, c(21555, 8666, 2247, 31317))
+  expect_equal(fasta$strand, c("forward", "complement", "complement", "forward"))
+})

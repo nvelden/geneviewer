@@ -82,7 +82,13 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
       # Find matches
       # matches <- gregexpr("\\[.*?\\]", fasta_headers, perl = TRUE)
 
-      matches <- gregexpr("(\\w+)=(\\S+)", fasta_headers, perl = TRUE)
+      # Key-value pairs: "[key=value]" (the value can contain spaces and
+      # brackets; it ends at the "]" before the next "[key=" or the end), or
+      # without brackets "key=value" running up to the next " key=" or the end
+      bracket_pattern <- "\\[\\w+=.*?\\](?=\\s*\\[\\w+=|\\s*$)"
+      bracketed <- grepl(bracket_pattern, fasta_headers, perl = TRUE)
+      matches <- gregexpr("(\\w+)=(.*?)(?=\\s+\\w+=|$)", fasta_headers, perl = TRUE)
+      matches[bracketed] <- gregexpr(bracket_pattern, fasta_headers[bracketed], perl = TRUE)
 
       no_matches <- which(sapply(matches, function(x) any(x == -1)))
 
@@ -96,18 +102,18 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
         sequence_data <- sequence_data[-no_matches, , drop = FALSE]
         fasta_headers <- fasta_headers[-no_matches]
         matches <- matches[-no_matches]
+        bracketed <- bracketed[-no_matches]
       }
 
       # Extract matched strings
       extracted_info <- regmatches(fasta_headers, matches)
 
-      # Remove square brackets
-      extracted_info <- lapply(extracted_info, function(x) gsub("\\[|\\]", "", x))
+      # Remove the square brackets around bracketed pairs
+      extracted_info[bracketed] <- lapply(extracted_info[bracketed], function(x) sub("^\\[(.*)\\]$", "\\1", x))
 
-      # Convert the key-value strings into a data frame
+      # Convert the key-value strings into a data frame (split at the first '=')
       df_list <- lapply(extracted_info, function(info) {
-        kv <- do.call(rbind, strsplit(info, "=", fixed = TRUE))
-        data.frame(key = kv[, 1], value = kv[, 2], stringsAsFactors = FALSE)
+        data.frame(key = sub("=.*$", "", info), value = trimws(sub("^[^=]*=", "", info)), stringsAsFactors = FALSE)
       })
 
       # Bind the data frames together, then spread the key-value pairs into columns
@@ -125,14 +131,17 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
       # Check if 'location' column exists and then extract start and end positions
       if ("location" %in% colnames(df)) {
         all_matches <- regmatches(df$location, gregexpr("[0-9]+", df$location))
-        starts_ends <- t(sapply(all_matches, function(x) if (length(x) >= 2) x[1:2] else c(NA, NA)))
 
-        # Convert character matrix to numeric
-        starts_ends <- apply(starts_ends, 2, as.numeric)
-
-        # Convert matrix to data frame
-        start_end_df <- as.data.frame(starts_ends)
-        names(start_end_df) <- c("start", "end")
+        # Start and end span all parts of split locations such as
+        # join(1..100,200..300). Parts that are not in order (crossing the
+        # origin of a circular genome, trans-splicing) keep the first part.
+        location_range <- function(x) {
+          x <- as.numeric(x)
+          if (length(x) < 2) return(c(NA_real_, NA_real_))
+          if (is.unsorted(x)) x[1:2] else range(x)
+        }
+        ranges <- vapply(all_matches, location_range, numeric(2))
+        start_end_df <- data.frame(start = ranges[1, ], end = ranges[2, ])
 
         # Bind start and end columns to the data frame
         df <- cbind(df, start_end_df)

@@ -1,3 +1,8 @@
+# geneviewer (development version)
+
+### Bug fixes:
+- `GC_chart()` no longer errors when `height` is a percentage (e.g. `height = "100%"`).
+
 # geneviewer 0.1.11
 
 ### Enhancements:

@@ -1021,3 +1021,19 @@ test_that("GC_transcript modifies transcript characteristics correctly", {
   # Verify strand information
   expect_equal(updated_chart$x$params$strand, "strand")
 })
+
+test_that("GC_chart accepts a percentage height (B01)", {
+  genes_data <- data.frame(
+    start = c(10, 90, 170),
+    end = c(75, 115, 185),
+    cluster = c("A", "A", "B")
+  )
+
+  chart <- GC_chart(genes_data, cluster = "cluster", height = "100%")
+  expect_equal(chart$x$series[["A"]]$container$height, "50%")
+  expect_equal(chart$x$series[["B"]]$container$height, "50%")
+
+  # Pixel heights are still split into numbers
+  chart <- GC_chart(genes_data, cluster = "cluster", height = "400px")
+  expect_equal(chart$x$series[["A"]]$container$height, 200)
+})

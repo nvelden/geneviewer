@@ -152,7 +152,12 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$clusterName <- clust
     x$series[[clust]]$data <- subset_data
     x$series[[clust]]$cluster <- list()
-    x$series[[clust]]$container <- list(height = get_relative_height(height, height) / length(clusters), width = width)
+    if (is.character(height) && grepl("%$", height)) {
+      cluster_height <- compute_size(height, length(clusters))
+    } else {
+      cluster_height <- get_relative_height(height, height) / length(clusters)
+    }
+    x$series[[clust]]$container <- list(height = cluster_height, width = width)
     x$series[[clust]]$container$style <- list(width = "100%", backgroundColor = style$backgroundColor)
     x$series[[clust]]$genes <- list(group = group, show = TRUE)
     x$series[[clust]]$sequence <- list(show = TRUE)

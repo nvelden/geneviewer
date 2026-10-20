@@ -1,22 +1,3 @@
-#' Helper function to validate and clean lists
-#'
-#' This function takes a list as an argument, checks if it's not NULL and is a
-#' list, and then removes any NA or NULL values from it. If the input is not a
-#' list, it returns an empty list.
-#'
-#' @param lst A list that might contain NULL or NA values.
-#'
-#' @return A list where NULL and NA values have been removed, or an empty list
-#'   if the input wasn't a list.
-#' @noRd
-cleanList <- function(lst) {
-  if (!is.null(lst) && is.list(lst)) {
-    return(lst[!sapply(lst, function(x) is.na(x) | is.null(x))])
-  } else {
-    return(list())
-  }
-}
-
 #' Extract Data from Symbol or Return Vector
 #'
 #' This function evaluates the provided expression. If the expression is a
@@ -400,43 +381,6 @@ add_gene_track <- function(data) {
   data$geneTrack <-
     sapply(1:nrow(data), function(i)
       find_track(data$start[i], data$end[i]))
-
-  return(data)
-}
-
-#' Adjust Start and End Positions Based on Group Minimums
-#'
-#' This function adjusts the start and end positions of genomic elements within
-#' each cluster by subtracting the minimum start or end position found in that
-#' cluster. This normalization facilitates comparisons and visualizations by
-#' aligning the positions relative to the start of each cluster.
-#'
-#' @param data A dataframe containing genomic elements with at least three columns:
-#'   cluster (group identifier), start, and end. Each row represents a genomic
-#'   element with its start and end positions within a specific cluster.
-#' @importFrom dplyr group_by mutate select
-#' @importFrom rlang .data
-#' @noRd
-adjust_to_range <- function(data, cluster = "cluster"){
-
-  if(!is.null(cluster) && cluster %in% colnames(data)){
-  data <- data %>%
-    dplyr::group_by(.data[[cluster]]) %>%
-    dplyr::mutate(
-      min_start_end = min(.data$start, .data$end),
-      start = .data$start - .data$min_start_end + 1,
-      end = .data$end - .data$min_start_end +1
-    ) %>%
-    dplyr::select(-"min_start_end")
-  } else {
-    data <- data %>%
-      dplyr::mutate(
-        min_start_end = min(.data$start, .data$end),
-        start = .data$start - .data$min_start_end + 1,
-        end = .data$end - .data$min_start_end + 1
-      ) %>%
-      dplyr::select(-"min_start_end")
-  }
 
   return(data)
 }

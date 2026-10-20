@@ -28,3 +28,5 @@
 ^CRAN-SUBMISSION$
 ^inst/doc/*.R
 ^inst/doc/*.Rmd
+^dev$
+\.DS_Store$

@@ -802,18 +802,29 @@ GC_scale <- function(GC_chart,
   xMin <- NULL
   xMax <- NULL
 
+  # Update the GC_chart object with title and options for each cluster
+  clusters <- getUpdatedClusters(GC_chart, cluster)
+
   if(axis_type == "range"){
     if(is.null(ticksFormat)){
       ticksFormat <- ".2s"
     }
-  data <-  adjust_to_range(GC_chart$x$data, cluster = GC_chart$x$cluster)
-  GC_chart$x$data <- data
-  xMin <- 1
-  xMax <- max(data$start, data$end)
+    # Shift the genes of each selected cluster to start at 1
+    for (clust in clusters) {
+      cluster_data <- GC_chart$x$series[[clust]]$data
+      min_start_end <- min(cluster_data$start, cluster_data$end)
+      cluster_data$start <- cluster_data$start - min_start_end + 1
+      cluster_data$end <- cluster_data$end - min_start_end + 1
+      GC_chart$x$series[[clust]]$data <- cluster_data
+      rows <- match(cluster_data$rowID, GC_chart$x$data$rowID)
+      GC_chart$x$data$start[rows] <- cluster_data$start
+      GC_chart$x$data$end[rows] <- cluster_data$end
+    }
+    xMin <- 1
+    xMax <- max(unlist(lapply(clusters, function(clust) {
+      c(GC_chart$x$series[[clust]]$data$start, GC_chart$x$series[[clust]]$data$end)
+    })))
   }
-
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
 
   for (i in seq_along(clusters)) {
 
@@ -822,20 +833,9 @@ GC_scale <- function(GC_chart,
     stop_idx <- (i - 1) %% length(end) + 1
     reverse_idx <- (i - 1) %% length(reverse) + 1
 
-    if (axis_type == "range" && !hidden) {
-      if(length(clusters) > 1){
-      subset_data <- data[data[[GC_chart$x$cluster]] == clusters[i], ]
-      GC_chart$x$series[[clusters[i]]]$data <- subset_data
-      } else {
-        GC_chart$x$series[[clusters[i]]]$data <- data
-      }
-
-      # Set hidden to TRUE for all but the last cluster
-      if (i < length(clusters)) {
-        hidden_current <- TRUE
-      } else {
-        hidden_current <- hidden
-      }
+    # With a range axis, show one shared axis below the last cluster
+    if (axis_type == "range" && !hidden && i < length(clusters)) {
+      hidden_current <- TRUE
     } else {
       hidden_current <- hidden
     }
@@ -873,6 +873,11 @@ GC_scale <- function(GC_chart,
       textStyle = textStyle,
       lineStyle = lineStyle
     )
+
+    # Add additional options
+    for (name in names(dots)) {
+      options[[name]] <- dots[[name]][(i - 1) %% length(dots[[name]]) + 1]
+    }
 
     # Set scale options for each cluster
     GC_chart$x$series[[clusters[i]]]$scale <- options

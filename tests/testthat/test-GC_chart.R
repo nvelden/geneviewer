@@ -1087,3 +1087,33 @@ test_that("scale breaks work with one gene or one merged region (B09)", {
   expect_equal(chart$x$series[["A"]]$scale$breaks, list())
   expect_length(chart$x$series[["B"]]$scale$breaks, 1)
 })
+
+test_that("GC_scale range axis shifts only the selected clusters (B10)", {
+  genes <- data.frame(
+    cluster = rep(c("A", "B", "C"), each = 2),
+    start = c(10000, 11500, 50000, 50800, 200, 1200),
+    end = c(11000, 12800, 50600, 51300, 1000, 2000)
+  )
+  base <- GC_chart(genes, cluster = "cluster")
+
+  # hidden = TRUE still shifts the genes
+  chart <- base %>% GC_scale(axis_type = "range", hidden = TRUE)
+  expect_equal(chart$x$series[["A"]]$data$start, c(1, 1501))
+  expect_true(all(vapply(chart$x$series, function(s) s$scale$hidden, logical(1))))
+
+  # One selected cluster only gets its own genes; other clusters are unchanged
+  chart <- base %>% GC_scale(axis_type = "range", cluster = 2)
+  expect_equal(nrow(chart$x$series[["B"]]$data), 2)
+  expect_equal(chart$x$series[["B"]]$data$start, c(1, 801))
+  expect_equal(chart$x$series[["B"]]$scale$xMax, 1301)
+  expect_equal(chart$x$series[["A"]]$data$start, c(10000, 11500))
+  expect_equal(chart$x$data$start, c(10000, 11500, 1, 801, 200, 1200))
+
+  # Gene tracks from prevent_gene_overlap are kept
+  chart <- base %>% GC_cluster(prevent_gene_overlap = TRUE) %>% GC_scale(axis_type = "range")
+  expect_false(is.null(chart$x$series[["A"]]$data$geneTrack))
+
+  # Additional options are passed on
+  chart <- base %>% GC_scale(myOption = "x")
+  expect_equal(chart$x$series[["A"]]$scale$myOption, "x")
+})

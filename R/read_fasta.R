@@ -87,8 +87,9 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
       # without brackets "key=value" running up to the next " key=" or the end
       bracket_pattern <- "\\[\\w+=.*?\\](?=\\s*\\[\\w+=|\\s*$)"
       bracketed <- grepl(bracket_pattern, fasta_headers, perl = TRUE)
-      matches <- gregexpr("(\\w+)=(.*?)(?=\\s+\\w+=|$)", fasta_headers, perl = TRUE)
+      matches <- vector("list", length(fasta_headers))
       matches[bracketed] <- gregexpr(bracket_pattern, fasta_headers[bracketed], perl = TRUE)
+      matches[!bracketed] <- gregexpr("(\\w+)=(.*?)(?=\\s+\\w+=|$)", fasta_headers[!bracketed], perl = TRUE)
 
       no_matches <- which(sapply(matches, function(x) any(x == -1)))
 
@@ -105,19 +106,25 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
         bracketed <- bracketed[-no_matches]
       }
 
-      # Extract matched strings
-      extracted_info <- regmatches(fasta_headers, matches)
+      # Extract matched strings into one long vector of key-value pairs
+      match_start <- unlist(matches, use.names = FALSE)
+      match_length <- unlist(lapply(matches, attr, "match.length"), use.names = FALSE)
+      pair_id <- rep(seq_along(matches), lengths(matches))
+      pairs <- substring(fasta_headers[pair_id], match_start, match_start + match_length - 1)
 
       # Remove the square brackets around bracketed pairs
-      extracted_info[bracketed] <- lapply(extracted_info[bracketed], function(x) sub("^\\[(.*)\\]$", "\\1", x))
+      in_brackets <- bracketed[pair_id]
+      pairs[in_brackets] <- substring(pairs[in_brackets], 2, nchar(pairs[in_brackets]) - 1)
 
-      # Convert the key-value strings into a data frame (split at the first '=')
-      df_list <- lapply(extracted_info, function(info) {
-        data.frame(key = sub("=.*$", "", info), value = trimws(sub("^[^=]*=", "", info)), stringsAsFactors = FALSE)
-      })
-
-      # Bind the data frames together, then spread the key-value pairs into columns
-      df <- dplyr::bind_rows(df_list, .id = "id") %>%
+      # Split at the first '=', then spread the key-value pairs into columns
+      equals <- regexpr("=", pairs, fixed = TRUE)
+      df_long <- data.frame(
+        id = as.character(pair_id),
+        key = substring(pairs, 1, equals - 1),
+        value = trimws(substring(pairs, equals + 1)),
+        stringsAsFactors = FALSE
+      )
+      df <- df_long %>%
         tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
         dplyr::select(-"id") # Remove the id column if not needed
 

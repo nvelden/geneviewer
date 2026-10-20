@@ -1,5 +1,8 @@
 # geneviewer (development version)
 
+### Enhancements:
+- `read_fasta()` is about 4-5 times faster on large FASTA files.
+
 ### Bug fixes:
 - `GC_chart()` no longer errors when `height` is a percentage (e.g. `height = "100%"`).
 - `GC_cluster(prevent_gene_overlap = TRUE, cluster = ...)` now stacks overlapping genes in the selected clusters instead of the first ones.

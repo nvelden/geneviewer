@@ -18,10 +18,10 @@
 #'   and the names of their respective clusters (`cluster1` and `cluster2`).
 #'
 #' @noRd
-get_protein_combinations <- function(data, cluster_pair, rowIDs = NULL) {
+get_protein_combinations <- function(data, cluster_pair, rowIDs = NULL, cluster = "cluster") {
 
-  cluster1_data <- data[data$cluster == cluster_pair[1], ]
-  cluster2_data <- data[data$cluster == cluster_pair[2], ]
+  cluster1_data <- data[data[[cluster]] == cluster_pair[1], ]
+  cluster2_data <- data[data[[cluster]] == cluster_pair[2], ]
 
   # Sort and add order column
   cluster1_data <- cluster1_data[order(pmin(cluster1_data$start, cluster1_data$end)), ]
@@ -254,11 +254,6 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
     return(NULL)
   }
 
-  if (anyDuplicated(data$id) > 0){
-    stop("The id column should consist of unique values.")
-    return(NULL)
-  }
-
   if (!(start %in% names(data))) {
     stop("Please use the start variable to specificy the column name specifying the start positions.")
     return(NULL)
@@ -310,13 +305,13 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
   cluster_pairs <- lapply(clusters, function(target) c(query, target))
 
   if(!is.null(genes)){
-    query_genes <- data[[id]][data$cluster == query & !data[[id]] %in% genes]
+    query_genes <- data[[id]][data[[cluster]] == query & !data[[id]] %in% genes]
     combination_data <- data[!data[[id]] %in% query_genes, ]
   } else {
     combination_data <- data
   }
 
-  protein_combinations_all <- do.call(rbind, lapply(cluster_pairs, function(pair) get_protein_combinations(combination_data, pair)))
+  protein_combinations_all <- do.call(rbind, lapply(cluster_pairs, function(pair) get_protein_combinations(combination_data, pair, cluster = cluster)))
 
   protein_combinations_alignment <- protein_combinations_all[protein_combinations_all$cluster1 != protein_combinations_all$cluster2, ]
   protein_combinations_query <- protein_combinations_all[protein_combinations_all$rowID.x == protein_combinations_all$rowID.y, ]
@@ -396,14 +391,14 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
   # Calculate synteny scores for each cluster
   synteny_scores <- data %>%
     filter(!is.na(.data$order1)) %>%
-    dplyr::group_by(cluster) %>%
+    dplyr::group_by(dplyr::across(dplyr::all_of(cluster))) %>%
     dplyr::arrange(.data$order1) %>%
     dplyr::summarize(score = synteny_score(.data$order1, .data$order2, identity), .groups = 'drop')
 
   # bind scores
-  data <- dplyr::left_join(data, synteny_scores, by = "cluster") %>% dplyr::arrange(dplyr::desc(.data$score))
+  data <- dplyr::left_join(data, synteny_scores, by = cluster) %>% dplyr::arrange(dplyr::desc(.data$score))
   # Place query cluster at the top
-  ordering <- with(data, order(cluster != query, -score))
+  ordering <- order(data[[cluster]] != query, -data$score)
   data <- data[ordering, ]
 
 

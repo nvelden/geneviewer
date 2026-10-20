@@ -328,6 +328,11 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
     }
     # Set up a cluster with at least one worker; always stop it when done
     no_cores <- max(1, parallel::detectCores() - 1, na.rm = TRUE)
+    # Use at most 2 workers when R CMD check limits the number of cores
+    limit_cores <- tolower(Sys.getenv("_R_CHECK_LIMIT_CORES_", ""))
+    if (nzchar(limit_cores) && limit_cores != "false") {
+      no_cores <- min(no_cores, 2)
+    }
     cl <- parallel::makeCluster(no_cores)
     on.exit(parallel::stopCluster(cl), add = TRUE)
 

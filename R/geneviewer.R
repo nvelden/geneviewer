@@ -300,6 +300,10 @@ GC_title <- function(
     ...
 ) {
 
+  if (!is.logical(show) || length(show) != 1) {
+    stop("show must be a single TRUE or FALSE")
+  }
+
   if (!show || is.null(title) && is.null(subtitle)) {
     return(GC_chart)
   }
@@ -414,7 +418,7 @@ GC_clusterTitle <- function(
     height = NULL,
     cluster = NULL,
     ...) {
-  if (!show) {
+  if (!any(show)) {
     return(GC_chart)
   }
 
@@ -431,7 +435,7 @@ GC_clusterTitle <- function(
       subtitle = subtitle[(i - 1) %% length(subtitle) + 1],
       subtitleFont = subtitleFont,
       titleFont = titleFont,
-      show = show
+      show = show[(i - 1) %% length(show) + 1]
     )
 
     # Add arguments to options
@@ -955,7 +959,7 @@ GC_scaleBar <- function(
     ...
 ) {
 
-  if (!show) {
+  if (!any(show)) {
     return(GC_chart)
   }
 
@@ -1065,7 +1069,7 @@ GC_clusterLabel <- function(
     ...
 ) {
 
-  if (!show) {
+  if (!any(show)) {
     return(GC_chart)
   }
 
@@ -1200,7 +1204,7 @@ GC_clusterFooter <- function(
     ...
 ) {
 
-  if (!show) {
+  if (!any(show)) {
     return(GC_chart)
   }
 
@@ -1303,7 +1307,7 @@ GC_labels <- function(
     ...
 ) {
 
-  if (!show) {
+  if (!any(show)) {
     return(GC_chart)
   }
 
@@ -1320,7 +1324,7 @@ GC_labels <- function(
     label <- GC_chart$x$group
   }
 
-  if (!(label %in% names(GC_chart$x$data))) {
+  if (!all(label %in% names(GC_chart$x$data))) {
     stop("label column not found in data")
   }
 
@@ -1424,7 +1428,7 @@ GC_coordinates <- function(
     ...
 ) {
 
-  if (!show) {
+  if (!any(show)) {
     return(GC_chart)
   }
 
@@ -1558,7 +1562,7 @@ GC_genes <- function(
     group <- GC_chart$x$group
   }
 
-  if (!is.null(group) && !(group %in% names(GC_chart$x$data))) {
+  if (!is.null(group) && !all(group %in% names(GC_chart$x$data))) {
     stop("group column not found in data")
   }
 
@@ -1758,12 +1762,20 @@ GC_transcript <- function(GC_chart,
     data_tmp <- GC_chart$x$data
     colnames_data <- colnames(data)
 
+    if (!is.null(type) && length(type) != 1) {
+      stop("type must be a single column name")
+    }
+
     if (!is.null(type) && !(type %in% colnames_data)) {
       stop("type column not found in data")
     }
 
     if (!is.null(type)) {
       data$type <- data_tmp[[type]]
+    }
+
+    if (!is.null(transcript) && length(transcript) != 1) {
+      stop("transcript must be a single column name")
     }
 
     if (!is.null(transcript) && !(transcript %in% colnames_data)) {
@@ -1805,7 +1817,7 @@ GC_transcript <- function(GC_chart,
     group <- GC_chart$x$group
   }
 
-  if (!is.null(group) && !(group %in% names(GC_chart$x$data))) {
+  if (!is.null(group) && !all(group %in% names(GC_chart$x$data))) {
     stop("group column not found in data")
   }
 
@@ -2203,10 +2215,6 @@ GC_tooltip <- function(
     ...
 ) {
 
-  if (!show) {
-    show <- FALSE
-  }
-
   if (is.logical(formatter) && length(formatter) == 1) {
     show <- formatter
   }
@@ -2222,7 +2230,7 @@ GC_tooltip <- function(
     # Default options
     options <- list(
       formatter = formatter,
-      show = show
+      show = show[(i-1) %% length(show) + 1]
     )
 
     # Add arguments to options
@@ -2383,6 +2391,10 @@ GC_align <- function(
     return(GC_chart)
   }
 
+  if (length(id) != 1 || length(id_column) != 1) {
+    stop("id and id_column must be single values")
+  }
+
   if (!(id_column %in% colnames(GC_chart$x$data))) {
     warning(paste("Column", id_column, "not found in the data."))
     return(GC_chart)
@@ -2488,6 +2500,10 @@ GC_normalize <-
 
   if (is.null(group) && !is.null(GC_chart$x$group)){
     group <- GC_chart$x$group
+  }
+
+  if (!is.null(group) && length(group) != 1) {
+    stop("group must be a single column name")
   }
 
   if (!is.null(group) && !(group %in% names(GC_chart$x$data))) {

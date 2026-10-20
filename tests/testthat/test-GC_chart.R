@@ -1153,3 +1153,29 @@ test_that("GC_clusterLabel labels selected clusters with their own name (B12)", 
   expect_equal(unname(labels(GC_chart(genes, cluster = "cluster") %>% GC_clusterLabel(cluster = c("C", "B")))), c(NA, "B", "C"))
   expect_equal(unname(labels(GC_chart(genes, cluster = "cluster") %>% GC_clusterLabel(title = "x", cluster = 3))), c(NA, NA, "x"))
 })
+
+test_that("vector arguments are recycled per cluster or give a clear error (B13)", {
+  genes <- data.frame(start = c(1, 50, 1, 50), end = c(40, 90, 40, 90), name = c("a", "b", "c", "d"),
+                      cluster = c("A", "A", "B", "B"), type = "exon")
+  chart <- GC_chart(genes, cluster = "cluster", group = "name")
+  per_cluster <- function(chart, part, field) unname(sapply(chart$x$series, function(s) s[[part]][[field]]))
+
+  expect_equal(per_cluster(chart %>% GC_labels(label = c("name", "cluster")), "labels", "label"), c("name", "cluster"))
+  expect_equal(per_cluster(chart %>% GC_labels(show = c(TRUE, FALSE)), "labels", "show"), c(TRUE, FALSE))
+  expect_equal(per_cluster(chart %>% GC_genes(group = c("name", "cluster")), "genes", "group"), c("name", "cluster"))
+  expect_equal(per_cluster(chart %>% GC_clusterLabel(show = c(TRUE, FALSE)), "clusterLabel", "show"), c(TRUE, FALSE))
+  expect_equal(per_cluster(chart %>% GC_coordinates(show = c(TRUE, FALSE)), "coordinates", "show"), c(TRUE, FALSE))
+  expect_equal(per_cluster(chart %>% GC_scaleBar(show = c(TRUE, FALSE)), "scaleBar", "show"), c(TRUE, FALSE))
+  expect_equal(per_cluster(chart %>% GC_tooltip(show = c(TRUE, FALSE)), "tooltip", "show"), c(TRUE, FALSE))
+  expect_equal(per_cluster(chart %>% GC_clusterTitle("x", show = c(TRUE, FALSE)), "clusterTitle", "show"), c(TRUE, FALSE))
+  expect_equal(per_cluster(chart %>% GC_clusterFooter("x", show = c(TRUE, FALSE)), "footer", "show"), c(TRUE, FALSE))
+
+  # A single FALSE still leaves the chart unchanged
+  expect_identical(chart %>% GC_labels(show = FALSE), chart)
+
+  # Arguments that take one value give a clear error
+  expect_error(chart %>% GC_title("x", show = c(TRUE, FALSE)), "single TRUE or FALSE")
+  expect_error(chart %>% GC_align("name", c("a", "c")), "single values")
+  expect_error(chart %>% GC_transcript(type = c("type", "name")), "single column name")
+  expect_error(chart %>% GC_normalize(group = c("name", "cluster")), "single column name")
+})

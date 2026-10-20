@@ -278,3 +278,10 @@ test_that("mummer_alignment matches files exactly and only removes its own files
 
   expect_error(mummer_alignment(dir, cluster = c("BGC 1", "BGC2"), output_dir = dir), "without spaces")
 })
+
+test_that("read_gbk only adds translation to features that have one (B22)", {
+  features <- read_gbk(system.file("extdata", "BGC0000001.gbk", package = "geneviewer"))[[1]]$FEATURES
+  expect_false(any(vapply(features$gene, function(x) "translation" %in% names(x), logical(1))))
+  expect_true(all(vapply(features$CDS, function(x) !is.na(x[["translation"]]), logical(1))))
+  expect_false(grepl("[^A-Za-z]", features$CDS[[1]][["translation"]]))
+})

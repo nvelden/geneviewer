@@ -719,7 +719,8 @@ function getLinkCoordinates(graphContainer, data) {
         ];
     });
 
-    return links.filter(link => link !== null);
+    // Keep one entry per link (null if it cannot be drawn) so indexes match the link data
+    return links;
 };
 
 function makeLinks(graphContainer, links, clusters) {
@@ -771,16 +772,19 @@ function makeLinks(graphContainer, links, clusters) {
     links.forEach(function(link) {
 
         const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options)
-        const { curve, invertedColor, normalColor, useGroupColors, color, linkStyle, labelStyle, label, measure } = combinedOptions;
+        const { curve, invertedColor, normalColor, useGroupColors, color, linkStyle, measure } = combinedOptions;
 
         const additionalOptionsLinkStyle = extractAdditionalOptions(linkStyle, defaultOptions.linkStyle);
-        const additionalOptionsLabelStyle = extractAdditionalOptions(labelStyle, defaultOptions.labelStyle);
 
         const linkData = HTMLWidgets.dataframeToD3(link.data)
         const coordinates = getLinkCoordinates(graphContainer, linkData);
 
       // Add svg paths
       coordinates.forEach(function(coordinate, index) {
+
+                if (!coordinate) {
+                    return;
+                }
 
                 const baseColor = coordinate[0].strand == coordinate[1].strand ? d3.rgb(normalColor) : d3.rgb(invertedColor)
                 var colorScale = d3.scaleSequential(t => d3.interpolate("#FFFFFF", baseColor)(t))
@@ -798,42 +802,6 @@ function makeLinks(graphContainer, links, clusters) {
                     const currentElement = d3.select(this);
                     setStyleFromOptions(currentElement, additionalOptionsLinkStyle);
                 });
-
-      // Add identity label
-      linkData.forEach(function(data, index){
-
-        const linkLabelselector = `.link-text[cluster='${data.cluster2}'][linkID='${data.linkID}']`;
-        const labelContainer = graphContainer.select(linkLabelselector);
-
-        if (!labelContainer.empty() && identityLabel) {
-            let currentX = labelContainer.attr("x");
-                let currentY = labelContainer.attr("y");
-
-                if (additionalOptionsLabelStyle.x !== undefined) {
-                    currentX = parseFloat(currentX) + parseFloat(additionalOptionsLabelStyle.x);
-                }
-                if (additionalOptionsLabelStyle.y !== undefined) {
-                    currentY = parseFloat(currentY) + parseFloat(additionalOptionsLabelStyle.y);
-                }
-
-        labelContainer
-            .attr("x", currentX)
-            .attr("y", currentY)
-            .style("font-size", labelStyle.fontSize)
-            .style("font-style", labelStyle.fontStyle)
-            .style("font-family", labelStyle.fontFamily)
-            .style("cursor", labelStyle.cursor)
-            .attr("text-anchor", labelStyle.textAnchor)
-            .attr("alignment-baseline", labelStyle.alignmentBaseline)
-            .each(function () {
-                const currentElement = d3.select(this);
-                setStyleFromOptions(currentElement, additionalOptionsLabelStyle);
-            });
-        } else { // If identityLabel is FALSE, remove the labelContainer
-          labelContainer.remove();
-        }
-
-      });
 
     });
   });

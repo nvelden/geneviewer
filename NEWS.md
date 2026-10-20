@@ -7,6 +7,7 @@
 - `read_gbk()` now keeps qualifier values intact (e.g. closing brackets in `"... (PPTase)"`) and no longer errors on empty values (`/pseudo=""`) or values that contain `/key=`.
 - `read_bed()` no longer adds 1 to `chromEnd`, `thickEnd` and `blockSizes` (BED ends are already 1-based), matching `rtracklayer::import.bed()`. Values in these columns are now 1 lower than before. Block columns are now always lists, so single-row BED12 files no longer error and files where every row has the same number of blocks are read correctly.
 - `protein_blast()` now works when the cluster column has a name other than `"cluster"` (set with the `cluster` argument).
+- `read_gff()` now URL-decodes attribute values (e.g. `%2C` to `,`), keeps values that contain `=`, trims spaces around keys, keeps `#` inside lines, stops at a `##FASTA` section and no longer errors on rows with empty or missing attributes.
 
 # geneviewer 0.1.11
 

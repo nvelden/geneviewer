@@ -94,12 +94,20 @@ process_gff <- function(path, fields = NULL){
   if(file.exists(path)){
 
     lines <- readLines(path)
+    # Stop at the FASTA section (starts with ##FASTA or a line starting with >)
+    fasta_start <- grep("^(##FASTA|>)", lines)
+    if (length(fasta_start) > 0) {
+      lines <- lines[seq_len(fasta_start[1] - 1)]
+    }
+    # Drop comment and directive lines; '#' inside a line is kept as data
+    lines <- lines[!grepl("^#", lines)]
     data <- read.table(
       text = lines,
       header = FALSE,
       quote = "",
       sep = "\t",
       fill = TRUE,
+      comment.char = "",
       stringsAsFactors = FALSE,
       col.names = field_names
       )
@@ -109,10 +117,15 @@ process_gff <- function(path, fields = NULL){
     list_attributes <- lapply(data$attributes, parse_attributes)
     df_attributes <- dplyr::bind_rows(list_attributes, .id = "id")
 
-    df_attributes <- tidyr::pivot_wider(df_attributes, names_from = .data$key, values_from = .data$value) %>%
-      select(-.data$id)
-
-    data <- cbind(data %>% dplyr::select(-attributes), df_attributes)
+    if (nrow(df_attributes) > 0) {
+      df_attributes <- tidyr::pivot_wider(df_attributes, names_from = .data$key, values_from = .data$value)
+      # Rows without attributes have no id; match back by row number
+      df_attributes <- df_attributes[match(seq_len(nrow(data)), as.integer(df_attributes$id)), ] %>%
+        select(-.data$id)
+      data <- cbind(data %>% dplyr::select(-attributes), df_attributes)
+    } else {
+      data <- data %>% dplyr::select(-attributes)
+    }
 
   } else {
     stop("The specified path does not exist.")
@@ -123,21 +136,32 @@ process_gff <- function(path, fields = NULL){
 
 #' @noRd
 parse_attributes <- function(info) {
-  pairs <- strsplit(info, ";", fixed = TRUE)[[1]]  # Split the info string into pairs
-  keys <- vector()   # Initialize empty vector for keys
-  values <- vector() # Initialize empty vector for values
-
-  for (pair in pairs) {
-    parts <- strsplit(pair, "=", fixed = TRUE)[[1]]  # Split each pair at the '='
-    if (length(parts) == 2) {
-      keys <- c(keys, parts[1])   # Append key to keys vector
-      values <- c(values, parts[2])  # Append value to values vector
-    } else {
-      keys <- c(keys, parts[1])   # Append key and assume missing value
-      values <- c(values, NA)     # Append NA for the missing value
-    }
+  # No attributes: missing column, empty or "."
+  if (is.na(info) || trimws(info) %in% c("", ".")) {
+    return(data.frame(key = character(0), value = character(0), stringsAsFactors = FALSE))
   }
 
-  # Create a data.frame from keys and values
+  pairs <- trimws(strsplit(info, ";", fixed = TRUE)[[1]], which = "left")
+  pairs <- pairs[pairs != ""]
+
+  # Split each pair at the first '='; a key without '=' gets NA
+  has_value <- grepl("=", pairs, fixed = TRUE)
+  keys <- trimws(ifelse(has_value, sub("=.*$", "", pairs), pairs))
+  values <- ifelse(has_value, url_decode(sub("^[^=]*=", "", pairs)), NA_character_)
+
   return(data.frame(key = keys, value = values, stringsAsFactors = FALSE))
+}
+
+#' @noRd
+url_decode <- function(x) {
+  vapply(x, function(value) {
+    if (!grepl("%[0-9A-Fa-f]{2}", value)) {
+      return(value)
+    }
+    # Keep a literal '%' that is not followed by two hex digits
+    value <- gsub("%(?![0-9A-Fa-f]{2})", "%25", value, perl = TRUE)
+    decoded <- utils::URLdecode(value)
+    Encoding(decoded) <- "UTF-8"
+    decoded
+  }, character(1), USE.NAMES = FALSE)
 }

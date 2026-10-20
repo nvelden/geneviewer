@@ -145,3 +145,32 @@ test_that("read_bed converts BED coordinates like rtracklayer (B05)", {
   expect_equal(bed$blockSizes[[1]], c(10, 20))
   expect_equal(bed$blockStarts[[1]], c(1, 81))
 })
+
+test_that("read_gff parses attributes robustly (B07)", {
+  row <- function(attr, start = 100, end = 500) {
+    paste("chr1", "demo", "gene", start, end, ".", "+", ".", attr, sep = "\t")
+  }
+  gff_file <- tempfile(fileext = ".gff3")
+  writeLines(c(
+    "##gff-version 3",
+    row("ID=g1;Name=abc%2Cdef;Note=ratio a=b"),
+    row("", 600, 900),
+    row(".", 1000, 1200),
+    row("ID=g4; Name=x;description=WD40 %26#946%3B propellers;gene_id=G4", 1300, 1500),
+    row("ID=g5;Note=50% GC", 1600, 1700),
+    "##FASTA",
+    ">chr1",
+    "ACGTACGT"
+  ), gff_file)
+
+  gff <- read_gff(gff_file)
+  expect_equal(nrow(gff), 5)
+  expect_equal(gff$start, c(100, 600, 1000, 1300, 1600))
+  expect_setequal(names(gff), c("seqid", "source", "type", "start", "end", "score",
+                                "strand", "phase", "ID", "Name", "Note", "description", "gene_id"))
+  expect_equal(gff$ID, c("g1", NA, NA, "g4", "g5"))
+  expect_equal(gff$Name, c("abc,def", NA, NA, "x", NA))
+  expect_equal(gff$Note, c("ratio a=b", NA, NA, NA, "50% GC"))
+  expect_equal(gff$description[4], "WD40 &#946; propellers")
+  expect_equal(gff$gene_id[4], "G4")
+})

@@ -393,33 +393,46 @@ genbank_to_fasta <- function(path, output_dir=NULL){
   # Read all lines from the file
   lines <- readLines(path)
 
-  # Extract the definition and version for the FASTA header
-  definition <- lines[grep("^DEFINITION", lines)]
-  definition <- sub("^DEFINITION\\s+", "", definition)
-  definition <- sub("[^a-zA-Z0-9]+$", "", definition)
-  version <- lines[grep("^VERSION", lines)]
-  version <- sub("^VERSION\\s+", "", version)
-  fasta_header <- sprintf(">%s %s", version, definition)
-
-  # Identify the start of the sequence block
-  origin_index <- grep("^ORIGIN", lines)
-  if (length(origin_index) == 0) {
+  # Split the file into records (each record ends with "//")
+  record_ends <- grep("^//", lines)
+  if (length(grep("^ORIGIN", lines)) == 0) {
     stop("No sequence detected in GenBank file.")
   }
-  end_index <- grep("^//", lines)
+  if (length(record_ends) == 0) {
+    stop("The sequence block is not properly formatted or missing.")
+  }
+  record_starts <- c(1, utils::head(record_ends, -1) + 1)
 
-  # Extract and clean all lines after "ORIGIN"
-  if (length(origin_index) > 0 && length(end_index) > 0 && origin_index < end_index) {
-    sequence_lines <- lines[(origin_index + 1):(end_index - 1)]
+  fasta_records <- character()
+  for (r in seq_along(record_ends)) {
+    record <- lines[record_starts[r]:record_ends[r]]
+
+    # Extract the definition and version for the FASTA header
+    definition <- record[grep("^DEFINITION", record)]
+    definition <- sub("^DEFINITION\\s+", "", definition)
+    definition <- sub("[^a-zA-Z0-9]+$", "", definition)
+    version <- record[grep("^VERSION", record)]
+    version <- sub("^VERSION\\s+", "", version)
+    fasta_header <- sprintf(">%s %s", version, definition)
+
+    # Identify the start of the sequence block
+    origin_index <- grep("^ORIGIN", record)
+    if (length(origin_index) == 0) {
+      warning(sprintf("Record %d has no sequence and is skipped.", r))
+      next
+    }
+
+    # Extract and clean all lines after "ORIGIN"
+    sequence_lines <- record[seq_len(length(record) - 1)][-seq_len(origin_index[1])]
     sequence <- paste(sequence_lines, collapse = "")
     sequence <- gsub("\\s+|[0-9]+", "", sequence)
     sequence <- toupper(sequence)
-  } else {
-    stop("The sequence block is not properly formatted or missing.")
+
+    fasta_records <- c(fasta_records, sprintf("%s\n%s", fasta_header, sequence))
   }
 
-  # Combine the header and sequence into one FASTA format string
-  fasta_content <- sprintf("%s\n%s", fasta_header, sequence)
+  # Combine the headers and sequences into one FASTA format string
+  fasta_content <- paste(fasta_records, collapse = "\n")
   gbk_names <- tools::file_path_sans_ext(basename(path))
 
   if (is.null(output_dir)) {

@@ -236,3 +236,27 @@ test_that("read_fasta uses the full span of join() locations (B08)", {
   expect_equal(fasta$end, c(21555, 8666, 2247, 31317))
   expect_equal(fasta$strand, c("forward", "complement", "complement", "forward"))
 })
+
+test_that("genbank_to_fasta writes one FASTA record per GenBank record (B19)", {
+  record <- function(id, seq) c(
+    sprintf("LOCUS       %s                 20 bp    DNA     linear   BCT 01-JAN-2024", id),
+    sprintf("DEFINITION  Record %s.", id),
+    sprintf("VERSION     %s.1", id),
+    "FEATURES             Location/Qualifiers",
+    "ORIGIN",
+    sprintf("        1 %s", seq),
+    "//")
+  gbk_file <- tempfile(fileext = ".gbk")
+  writeLines(c(record("AAA", "acgtacgtac gtacgtacgt"), record("BBB", "ttttgggggc ccccaaaaat")), gbk_file)
+
+  out_dir <- tempfile(); dir.create(out_dir)
+  genbank_to_fasta(gbk_file, output_dir = out_dir)
+  fasta <- readLines(file.path(out_dir, sub("\\.gbk$", ".fasta", basename(gbk_file))))
+  expect_equal(fasta, c(">AAA.1 Record AAA", "ACGTACGTACGTACGTACGT", ">BBB.1 Record BBB", "TTTTGGGGGCCCCCAAAAAT"))
+
+  # Single record: unchanged format
+  writeLines(record("AAA", "acgtacgtac gtacgtacgt"), gbk_file)
+  genbank_to_fasta(gbk_file, output_dir = out_dir)
+  expect_equal(readLines(file.path(out_dir, sub("\\.gbk$", ".fasta", basename(gbk_file)))),
+               c(">AAA.1 Record AAA", "ACGTACGTACGTACGTACGT"))
+})

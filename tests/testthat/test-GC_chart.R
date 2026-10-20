@@ -1117,3 +1117,29 @@ test_that("GC_scale range axis shifts only the selected clusters (B10)", {
   chart <- base %>% GC_scale(myOption = "x")
   expect_equal(chart$x$series[["A"]]$scale$myOption, "x")
 })
+
+test_that("custom_gaps measures gaps by gene edges and handles repeated names (B11)", {
+  run <- function(data, gaps) {
+    chart <- GC_chart(data, group = "name") %>% GC_normalize(normalize = FALSE, custom_gaps = gaps)
+    chart$x$series[[1]]$data
+  }
+  # Reverse-strand gene before the gap
+  reverse <- data.frame(name = c("G1", "G2", "G3"), start = c(500, 1000, 2000), end = c(100, 1400, 2400))
+  result <- run(reverse, list(G1 = 2))
+  expect_equal(result$start, c(500, 1500, 2500))
+  expect_equal(result$end, c(100, 1900, 2900))
+
+  # Reverse-strand gene after the gap
+  next_reverse <- data.frame(name = c("G1", "G2"), start = c(100, 1400), end = c(500, 1000))
+  expect_equal(run(next_reverse, list(G1 = 2))$start, c(100, 1900))
+
+  # A name used twice: the gap after each copy is changed
+  duplicate <- data.frame(name = c("tnp", "G2", "tnp", "G4"), start = c(100, 1000, 2000, 3000), end = c(500, 1400, 2400, 3400))
+  expect_equal(run(duplicate, list(tnp = 2))$start, c(100, 1500, 2500, 4100))
+
+  # The last gene has no gap after it; unknown names leave the data unchanged
+  expect_equal(run(reverse, list(G3 = 2))$start, reverse$start)
+  expect_warning(result <- run(reverse, list(G9 = 2)), "G9 not found")
+  expect_equal(result$start, reverse$start)
+  expect_false(any(c("is_reverse", "actual_start", "original_order") %in% names(result)))
+})

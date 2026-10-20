@@ -21,6 +21,11 @@
 #' @noRd
 custom_gaps <- function(data, group, gene_name, factor = 2) {
 
+  if (!any(data[[group]] == gene_name, na.rm = TRUE)) {
+    warning(paste(gene_name, "not found in the specified group column."))
+    return(data)
+  }
+
   data$original_order <- seq_len(nrow(data))
 
   data <- data %>%
@@ -31,19 +36,17 @@ custom_gaps <- function(data, group, gene_name, factor = 2) {
     ) %>%
     dplyr::arrange(.data$actual_start)
 
-  # Find the index of the gene after which the gap should be increased
+  # Genes after which the gap should be changed (the last gene has no gap)
   gene_index <- which(data[[group]] == gene_name)
+  gene_index <- gene_index[gene_index < nrow(data)]
 
-  if (length(gene_index) == 0) {
-    warning(paste(gene_name, "not found in the specified group column."))
-    return(data)
+  # Shift the subsequent genes by (factor - 1) times the gap after each gene
+  shift <- numeric(nrow(data))
+  for (index in gene_index) {
+    current_gap <- data$actual_start[index + 1] - data$actual_end[index]
+    after <- seq_len(nrow(data)) > index
+    shift[after] <- shift[after] + (factor - 1) * current_gap
   }
-
-  # Calculate the current gap between the specified gene and the next one
-  current_gap <- data$start[gene_index + 1] - data$end[gene_index]
-
-  # Calculate the new gap (factor times the current gap)
-  new_gap <- (factor * current_gap) - current_gap
 
   if (!"original_start" %in% names(data)) {
     data$original_start <- data$start
@@ -55,12 +58,8 @@ custom_gaps <- function(data, group, gene_name, factor = 2) {
   # Adjust the start and end positions of the subsequent genes
   data <- data %>%
     dplyr::mutate(
-      new_start = ifelse(dplyr::row_number() > gene_index,
-                     .data$actual_start + new_gap,
-                     .data$actual_start),
-      new_end = ifelse(dplyr::row_number() > gene_index,
-                   .data$actual_end + new_gap,
-                   .data$actual_end),
+      new_start = .data$actual_start + shift,
+      new_end = .data$actual_end + shift,
       start = dplyr::if_else(.data$is_reverse,
                              .data$new_end,
                              .data$new_start),

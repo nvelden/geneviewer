@@ -1071,15 +1071,16 @@ GC_clusterLabel <- function(
 
   cluster_column <- GC_chart$x$cluster
 
-  if(!is.null(cluster_column) && is.null(title)){
-    title <- unique(GC_chart$x$data[[GC_chart$x$cluster]])
-  }
-
   # Capture ... arguments
   dots <- list(...)
 
   # Update the GC_chart object with title and options for each cluster
   clusters <- getUpdatedClusters(GC_chart, cluster)
+
+  # By default, label each selected cluster with its own name
+  if(!is.null(cluster_column) && is.null(title)){
+    title <- clusters
+  }
 
   for(i in seq_along(clusters)){
 

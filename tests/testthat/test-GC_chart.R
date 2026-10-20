@@ -1143,3 +1143,13 @@ test_that("custom_gaps measures gaps by gene edges and handles repeated names (B
   expect_equal(result$start, reverse$start)
   expect_false(any(c("is_reverse", "actual_start", "original_order") %in% names(result)))
 })
+
+test_that("GC_clusterLabel labels selected clusters with their own name (B12)", {
+  genes <- data.frame(cluster = rep(c("A", "B", "C"), each = 2), start = rep(c(1, 50), 3), end = rep(c(40, 90), 3))
+  labels <- function(chart) vapply(chart$x$series, function(s) if (is.null(s$clusterLabel$title)) NA_character_ else s$clusterLabel$title, "")
+
+  expect_equal(unname(labels(GC_chart(genes, cluster = "cluster") %>% GC_clusterLabel())), c("A", "B", "C"))
+  expect_equal(unname(labels(GC_chart(genes, cluster = "cluster") %>% GC_clusterLabel(cluster = 2))), c(NA, "B", NA))
+  expect_equal(unname(labels(GC_chart(genes, cluster = "cluster") %>% GC_clusterLabel(cluster = c("C", "B")))), c(NA, "B", "C"))
+  expect_equal(unname(labels(GC_chart(genes, cluster = "cluster") %>% GC_clusterLabel(title = "x", cluster = 3))), c(NA, NA, "x"))
+})

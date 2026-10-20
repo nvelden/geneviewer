@@ -15,6 +15,7 @@
 - `GC_scale(scale_breaks = TRUE)` no longer errors on clusters with a single gene or with only overlapping genes.
 - `GC_scale(axis_type = "range")` now shifts genes when `hidden = TRUE`, only shifts the selected clusters (a single selected cluster no longer gets the genes of all clusters), keeps gene tracks from `GC_cluster(prevent_gene_overlap = TRUE)`, and passes `...` on to the scale options.
 - `GC_normalize(custom_gaps = ...)` now measures the gap after a gene from its edges, so genes on the reverse strand get the right gap, and applies the gap after every gene with the given name.
+- `GC_clusterLabel(cluster = ...)` without a `title` now labels each selected cluster with its own name instead of the names of the first clusters.
 - Several geneviewer charts in one Shiny app (output IDs without a `-`, or Shiny modules) no longer draw into each other's containers. The widget now uses its full element ID.
 - Charts on the same page no longer share settings through global JavaScript variables (e.g. `save_button` of one chart was used by another chart after a resize).
 - Removed deprecated `.data$` use in tidyselect calls (`select()`, `pivot_wider()`), which gave warnings with tidyselect >= 1.2.0.

@@ -326,9 +326,10 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
     if (!requireNamespace("parallel", quietly = TRUE)) {
       stop('parallel package is not installed. Please install it.')
     }
-    # Set up a cluster
-    no_cores <- parallel::detectCores() - 1
+    # Set up a cluster with at least one worker; always stop it when done
+    no_cores <- max(1, parallel::detectCores() - 1, na.rm = TRUE)
     cl <- parallel::makeCluster(no_cores)
+    on.exit(parallel::stopCluster(cl), add = TRUE)
 
     # Export the alignments list and the pwalign library to each cluster node
     parallel::clusterExport(cl, varlist = c("alignments"), envir = environment())
@@ -341,9 +342,6 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
         subject = as.character(pwalign::subject(alignment))
       )
     })
-
-    # Stop the cluster after use
-    parallel::stopCluster(cl)
   } else {
     # Sequential processing
     alignment_list <- lapply(alignments, function(alignment) {

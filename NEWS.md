@@ -22,6 +22,7 @@
 - `GC_grid(margin = list(top = , bottom = ))` now works for charts with a percentage height (it errored), and the margins stay inside the chart height on standalone pages.
 - `genbank_to_fasta()` now converts GenBank files with several records (one FASTA record per GenBank record); it errored before.
 - `mummer_alignment()` no longer deletes unrelated files whose name contains `<cluster1>_<cluster2>` when `remove_files = TRUE`; it now removes only the files MUMmer wrote. Cluster files are matched by exact file name (names like `BGC1+2` work), file paths are quoted in the MUMmer commands, and names with spaces give a clear error.
+- `protein_blast(parallel = TRUE)` now works on machines with one core (it tried to start 0 workers) and always stops its worker processes, also after an error.
 - Several geneviewer charts in one Shiny app (output IDs without a `-`, or Shiny modules) no longer draw into each other's containers. The widget now uses its full element ID.
 - Charts on the same page no longer share settings through global JavaScript variables (e.g. `save_button` of one chart was used by another chart after a resize).
 - Removed deprecated `.data$` use in tidyselect calls (`select()`, `pivot_wider()`), which gave warnings with tidyselect >= 1.2.0.

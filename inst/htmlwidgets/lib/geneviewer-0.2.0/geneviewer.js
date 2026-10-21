@@ -2307,7 +2307,7 @@ container.prototype.tooltip = function (show = true, options = {}) {
     });
 
     // Mouseout event to hide the tooltip
-    selection.on("mouseout", () => {
+    selection.on("mouseout", (event) => {
 
       const element = d3.select(event.currentTarget);
       element.classed("hovered", false);

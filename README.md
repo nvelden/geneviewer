@@ -84,6 +84,10 @@ For additional examples and the corresponding code to create the plots, please v
 
 <hr>
 
+<img src="man/figures/ophA_clusters_patterns.png"/>
+
+<hr>
+
 <img src="man/figures/ophA_gene_links.png"/>
 
 <hr>

@@ -1129,6 +1129,55 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_legend()
 ```
 
+### Patterns
+
+> **Note:** `GC_pattern()` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
+
+Journals sometimes ask for figures in black and white. The `GC_pattern()` function fills the genes, exons and legend markers with a pattern for each group instead of a colour. By default each group gets the next pattern from a fixed list, drawn in black on a white background.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_pattern()
+```
+
+The available patterns are "none", "solid", "horizontal", "vertical", "diagonal", "antidiagonal", "grid", "crosshatch", "dots" and "zigzag". Use `patterns` to choose them: a vector is recycled over the groups, and a named list sets the pattern for each group.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_pattern(
+    patterns = list(
+      "Monooxygenase" = "diagonal",
+      "NTF2-like" = "dots",
+      "Methyltransferase" = "horizontal",
+      "O-acyltransferase" = "crosshatch",
+      "Prolyloligopeptidase" = "vertical",
+      "F-box/RNHI-like" = "none"
+    )
+  )
+```
+
+With many groups, combine the patterns with grey backgrounds. The `background` vector is recycled over the groups in the same way as `patterns`, so 3 patterns and 2 greys give 6 different fills. `color` sets the colour of the pattern lines and dots, `size` the width of one pattern tile and `strokeWidth` the width of the lines.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_pattern(
+    patterns = c("diagonal", "dots", "crosshatch"),
+    background = c("white", "grey75"),
+    size = 8,
+    strokeWidth = 1.5
+  )
+```
+
+Set `background = NULL` to draw the patterns on top of the gene colours. Each group is then shown by both a colour and a pattern, which also helps readers who cannot tell some colours apart.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_color(colorScheme = "schemeSet2") %>%
+  GC_pattern(background = NULL)
+```
+
+Like `GC_color()`, place `GC_pattern()` after `GC_genes()` and `GC_transcript()`, as these functions reset the pattern settings.
+
 ## Legend
 
 The `GC_legend()` function can be used to show / hide and customize the legend. By default the legend is shown at the bottom. The below example shows the `GC_function()` with all its default settings.

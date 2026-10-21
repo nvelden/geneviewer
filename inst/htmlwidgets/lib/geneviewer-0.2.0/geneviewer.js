@@ -3337,7 +3337,8 @@ container.prototype.createArrowAnnotation = function (group, options) {
       .attr("d", "M 0,-5 L 10 ,0 L 0,5")
       .attr("fill", arrowStyle.fill)
       .each(function () {
-        d3.select(this).style(additionalOptionsArrow);
+        const currentElement = d3.select(this);
+        setStyleFromOptions(currentElement, additionalOptionsArrow);
       });
 
     // Draw the line with the arrow marker for each set of values

@@ -1657,8 +1657,8 @@ container.prototype.sequence = function (show = true, options = {}) {
   var g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
-  var minStart = start || d3.min(this.data, d => Math.min(d.start, d.end));
-  var maxEnd = end || d3.max(this.data, d => Math.max(d.start, d.end));
+  var minStart = start ?? d3.min(this.data, d => Math.min(d.start, d.end));
+  var maxEnd = end ?? d3.max(this.data, d => Math.max(d.start, d.end));
 
   if(start == null){
   minStart = addScalePadding(minStart, maxEnd, this.padding, "start")

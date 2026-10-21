@@ -13,6 +13,7 @@
 - Clicking a legend item no longer hides genes that were clicked off in the legend of another chart on the same page.
 - `GC_trackMouse()` now shows the right position to the right of scale breaks (it was too small by the width of the breaks on the left).
 - Charts no longer create the global JavaScript variables `to` and `linearScale`, which could overwrite variables of the same name on the page.
+- `GC_sequence(start = 0)` and `end = 0` are no longer ignored; the line started at the first gene instead.
 
 # geneviewer 0.2.0
 

@@ -2531,6 +2531,42 @@ container.prototype.tooltip = function (show = true, options = {}) {
   return this; // Return the instance for method chaining
 };
 
+// Path and position of the gene (or exon, intron, UTR) marker of d, the i-th
+// item. styles holds the marker options and itemStyles the per-item overrides.
+// Also sets the marker height and spacing on the container, used by labels.
+function getMarkerAttributes(container, d, i, y, styles, itemStyles) {
+  const style = itemStyles.find(s => s.index === i) || {};
+  const geneLength = Math.abs(container.xScale(d.end) - container.xScale(d.start));
+  const currentY = style.y ?? y;
+
+  const { path, arrowheadWidth, arrowheadHeight, height } = getGenePath(
+    style.marker ?? styles.marker,
+    geneLength,
+    style.markerSize ?? styles.markerSize,
+    {
+      arrowheadWidth: style.arrowheadWidth ?? styles.arrowheadWidth,
+      arrowheadHeight: style.arrowheadHeight ?? styles.arrowheadHeight,
+      markerHeight: style.markerHeight ?? styles.markerHeight,
+      cornerRadius: style.cornerRadius ?? styles.cornerRadius
+    }
+  );
+
+  container.markerHeight = height;
+  container.geneStrandSpacing = container.separateStrands ? (height / 2 + container.strandSpacing) : 0;
+  container.geneOverlapSpacing = (height + container.overlapSpacing);
+
+  // Calculate Y position based on geneTrack
+  const currentGeneStrandSpacing = (d.strand === "forward" && container.geneStrandSpacing !== 0)
+    ? container.geneStrandSpacing
+    : -container.geneStrandSpacing;
+  const currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * container.geneOverlapSpacing : 0;
+
+  const yPos = container.yScale(currentY) - currentGeneStrandSpacing + currentOverlapSpacing;
+  const xPos = container.xScale(d.start);
+
+  return { xPos, yPos, path, arrowheadWidth, arrowheadHeight, height };
+}
+
 container.prototype.genes = function (group, show = true, options = {}) {
 
   if (!show) {
@@ -2578,43 +2614,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
 
-  const getAttributesForIndex = (d, i) => {
-    const style = itemStyle.find(s => s.index === i) || {};
-    const geneLength = Math.abs(this.xScale(d.end) - this.xScale(d.start));
-    const currentX = style.x ?? x;
-    const currentY = style.y ?? y;
-    const marker = style.marker ?? combinedOptions.marker;
-    const markerSize = style.markerSize ?? combinedOptions.markerSize;
-
-
-    // GenePath
-    const  { path, arrowheadWidth, arrowheadHeight, height }  = getGenePath(
-        marker,
-        geneLength,
-        markerSize,
-        {
-          arrowheadWidth: style.arrowheadWidth ?? combinedOptions.arrowheadWidth,
-          arrowheadHeight: style.arrowheadHeight ?? combinedOptions.arrowheadHeight,
-          markerHeight: style.markerHeight ?? combinedOptions.markerHeight,
-          cornerRadius: style.cornerRadius ?? combinedOptions.cornerRadius
-        }
-      )
-
-    this.markerHeight = height;
-    this.geneStrandSpacing = this.separateStrands ? (height / 2 + this.strandSpacing) : 0;
-    this.geneOverlapSpacing = (height + this.overlapSpacing);
-
-    // Calculate Y position based on geneTrack
-    const currentGeneStrandSpacing = (d.strand == "forward" && this.geneStrandSpacing !== 0)
-                                 ? this.geneStrandSpacing
-                                 : -this.geneStrandSpacing;
-    var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
-
-    const yPos = this.yScale(currentY) - currentGeneStrandSpacing + currentOverlapSpacing;
-    const xPos = this.xScale(d.start);
-
-    return { xPos, yPos, path, arrowheadWidth, arrowheadHeight, height };
-  };
+  const getAttributesForIndex = (d, i) => getMarkerAttributes(this, d, i, y, combinedOptions, itemStyle);
 
   g.selectAll(".gene")
     .data(this.data)
@@ -2749,42 +2749,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
 
-  const getAttributesForIndex = (d, i, styles, itemStyles) => {
-    const style = itemStyles.find(s => s.index === i) || {};
-    const geneLength = Math.abs(this.xScale(d.end) - this.xScale(d.start));
-    const currentX = style.x ?? x;
-    const currentY = style.y ?? y;
-    const marker = style.marker ?? styles.marker;
-    const markerSize = style.markerSize ?? styles.markerSize;
-
-    // GenePath
-    const { path, arrowheadWidth, arrowheadHeight, height } = getGenePath(
-      marker,
-      geneLength,
-      markerSize,
-      {
-        arrowheadWidth: style.arrowheadWidth ?? styles.arrowheadWidth,
-        arrowheadHeight: style.arrowheadHeight ?? styles.arrowheadHeight,
-        markerHeight: style.markerHeight ?? styles.markerHeight,
-        cornerRadius: style.cornerRadius ?? styles.cornerRadius
-      }
-    );
-
-    this.markerHeight = height;
-    this.geneStrandSpacing = this.separateStrands ? (height / 2 + this.strandSpacing) : 0;
-    this.geneOverlapSpacing = (height + this.overlapSpacing);
-
-    // Calculate Y position based on geneTrack
-    const currentGeneStrandSpacing = (d.strand === "forward" && this.geneStrandSpacing !== 0)
-      ? this.geneStrandSpacing
-      : -this.geneStrandSpacing;
-    const currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
-
-    const yPos = this.yScale(currentY) - currentGeneStrandSpacing + currentOverlapSpacing;
-    const xPos = this.xScale(d.start);
-
-    return { xPos, yPos, path, arrowheadWidth, arrowheadHeight, height };
-  };
+  const getAttributesForIndex = (d, i, styles, itemStyles) => getMarkerAttributes(this, d, i, y, styles, itemStyles);
 
   if (styleExons.show) {
     // Add exons

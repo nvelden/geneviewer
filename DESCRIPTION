@@ -28,7 +28,8 @@ Imports:
     magrittr,
     dplyr,
     tidyr,
-    rlang
+    rlang,
+    grDevices
 Suggests: 
     knitr,
     rmarkdown,

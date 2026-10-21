@@ -408,6 +408,111 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
     .range([...range, "#FFF"]);
 }
 
+// Pattern tiles: each draws the foreground of a square pattern tile of size s.
+const genePatterns = {
+  none: () => {},
+  solid: (p, s, color) => p.append("rect").attr("width", s).attr("height", s).attr("fill", color),
+  horizontal: (p, s, color, w) => p.append("path").attr("d", `M0,${s / 2}H${s}`).attr("stroke", color).attr("stroke-width", w),
+  vertical: (p, s, color, w) => p.append("path").attr("d", `M${s / 2},0V${s}`).attr("stroke", color).attr("stroke-width", w),
+  // The corner segments keep the lines unbroken where tiles meet
+  diagonal: (p, s, color, w) => p.append("path")
+    .attr("d", `M0,${s}L${s},0M${-s / 4},${s / 4}L${s / 4},${-s / 4}M${s * 3 / 4},${s * 5 / 4}L${s * 5 / 4},${s * 3 / 4}`)
+    .attr("stroke", color).attr("stroke-width", w),
+  antidiagonal: (p, s, color, w) => p.append("path")
+    .attr("d", `M0,0L${s},${s}M${-s / 4},${s * 3 / 4}L${s / 4},${s * 5 / 4}M${s * 3 / 4},${-s / 4}L${s * 5 / 4},${s / 4}`)
+    .attr("stroke", color).attr("stroke-width", w),
+  grid: (p, s, color, w) => p.append("path").attr("d", `M0,${s / 2}H${s}M${s / 2},0V${s}`).attr("stroke", color).attr("stroke-width", w),
+  crosshatch: (p, s, color, w) => {
+    genePatterns.diagonal(p, s, color, w);
+    genePatterns.antidiagonal(p, s, color, w);
+  },
+  dots: (p, s, color) => p.append("circle").attr("cx", s / 2).attr("cy", s / 2).attr("r", s / 5).attr("fill", color),
+  zigzag: (p, s, color, w) => p.append("path")
+    .attr("d", `M0,${s * 0.7}L${s / 2},${s * 0.3}L${s},${s * 0.7}`)
+    .attr("fill", "none").attr("stroke", color).attr("stroke-width", w)
+};
+
+const defaultPatternOrder = ["diagonal", "dots", "horizontal", "crosshatch", "vertical", "antidiagonal", "grid", "zigzag", "solid"];
+
+// Returns the value for each group from a single value, an array (recycled) or an object (by group name).
+function valuesByGroup(values, groups, fallback) {
+  if (values === null || values === undefined) {
+    return groups.map(() => fallback);
+  }
+  if (typeof values === "string") {
+    return groups.map(() => values);
+  }
+  if (Array.isArray(values)) {
+    return groups.map((group, index) => values[index % values.length]);
+  }
+  return groups.map(group => values[group] ?? fallback);
+}
+
+// Adds a <pattern> for each group to the <defs> of svg and returns a fill and
+// a stroke function per group. Patterns are defined in every SVG that uses
+// them, because the save button renders each SVG on its own.
+function getPatternScale(svg, pattern, uniqueGroups, colorScale, idPrefix) {
+  if (!pattern) {
+    return { fill: colorScale, stroke: colorScale, outline: null, align: () => {} };
+  }
+
+  const { patterns = null, color = "black", background = null, size = 6, strokeWidth = 1 } = pattern;
+
+  // Same groups and order as getColorScale, so genes and legend match
+  const groups = uniqueGroups.filter(group => group !== null);
+  const types = valuesByGroup(patterns, groups, "none");
+  if (patterns === null || patterns === undefined) {
+    groups.forEach((group, index) => {
+      types[index] = defaultPatternOrder[index % defaultPatternOrder.length];
+    });
+    if (groups.length > defaultPatternOrder.length) {
+      console.warn(`Warning: More unique groups than patterns. Some patterns will repeat.`);
+    }
+  }
+  const backgrounds = valuesByGroup(background, groups, null);
+
+  const svgId = svg.attr("id") || "geneviewer";
+  const defs = svg.append("defs");
+  const fills = new Map();
+  const tiles = new Map();
+
+  groups.forEach((group, index) => {
+    let type = types[index];
+    if (!genePatterns[type]) {
+      console.warn(`Warning: The pattern "${type}" does not exist. Using "none".`);
+      type = "none";
+    }
+    // "No Hit" stays a plain white gene, like in the default colours
+    if (group === "No Hit" && (patterns === null || patterns === undefined)) {
+      type = "none";
+    }
+    const id = `${svgId}-${idPrefix}-pattern-${index}`;
+    const tile = defs.append("pattern")
+      .attr("id", id)
+      .attr("patternUnits", "userSpaceOnUse")
+      .attr("width", size)
+      .attr("height", size);
+    tile.append("rect")
+      .attr("width", size)
+      .attr("height", size)
+      .attr("fill", backgrounds[index] ?? colorScale(group));
+    genePatterns[type](tile, size, color, strokeWidth);
+    fills.set(group, `url(#${id})`);
+    tiles.set(group, tile);
+  });
+
+  return {
+    fill: group => fills.get(group) ?? colorScale(group),
+    // Lines (introns, UTR outlines) take the pattern colour when the
+    // background replaces the gene colours, and keep the gene colour otherwise
+    stroke: group => (background === null || background === undefined) ? colorScale(group) : color,
+    // Outline for legend markers, so white and patterned markers stay visible
+    outline: color,
+    // Starts the tiles of a group at (x, y), e.g. at the corner of its legend marker
+    align: (group, x, y) => tiles.get(group)?.attr("x", x).attr("y", y)
+  };
+}
+
 
 function isInAnyDiscontinuity(value, breaks) {
   for (let gap of breaks) {
@@ -2280,6 +2385,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
     strokeWidth: 1,
     colorScheme: null,
     customColors: null,
+    pattern: null,
     cursor: "default",
     marker: "arrow",
     markerSize: "medium",
@@ -2291,7 +2397,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
-  const { x, y, stroke, strokeWidth, colorScheme, customColors, cursor, itemStyle } = combinedOptions;
+  const { x, y, stroke, strokeWidth, colorScheme, customColors, pattern, cursor, itemStyle } = combinedOptions;
 
   // Extract additional options that aren't in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -2300,6 +2406,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
 
   const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
   this.genesColorScale = colorScale;
+  const patternScale = getPatternScale(this.svg, pattern, uniqueGroups, colorScale, "gene");
 
   var g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
@@ -2359,7 +2466,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
     : (d.direction === 'forward' ? 0 : 180);
       return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (height / 2 )})`;
     })
-    .attr("fill", (d) => colorScale(d[group]))
+    .attr("fill", (d) => patternScale.fill(d[group]))
     .attr("class", "gene")
     .attr("id", (d, i) => `${sanitizeId(d.cluster)}-gene-${i}`)
     .attr("rowID", (d, i) => `${d["rowID"]}`)
@@ -2400,6 +2507,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
     y: 50,
     colorScheme: null,
     customColors: null,
+    pattern: null,
     styleExons: {
       show: true,
       strokeWidth: 0,
@@ -2458,7 +2566,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
-  const { x, y, colorScheme, customColors, styleExons, styleIntrons, styleUTRs, itemStyleExons, itemStyleIntrons, itemStyleUTRs, labelOptions } = combinedOptions;
+  const { x, y, colorScheme, customColors, pattern, styleExons, styleIntrons, styleUTRs, itemStyleExons, itemStyleIntrons, itemStyleUTRs, labelOptions } = combinedOptions;
 
   // Extract additional options that aren't in defaultOptions
   const additionalOptionsExons = extractAdditionalOptions(combinedOptions.styleExons, defaultOptions.styleExons);
@@ -2469,6 +2577,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
 
   const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
   this.genesColorScale = colorScale;
+  const patternScale = getPatternScale(this.svg, pattern, uniqueGroups, colorScale, "exon");
 
   const g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
@@ -2531,7 +2640,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
           : (d.direction === 'forward' ? 0 : 180);
         return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (height / 2)})`;
       })
-      .attr("fill", (d) => colorScale(d[group]))
+      .attr("fill", (d) => patternScale.fill(d[group]))
       .attr("class", "exon")
       .attr("id", (d, i) => `${sanitizeId(d.cluster)}-exon-${i}`)
       .attr("rowID", (d, i) => `${d["rowID"]}`)
@@ -2582,7 +2691,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
       .attr("strand", (d, i) => `${d["strand"]}`)
       .attr("cluster", (d, i) => `${d["cluster"]}`)
       .style("stroke-width", styleIntrons.strokeWidth)
-      .style("stroke", (d) => colorScale(d[group]))
+      .style("stroke", (d) => patternScale.stroke(d[group]))
       .style("cursor", styleIntrons.cursor)
       .each(function (d, i) {
         const currentElement = d3.select(this);
@@ -2623,7 +2732,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
       .attr("strand", (d, i) => `${d["strand"]}`)
       .attr("cluster", (d, i) => `${d["cluster"]}`)
       .style("stroke-width", styleUTRs.strokeWidth)
-      .style("stroke", (d) => colorScale(d[group]))
+      .style("stroke", (d) => patternScale.stroke(d[group]))
       .style("cursor", styleUTRs.cursor)
       .each(function (d, i) {
         const currentElement = d3.select(this);
@@ -2707,7 +2816,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     legendOptions: {
       cursor: "pointer",
       colorScheme: null,
-      customColors: null
+      customColors: null,
+      pattern: null
     },
     legendTextOptions: {
       cursor: "pointer",
@@ -2732,6 +2842,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   uniqueGroups = uniqueGroups.filter(color => color !== null);
 
   const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
+  const patternScale = getPatternScale(this.svg, legendOptions.pattern, uniqueGroups, colorScale, "legend");
 
   // Separate special groups ("Other", "No Hit", "Unknown") from the rest
   const specialGroups = ["Other", "No Hit", "Unknown"];
@@ -2805,7 +2916,9 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
         .attr("y", currentY)
         .attr("width", legendSize)
         .attr("height", legendSize)
-        .style("fill", colorScale(d))
+        .style("fill", patternScale.fill(d))
+        .style("stroke", patternScale.outline)
+        .each(() => patternScale.align(d, currentX, currentY))
         .each(function () {
           const currentElement = d3.select(this);
           setStyleFromOptions(currentElement, additionalLegendOptions);

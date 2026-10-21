@@ -1,5 +1,8 @@
 # geneviewer (development version)
 
+### New features:
+- `GC_pattern()` fills genes, exons and legend markers with a pattern per group (`"diagonal"`, `"dots"`, `"crosshatch"`, `"grid"` and more), for black and white figures. Patterns can be set per group, put on grey backgrounds, or drawn on top of the gene colours with `background = NULL`. They are kept in the PNG from the save button.
+
 ### Bug fixes:
 - `GC_annotation(type = "symbol")` no longer also draws a curve from x = 0 to x = 100.
 - The default gene colours now give 30 different colours. Groups 12 and 22, 13 and 26, 15 and 29, and 20 and 25 had the same colour; groups 22, 25, 26 and 29 now get new colours.

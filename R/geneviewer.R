@@ -1923,6 +1923,112 @@ GC_color <- function(
   return(GC_chart)
 }
 
+#' Fill Genes with Patterns
+#'
+#' Fills the genes, exons and legend markers with a pattern per group, for
+#' example for black and white figures. Patterns can also be drawn on top of the
+#' gene colours to show each group with both a colour and a pattern. Call
+#' `GC_pattern()` after `GC_genes()` and `GC_transcript()`, which reset it.
+#'
+#' @param GC_chart The gene chart object to be modified.
+#' @param patterns NULL, a vector of pattern names or a named list of pattern
+#'   names by group. NULL gives each group a pattern in a fixed order. A vector
+#'   is recycled over the groups. Available patterns: "none", "solid",
+#'   "horizontal", "vertical", "diagonal", "antidiagonal", "grid",
+#'   "crosshatch", "dots" and "zigzag".
+#' @param color The colour of the pattern lines and dots.
+#' @param background The colour behind the pattern: a single colour, a vector
+#'   of colours recycled over the groups, or a named list of colours by group.
+#'   NULL keeps the gene colours set by `GC_color()`. When `background` is not
+#'   NULL, intron lines and UTR outlines take `color`.
+#' @param size Numeric, the width and height of one pattern tile in pixels.
+#' @param strokeWidth Numeric, the width of the pattern lines in pixels.
+#'
+#' @return Returns the gene chart object with updated pattern settings.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 50, 90, 130, 170, 210),
+#'   end = c(40, 80, 120, 160, 200, 240),
+#'   name = c('Gene 1', 'Gene 2', 'Gene 3', 'Gene 4', 'Gene 5', 'Gene 6'),
+#'   group = c('A', 'A', 'B', 'B', 'A', 'C'),
+#'   cluster = c(1, 1, 1, 2, 2, 2)
+#' )
+#'
+#' # Black and white
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "150px") %>%
+#'   GC_pattern()
+#'
+#' # Chosen patterns on grey backgrounds
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "150px") %>%
+#'   GC_pattern(
+#'     patterns = list(A = "dots", B = "crosshatch", C = "none"),
+#'     background = c("white", "grey80")
+#'   )
+#'
+#' # Patterns on top of the gene colours
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "150px") %>%
+#'   GC_pattern(background = NULL)
+#'
+#' @export
+GC_pattern <- function(
+    GC_chart,
+    patterns = NULL,
+    color = "black",
+    background = "white",
+    size = 6,
+    strokeWidth = 1
+) {
+
+  available <- c("none", "solid", "horizontal", "vertical", "diagonal",
+                 "antidiagonal", "grid", "crosshatch", "dots", "zigzag")
+  unknown <- setdiff(unlist(patterns), available)
+  if (length(unknown) > 0) {
+    stop("Unknown pattern(s): ", paste(unknown, collapse = ", "),
+         ". Available patterns: ", paste(available, collapse = ", "))
+  }
+
+  # R colour names such as "grey75" are not CSS colours; pass them as hex
+  as_css_color <- function(x) {
+    vapply(x, function(col) {
+      tryCatch({
+        rgba <- grDevices::col2rgb(col, alpha = TRUE)
+        grDevices::rgb(rgba[1], rgba[2], rgba[3],
+                       if (rgba[4] < 255) rgba[4], maxColorValue = 255)
+      }, error = function(e) col)
+    }, character(1), USE.NAMES = FALSE)
+  }
+  color <- as_css_color(color)
+  if (!is.null(background)) {
+    background[] <- if (is.list(background)) lapply(background, as_css_color) else as_css_color(background)
+  }
+
+  # Named vectors become objects by group in JavaScript, unnamed ones arrays
+  as_js_values <- function(x) {
+    if (is.null(x)) return(NULL)
+    if (!is.null(names(x))) return(as.list(x))
+    if (length(x) == 1) return(x)
+    as.list(x)
+  }
+
+  pattern <- Filter(Negate(is.null), list(
+    patterns = as_js_values(patterns),
+    color = color,
+    background = as_js_values(background),
+    size = size,
+    strokeWidth = strokeWidth
+  ))
+
+  GC_chart$x$legend$legendOptions$pattern <- pattern
+
+  for(cluster_name in names(GC_chart$x$series)){
+    GC_chart$x$series[[cluster_name]]$genes$pattern <- pattern
+    GC_chart$x$series[[cluster_name]]$transcript$pattern <- pattern
+  }
+
+  return(GC_chart)
+}
+
 #' Set Legend for a Gene Chart
 #'
 #' This function configures the legend for a gene chart. It allows toggling the

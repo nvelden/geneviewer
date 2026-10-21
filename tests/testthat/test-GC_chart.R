@@ -749,6 +749,41 @@ test_that("GC_color updates color scheme with all options correctly", {
 
 })
 
+#GC_pattern
+test_that("GC_pattern sets patterns on genes, transcripts and legend", {
+
+  data("ophA_clusters", package = "geneviewer")
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "100px")
+
+  # Defaults: black patterns on white
+  updated_chart1 <- GC_pattern(chart)
+  expected <- list(color = "#000000", background = "#FFFFFF", size = 6, strokeWidth = 1)
+  expect_s3_class(updated_chart1, "htmlwidget")
+  expect_equal(updated_chart1$x$legend$legendOptions$pattern, expected)
+  for (cluster_name in names(updated_chart1$x$series)) {
+    expect_equal(updated_chart1$x$series[[cluster_name]]$genes$pattern, expected)
+    expect_equal(updated_chart1$x$series[[cluster_name]]$transcript$pattern, expected)
+  }
+
+  # Vectors become arrays, named vectors objects, R colour names hex colours
+  updated_chart2 <- GC_pattern(
+    chart,
+    patterns = c("dots", "grid"),
+    background = c(A = "grey75", B = "transparent")
+  )
+  pattern <- updated_chart2$x$legend$legendOptions$pattern
+  expect_equal(pattern$patterns, list("dots", "grid"))
+  expect_equal(pattern$background, list(A = "#BFBFBF", B = "#FFFFFF00"))
+
+  # background = NULL keeps the gene colours
+  updated_chart3 <- GC_pattern(chart, patterns = list(A = "crosshatch"), background = NULL)
+  expect_null(updated_chart3$x$legend$legendOptions$pattern$background)
+  expect_equal(updated_chart3$x$legend$legendOptions$pattern$patterns, list(A = "crosshatch"))
+
+  # Unknown patterns
+  expect_error(GC_pattern(chart, patterns = "stripes"), "Unknown pattern")
+})
+
 test_that("GC_legend updates legend options with all options correctly", {
 
   # Load ophA_clusters data

@@ -6,6 +6,7 @@
 - Legend colours now match the gene colours when some genes have an `NA` group. Genes with an `NA` group are now always white, also with `colorScheme` or `customColors`.
 - `GC_annotation(type = "arrow", arrowStyle = ...)` now applies all `arrowStyle` options (e.g. `stroke`, `strokeWidth`, `fillOpacity`) to the arrow head; only `fill` was used.
 - Arrow heads of `GC_annotation(type = "arrow")` and `type = "textMarker"` no longer take the size and colour of an arrow at the same position in another cluster or chart.
+- `GC_scale(breaks = ...)` now works with breaks in any order; breaks not sorted by start put genes and axis ticks at the wrong position.
 
 # geneviewer 0.2.0
 

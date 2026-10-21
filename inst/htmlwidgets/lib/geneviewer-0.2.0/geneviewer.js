@@ -419,6 +419,10 @@ function isInAnyDiscontinuity(value, breaks) {
 }
 
 function createDiscontinuousScale(minStart, maxEnd, width, margin, breaks, reverse = false) {
+  // The adjustment loop below stops at the first break right of a value,
+  // so the breaks must be sorted by start
+  breaks = [...breaks].sort((a, b) => a.start - b.start);
+
   let totalGap = 0;
 
   // Calculate the total gap based on all discontinuities

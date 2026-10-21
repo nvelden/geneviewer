@@ -465,7 +465,7 @@ GC_clusterTitle <- function(
 #' @param cluster Numeric or character vector specifying clusters to update.
 #' @param y Vertical position of the sequence line (default is 50).
 #' @param sequenceStyle A list of styling options for the sequence line.
-#' @param markerStyle A list of styling options for the sequence break markers.
+#' @param markerStyle A list of styling options for the sequence break markers, e.g. `markerHeight`, `tiltAmount` and `gap` (distance in pixels between each marker and the break), plus any CSS style.
 #' @param ... Additional customization arguments for sequence display.
 #'
 #' @return An updated GC chart with modified sequence display settings.

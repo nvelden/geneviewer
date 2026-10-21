@@ -1682,48 +1682,40 @@ container.prototype.sequence = function (show = true, options = {}) {
       setStyleFromOptions(currentElement, additionalOptionsSequence);
     });
 
-  // Draw break markers with tilted lines
+  // Draw break markers with tilted lines, each markerStyle.gap px away from the break
   for (let gap of this.breaks) {
-    const xStart = this.xScale(gap.start - 0.001) * (1 - markerStyle.gap / 100);
-    const xEnd = this.xScale(gap.end + 0.001) * (1 + markerStyle.gap / 100);
+    const xStart = this.xScale(gap.start - 0.001) - markerStyle.gap;
+    const xEnd = this.xScale(gap.end + 0.001) + markerStyle.gap;
     const yBase = this.yScale(y);
     const yTop = yBase - markerStyle.markerHeight / 2;
     const yBottom = yBase + markerStyle.markerHeight / 2;
 
+    g.append("line")
+      .attr("class", "gap-line")
+      .attr("x1", xStart + (markerStyle.tiltAmount / 2))
+      .attr("y1", yBase)
+      .attr("x2", xEnd - (markerStyle.tiltAmount / 2))
+      .attr("y2", yBase)
+      .attr("stroke", "#0000")
+      .style("stroke-width", sequenceStyle.strokeWidth * 1.1);
 
+    // Draw the tilted line before the gap
+    g.append("line")
+      .attr("x1", xStart)
+      .attr("y1", yTop)
+      .attr("x2", xStart + markerStyle.tiltAmount)
+      .attr("y2", yBottom)
+      .attr("stroke", markerStyle.stroke)
+      .attr("stroke-width", markerStyle.strokeWidth);
 
-    if (xStart !== null && xEnd !== null) {
-      g.append("line")
-        .attr("class", "gap-line")
-        .attr("x1", xStart + (markerStyle.tiltAmount / 2))
-        .attr("y1", yBase)
-        .attr("x2", xEnd - (markerStyle.tiltAmount / 2))
-        .attr("y2", yBase)
-        .attr("stroke", "#0000")
-        .style("stroke-width", sequenceStyle.strokeWidth * 1.1);
-    }
-
-    if (xStart !== null) {
-      // Draw the tilted line before the gap
-      g.append("line")
-        .attr("x1", xStart)
-        .attr("y1", yTop)
-        .attr("x2", xStart + markerStyle.tiltAmount)
-        .attr("y2", yBottom)
-        .attr("stroke", markerStyle.stroke)
-        .attr("stroke-width", markerStyle.strokeWidth);
-    }
-
-    if (xEnd !== null) {
-      // Draw the tilted line after the gap
-      g.append("line")
-        .attr("x1", xEnd - markerStyle.tiltAmount)
-        .attr("y1", yTop)
-        .attr("x2", xEnd)
-        .attr("y2", yBottom)
-        .attr("stroke", markerStyle.stroke)
-        .attr("stroke-width", markerStyle.strokeWidth);
-    }
+    // Draw the tilted line after the gap
+    g.append("line")
+      .attr("x1", xEnd - markerStyle.tiltAmount)
+      .attr("y1", yTop)
+      .attr("x2", xEnd)
+      .attr("y2", yBottom)
+      .attr("stroke", markerStyle.stroke)
+      .attr("stroke-width", markerStyle.strokeWidth);
   }
 
   return this;

@@ -25,7 +25,7 @@ GC_sequence(
 
 \item{sequenceStyle}{A list of styling options for the sequence line.}
 
-\item{markerStyle}{A list of styling options for the sequence break markers.}
+\item{markerStyle}{A list of styling options for the sequence break markers, e.g. `markerHeight`, `tiltAmount` and `gap` (distance in pixels between each marker and the break), plus any CSS style.}
 
 \item{...}{Additional customization arguments for sequence display.}
 }

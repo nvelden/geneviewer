@@ -861,28 +861,24 @@ function getClusterLinks(data, cluster) {
     return clusterLinks;
 }
 
-function allStrandsEqual(data) {
-    data.strand1 = data.strand1 || [];
-    data.strand2 = data.strand2 || [];
-    let allStrandsEqual = true;
-    let previousStrand1, previousStrand2;
+// Which link colours a chart has, over all link sets: like makeLinks(), a link
+// is inverted (invertedColor) when its two ends are on different strands
+function linkColorTypes(links) {
+    let normal = false;
+    let inverted = false;
 
-    for (let i = 0; i < data.start1.length; i++) {
-        const strand1 = data.start1[i] > data.end1[i] ? "forward" : "reverse";
-        const strand2 = data.start2[i] > data.end2[i] ? "forward" : "reverse";
-
-        data.strand1[i] = strand1;
-        data.strand2[i] = strand2;
-
-        if (i > 0 && (strand1 !== previousStrand1 || strand2 !== previousStrand2)) {
-            allStrandsEqual = false;
+    links.forEach(link => {
+        const { start1 = [], end1 = [], start2 = [], end2 = [] } = link.data;
+        for (let i = 0; i < start1.length; i++) {
+            if ((start1[i] <= end1[i]) === (start2[i] <= end2[i])) {
+                normal = true;
+            } else {
+                inverted = true;
+            }
         }
+    });
 
-        previousStrand1 = strand1;
-        previousStrand2 = strand2;
-    }
-
-    return allStrandsEqual;
+    return { normal, inverted };
 }
 
 function makeColorBar(graphContainer, links) {
@@ -894,6 +890,12 @@ function makeColorBar(graphContainer, links) {
       return null;
     }
     if (!links[0].data.hasOwnProperty('identity') && !links[0].data.hasOwnProperty('similarity')) {
+      return null;
+    }
+
+    // Only draw a gradient for the link colours on the chart
+    const { normal: hasNormal, inverted: hasInverted } = linkColorTypes(links);
+    if (!hasNormal && !hasInverted) {
       return null;
     }
 
@@ -961,29 +963,11 @@ function makeColorBar(graphContainer, links) {
     const g = svg.append("g")
         .attr("transform", `translate(${linkOptions.margin.left}, ${linkOptions.margin.top})`);
 
-    // Create a linear gradient for the normal bar
     const defs = g.append("defs");
-    const forwardGradientId = getUniqueId("linear-gradient")
-    const linearGradient = defs.append("linearGradient")
-        .attr("id", forwardGradientId)
-        .attr("gradientTransform", "rotate(90)");
 
     const identityArray = links.flatMap(link => link.data[linkOptions.measure]);
     const minValue = Math.round(Math.min(...identityArray));
     const maxValue = Math.round(Math.max(...identityArray));
-
-    // Define a color scale for the normal gradient
-    const colorScale = d3.scaleSequential(t => d3.interpolate("#FFF", linkOptions.normalColor)(t))
-        .domain([0, 100]);
-
-    // Set the gradient stops for the normal gradient
-    linearGradient.append("stop")
-        .attr("offset", "0%")
-        .attr("stop-color", colorScale(maxValue));
-
-    linearGradient.append("stop")
-        .attr("offset", "100%")
-        .attr("stop-color", colorScale(minValue));
 
     // Calculate dimensions for drawing the color bar
     const contentWidth = graphRect.width - linkOptions.margin.left - linkOptions.margin.right;
@@ -994,6 +978,39 @@ function makeColorBar(graphContainer, links) {
 
     const xPosition = contentWidth - width - colorBarOptions.x;
     const yPosition = contentHeight - height - colorBarOptions.y;
+
+    // Draw a gradient bar from white to color (maxValue at the top) at x
+    const drawBar = (baseId, color, x) => {
+        const gradientId = getUniqueId(baseId);
+        const gradient = defs.append("linearGradient")
+            .attr("id", gradientId)
+            .attr("gradientTransform", "rotate(90)");
+
+        const colorScale = d3.scaleSequential(t => d3.interpolate("#FFF", color)(t))
+            .domain([0, 100]);
+
+        gradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", colorScale(maxValue));
+
+        gradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", colorScale(minValue));
+
+        g.append("rect")
+            .attr("x", x)
+            .attr("y", yPosition)
+            .attr("width", width)
+            .attr("height", height)
+            .style("fill", `url(#${gradientId})`)
+            .style("stroke", barOptions.stroke)
+            .style("stroke-width", barOptions.strokeWidth)
+            .style("opacity", barOptions.opacity)
+            .each(function () {
+                const currentElement = d3.select(this);
+                setStyleFromOptions(currentElement, additionalOptionsBar);
+            });
+    };
 
      // Add the title text with rotation
     g.append("text")
@@ -1009,22 +1026,16 @@ function makeColorBar(graphContainer, links) {
             setStyleFromOptions(currentElement, additionalOptionsTitle);
         });
 
-    // Draw the normal color gradient bar with stroke and opacity
-    g.append("rect")
-        .attr("x", xPosition)
-        .attr("y", yPosition)
-        .attr("width", width)
-        .attr("height", height)
-        .style("fill", `url(#${forwardGradientId})`)
-        .style("stroke", barOptions.stroke)
-        .style("stroke-width", barOptions.strokeWidth)
-        .style("opacity", barOptions.opacity)
-        .each(function () {
-            const currentElement = d3.select(this);
-            setStyleFromOptions(currentElement, additionalOptionsBar);
-        });
+    // The normal bar sits next to the labels, the inverted bar left of it;
+    // with only inverted links, the inverted bar takes the normal bar's place
+    if (hasNormal) {
+        drawBar("linear-gradient", linkOptions.normalColor, xPosition);
+    }
+    if (hasInverted) {
+        drawBar("reverse-gradient", linkOptions.invertedColor, hasNormal ? xPosition - width : xPosition);
+    }
 
-    // Draw labels for the normal gradient
+    // Draw the min and max labels
     g.append("text")
         .attr("x", xPosition + width + labelOptions.xOffset)
         .attr("y", yPosition - labelOptions.yOffset)
@@ -1042,45 +1053,10 @@ function makeColorBar(graphContainer, links) {
         .attr("alignment-baseline", "middle")
         .attr("font-size", labelOptions.fontSize)
         .text(minValue + '%')
-                .each(function () {
+        .each(function () {
             const currentElement = d3.select(this);
             setStyleFromOptions(currentElement, additionalOptionsLabel);
         });
-
-    // Draw the inverted bar only if the strands are not the same
-    if (!allStrandsEqual(links[0].data)) {
-        const reverseGradientId = getUniqueId("reverse-gradient")
-        const reverseGradient = defs.append("linearGradient")
-            .attr("id", reverseGradientId)
-            .attr("gradientTransform", "rotate(90)");
-
-        // Define a color scale for the inverted gradient
-        const reverseColorScale = d3.scaleSequential(t => d3.interpolate("#FFF", linkOptions.invertedColor)(t))
-            .domain([0, 100]);
-
-        // Set the gradient stops for the inverted gradient
-        reverseGradient.append("stop")
-            .attr("offset", "0%")
-            .attr("stop-color", reverseColorScale(maxValue));
-
-        reverseGradient.append("stop")
-            .attr("offset", "100%")
-            .attr("stop-color", reverseColorScale(minValue));
-
-        g.append("rect")
-            .attr("x", xPosition - width)
-            .attr("y", yPosition)
-            .attr("width", width)
-            .attr("height", height)
-            .style("fill", `url(#${reverseGradientId})`)
-            .style("stroke", barOptions.stroke)
-            .style("stroke-width", barOptions.strokeWidth)
-            .style("opacity", barOptions.opacity)
-            .each(function () {
-                const currentElement = d3.select(this);
-                setStyleFromOptions(currentElement, additionalOptionsBar);
-            });
-    }
 }
 
 // Cluster functions

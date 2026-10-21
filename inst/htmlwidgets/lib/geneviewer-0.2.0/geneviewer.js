@@ -1800,7 +1800,6 @@ container.prototype.coordinates = function (show = true, options = {}) {
       });
     } else {
          // Calculate overlap and distribute tick values between top and bottom
-    const totalXValueRange = this.xScale(allTickValues[allTickValues.length - 1].value) - this.xScale(allTickValues[0].value);
     const tickValueThreshold = combinedOptions.overlapThreshold;
 
     for (let i = 0; i < allTickValues.length; i++) {

@@ -7,6 +7,7 @@
 - `GC_annotation(type = "arrow", arrowStyle = ...)` now applies all `arrowStyle` options (e.g. `stroke`, `strokeWidth`, `fillOpacity`) to the arrow head; only `fill` was used.
 - Arrow heads of `GC_annotation(type = "arrow")` and `type = "textMarker"` no longer take the size and colour of an arrow at the same position in another cluster or chart.
 - `GC_scale(breaks = ...)` now works with breaks in any order; breaks not sorted by start put genes and axis ticks at the wrong position.
+- `GC_coordinates()` no longer stops the chart from drawing when a cluster has no genes in view (e.g. after `GC_scale(start = , end = )`); clusters below it and the bottom legend were missing.
 
 # geneviewer 0.2.0
 

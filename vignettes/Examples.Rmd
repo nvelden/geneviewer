@@ -142,6 +142,51 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
 
 <br>
 
+The same gene clusters in black and white, using patterns instead of colours (`GC_pattern()` is only available in the development version).
+
+<details>
+<summary>Click to see the code</summary>
+```{r echo=TRUE, results='hide'}
+  GC_chart(ophA_clusters, 
+           start = "start",
+           end = "end",
+           group = "class",
+           cluster = "cluster") %>%
+  GC_clusterFooter(
+    title = c("<i>Omphalotus olearius</i>", "<i>Dendrothele bispora</i>"), 
+    subtitle = c("Locus: 2,522 - 21,484", "Locus: 19,236 - 43,005"),
+    align = "left",
+    x = 50) %>%
+  GC_legend(position = "top") %>%
+  GC_labels(label = "name") %>%
+  GC_scaleBar(y = 20) %>%
+  GC_scale(cluster = 1,  scale_breaks = TRUE, hidden = TRUE) %>%
+  GC_scale(cluster = 2, reverse = TRUE, hidden = TRUE) %>%
+  GC_pattern()
+```
+</details>
+
+```{r echo = FALSE, results='asis'}
+  GC_chart(ophA_clusters, 
+           start = "start",
+           end = "end",
+           group = "class",
+           cluster = "cluster") %>%
+  GC_clusterFooter(
+    title = c("<i>Omphalotus olearius</i>", "<i>Dendrothele bispora</i>"), 
+    subtitle = c("Locus: 2,522 - 21,484", "Locus: 19,236 - 43,005"),
+    align = "left",
+    x = 50) %>%
+  GC_legend(position = "top") %>%
+  GC_labels(label = "name") %>%
+  GC_scaleBar(y = 20) %>%
+  GC_scale(cluster = 1,  scale_breaks = TRUE, hidden = TRUE) %>%
+  GC_scale(cluster = 2, reverse = TRUE, hidden = TRUE) %>%
+  GC_pattern()
+```
+
+<br>
+
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, results='hide'}

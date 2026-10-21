@@ -1254,3 +1254,56 @@ test_that("GC_grid margins work with pixel and percentage heights (B18)", {
   expect_error(GC_chart(genes, cluster = "cluster", height = "100%") %>% GC_grid(margin = list(top = "10%")),
                "pixel values")
 })
+
+test_that("GC_genes and GC_transcript keep GC_color and GC_pattern settings (B43)", {
+  genes <- data.frame(
+    start = c(10, 50, 90, 130), end = c(40, 80, 120, 160),
+    group = c("A", "A", "B", "C"), cluster = c(1, 1, 2, 2)
+  )
+  cols <- list(A = "gold", B = "hotpink", C = "purple")
+  chart <- GC_chart(genes, cluster = "cluster", group = "group")
+
+  # GC_color() then GC_genes(): colours kept
+  chart1 <- chart %>% GC_color(customColors = cols) %>% GC_genes(marker = "box")
+  for (cl in names(chart1$x$series)) {
+    expect_equal(chart1$x$series[[cl]]$genes$customColors, cols)
+    expect_equal(chart1$x$series[[cl]]$genes$marker, "box")
+  }
+
+  # GC_pattern() then GC_genes(): pattern kept
+  chart2 <- chart %>% GC_pattern() %>% GC_genes(marker = "box")
+  for (cl in names(chart2$x$series)) {
+    expect_equal(chart2$x$series[[cl]]$genes$pattern,
+                 chart2$x$legend$legendOptions$pattern)
+  }
+
+  # New colours in GC_genes() replace both old colour options
+  chart3 <- chart %>% GC_color(customColors = cols) %>% GC_genes(colorScheme = "schemeAccent")
+  expect_equal(chart3$x$series[["1"]]$genes$colorScheme, "schemeAccent")
+  expect_null(chart3$x$series[["1"]]$genes$customColors)
+
+  # GC_genes() colours reach the legend, but not when only some clusters are set
+  expect_equal(GC_genes(chart, customColors = cols)$x$legend$legendOptions$customColors, cols)
+  expect_null(GC_genes(chart, customColors = cols, cluster = 1)$x$legend$legendOptions$customColors)
+
+  # Same for GC_transcript()
+  tx <- data.frame(
+    transcript = c("t1", "t1", "t2"), type = "exon",
+    start = c(1, 50, 1), end = c(20, 80, 30), group = c("A", "B", "A")
+  )
+  tchart <- GC_chart(tx, group = "group") %>%
+    GC_transcript(transcript = "transcript", type = "type") %>%
+    GC_color(customColors = cols) %>%
+    GC_pattern() %>%
+    GC_transcript(show = TRUE)
+  for (tr in names(tchart$x$series)) {
+    expect_equal(tchart$x$series[[tr]]$transcript$customColors, cols)
+    expect_false(is.null(tchart$x$series[[tr]]$transcript$pattern))
+  }
+  expect_equal(
+    (GC_chart(tx, group = "group") %>%
+       GC_transcript(transcript = "transcript", type = "type", customColors = cols)
+    )$x$legend$legendOptions$customColors,
+    cols
+  )
+})

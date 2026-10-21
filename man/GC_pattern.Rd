@@ -44,8 +44,7 @@ Returns the gene chart object with updated pattern settings.
 \description{
 Fills the genes, exons and legend markers with a pattern per group, for
 example for black and white figures. Patterns can also be drawn on top of the
-gene colours to show each group with both a colour and a pattern. Call
-`GC_pattern()` after `GC_genes()` and `GC_transcript()`, which reset it.
+gene colours to show each group with both a colour and a pattern.
 }
 \examples{
 genes_data <- data.frame(

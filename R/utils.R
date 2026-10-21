@@ -423,3 +423,40 @@ update_cluster_data <- function(data, updated_data, by_col = "rowID") {
   return(result)
 }
 
+
+#' Keep colour and pattern options when gene or transcript options are reset
+#'
+#' `GC_genes()` and `GC_transcript()` replace their options, which would drop
+#' colours from `GC_color()` and patterns from `GC_pattern()`. This copies them
+#' from the old options unless new colours or a new pattern are given.
+#'
+#' @param options List, the new options.
+#' @param old List or NULL, the options they replace.
+#' @return The new options with the old colours and pattern added.
+#' @noRd
+keep_color_options <- function(options, old) {
+  if (is.null(options$colorScheme) && is.null(options$customColors)) {
+    options$colorScheme <- old$colorScheme
+    options$customColors <- old$customColors
+  }
+  if (is.null(options$pattern)) {
+    options$pattern <- old$pattern
+  }
+  options
+}
+
+#' Set the legend colours to the gene colours
+#'
+#' @param GC_chart The gene chart object.
+#' @param colorScheme,customColors The colours given to `GC_genes()` or
+#'   `GC_transcript()`.
+#' @return The gene chart object.
+#' @noRd
+set_legend_colors <- function(GC_chart, colorScheme, customColors) {
+  if (is.null(colorScheme) && is.null(customColors)) {
+    return(GC_chart)
+  }
+  GC_chart$x$legend$legendOptions$colorScheme <- colorScheme
+  GC_chart$x$legend$legendOptions$customColors <- customColors
+  GC_chart
+}

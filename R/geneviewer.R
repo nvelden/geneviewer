@@ -1492,7 +1492,10 @@ GC_coordinates <- function(
 #' ('small', 'medium', 'large').
 #' @param show Logical, whether to show the genes or not.
 #' @param colorScheme Character or NULL, the name of the color scheme to use.
-#' @param customColors List or NULL, custom colors to apply to the genes.
+#'   When no `cluster` is selected, the legend uses the same colours. NULL keeps
+#'   the colours set by `GC_color()`.
+#' @param customColors List or NULL, custom colors to apply to the genes. When no
+#'   `cluster` is selected, the legend uses the same colours.
 #' @param cluster Numeric or character, the specific cluster to filter genes by.
 #' @param itemStyle List, a list of styles to apply to individual items in the
 #'   chart.
@@ -1589,8 +1592,14 @@ GC_genes <- function(
       ...
     ))
 
-    GC_chart$x$series[[clusters[i]]]$genes <- options
+    GC_chart$x$series[[clusters[i]]]$genes <-
+      keep_color_options(options, GC_chart$x$series[[clusters[i]]]$genes)
 
+  }
+
+  # The legend shows all clusters, so it only follows colours set for all of them
+  if (is.null(cluster)) {
+    GC_chart <- set_legend_colors(GC_chart, colorScheme, customColors)
   }
 
   # Check if prevent_gene_overlap is called last
@@ -1624,7 +1633,10 @@ GC_genes <- function(
 #'  transcripts by.
 #'@param show Logical, whether to show the transcripts or not.
 #'@param colorScheme Character or NULL, the name of the color scheme to use.
-#'@param customColors List or NULL, custom colors to apply to the genes.
+#'  When no `selection` is made, the legend uses the same colours. NULL keeps
+#'  the colours set by `GC_color()`.
+#'@param customColors List or NULL, custom colors to apply to the genes. When no
+#'  `selection` is made, the legend uses the same colours.
 
 #'@param styleExons List, styles to apply to exons in the chart.
 #'@param styleIntrons List, styles to apply to introns in the chart.
@@ -1850,8 +1862,14 @@ GC_transcript <- function(GC_chart,
       )
     )
 
-    GC_chart$x$series[[clusters[i]]]$transcript <- options
+    GC_chart$x$series[[clusters[i]]]$transcript <-
+      keep_color_options(options, GC_chart$x$series[[clusters[i]]]$transcript)
 
+  }
+
+  # The legend shows all transcripts, so it only follows colours set for all of them
+  if (is.null(selection)) {
+    GC_chart <- set_legend_colors(GC_chart, colorScheme, customColors)
   }
 
   GC_chart$x$transcript_called <- TRUE
@@ -1928,8 +1946,7 @@ GC_color <- function(
 #'
 #' Fills the genes, exons and legend markers with a pattern per group, for
 #' example for black and white figures. Patterns can also be drawn on top of the
-#' gene colours to show each group with both a colour and a pattern. Call
-#' `GC_pattern()` after `GC_genes()` and `GC_transcript()`, which reset it.
+#' gene colours to show each group with both a colour and a pattern.
 #'
 #' @param GC_chart The gene chart object to be modified.
 #' @param patterns NULL, a vector of pattern names or a named list of pattern

@@ -362,54 +362,156 @@ function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
 }
 
 function getColorScale(colorScheme, customColors, uniqueGroups) {
-  let colorScale;
-
   const schemeCategory30 = [
     "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
     "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
     "#393b79", "#637939", "#8c6d31", "#843c39", "#7b4173",
     "#bd9e39", "#ad494a", "#d6616b", "#31a354", "#cedb9c",
-    "#9c9ede", "#637939", "#8ca252", "#b5cf6b", "#cedb9c",
-    "#8c6d31", "#e7cb94", "#e7969c", "#7b4173", "#a55194"
+    "#9c9ede", "#5254a3", "#8ca252", "#b5cf6b", "#e7ba52",
+    "#ce6dbd", "#e7cb94", "#e7969c", "#6b6ecf", "#a55194"
   ];
+
+  // Colours are assigned to the non-null groups only, so genes() (which keeps
+  // null groups) and legend() (which drops them) give each group the same colour.
+  // Null groups are white.
+  const groups = uniqueGroups.filter(group => group !== null);
+  let range;
 
   if (customColors && typeof customColors === "string") {
     // Handle customColors as a single color
-    colorScale = d3.scaleOrdinal()
-      .domain(uniqueGroups)
-      .range(uniqueGroups.map(() => customColors));
+    range = groups.map(() => customColors);
   } else if (customColors && Array.isArray(customColors)) {
     // Handle customColors as an array
-    colorScale = d3.scaleOrdinal()
-      .domain(uniqueGroups)
-      .range(uniqueGroups.map((group, index) => customColors[index % customColors.length] || "#FFF"));
+    range = groups.map((group, index) => customColors[index % customColors.length] || "#FFF");
   } else if (customColors && typeof customColors === 'object') {
     // Handle customColors as an object
-    colorScale = d3.scaleOrdinal()
-      .domain(uniqueGroups)
-      .range(uniqueGroups.map(group => customColors[group] || "#FFF"));
-  } else if (colorScheme) {
-    if (!d3[colorScheme]) {
-      console.warn(`Warning: The color scheme "${colorScheme}" does not exist. Defaulting to schemeCategory30.`);
-      colorScale = d3.scaleOrdinal(schemeCategory30).domain(uniqueGroups);
-    } else {
-      colorScale = d3.scaleOrdinal(d3[colorScheme])
-        .domain(uniqueGroups);
-      // Check if uniqueGroups are more than the colors in the colorScale
-      if (uniqueGroups.length > colorScale.range().length) {
-        console.warn(`Warning: More unique groups than colors. Some colors will repeat.`);
-      }
+    range = groups.map(group => customColors[group] || "#FFF");
+  } else if (colorScheme && d3[colorScheme]) {
+    const scheme = d3[colorScheme];
+    // Check if there are more groups than colors in the scheme
+    if (groups.length > scheme.length) {
+      console.warn(`Warning: More unique groups than colors. Some colors will repeat.`);
     }
+    range = groups.map((group, index) => scheme[index % scheme.length]);
   } else {
+    if (colorScheme) {
+      console.warn(`Warning: The color scheme "${colorScheme}" does not exist. Defaulting to schemeCategory30.`);
+    }
     // Default to schemeCategory30
-    colorScale = d3.scaleOrdinal(schemeCategory30)
-      .domain(uniqueGroups)
-      .range(uniqueGroups.map(group =>
-        group === "No Hit" || group === null ? "#FFF" : schemeCategory30[uniqueGroups.indexOf(group) % schemeCategory30.length]
-      ));
+    range = groups.map((group, index) =>
+      group === "No Hit" ? "#FFF" : schemeCategory30[index % schemeCategory30.length]
+    );
   }
 
-  return colorScale;
+  return d3.scaleOrdinal()
+    .domain([...groups, null])
+    .range([...range, "#FFF"]);
+}
+
+// Pattern tiles: each draws the foreground of a square pattern tile of size s.
+const genePatterns = {
+  none: () => {},
+  solid: (p, s, color) => p.append("rect").attr("width", s).attr("height", s).attr("fill", color),
+  horizontal: (p, s, color, w) => p.append("path").attr("d", `M0,${s / 2}H${s}`).attr("stroke", color).attr("stroke-width", w),
+  vertical: (p, s, color, w) => p.append("path").attr("d", `M${s / 2},0V${s}`).attr("stroke", color).attr("stroke-width", w),
+  // The corner segments keep the lines unbroken where tiles meet
+  diagonal: (p, s, color, w) => p.append("path")
+    .attr("d", `M0,${s}L${s},0M${-s / 4},${s / 4}L${s / 4},${-s / 4}M${s * 3 / 4},${s * 5 / 4}L${s * 5 / 4},${s * 3 / 4}`)
+    .attr("stroke", color).attr("stroke-width", w),
+  antidiagonal: (p, s, color, w) => p.append("path")
+    .attr("d", `M0,0L${s},${s}M${-s / 4},${s * 3 / 4}L${s / 4},${s * 5 / 4}M${s * 3 / 4},${-s / 4}L${s * 5 / 4},${s / 4}`)
+    .attr("stroke", color).attr("stroke-width", w),
+  grid: (p, s, color, w) => p.append("path").attr("d", `M0,${s / 2}H${s}M${s / 2},0V${s}`).attr("stroke", color).attr("stroke-width", w),
+  crosshatch: (p, s, color, w) => {
+    genePatterns.diagonal(p, s, color, w);
+    genePatterns.antidiagonal(p, s, color, w);
+  },
+  dots: (p, s, color) => p.append("circle").attr("cx", s / 2).attr("cy", s / 2).attr("r", s / 5).attr("fill", color),
+  zigzag: (p, s, color, w) => p.append("path")
+    .attr("d", `M0,${s * 0.7}L${s / 2},${s * 0.3}L${s},${s * 0.7}`)
+    .attr("fill", "none").attr("stroke", color).attr("stroke-width", w)
+};
+
+// Mirror-image patterns (diagonal and antidiagonal) are far apart, so neighbouring groups do not look alike
+const defaultPatternOrder = ["diagonal", "dots", "horizontal", "crosshatch", "vertical", "zigzag", "solid", "grid", "antidiagonal"];
+
+// Returns the value for each group from a single value, an array (recycled) or an object (by group name).
+function valuesByGroup(values, groups, fallback) {
+  if (values === null || values === undefined) {
+    return groups.map(() => fallback);
+  }
+  if (typeof values === "string") {
+    return groups.map(() => values);
+  }
+  if (Array.isArray(values)) {
+    return groups.map((group, index) => values[index % values.length]);
+  }
+  return groups.map(group => values[group] ?? fallback);
+}
+
+// Adds a <pattern> for each group to the <defs> of svg and returns a fill and
+// a stroke function per group. Patterns are defined in every SVG that uses
+// them, because the save button renders each SVG on its own.
+function getPatternScale(svg, pattern, uniqueGroups, colorScale, idPrefix) {
+  if (!pattern) {
+    return { fill: colorScale, stroke: colorScale, outline: null, align: () => {} };
+  }
+
+  const { patterns = null, color = "black", background = null, size = 6, strokeWidth = 1 } = pattern;
+
+  // Same groups and order as getColorScale, so genes and legend match
+  const groups = uniqueGroups.filter(group => group !== null);
+  const types = valuesByGroup(patterns, groups, "none");
+  if (patterns === null || patterns === undefined) {
+    groups.forEach((group, index) => {
+      types[index] = defaultPatternOrder[index % defaultPatternOrder.length];
+    });
+    if (groups.length > defaultPatternOrder.length) {
+      console.warn(`Warning: More unique groups than patterns. Some patterns will repeat.`);
+    }
+  }
+  const backgrounds = valuesByGroup(background, groups, null);
+
+  const svgId = svg.attr("id") || "geneviewer";
+  const defs = svg.append("defs");
+  const fills = new Map();
+  const tiles = new Map();
+
+  groups.forEach((group, index) => {
+    let type = types[index];
+    if (!genePatterns[type]) {
+      console.warn(`Warning: The pattern "${type}" does not exist. Using "none".`);
+      type = "none";
+    }
+    // "No Hit" stays a plain white gene, like in the default colours
+    if (group === "No Hit" && (patterns === null || patterns === undefined)) {
+      type = "none";
+    }
+    const id = `${svgId}-${idPrefix}-pattern-${index}`;
+    const tile = defs.append("pattern")
+      .attr("id", id)
+      .attr("patternUnits", "userSpaceOnUse")
+      .attr("width", size)
+      .attr("height", size);
+    tile.append("rect")
+      .attr("width", size)
+      .attr("height", size)
+      .attr("fill", backgrounds[index] ?? colorScale(group));
+    genePatterns[type](tile, size, color, strokeWidth);
+    fills.set(group, `url(#${id})`);
+    tiles.set(group, tile);
+  });
+
+  return {
+    fill: group => fills.get(group) ?? colorScale(group),
+    // Lines (introns, UTR outlines) take the pattern colour when the
+    // background replaces the gene colours, and keep the gene colour otherwise
+    stroke: group => (background === null || background === undefined) ? colorScale(group) : color,
+    // Outline for legend markers, so white and patterned markers stay visible
+    outline: color,
+    // Starts the tiles of a group at (x, y), e.g. at the corner of its legend marker
+    align: (group, x, y) => tiles.get(group)?.attr("x", x).attr("y", y)
+  };
 }
 
 
@@ -423,6 +525,10 @@ function isInAnyDiscontinuity(value, breaks) {
 }
 
 function createDiscontinuousScale(minStart, maxEnd, width, margin, breaks, reverse = false) {
+  // The adjustment loop below stops at the first break right of a value,
+  // so the breaks must be sorted by start
+  breaks = [...breaks].sort((a, b) => a.start - b.start);
+
   let totalGap = 0;
 
   // Calculate the total gap based on all discontinuities
@@ -474,6 +580,20 @@ function createDiscontinuousScale(minStart, maxEnd, width, margin, breaks, rever
       scaleProxy[prop] = linearScale[prop];
     }
   }
+
+  // invert() of the linear scale doesn't know about the breaks: add back the
+  // width of every break left of the position (breaks are sorted by start)
+  scaleProxy.invert = function (px) {
+    let value = linearScale.invert(px);
+    for (let gap of breaks) {
+      if (value > gap.start) {
+        value += (gap.end - gap.start);
+      } else {
+        break;
+      }
+    }
+    return value;
+  };
 
   return scaleProxy;  // Return the discontinuous scale
 }
@@ -765,9 +885,7 @@ function makeLinks(graphContainer, links, clusters) {
       .attr("height", graphRect.height)
       .classed("GeneLink", true)
       .style("position", "absolute")
-      .style("z-index", 1)
-      .style("left", `${graphContainer.left}px`)
-      .style("top", `${graphContainer.top}px`);
+      .style("z-index", 1);
 
     links.forEach(function(link) {
 
@@ -849,28 +967,24 @@ function getClusterLinks(data, cluster) {
     return clusterLinks;
 }
 
-function allStrandsEqual(data) {
-    data.strand1 = data.strand1 || [];
-    data.strand2 = data.strand2 || [];
-    let allStrandsEqual = true;
-    let previousStrand1, previousStrand2;
+// Which link colours a chart has, over all link sets: like makeLinks(), a link
+// is inverted (invertedColor) when its two ends are on different strands
+function linkColorTypes(links) {
+    let normal = false;
+    let inverted = false;
 
-    for (let i = 0; i < data.start1.length; i++) {
-        const strand1 = data.start1[i] > data.end1[i] ? "forward" : "reverse";
-        const strand2 = data.start2[i] > data.end2[i] ? "forward" : "reverse";
-
-        data.strand1[i] = strand1;
-        data.strand2[i] = strand2;
-
-        if (i > 0 && (strand1 !== previousStrand1 || strand2 !== previousStrand2)) {
-            allStrandsEqual = false;
+    links.forEach(link => {
+        const { start1 = [], end1 = [], start2 = [], end2 = [] } = link.data;
+        for (let i = 0; i < start1.length; i++) {
+            if ((start1[i] <= end1[i]) === (start2[i] <= end2[i])) {
+                normal = true;
+            } else {
+                inverted = true;
+            }
         }
+    });
 
-        previousStrand1 = strand1;
-        previousStrand2 = strand2;
-    }
-
-    return allStrandsEqual;
+    return { normal, inverted };
 }
 
 function makeColorBar(graphContainer, links) {
@@ -882,6 +996,12 @@ function makeColorBar(graphContainer, links) {
       return null;
     }
     if (!links[0].data.hasOwnProperty('identity') && !links[0].data.hasOwnProperty('similarity')) {
+      return null;
+    }
+
+    // Only draw a gradient for the link colours on the chart
+    const { normal: hasNormal, inverted: hasInverted } = linkColorTypes(links);
+    if (!hasNormal && !hasInverted) {
       return null;
     }
 
@@ -949,29 +1069,11 @@ function makeColorBar(graphContainer, links) {
     const g = svg.append("g")
         .attr("transform", `translate(${linkOptions.margin.left}, ${linkOptions.margin.top})`);
 
-    // Create a linear gradient for the normal bar
     const defs = g.append("defs");
-    const forwardGradientId = getUniqueId("linear-gradient")
-    const linearGradient = defs.append("linearGradient")
-        .attr("id", forwardGradientId)
-        .attr("gradientTransform", "rotate(90)");
 
     const identityArray = links.flatMap(link => link.data[linkOptions.measure]);
     const minValue = Math.round(Math.min(...identityArray));
     const maxValue = Math.round(Math.max(...identityArray));
-
-    // Define a color scale for the normal gradient
-    const colorScale = d3.scaleSequential(t => d3.interpolate("#FFF", linkOptions.normalColor)(t))
-        .domain([0, 100]);
-
-    // Set the gradient stops for the normal gradient
-    linearGradient.append("stop")
-        .attr("offset", "0%")
-        .attr("stop-color", colorScale(maxValue));
-
-    linearGradient.append("stop")
-        .attr("offset", "100%")
-        .attr("stop-color", colorScale(minValue));
 
     // Calculate dimensions for drawing the color bar
     const contentWidth = graphRect.width - linkOptions.margin.left - linkOptions.margin.right;
@@ -982,6 +1084,39 @@ function makeColorBar(graphContainer, links) {
 
     const xPosition = contentWidth - width - colorBarOptions.x;
     const yPosition = contentHeight - height - colorBarOptions.y;
+
+    // Draw a gradient bar from white to color (maxValue at the top) at x
+    const drawBar = (baseId, color, x) => {
+        const gradientId = getUniqueId(baseId);
+        const gradient = defs.append("linearGradient")
+            .attr("id", gradientId)
+            .attr("gradientTransform", "rotate(90)");
+
+        const colorScale = d3.scaleSequential(t => d3.interpolate("#FFF", color)(t))
+            .domain([0, 100]);
+
+        gradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", colorScale(maxValue));
+
+        gradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", colorScale(minValue));
+
+        g.append("rect")
+            .attr("x", x)
+            .attr("y", yPosition)
+            .attr("width", width)
+            .attr("height", height)
+            .style("fill", `url(#${gradientId})`)
+            .style("stroke", barOptions.stroke)
+            .style("stroke-width", barOptions.strokeWidth)
+            .style("opacity", barOptions.opacity)
+            .each(function () {
+                const currentElement = d3.select(this);
+                setStyleFromOptions(currentElement, additionalOptionsBar);
+            });
+    };
 
      // Add the title text with rotation
     g.append("text")
@@ -997,22 +1132,16 @@ function makeColorBar(graphContainer, links) {
             setStyleFromOptions(currentElement, additionalOptionsTitle);
         });
 
-    // Draw the normal color gradient bar with stroke and opacity
-    g.append("rect")
-        .attr("x", xPosition)
-        .attr("y", yPosition)
-        .attr("width", width)
-        .attr("height", height)
-        .style("fill", `url(#${forwardGradientId})`)
-        .style("stroke", barOptions.stroke)
-        .style("stroke-width", barOptions.strokeWidth)
-        .style("opacity", barOptions.opacity)
-        .each(function () {
-            const currentElement = d3.select(this);
-            setStyleFromOptions(currentElement, additionalOptionsBar);
-        });
+    // The normal bar sits next to the labels, the inverted bar left of it;
+    // with only inverted links, the inverted bar takes the normal bar's place
+    if (hasNormal) {
+        drawBar("linear-gradient", linkOptions.normalColor, xPosition);
+    }
+    if (hasInverted) {
+        drawBar("reverse-gradient", linkOptions.invertedColor, hasNormal ? xPosition - width : xPosition);
+    }
 
-    // Draw labels for the normal gradient
+    // Draw the min and max labels
     g.append("text")
         .attr("x", xPosition + width + labelOptions.xOffset)
         .attr("y", yPosition - labelOptions.yOffset)
@@ -1030,45 +1159,10 @@ function makeColorBar(graphContainer, links) {
         .attr("alignment-baseline", "middle")
         .attr("font-size", labelOptions.fontSize)
         .text(minValue + '%')
-                .each(function () {
+        .each(function () {
             const currentElement = d3.select(this);
             setStyleFromOptions(currentElement, additionalOptionsLabel);
         });
-
-    // Draw the inverted bar only if the strands are not the same
-    if (!allStrandsEqual(links[0].data)) {
-        const reverseGradientId = getUniqueId("reverse-gradient")
-        const reverseGradient = defs.append("linearGradient")
-            .attr("id", reverseGradientId)
-            .attr("gradientTransform", "rotate(90)");
-
-        // Define a color scale for the inverted gradient
-        const reverseColorScale = d3.scaleSequential(t => d3.interpolate("#FFF", linkOptions.invertedColor)(t))
-            .domain([0, 100]);
-
-        // Set the gradient stops for the inverted gradient
-        reverseGradient.append("stop")
-            .attr("offset", "0%")
-            .attr("stop-color", reverseColorScale(maxValue));
-
-        reverseGradient.append("stop")
-            .attr("offset", "100%")
-            .attr("stop-color", reverseColorScale(minValue));
-
-        g.append("rect")
-            .attr("x", xPosition - width)
-            .attr("y", yPosition)
-            .attr("width", width)
-            .attr("height", height)
-            .style("fill", `url(#${reverseGradientId})`)
-            .style("stroke", barOptions.stroke)
-            .style("stroke-width", barOptions.strokeWidth)
-            .style("opacity", barOptions.opacity)
-            .each(function () {
-                const currentElement = d3.select(this);
-                setStyleFromOptions(currentElement, additionalOptionsBar);
-            });
-    }
 }
 
 // Cluster functions
@@ -1217,11 +1311,11 @@ container.prototype.scale = function (options = {}) {
               d3.max(this.data, d => Math.max(d.start, d.end));
 
   if(start == null){
-  this.minStart = addScalePadding(this.minStart, this.maxEnd, padding, to = "start")
+  this.minStart = addScalePadding(this.minStart, this.maxEnd, padding, "start")
   }
 
   if(end == null){
-  this.maxEnd = addScalePadding(this.minStart, this.maxEnd, padding, to = "end")
+  this.maxEnd = addScalePadding(this.minStart, this.maxEnd, padding, "end")
   }
 
   // Create scales
@@ -1241,7 +1335,7 @@ container.prototype.scale = function (options = {}) {
     const axisGroup = this.svg.append("g")
       .attr("transform", `translate(${this.margin.left},${this.margin.top + adjustedYOffset})`);
 
-    linearScale = d3.scaleLinear()
+    const linearScale = d3.scaleLinear()
       .domain([this.minStart, this.maxEnd])
       .range([0, this.width - this.margin.left - this.margin.right]);
 
@@ -1504,7 +1598,7 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
       .each(function () {
         const currentElement = d3.select(this);
         parseAndStyleText(subtitle, currentElement, subtitleFont);
-        setStyleFromOptions(currentElement, subtitleFont);
+        setStyleFromOptions(currentElement, additionalOptionsSubtitleFont);
       });
   }
 
@@ -1643,15 +1737,15 @@ container.prototype.sequence = function (show = true, options = {}) {
   var g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
-  var minStart = start || d3.min(this.data, d => Math.min(d.start, d.end));
-  var maxEnd = end || d3.max(this.data, d => Math.max(d.start, d.end));
+  var minStart = start ?? d3.min(this.data, d => Math.min(d.start, d.end));
+  var maxEnd = end ?? d3.max(this.data, d => Math.max(d.start, d.end));
 
   if(start == null){
-  minStart = addScalePadding(minStart, maxEnd, this.padding, to = "start")
+  minStart = addScalePadding(minStart, maxEnd, this.padding, "start")
   }
 
   if(end == null){
-  maxEnd = addScalePadding(minStart, maxEnd, this.padding, to = "end")
+  maxEnd = addScalePadding(minStart, maxEnd, this.padding, "end")
   }
 
   // Draw baseline with sequenceStyle
@@ -1668,48 +1762,40 @@ container.prototype.sequence = function (show = true, options = {}) {
       setStyleFromOptions(currentElement, additionalOptionsSequence);
     });
 
-  // Draw break markers with tilted lines
+  // Draw break markers with tilted lines, each markerStyle.gap px away from the break
   for (let gap of this.breaks) {
-    const xStart = this.xScale(gap.start - 0.001) * (1 - markerStyle.gap / 100);
-    const xEnd = this.xScale(gap.end + 0.001) * (1 + markerStyle.gap / 100);
+    const xStart = this.xScale(gap.start - 0.001) - markerStyle.gap;
+    const xEnd = this.xScale(gap.end + 0.001) + markerStyle.gap;
     const yBase = this.yScale(y);
     const yTop = yBase - markerStyle.markerHeight / 2;
     const yBottom = yBase + markerStyle.markerHeight / 2;
 
+    g.append("line")
+      .attr("class", "gap-line")
+      .attr("x1", xStart + (markerStyle.tiltAmount / 2))
+      .attr("y1", yBase)
+      .attr("x2", xEnd - (markerStyle.tiltAmount / 2))
+      .attr("y2", yBase)
+      .attr("stroke", "#0000")
+      .style("stroke-width", sequenceStyle.strokeWidth * 1.1);
 
+    // Draw the tilted line before the gap
+    g.append("line")
+      .attr("x1", xStart)
+      .attr("y1", yTop)
+      .attr("x2", xStart + markerStyle.tiltAmount)
+      .attr("y2", yBottom)
+      .attr("stroke", markerStyle.stroke)
+      .attr("stroke-width", markerStyle.strokeWidth);
 
-    if (xStart !== null && xEnd !== null) {
-      g.append("line")
-        .attr("class", "gap-line")
-        .attr("x1", xStart + (markerStyle.tiltAmount / 2))
-        .attr("y1", yBase)
-        .attr("x2", xEnd - (markerStyle.tiltAmount / 2))
-        .attr("y2", yBase)
-        .attr("stroke", "#0000")
-        .style("stroke-width", sequenceStyle.strokeWidth * 1.1);
-    }
-
-    if (xStart !== null) {
-      // Draw the tilted line before the gap
-      g.append("line")
-        .attr("x1", xStart)
-        .attr("y1", yTop)
-        .attr("x2", xStart + markerStyle.tiltAmount)
-        .attr("y2", yBottom)
-        .attr("stroke", markerStyle.stroke)
-        .attr("stroke-width", markerStyle.strokeWidth);
-    }
-
-    if (xEnd !== null) {
-      // Draw the tilted line after the gap
-      g.append("line")
-        .attr("x1", xEnd - markerStyle.tiltAmount)
-        .attr("y1", yTop)
-        .attr("x2", xEnd)
-        .attr("y2", yBottom)
-        .attr("stroke", markerStyle.stroke)
-        .attr("stroke-width", markerStyle.strokeWidth);
-    }
+    // Draw the tilted line after the gap
+    g.append("line")
+      .attr("x1", xEnd - markerStyle.tiltAmount)
+      .attr("y1", yTop)
+      .attr("x2", xEnd)
+      .attr("y2", yBottom)
+      .attr("stroke", markerStyle.stroke)
+      .attr("stroke-width", markerStyle.strokeWidth);
   }
 
   return this;
@@ -1800,7 +1886,6 @@ container.prototype.coordinates = function (show = true, options = {}) {
       });
     } else {
          // Calculate overlap and distribute tick values between top and bottom
-    const totalXValueRange = this.xScale(allTickValues[allTickValues.length - 1].value) - this.xScale(allTickValues[0].value);
     const tickValueThreshold = combinedOptions.overlapThreshold;
 
     for (let i = 0; i < allTickValues.length; i++) {
@@ -2191,69 +2276,40 @@ container.prototype.tooltip = function (show = true, options = {}) {
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
-  // Generate CSS for the tooltip and its pseudo-element
-  const generateTooltipCSS = (opts, additionalOpts) => {
-    let additionalStyles = Object.entries(additionalOpts).map(([key, value]) => `${camelToKebab(key)}: ${value};`).join(' ');
-    return `
-            .cluster-tooltip {
-                ${additionalStyles}
-                opacity: ${opts.opacity};
-                position: ${opts.position};
-                background-color: ${opts.backgroundColor};
-                padding: ${opts.padding};
-                border-radius: ${opts.borderRadius};
-                border: ${opts.border};
-                box-shadow: ${opts.boxShadow};
-                pointer-events: ${opts.pointerEvents};
-                font-family: ${opts.fontFamily};
-                font-size: ${opts.fontSize};
-                z-index: ${opts.zIndex};
-                color: ${opts.color};
-                line-height: ${opts.lineHeight};
-            }
-            .cluster-tooltip::before {
-                content: "";
-                position: absolute;
-                top: 100%;
-                left: 50%;
-                transform: translateX(-50%);
-                border-width: 5px;
-                border-style: solid;
-                border-color: ${opts.backgroundColor} transparent transparent transparent;
-            }
-        `;
-  };
-
-  // Inject the generated CSS into the document
-  const styleTag = document.createElement("style");
-  styleTag.innerHTML = generateTooltipCSS(combinedOptions, additionalOptions);
-  document.head.appendChild(styleTag);
-
   // Ensure triggers is an array
   if (typeof combinedOptions.triggers === 'string') {
     combinedOptions.triggers = [combinedOptions.triggers];
   }
 
-  // Create the tooltip div if it doesn't exist
-  let tooltip = d3.select("body").select(".cluster-tooltip");
-  if (tooltip.empty()) {
-    tooltip = d3.select("body")
-      .append("div")
-      .attr("class", "cluster-tooltip")
-      .style("opacity", combinedOptions.opacity)
-      .style("position", combinedOptions.position)
-      .style("background-color", combinedOptions.backgroundColor)
-      .style("padding", combinedOptions.padding)
-      .style("border-radius", combinedOptions.borderRadius)
-      .style("border", combinedOptions.border)
-      .style("box-shadow", combinedOptions.boxShadow)
-      .style("pointer-events", combinedOptions.pointerEvents)
-      .style("font-family", combinedOptions.fontFamily)
-      .style("font-size", combinedOptions.fontSize)
-      .style("z-index", combinedOptions.zIndex)
-      .style("color", combinedOptions.color)
-      .style("line-height", combinedOptions.lineHeight);
-  }
+  // One tooltip per cluster, inside the widget element, so each cluster keeps
+  // its own options and the tooltip is removed when the widget redraws.
+  // The arrow (::before in styles.css) takes its colour from --tooltip-bg.
+  const host = this.svg.node().closest(".html-widget") || document.body;
+  const tooltip = d3.select(host)
+    .append("div")
+    .attr("class", "cluster-tooltip")
+    .style("opacity", combinedOptions.opacity)
+    .style("position", combinedOptions.position)
+    .style("background-color", combinedOptions.backgroundColor)
+    .style("--tooltip-bg", combinedOptions.backgroundColor)
+    .style("padding", combinedOptions.padding)
+    .style("border-radius", combinedOptions.borderRadius)
+    .style("border", combinedOptions.border)
+    .style("box-shadow", combinedOptions.boxShadow)
+    .style("pointer-events", combinedOptions.pointerEvents)
+    .style("font-family", combinedOptions.fontFamily)
+    .style("font-size", combinedOptions.fontSize)
+    .style("z-index", combinedOptions.zIndex)
+    .style("color", combinedOptions.color)
+    .style("line-height", combinedOptions.lineHeight);
+  setStyleFromOptions(tooltip, additionalOptions);
+
+  // Place the tooltip centred above the mouse, relative to the widget element
+  const moveTooltip = (event) => {
+    const [x, y] = d3.pointer(event, host);
+    tooltip.style("left", (x - tooltip.node().offsetWidth / 2) + "px")
+      .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
+  };
 
   // Function to generate tooltip content
   const d3Format = d3.format(",");
@@ -2284,31 +2340,21 @@ container.prototype.tooltip = function (show = true, options = {}) {
     selection.on("mouseover", (event, d) => {
       const dataPoint = this.data.find(item => item === d);
 
-      const x = event.pageX;
-      const y = event.pageY;
-
       const element = d3.select(event.currentTarget);
       element.classed("hovered", true);
 
       tooltip.transition()
         .duration(200)
         .style("opacity", 1);
-      tooltip.html(textAccessor(dataPoint))
-        .style("left", (x - tooltip.node().offsetWidth / 2) + "px")
-        .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
+      tooltip.html(textAccessor(dataPoint));
+      moveTooltip(event);
     });
 
     // Mousemove event to reposition the tooltip as the mouse moves
-    selection.on("mousemove", (event, d) => {
-      const x = event.pageX;
-      const y = event.pageY;
-
-      tooltip.style("left", (x - tooltip.node().offsetWidth / 2) + "px")
-        .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
-    });
+    selection.on("mousemove", moveTooltip);
 
     // Mouseout event to hide the tooltip
-    selection.on("mouseout", () => {
+    selection.on("mouseout", (event) => {
 
       const element = d3.select(event.currentTarget);
       element.classed("hovered", false);
@@ -2340,6 +2386,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
     strokeWidth: 1,
     colorScheme: null,
     customColors: null,
+    pattern: null,
     cursor: "default",
     marker: "arrow",
     markerSize: "medium",
@@ -2351,7 +2398,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
-  const { x, y, stroke, strokeWidth, colorScheme, customColors, cursor, itemStyle } = combinedOptions;
+  const { x, y, stroke, strokeWidth, colorScheme, customColors, pattern, cursor, itemStyle } = combinedOptions;
 
   // Extract additional options that aren't in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -2360,6 +2407,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
 
   const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
   this.genesColorScale = colorScale;
+  const patternScale = getPatternScale(this.svg, pattern, uniqueGroups, colorScale, "gene");
 
   var g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
@@ -2419,7 +2467,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
     : (d.direction === 'forward' ? 0 : 180);
       return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (height / 2 )})`;
     })
-    .attr("fill", (d) => colorScale(d[group]))
+    .attr("fill", (d) => patternScale.fill(d[group]))
     .attr("class", "gene")
     .attr("id", (d, i) => `${sanitizeId(d.cluster)}-gene-${i}`)
     .attr("rowID", (d, i) => `${d["rowID"]}`)
@@ -2460,6 +2508,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
     y: 50,
     colorScheme: null,
     customColors: null,
+    pattern: null,
     styleExons: {
       show: true,
       strokeWidth: 0,
@@ -2518,7 +2567,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
-  const { x, y, colorScheme, customColors, styleExons, styleIntrons, styleUTRs, itemStyleExons, itemStyleIntrons, itemStyleUTRs, labelOptions } = combinedOptions;
+  const { x, y, colorScheme, customColors, pattern, styleExons, styleIntrons, styleUTRs, itemStyleExons, itemStyleIntrons, itemStyleUTRs, labelOptions } = combinedOptions;
 
   // Extract additional options that aren't in defaultOptions
   const additionalOptionsExons = extractAdditionalOptions(combinedOptions.styleExons, defaultOptions.styleExons);
@@ -2529,6 +2578,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
 
   const colorScale = getColorScale(colorScheme, customColors, uniqueGroups);
   this.genesColorScale = colorScale;
+  const patternScale = getPatternScale(this.svg, pattern, uniqueGroups, colorScale, "exon");
 
   const g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
@@ -2591,7 +2641,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
           : (d.direction === 'forward' ? 0 : 180);
         return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (height / 2)})`;
       })
-      .attr("fill", (d) => colorScale(d[group]))
+      .attr("fill", (d) => patternScale.fill(d[group]))
       .attr("class", "exon")
       .attr("id", (d, i) => `${sanitizeId(d.cluster)}-exon-${i}`)
       .attr("rowID", (d, i) => `${d["rowID"]}`)
@@ -2642,7 +2692,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
       .attr("strand", (d, i) => `${d["strand"]}`)
       .attr("cluster", (d, i) => `${d["cluster"]}`)
       .style("stroke-width", styleIntrons.strokeWidth)
-      .style("stroke", (d) => colorScale(d[group]))
+      .style("stroke", (d) => patternScale.stroke(d[group]))
       .style("cursor", styleIntrons.cursor)
       .each(function (d, i) {
         const currentElement = d3.select(this);
@@ -2683,7 +2733,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
       .attr("strand", (d, i) => `${d["strand"]}`)
       .attr("cluster", (d, i) => `${d["cluster"]}`)
       .style("stroke-width", styleUTRs.strokeWidth)
-      .style("stroke", (d) => colorScale(d[group]))
+      .style("stroke", (d) => patternScale.stroke(d[group]))
       .style("cursor", styleUTRs.cursor)
       .each(function (d, i) {
         const currentElement = d3.select(this);
@@ -2710,7 +2760,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
     g.append("text")
         .attr("x", xPosition3Prime)
         .attr("y", (d) => this.yScale(y + labelOptions.yOffset))
-        .attr("class", `5-label`)
+        .attr("class", "three-prime-label")
         .attr("text-anchor", "middle")
         .attr("alignment-baseline", "middle")
         .style("font-size", labelOptions.fontSize)
@@ -2725,7 +2775,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
     g.append("text")
         .attr("x", xPosition5Prime)
         .attr("y", (d) => this.yScale(y + labelOptions.yOffset))
-        .attr("class", `5-label`)
+        .attr("class", "five-prime-label")
         .attr("text-anchor", "middle")
         .attr("alignment-baseline", "middle")
         .style("font-size", labelOptions.fontSize)
@@ -2767,7 +2817,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     legendOptions: {
       cursor: "pointer",
       colorScheme: null,
-      customColors: null
+      customColors: null,
+      pattern: null
     },
     legendTextOptions: {
       cursor: "pointer",
@@ -2792,6 +2843,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   uniqueGroups = uniqueGroups.filter(color => color !== null);
 
   const colorScale = getColorScale(legendOptions.colorScheme, legendOptions.customColors, uniqueGroups);
+  const patternScale = getPatternScale(this.svg, legendOptions.pattern, uniqueGroups, colorScale, "legend");
 
   // Separate special groups ("Other", "No Hit", "Unknown") from the rest
   const specialGroups = ["Other", "No Hit", "Unknown"];
@@ -2831,7 +2883,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
       const textLabel = legendGroup
         .append("text")
         .attr("class", "legend-label")
-        .attr("id", (d, i) => `legend-label-${i}`)
+        .attr("id", `legend-label-${i}`)
         .attr("dy", legendTextOptions.dy)
         .style("text-anchor", legendTextOptions.textAnchor)
         .style("font-size", legendTextOptions.fontSize)
@@ -2859,13 +2911,15 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
       const rect = legendGroup
         .append("rect")
         .attr("class", "legend-marker")
-        .attr("id", (d, i) => `legend-marker-${i}`)
+        .attr("id", `legend-marker-${i}`)
         .style("cursor", legendOptions.cursor)
         .attr("x", currentX)
         .attr("y", currentY)
         .attr("width", legendSize)
         .attr("height", legendSize)
-        .style("fill", colorScale(d))
+        .style("fill", patternScale.fill(d))
+        .style("stroke", patternScale.outline)
+        .each(() => patternScale.align(d, currentX, currentY))
         .each(function () {
           const currentElement = d3.select(this);
           setStyleFromOptions(currentElement, additionalLegendOptions);
@@ -2894,7 +2948,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
         element.classed("unselected", true);
       }
 
-      const unselectedLegend = d3.selectAll(".unselected").data();
+      // Only this legend's items: other charts on the page have their own
+      const unselectedLegend = g.selectAll(".unselected").data();
       const unselectedRowIds = this.data
         .filter(item => unselectedLegend.includes(item[group]))
         .map(item => item.rowID);
@@ -3091,8 +3146,10 @@ container.prototype.trackMouse = function(track = true) {
     this.style.cssText += "cursor: crosshair !important;";
   });
 
-  // Tooltip for displaying coordinates
-  const tooltip = d3.select("body").append("div")
+  // Tooltip for displaying coordinates, inside the widget element so it is
+  // removed when the widget redraws
+  const host = this.svg.node().closest(".html-widget") || document.body;
+  const tooltip = d3.select(host).append("div")
     .attr("class", "coordinate-tooltip")
     .style("background-color", "rgba(255, 255, 255, 0.9)")
     .style("padding", "8px")
@@ -3115,13 +3172,13 @@ container.prototype.trackMouse = function(track = true) {
   this.svg.on("mousemove", (event) => {
     const [x, y] = d3.pointer(event);
     const adjustedX = x - this.margin.left
-    loci = Math.round(this.xScale.invert(adjustedX))
+    const loci = Math.round(this.xScale.invert(adjustedX))
     const format = d3.format(",");
 
     tooltip.html(`x: ${format(loci)} <br>y: ${yScale(y).toFixed(1)}`)
       .style("visibility", "visible")
-      .style("left", (event.pageX + 10) + "px")
-      .style("top", (event.pageY - 10) + "px");
+      .style("left", (d3.pointer(event, host)[0] + 10) + "px")
+      .style("top", (d3.pointer(event, host)[1] - 10) + "px");
   });
 
   this.svg.on("mouseout", () => {
@@ -3171,6 +3228,7 @@ container.prototype.createAnnotation = function (group, options) {
       break;
     case 'symbol':
       this.createSymbolAnnotation(group, options);
+      break;
     case 'arc':
       this.createCurveAnnotation(group, options);
       break;
@@ -3326,9 +3384,10 @@ container.prototype.createArrowAnnotation = function (group, options) {
     const currentY2 = y2[Math.min(i, y2.length - 1)];
     const currentArrowSize = arrowSize[Math.min(i, arrowSize.length - 1)];
 
-    // Create a marker for each line
+    // Create a marker for each line; the id must be unique on the page
+    const markerId = getUniqueId("arrowhead");
     this.svg.append("defs").append("marker")
-      .attr("id", `arrowhead-${i}-${currentX1}-${currentX2}`)
+      .attr("id", markerId)
       .attr("viewBox", "-0 -5 10 10")
       .attr("refX", 5)
       .attr("refY", 0)
@@ -3340,7 +3399,8 @@ container.prototype.createArrowAnnotation = function (group, options) {
       .attr("d", "M 0,-5 L 10 ,0 L 0,5")
       .attr("fill", arrowStyle.fill)
       .each(function () {
-        d3.select(this).style(additionalOptionsArrow);
+        const currentElement = d3.select(this);
+        setStyleFromOptions(currentElement, additionalOptionsArrow);
       });
 
     // Draw the line with the arrow marker for each set of values
@@ -3349,7 +3409,7 @@ container.prototype.createArrowAnnotation = function (group, options) {
       .attr("y1", this.yScale(currentY1))
       .attr("x2", this.xScale(currentX2))
       .attr("y2", this.yScale(currentY2 + currentArrowSize / 2))
-      .attr("marker-end", `url(#arrowhead-${i}-${currentX1}-${currentX2})`)
+      .attr("marker-end", `url(#${markerId})`)
       .style("stroke", lineStyle.stroke)
       .style("stroke-width", lineStyle.strokeWidth)
       .each(function () {
@@ -3430,9 +3490,10 @@ container.prototype.createTextMarkerAnnotation = function (group, options) {
       setStyleFromOptions(currentElement, additionalOptionsLine);
     });
 
-  // Create a marker for each line with currentX1 and currentX2 in the ID
+  // Create a marker for each line; the id must be unique on the page
+  const markerId = getUniqueId("arrowhead-marker");
   this.svg.append("defs").append("marker")
-    .attr("id", `arrowhead-marker-${i}-${currentX1}-${currentX2}`)
+    .attr("id", markerId)
     .attr("viewBox", "-0 -5 10 10")
     .attr("refX", 5)
     .attr("refY", 0)
@@ -3449,7 +3510,7 @@ container.prototype.createTextMarkerAnnotation = function (group, options) {
     });
     // Add arrow marker to line if showArrow is true
     if (currentValues.showArrow) {
-      line.attr("marker-end", `url(#arrowhead-marker-${i}-${currentX1}-${currentX2})`);
+      line.attr("marker-end", `url(#${markerId})`);
     }
 
     // Create text element if text is provided

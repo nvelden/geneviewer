@@ -60,6 +60,41 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="geneviewer-development-version">geneviewer (development version)<a class="anchor" aria-label="anchor" href="#geneviewer-development-version"></a></h2>
+<div class="section level4">
+<h4 id="new-features-development-version">New features:<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h4>
+<ul><li>
+<code><a href="../reference/GC_pattern.html">GC_pattern()</a></code> fills genes, exons and legend markers with a pattern per group (<code>"diagonal"</code>, <code>"dots"</code>, <code>"crosshatch"</code>, <code>"grid"</code> and more), for black and white figures. Patterns can be set per group, put on grey backgrounds, or drawn on top of the gene colours with <code>background = NULL</code>. They are kept in the PNG from the save button.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="bug-fixes-development-version">Bug fixes:<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h4>
+<ul><li>
+<code>GC_annotation(type = "symbol")</code> no longer also draws a curve from x = 0 to x = 100.</li>
+<li>The default gene colours now give 30 different colours. Groups 12 and 22, 13 and 26, 15 and 29, and 20 and 25 had the same colour; groups 22, 25, 26 and 29 now get new colours.</li>
+<li>Legend colours now match the gene colours when some genes have an <code>NA</code> group. Genes with an <code>NA</code> group are now always white, also with <code>colorScheme</code> or <code>customColors</code>.</li>
+<li>
+<code>GC_annotation(type = "arrow", arrowStyle = ...)</code> now applies all <code>arrowStyle</code> options (e.g. <code>stroke</code>, <code>strokeWidth</code>, <code>fillOpacity</code>) to the arrow head; only <code>fill</code> was used.</li>
+<li>Arrow heads of <code>GC_annotation(type = "arrow")</code> and <code>type = "textMarker"</code> no longer take the size and colour of an arrow at the same position in another cluster or chart.</li>
+<li>
+<code>GC_scale(breaks = ...)</code> now works with breaks in any order; breaks not sorted by start put genes and axis ticks at the wrong position.</li>
+<li>
+<code><a href="../reference/GC_coordinates.html">GC_coordinates()</a></code> no longer stops the chart from drawing when a cluster has no genes in view (e.g. after <code>GC_scale(start = , end = )</code>); clusters below it and the bottom legend were missing.</li>
+<li>The tooltip <code>mouseout</code> handler no longer relies on the deprecated global <code>window.event</code>.</li>
+<li>Each chart now uses its own <code><a href="../reference/GC_tooltip.html">GC_tooltip()</a></code> options; with several charts on a page, tooltips took the colours and font of another chart. Tooltips are now created inside the chart, so redraws (e.g. on resize) no longer add <code>&lt;style&gt;</code> tags to the page or (with <code><a href="../reference/GC_trackMouse.html">GC_trackMouse()</a></code>) extra tooltip elements.</li>
+<li>Clicking a legend item no longer hides genes that were clicked off in the legend of another chart on the same page.</li>
+<li>
+<code><a href="../reference/GC_trackMouse.html">GC_trackMouse()</a></code> now shows the right position to the right of scale breaks (it was too small by the width of the breaks on the left).</li>
+<li>Charts no longer create the global JavaScript variables <code>to</code> and <code>linearScale</code>, which could overwrite variables of the same name on the page.</li>
+<li>
+<code>GC_sequence(start = 0)</code> and <code>end = 0</code> are no longer ignored; the line started at the first gene instead.</li>
+<li>
+<code>GC_sequence(markerStyle = list(gap = ))</code> is now a distance in pixels between each break marker and the break, the same for every break. It was a percentage of the marker’s x position, so breaks further right opened wider. Charts that set <code>gap</code> get a narrower gap.</li>
+<li>A percentage <code>GC_title(height = )</code> or <code>GC_legend(height = )</code> now follows the chart height when the chart is resized; it kept the pixel height of the first draw.</li>
+<li>Smaller fixes: legend items fade on hover again (an invalid CSS selector dropped the transition), legend items have unique ids, the 3’ and 5’ transcript labels have their own classes (<code>three-prime-label</code>, <code>five-prime-label</code>), and unused or invalid styles were removed from the footer subtitle and the link layer.</li>
+<li>The <code><a href="../reference/GC_links.html">GC_links()</a></code> colour bar now shows a gradient for each link colour on the chart: the inverted gradient only when at least one link (in any <code><a href="../reference/GC_links.html">GC_links()</a></code> set) joins opposite strands, and the normal gradient only when at least one link joins the same strand. Charts with only inverted links showed only the normal gradient, and charts with forward and reverse normal links showed an inverted gradient. The link data is no longer modified.</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="geneviewer-020">geneviewer 0.2.0<a class="anchor" aria-label="anchor" href="#geneviewer-020"></a></h2>
 <div class="section level4">
 <h4 id="enhancements-0-2-0">Enhancements:<a class="anchor" aria-label="anchor" href="#enhancements-0-2-0"></a></h4>

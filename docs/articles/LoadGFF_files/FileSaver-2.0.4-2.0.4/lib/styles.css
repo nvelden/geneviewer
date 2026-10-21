@@ -19,8 +19,8 @@
 
 /* Common styles */
 .legend .legend-marker,
-.legend .legend-label
-.label. {
+.legend .legend-label,
+.label {
     transition: 0.3s ease-in-out;  /* Smooth transitions */
 }
 
@@ -39,4 +39,16 @@
 
 .gene.hovered, .exon.hovered, .utr.hovered, .intron.hovered {
   filter: brightness(80%);
+}
+
+/* Tooltip arrow; each tooltip sets --tooltip-bg to its background colour */
+.cluster-tooltip::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--tooltip-bg, white) transparent transparent transparent;
 }

@@ -37,6 +37,10 @@ HTMLWidgets.widget({
       }
 
       // Add Title
+      // Sizes are computed into copies of the options on every draw, so a "%"
+      // height from R is used again on the next draw (resize)
+
+      var titleHeight = 0;
 
       if (titleOptions !== null && titleOptions?.height !== null && titleOptions?.show) {
 
@@ -46,15 +50,15 @@ HTMLWidgets.widget({
           .classed("geneviewer-container", true);
 
 
-        titleOptions.width = el.clientWidth
-        titleOptions.height = computeSize(titleOptions.height, el.clientHeight)
+        titleHeight = computeSize(titleOptions.height, el.clientHeight);
+        var titleOpts = { ...titleOptions, width: el.clientWidth, height: titleHeight };
 
         var title = createContainer(
           `#geneviewer-title-container-${widgetId}`,
           "svg-container",
           "titleOptions",
-          titleOptions)
-          .title(titleOptions?.title, titleOptions?.subtitle, titleOptions?.show ?? false, titleOptions)
+          titleOpts)
+          .title(titleOpts.title, titleOpts.subtitle, titleOpts.show ?? false, titleOpts)
       }
 
       // Add legend
@@ -68,15 +72,15 @@ HTMLWidgets.widget({
           .attr("id", `geneviewer-legend-container-${widgetId}`)
           .classed("geneviewer-container", true);
 
-        legendOptions.width = width
-        legendOptions.height = computeSize(legendOptions.height, el.clientHeight)
+        var legendOpts = { ...legendOptions, width: width,
+                           height: computeSize(legendOptions.height, el.clientHeight) };
 
         var legendContainer = createContainer(`#geneviewer-legend-container-${widgetId}`,
           "svg-container",
           "legendOptions",
-          legendOptions)
+          legendOpts)
           .legendData(data)
-          .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, el.id, legendOptions);
+          .legend(legendOpts.group ?? false, legendOpts.show ?? false, el.id, legendOpts);
 
         var legendElement = d3.select(`#geneviewer-legend-container-${widgetId}`).node();
         var legendDimensions = legendElement.getBoundingClientRect();
@@ -125,7 +129,7 @@ HTMLWidgets.widget({
 
         var clonedContainerOptions = JSON.parse(JSON.stringify(containerOptions));
         clonedContainerOptions.height = computeSize(clonedContainerOptions.height, el.clientHeight);
-        clonedContainerOptions.height -= titleOptions.height ? (titleOptions.height / clusters.length) : 0;
+        clonedContainerOptions.height -= titleHeight / clusters.length;
         clonedContainerOptions.height -= legendHeight ? (legendHeight / clusters.length) : 0;
         // Percentage heights: take the top and bottom margins (padding) from the clusters
         if (typeof containerOptions.height === "string" && containerOptions.height.endsWith("%")) {
@@ -175,9 +179,9 @@ HTMLWidgets.widget({
         var legendContainer = createContainer(`#geneviewer-legend-container-${widgetId}`,
           "svg-container",
           "legendOptions",
-          legendOptions)
+          legendOpts)
           .legendData(data)
-          .legend(legendOptions?.group ?? false, legendOptions?.show ?? false, el.id, legendOptions);
+          .legend(legendOpts.group ?? false, legendOpts.show ?? false, el.id, legendOpts);
 
       }
 

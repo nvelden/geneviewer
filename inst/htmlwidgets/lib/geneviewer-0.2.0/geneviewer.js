@@ -432,7 +432,8 @@ const genePatterns = {
     .attr("fill", "none").attr("stroke", color).attr("stroke-width", w)
 };
 
-const defaultPatternOrder = ["diagonal", "dots", "horizontal", "crosshatch", "vertical", "antidiagonal", "grid", "zigzag", "solid"];
+// Mirror-image patterns (diagonal and antidiagonal) are far apart, so neighbouring groups do not look alike
+const defaultPatternOrder = ["diagonal", "dots", "horizontal", "crosshatch", "vertical", "zigzag", "solid", "grid", "antidiagonal"];
 
 // Returns the value for each group from a single value, an array (recycled) or an object (by group name).
 function valuesByGroup(values, groups, fallback) {

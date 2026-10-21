@@ -378,8 +378,8 @@ parse_procmer <- function(path, reference, query){
 #' # Path to the example GenBank file in the package
 #' gbk_file <- system.file("extdata", "BGC0000001.gbk", package = "geneviewer")
 #'
-#' # Convert the GenBank file to FASTA format
-#' genbank_to_fasta(gbk_file)
+#' # Convert the GenBank file to FASTA format in a temporary folder
+#' genbank_to_fasta(gbk_file, output_dir = tempdir())
 #' }
 #'
 #'

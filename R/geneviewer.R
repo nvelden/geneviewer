@@ -1935,8 +1935,13 @@ GC_color <- function(
 #'   names by group. NULL gives each group a pattern in a fixed order. A vector
 #'   is recycled over the groups. Available patterns: "none", "solid",
 #'   "horizontal", "vertical", "diagonal", "antidiagonal", "grid",
-#'   "crosshatch", "dots" and "zigzag".
-#' @param color The colour of the pattern lines and dots.
+#'   "crosshatch", "dots", "zigzag", "checkerboard", "rings", "bricks",
+#'   "plus", "wideStripes" and "inverseDots" (background-coloured dots on a
+#'   solid tile).
+#' @param color The colour of the pattern lines and dots: a single colour, a
+#'   vector of colours recycled over the groups, or a named list of colours by
+#'   group. For example, `color = "white"` with `background = "black"` gives
+#'   white patterns on black.
 #' @param background The colour behind the pattern: a single colour, a vector
 #'   of colours recycled over the groups, or a named list of colours by group.
 #'   NULL keeps the gene colours set by `GC_color()`. When `background` is not
@@ -1970,6 +1975,14 @@ GC_color <- function(
 #' GC_chart(genes_data, cluster = "cluster", group = "group", height = "150px") %>%
 #'   GC_pattern(background = NULL)
 #'
+#' # White patterns on black for group C
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "150px") %>%
+#'   GC_pattern(
+#'     patterns = list(A = "checkerboard", B = "rings", C = "bricks"),
+#'     color = list(A = "black", B = "black", C = "white"),
+#'     background = list(A = "white", B = "white", C = "black")
+#'   )
+#'
 #' @export
 GC_pattern <- function(
     GC_chart,
@@ -1981,7 +1994,9 @@ GC_pattern <- function(
 ) {
 
   available <- c("none", "solid", "horizontal", "vertical", "diagonal",
-                 "antidiagonal", "grid", "crosshatch", "dots", "zigzag")
+                 "antidiagonal", "grid", "crosshatch", "dots", "zigzag",
+                 "checkerboard", "rings", "bricks", "plus", "wideStripes",
+                 "inverseDots")
   unknown <- setdiff(unlist(patterns), available)
   if (length(unknown) > 0) {
     stop("Unknown pattern(s): ", paste(unknown, collapse = ", "),
@@ -1998,10 +2013,14 @@ GC_pattern <- function(
       }, error = function(e) col)
     }, character(1), USE.NAMES = FALSE)
   }
-  color <- as_css_color(color)
-  if (!is.null(background)) {
-    background[] <- if (is.list(background)) lapply(background, as_css_color) else as_css_color(background)
+  # Keeps the names of named vectors and lists
+  to_css <- function(x) {
+    if (is.null(x)) return(NULL)
+    x[] <- if (is.list(x)) lapply(x, as_css_color) else as_css_color(x)
+    x
   }
+  color <- to_css(color)
+  background <- to_css(background)
 
   # Named vectors become objects by group in JavaScript, unnamed ones arrays
   as_js_values <- function(x) {
@@ -2013,7 +2032,7 @@ GC_pattern <- function(
 
   pattern <- Filter(Negate(is.null), list(
     patterns = as_js_values(patterns),
-    color = color,
+    color = as_js_values(color),
     background = as_js_values(background),
     size = size,
     strokeWidth = strokeWidth

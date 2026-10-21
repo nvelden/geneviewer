@@ -775,6 +775,19 @@ test_that("GC_pattern sets patterns on genes, transcripts and legend", {
   expect_equal(pattern$patterns, list("dots", "grid"))
   expect_equal(pattern$background, list(A = "#BFBFBF", B = "#FFFFFF00"))
 
+  # Pattern colours by group, and the new patterns
+  updated_chart4 <- GC_pattern(
+    chart,
+    patterns = c("checkerboard", "rings", "bricks", "plus", "wideStripes", "inverseDots"),
+    color = c(A = "white", B = "grey20"),
+    background = "black"
+  )
+  pattern <- updated_chart4$x$legend$legendOptions$pattern
+  expect_equal(pattern$color, list(A = "#FFFFFF", B = "#333333"))
+  expect_length(pattern$patterns, 6)
+  expect_equal(GC_pattern(chart, color = c("red", "blue"))$x$legend$legendOptions$pattern$color,
+               list("#FF0000", "#0000FF"))
+
   # background = NULL keeps the gene colours
   updated_chart3 <- GC_pattern(chart, patterns = list(A = "crosshatch"), background = NULL)
   expect_null(updated_chart3$x$legend$legendOptions$pattern$background)

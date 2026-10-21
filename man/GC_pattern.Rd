@@ -20,9 +20,14 @@ GC_pattern(
 names by group. NULL gives each group a pattern in a fixed order. A vector
 is recycled over the groups. Available patterns: "none", "solid",
 "horizontal", "vertical", "diagonal", "antidiagonal", "grid",
-"crosshatch", "dots" and "zigzag".}
+"crosshatch", "dots", "zigzag", "checkerboard", "rings", "bricks",
+"plus", "wideStripes" and "inverseDots" (background-coloured dots on a
+solid tile).}
 
-\item{color}{The colour of the pattern lines and dots.}
+\item{color}{The colour of the pattern lines and dots: a single colour, a
+vector of colours recycled over the groups, or a named list of colours by
+group. For example, `color = "white"` with `background = "black"` gives
+white patterns on black.}
 
 \item{background}{The colour behind the pattern: a single colour, a vector
 of colours recycled over the groups, or a named list of colours by group.
@@ -65,5 +70,13 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "150px") \%>
 # Patterns on top of the gene colours
 GC_chart(genes_data, cluster = "cluster", group = "group", height = "150px") \%>\%
   GC_pattern(background = NULL)
+
+# White patterns on black for group C
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "150px") \%>\%
+  GC_pattern(
+    patterns = list(A = "checkerboard", B = "rings", C = "bricks"),
+    color = list(A = "black", B = "black", C = "white"),
+    background = list(A = "white", B = "white", C = "black")
+  )
 
 }

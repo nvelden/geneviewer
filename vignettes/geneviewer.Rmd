@@ -1140,7 +1140,28 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_pattern()
 ```
 
-The available patterns are "none", "solid", "horizontal", "vertical", "diagonal", "antidiagonal", "grid", "crosshatch", "dots" and "zigzag". Use `patterns` to choose them: a vector is recycled over the groups, and a named list sets the pattern for each group.
+There are 16 patterns. Without `patterns`, the groups get them in the order shown below, which keeps patterns that look alike (such as "diagonal" and "wideStripes") far apart; "none" is not used by default.
+
+```{r echo=TRUE, results='asis'}
+all_patterns <- c(
+  "diagonal", "dots", "horizontal", "crosshatch", "vertical", "zigzag",
+  "checkerboard", "solid", "rings", "bricks", "inverseDots", "grid",
+  "wideStripes", "plus", "antidiagonal", "none"
+)
+
+pattern_genes <- data.frame(
+  start = seq(0, by = 100, length.out = 16),
+  end = seq(80, by = 100, length.out = 16),
+  pattern = all_patterns
+)
+
+GC_chart(pattern_genes, group = "pattern", height = "170px") %>%
+  GC_labels("pattern", fontSize = "9px") %>%
+  GC_legend(order = all_patterns) %>%
+  GC_pattern(patterns = setNames(as.list(all_patterns), all_patterns))
+```
+
+Use `patterns` to choose them: a vector is recycled over the groups, and a named list sets the pattern for each group.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, group = "class", height = "100px") %>%
@@ -1174,6 +1195,17 @@ Set `background = NULL` to draw the patterns on top of the gene colours. Each gr
 GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_color(colorScheme = "schemeSet2") %>%
   GC_pattern(background = NULL)
+```
+
+Like `background`, `color` can be a vector or a named list, so some groups can have white patterns on black. "inverseDots" draws the dots in the background colour on a tile filled with `color`.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "100px") %>%
+  GC_pattern(
+    patterns = c("diagonal", "dots", "horizontal", "checkerboard", "bricks", "rings"),
+    color = c("black", "black", "white", "black", "black", "white"),
+    background = c("white", "white", "black", "white", "white", "black")
+  )
 ```
 
 Like `GC_color()`, place `GC_pattern()` after `GC_genes()` and `GC_transcript()`, as these functions reset the pattern settings.

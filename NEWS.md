@@ -1,4 +1,4 @@
-# geneviewer (development version)
+# geneviewer 0.2.0
 
 ### Enhancements:
 - `read_fasta()` is about 4-5 times faster on large FASTA files.

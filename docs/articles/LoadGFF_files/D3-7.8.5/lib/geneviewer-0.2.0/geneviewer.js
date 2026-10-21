@@ -763,68 +763,206 @@ function addScalePadding(startValue, endValue, padding, to) {
   }
 }
 
+// Scale of the PNG from the save button; 3 gives about 300 dpi at 100% zoom
+const pngExportScale = 3;
+
+// Styles copied from the page onto each element of an exported SVG, so it
+// looks the same without the page's stylesheets (e.g. styles.css, fonts)
+const svgExportInheritedStyles = [
+  "fill", "fill-opacity", "fill-rule", "stroke", "stroke-width", "stroke-opacity",
+  "stroke-dasharray", "stroke-linecap", "stroke-linejoin", "font-family",
+  "font-size", "font-weight", "font-style", "text-anchor", "dominant-baseline",
+  "visibility"
+];
+const svgExportOwnStyles = { opacity: "1" };
+
+// Combines all SVGs of a chart (title, clusters, links, legend) into one
+// standalone SVG at their position in el and returns it as a string
+function chartToSVG(el, exclude = null) {
+  const ns = "http://www.w3.org/2000/svg";
+  const elRect = el.getBoundingClientRect();
+  const width = Math.ceil(elRect.width);
+  const height = Math.ceil(elRect.height);
+
+  const root = document.createElementNS(ns, "svg");
+  root.setAttribute("xmlns", ns);
+  root.setAttribute("width", width);
+  root.setAttribute("height", height);
+  root.setAttribute("viewBox", `0 0 ${width} ${height}`);
+
+  const addBackground = (parent, x, y, w, h, color) => {
+    if (!color || color === "transparent" || color === "rgba(0, 0, 0, 0)") return;
+    const rect = document.createElementNS(ns, "rect");
+    rect.setAttribute("x", x);
+    rect.setAttribute("y", y);
+    rect.setAttribute("width", w);
+    rect.setAttribute("height", h);
+    rect.setAttribute("fill", color);
+    // No anti-aliased seams between the backgrounds of adjacent SVGs
+    rect.setAttribute("shape-rendering", "crispEdges");
+    parent.appendChild(rect);
+  };
+
+  addBackground(root, 0, 0, width, height, getComputedStyle(el).backgroundColor);
+
+  // Computed url() fills can be absolute (page url + #id); keep only the #id
+  const localUrl = value => value.replace(/url\((["']?)[^#)]*#([^)"']+)\1\)/g, "url(#$2)");
+
+  const copyStyles = (source, target, parentStyle) => {
+    const computed = getComputedStyle(source);
+    svgExportInheritedStyles.forEach(name => {
+      const value = computed.getPropertyValue(name);
+      if (value && (!parentStyle || parentStyle.getPropertyValue(name) !== value)) {
+        target.style.setProperty(name, localUrl(value));
+      }
+    });
+    Object.entries(svgExportOwnStyles).forEach(([name, initial]) => {
+      const value = computed.getPropertyValue(name);
+      if (value && value !== initial) target.style.setProperty(name, value);
+    });
+    return computed;
+  };
+
+  // Outermost SVGs only; nested ones are copied with their parent. Drawn in
+  // z-index order (e.g. links below clusters), as on the page
+  const zIndex = svg => parseInt(getComputedStyle(svg).zIndex, 10) || 0;
+  const svgs = Array.from(el.querySelectorAll("svg"))
+    .filter(svg => !svg.parentElement.closest("svg") && !(exclude && exclude.contains(svg)))
+    .map((svg, order) => ({ svg, order, z: zIndex(svg) }))
+    .sort((a, b) => a.z - b.z || a.order - b.order)
+    .map(item => item.svg);
+
+  svgs.forEach(svg => {
+    const svgStyle = getComputedStyle(svg);
+    if (svgStyle.display === "none" || svgStyle.visibility === "hidden") return;
+    const rect = svg.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    const x = rect.left - elRect.left;
+    const y = rect.top - elRect.top;
+
+    addBackground(root, x, y, rect.width, rect.height, svgStyle.backgroundColor);
+
+    const clone = svg.cloneNode(true);
+    clone.removeAttribute("style");
+    clone.removeAttribute("class");
+    clone.setAttribute("x", x);
+    clone.setAttribute("y", y);
+    clone.setAttribute("width", rect.width);
+    clone.setAttribute("height", rect.height);
+
+    // cloneNode keeps the structure, so both lists are in the same order
+    const sources = svg.querySelectorAll("*");
+    const targets = clone.querySelectorAll("*");
+    const computedStyles = new Map([[svg, copyStyles(svg, clone, null)]]);
+    sources.forEach((source, i) => {
+      const target = targets[i];
+      const computed = getComputedStyle(source);
+      if (computed.display === "none" && !source.closest("defs")) {
+        target.setAttribute("display", "none");
+        return;
+      }
+      if (source.closest("defs")) return;
+      target.removeAttribute("class");
+      computedStyles.set(source, copyStyles(source, target, computedStyles.get(source.parentNode)));
+    });
+
+    // Hidden elements are left out of the file
+    clone.querySelectorAll("[display='none']").forEach(node => node.remove());
+    root.appendChild(clone);
+  });
+
+  return '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(root);
+}
+
 function createSaveIcon(widgetId, el, show = true) {
 
   if (show) {
-      var icon = d3.select(el).append("i")
-        .attr("class", "fa-solid fa-download")
-        .attr("id", `saveIcon-${widgetId}`)
+    var saveMenu = d3.select(el).append("div")
+        .attr("id", `saveMenu-${widgetId}`)
         .style("position", "absolute")
         .style("z-index", "1000")
         .style("top", "10px")
         .style("right", "10px")
         .style("display", "none")
+        .style("font-size", "12px")
+        .style("font-family", "Arial, sans-serif");
+
+    var icon = saveMenu.append("i")
+        .attr("class", "fa-solid fa-download")
+        .attr("id", `saveIcon-${widgetId}`)
+        .style("display", "block")
+        .style("text-align", "right")
         .style("color", "#D3D3D3")
         .style("padding", "5px")
         .style("cursor", "pointer");
 
-    // Create tooltip
-    var tooltip = d3.select(el).append("div")
+    // Format options, shown when hovering the icon
+    var options = saveMenu.append("div")
         .attr("id", `saveIconTooltip-${widgetId}`)
         .attr("class", "save-tooltip")
-        .style("position", "absolute")
-        .style("top", "40px")
-        .style("right", "10px")
         .style("display", "none")
         .style("background-color", "#333")
-        .style("color", "#fff")
-        .style("padding", "5px")
         .style("border-radius", "3px")
-        .style("font-size", "12px")
-        .style("font-family", "Arial, sans-serif")
-        .style("z-index", "1001")
-        .style("pointer-events", "none")
-        .text("Save as PNG");
+        .style("overflow", "hidden")
+        .style("white-space", "nowrap");
 
-    // Ensure icon is displayed on hover and change color
-    d3.select(el).on("mouseenter", function() {
-        d3.select(`#saveIcon-${widgetId}`).style("display", "block");
-    }).on("mouseleave", function() {
-        d3.select(`#saveIcon-${widgetId}`).style("display", "none");
-    });
+    // Hide the menu so it is not in the PNG, and until the mouse enters again
+    var hideMenu = function () {
+        saveMenu.style("display", "none");
+        options.style("display", "none");
+        icon.style("color", "#D3D3D3");
+    };
 
-    // Change icon color on hover and display tooltip
-    d3.select(`#saveIcon-${widgetId}`).on("mouseenter", function() {
-        d3.select(this).style("color", "#555555");
-        tooltip.style("display", "block");
-    }).on("mouseleave", function() {
-        d3.select(this).style("color", "#D3D3D3");
-        tooltip.style("display", "none");
-    });
-
-    // Add save icon functionality
-    document.getElementById(`saveIcon-${widgetId}`).addEventListener("click", function () {
-        // Hide the icon and tooltip temporarily
-        var iconElement = document.getElementById(`saveIcon-${widgetId}`);
-        var tooltipElement = document.getElementById(`saveIconTooltip-${widgetId}`);
-        iconElement.style.display = 'none';
-        tooltipElement.style.display = 'none';
-
-        html2canvas(el, { backgroundColor: null }).then(canvas => {
+    var formats = [
+      {
+        label: "Save as SVG",
+        save: function () {
+          var svg = chartToSVG(el, saveMenu.node());
+          saveAs(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "graph.svg");
+        }
+      },
+      {
+        label: "Save as PNG",
+        save: function () {
+          html2canvas(el, {
+            backgroundColor: null,
+            scale: Math.max(pngExportScale, window.devicePixelRatio || 1)
+          }).then(canvas => {
             canvas.toBlob(function (blob) {
-                saveAs(blob, "graph.png");
+              saveAs(blob, "graph.png");
             });
+          });
+        }
+      }
+    ];
+
+    formats.forEach(function (format) {
+      options.append("div")
+        .attr("class", "save-option")
+        .text(format.label)
+        .style("color", "#fff")
+        .style("padding", "5px 8px")
+        .style("cursor", "pointer")
+        .on("mouseenter", function () { d3.select(this).style("background-color", "#555"); })
+        .on("mouseleave", function () { d3.select(this).style("background-color", null); })
+        .on("click", function () {
+          hideMenu();
+          format.save();
         });
+    });
+
+    // Ensure icon is displayed on hover
+    d3.select(el).on("mouseenter", function() {
+        saveMenu.style("display", "block");
+    }).on("mouseleave", hideMenu);
+
+    // Change icon color on hover and display the format options
+    saveMenu.on("mouseenter", function() {
+        icon.style("color", "#555555");
+        options.style("display", "block");
+    }).on("mouseleave", function() {
+        icon.style("color", "#D3D3D3");
+        options.style("display", "none");
     });
   }
 }

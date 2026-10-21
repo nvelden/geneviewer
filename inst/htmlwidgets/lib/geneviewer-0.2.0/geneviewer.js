@@ -763,9 +763,6 @@ function addScalePadding(startValue, endValue, padding, to) {
   }
 }
 
-// Scale of the PNG from the save button; 3 gives about 300 dpi at 100% zoom
-const pngExportScale = 3;
-
 // Styles copied from the page onto each element of an exported SVG, so it
 // looks the same without the page's stylesheets (e.g. styles.css, fonts)
 const svgExportInheritedStyles = [
@@ -925,10 +922,7 @@ function createSaveIcon(widgetId, el, show = true) {
       {
         label: "Save as PNG",
         save: function () {
-          html2canvas(el, {
-            backgroundColor: null,
-            scale: Math.max(pngExportScale, window.devicePixelRatio || 1)
-          }).then(canvas => {
+          html2canvas(el, { backgroundColor: null }).then(canvas => {
             canvas.toBlob(function (blob) {
               saveAs(blob, "graph.png");
             });

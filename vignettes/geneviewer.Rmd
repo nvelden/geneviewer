@@ -1486,9 +1486,9 @@ GC_chart(ophA_cluster, group = "class", height = "150px") %>%
 
 ## Saving Plots
 
-You can save plots directly in the browser using the save button that appears when hovering over the graph. Hover the download icon and choose "Save as SVG" for a vector image that can be edited in e.g. Inkscape or Illustrator and scaled for publications, or "Save as PNG" for an image at three times the screen resolution (about 300 dpi). This option can be disabled by setting the `save_button` parameter to `FALSE` in the `GC_chart` function.
+You can save plots directly in the browser using the save button that appears when hovering over the graph. Hover the download icon and choose "Save as SVG" for a vector image that can be edited in e.g. Inkscape or Illustrator and scaled for publications, or "Save as PNG" for an image at screen resolution (make the chart larger for a larger PNG). This option can be disabled by setting the `save_button` parameter to `FALSE` in the `GC_chart` function.
 
-> **Note:** Saving as SVG and the higher resolution PNG are only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
+> **Note:** Saving as SVG is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
 
 To save plots in different formats, you can use the `webshot2` package as illustrated below. If your plots contain complex elements like gene links, it is recommended to specify the width and height dimensions explicitly to ensure proper rendering.
 

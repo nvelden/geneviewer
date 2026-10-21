@@ -11,6 +11,7 @@
 - The tooltip `mouseout` handler no longer relies on the deprecated global `window.event`.
 - Each chart now uses its own `GC_tooltip()` options; with several charts on a page, tooltips took the colours and font of another chart. Tooltips are now created inside the chart, so redraws (e.g. on resize) no longer add `<style>` tags to the page or (with `GC_trackMouse()`) extra tooltip elements.
 - Clicking a legend item no longer hides genes that were clicked off in the legend of another chart on the same page.
+- `GC_trackMouse()` now shows the right position to the right of scale breaks (it was too small by the width of the breaks on the left).
 
 # geneviewer 0.2.0
 

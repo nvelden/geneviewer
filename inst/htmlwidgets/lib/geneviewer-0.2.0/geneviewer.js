@@ -475,6 +475,20 @@ function createDiscontinuousScale(minStart, maxEnd, width, margin, breaks, rever
     }
   }
 
+  // invert() of the linear scale doesn't know about the breaks: add back the
+  // width of every break left of the position (breaks are sorted by start)
+  scaleProxy.invert = function (px) {
+    let value = linearScale.invert(px);
+    for (let gap of breaks) {
+      if (value > gap.start) {
+        value += (gap.end - gap.start);
+      } else {
+        break;
+      }
+    }
+    return value;
+  };
+
   return scaleProxy;  // Return the discontinuous scale
 }
 
@@ -3078,7 +3092,7 @@ container.prototype.trackMouse = function(track = true) {
   this.svg.on("mousemove", (event) => {
     const [x, y] = d3.pointer(event);
     const adjustedX = x - this.margin.left
-    loci = Math.round(this.xScale.invert(adjustedX))
+    const loci = Math.round(this.xScale.invert(adjustedX))
     const format = d3.format(",");
 
     tooltip.html(`x: ${format(loci)} <br>y: ${yScale(y).toFixed(1)}`)

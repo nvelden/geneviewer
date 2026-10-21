@@ -1013,7 +1013,7 @@ function getLinkCoordinates(graphContainer, data) {
     return links;
 };
 
-function makeLinks(graphContainer, links, clusters) {
+function makeLinks(graphContainer, links) {
 
     if (!links || links.length === 0) {
         return;
@@ -2321,18 +2321,12 @@ container.prototype.labels = function (label, show = true, options = {}) {
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
-  // Placeholder function for getUniqueId
-  const getUniqueId = (label) => label; // Replace with your actual implementation
-
   // Create the group
   const g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
-
-  // Check for existing labels
-  const existingLabels = g.selectAll("text.label");
 
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
@@ -2367,6 +2361,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
   };
 
   const self = this;
+  const attributesByIndex = this.data.map((d, i) => getAttributesForIndex(d, i));
 
   // Adding the Label
   g.selectAll("text.label")
@@ -2376,16 +2371,14 @@ container.prototype.labels = function (label, show = true, options = {}) {
     .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-label-${i}`)
     .attr("rowID", (d, i) => `${d["rowID"]}`)
     .attr("class", "label")
-    .attr("x", (d, i) => getAttributesForIndex(d, i).xPos)
-    .attr("y", (d, i) => getAttributesForIndex(d, i).yPos)
-    .attr("dx", (d, i) => getAttributesForIndex(d, i).dx)
-    .attr("dy", (d, i) => getAttributesForIndex(d, i).dy)
+    .attr("x", (d, i) => attributesByIndex[i].xPos)
+    .attr("y", (d, i) => attributesByIndex[i].yPos)
+    .attr("dx", (d, i) => attributesByIndex[i].dx)
+    .attr("dy", (d, i) => attributesByIndex[i].dy)
     .attr("text-anchor", textAnchor)
     .attr("transform", (d, i) => {
-      const xPos = getAttributesForIndex(d, i).xPos;
-      const yPos = getAttributesForIndex(d, i).yPos;
-      const rotateValue = getAttributesForIndex(d, i).rotate;
-      return `rotate(${rotateValue}, ${xPos}, ${yPos})`;
+      const { xPos, yPos, rotate } = attributesByIndex[i];
+      return `rotate(${rotate}, ${xPos}, ${yPos})`;
     })
     .style("font-size", fontSize)
     .style("font-style", fontStyle)
@@ -2395,7 +2388,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
     .each(function (d, i) {
 
       const currentElement = d3.select(this);
-      const attributes = getAttributesForIndex(d, i);
+      const attributes = attributesByIndex[i];
 
       if (attributes.adjustLabels) {
         adjustSpecificLabel(self, "text.label", currentElement.attr("id"), attributes.labelAdjustmentOptions);

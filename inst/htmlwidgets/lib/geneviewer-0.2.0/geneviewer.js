@@ -3171,6 +3171,7 @@ container.prototype.createAnnotation = function (group, options) {
       break;
     case 'symbol':
       this.createSymbolAnnotation(group, options);
+      break;
     case 'arc':
       this.createCurveAnnotation(group, options);
       break;

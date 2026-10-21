@@ -1,3 +1,8 @@
+# geneviewer (development version)
+
+### Bug fixes:
+- `GC_annotation(type = "symbol")` no longer also draws a curve from x = 0 to x = 100.
+
 # geneviewer 0.2.0
 
 ### Enhancements:

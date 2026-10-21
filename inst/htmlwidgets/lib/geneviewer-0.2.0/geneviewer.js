@@ -3323,9 +3323,10 @@ container.prototype.createArrowAnnotation = function (group, options) {
     const currentY2 = y2[Math.min(i, y2.length - 1)];
     const currentArrowSize = arrowSize[Math.min(i, arrowSize.length - 1)];
 
-    // Create a marker for each line
+    // Create a marker for each line; the id must be unique on the page
+    const markerId = getUniqueId("arrowhead");
     this.svg.append("defs").append("marker")
-      .attr("id", `arrowhead-${i}-${currentX1}-${currentX2}`)
+      .attr("id", markerId)
       .attr("viewBox", "-0 -5 10 10")
       .attr("refX", 5)
       .attr("refY", 0)
@@ -3347,7 +3348,7 @@ container.prototype.createArrowAnnotation = function (group, options) {
       .attr("y1", this.yScale(currentY1))
       .attr("x2", this.xScale(currentX2))
       .attr("y2", this.yScale(currentY2 + currentArrowSize / 2))
-      .attr("marker-end", `url(#arrowhead-${i}-${currentX1}-${currentX2})`)
+      .attr("marker-end", `url(#${markerId})`)
       .style("stroke", lineStyle.stroke)
       .style("stroke-width", lineStyle.strokeWidth)
       .each(function () {
@@ -3428,9 +3429,10 @@ container.prototype.createTextMarkerAnnotation = function (group, options) {
       setStyleFromOptions(currentElement, additionalOptionsLine);
     });
 
-  // Create a marker for each line with currentX1 and currentX2 in the ID
+  // Create a marker for each line; the id must be unique on the page
+  const markerId = getUniqueId("arrowhead-marker");
   this.svg.append("defs").append("marker")
-    .attr("id", `arrowhead-marker-${i}-${currentX1}-${currentX2}`)
+    .attr("id", markerId)
     .attr("viewBox", "-0 -5 10 10")
     .attr("refX", 5)
     .attr("refY", 0)
@@ -3447,7 +3449,7 @@ container.prototype.createTextMarkerAnnotation = function (group, options) {
     });
     // Add arrow marker to line if showArrow is true
     if (currentValues.showArrow) {
-      line.attr("marker-end", `url(#arrowhead-marker-${i}-${currentX1}-${currentX2})`);
+      line.attr("marker-end", `url(#${markerId})`);
     }
 
     // Create text element if text is provided

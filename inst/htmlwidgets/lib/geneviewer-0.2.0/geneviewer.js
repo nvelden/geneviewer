@@ -219,7 +219,11 @@ function adjustGeneLabels(container, labelSelector, options = {}) {
   return container;
 }
 
-function adjustSpecificLabel(container, labelSelector, elementId, options = {}) {
+// Rotates labels that overlap another label of labelSelector in the
+// container's SVG. Call adjust(label, options) for each label in turn and
+// refresh(label) after restyling a label. Label sizes are measured once and
+// measured again only when a label changes, instead of on every comparison.
+function createLabelAdjuster(container, labelSelector) {
   // Default options
   const defaultOptions = {
     rotation: -65, // Rotation angle (in degrees)
@@ -229,9 +233,6 @@ function adjustSpecificLabel(container, labelSelector, elementId, options = {}) 
     dy: "0em", // Vertical adjustment
   };
 
-  // Merge default options with the provided options
-  const { rotation, offsetX, offsetY, dx, dy } = { ...defaultOptions, ...options };
-
   const overlapPercentage = (rect1, rect2) => {
     const x_overlap = Math.max(0, Math.min(rect1.right, rect2.right) - Math.max(rect1.left, rect2.left));
     const y_overlap = Math.max(0, Math.min(rect1.bottom, rect2.bottom) - Math.max(rect1.top, rect2.top));
@@ -240,29 +241,36 @@ function adjustSpecificLabel(container, labelSelector, elementId, options = {}) 
     return (overlapArea / rect1Area) * 100;
   };
 
-  // Select all the labels based on the provided selector
-  var labels = container.svg.selectAll(labelSelector).nodes();
+  // Measured on the first adjust(), when all labels are drawn
+  let labels = null;
+  const rects = new Map();
 
-  // Select the specific label using the provided elementId
-  var specificLabel = container.svg.select(`#${elementId}`).node();
+  const refresh = (label) => {
+    if (labels) rects.set(label, label.getBoundingClientRect());
+  };
 
-  // Calculate the label's original center position
-  const bbox = specificLabel.getBBox();
-  var centerX = bbox.x + bbox.width / 2;
-  var centerY = bbox.y;
+  const adjust = (specificLabel, options = {}) => {
+    if (!labels) {
+      labels = container.svg.selectAll(labelSelector).nodes();
+      labels.forEach(label => rects.set(label, label.getBoundingClientRect()));
+    }
 
-  centerX += offsetX
-  centerY += (rotation < 0) ? bbox.height : bbox.height / 2;
-  centerY += offsetY;
+    const { rotation, offsetX, offsetY, dx, dy } = { ...defaultOptions, ...options };
 
-  // Check for overlap with other labels
-  for (var i = 0; i < labels.length; i++) {
-    if (labels[i] !== specificLabel) { // Ensure we're not comparing the label with itself
-      var labelRect = labels[i].getBoundingClientRect();
-      var specificLabelRect = specificLabel.getBoundingClientRect();
+    // Calculate the label's original center position
+    const bbox = specificLabel.getBBox();
+    let centerX = bbox.x + bbox.width / 2;
+    let centerY = bbox.y;
 
+    centerX += offsetX;
+    centerY += (rotation < 0) ? bbox.height : bbox.height / 2;
+    centerY += offsetY;
+
+    // Check for overlap with other labels
+    const specificLabelRect = rects.get(specificLabel);
+    for (const label of labels) {
       // If the specific label overlaps with another label
-      if (overlapPercentage(specificLabelRect, labelRect) > 0) {
+      if (label !== specificLabel && overlapPercentage(specificLabelRect, rects.get(label)) > 0) {
 
         // Adjust the label rotation and position
         d3.select(specificLabel)
@@ -273,12 +281,13 @@ function adjustSpecificLabel(container, labelSelector, elementId, options = {}) 
           .attr("y", centerY)
           .attr("transform", `rotate(${rotation}, ${centerX}, ${centerY})`);
 
-        // Break out of the loop once we've adjusted the specific label
+        refresh(specificLabel);
         break;
       }
     }
-  }
-  return container;
+  };
+
+  return { adjust, refresh };
 }
 
 function camelToKebab(string) {
@@ -2360,8 +2369,8 @@ container.prototype.labels = function (label, show = true, options = {}) {
     };
   };
 
-  const self = this;
   const attributesByIndex = this.data.map((d, i) => getAttributesForIndex(d, i));
+  const labelAdjuster = createLabelAdjuster(this, "text.label");
 
   // Adding the Label
   g.selectAll("text.label")
@@ -2391,12 +2400,13 @@ container.prototype.labels = function (label, show = true, options = {}) {
       const attributes = attributesByIndex[i];
 
       if (attributes.adjustLabels) {
-        adjustSpecificLabel(self, "text.label", currentElement.attr("id"), attributes.labelAdjustmentOptions);
+        labelAdjuster.adjust(this, attributes.labelAdjustmentOptions);
       }
       // Set additional options as attributes
       setStyleFromOptions(currentElement, additionalOptions);
       // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
+      labelAdjuster.refresh(this);
 
     });
 
@@ -3224,7 +3234,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
   }
 
   if(label){
-    const self = this;
+    const labelAdjuster = createLabelAdjuster(this, ".link-text");
 
     const labelData = this.data.filter(d =>
       d[measure] != null &&
@@ -3254,8 +3264,9 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     .attr("cluster", clusterKey)
     .each(function (d, i) {
       const currentElement = d3.select(this);
-      adjustSpecificLabel(self, ".link-text", currentElement.attr("id"), labelAdjustmentOptions);
+      labelAdjuster.adjust(this, labelAdjustmentOptions);
       setStyleFromOptions(currentElement, additionalOptionsLabelStyle);
+      labelAdjuster.refresh(this);
     });
   }
 

@@ -1129,7 +1129,7 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_legend()
 ```
 
-### Patterns
+## Patterns {#patterns}
 
 > **Note:** `GC_pattern()` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
 

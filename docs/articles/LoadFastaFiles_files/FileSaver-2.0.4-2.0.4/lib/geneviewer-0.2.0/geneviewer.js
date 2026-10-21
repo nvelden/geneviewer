@@ -883,9 +883,7 @@ function createSaveIcon(widgetId, el, show = true) {
         .style("z-index", "1000")
         .style("top", "10px")
         .style("right", "10px")
-        .style("display", "none")
-        .style("font-size", "12px")
-        .style("font-family", "Arial, sans-serif");
+        .style("display", "none");
 
     var icon = saveMenu.append("i")
         .attr("class", "fa-solid fa-download")
@@ -903,6 +901,8 @@ function createSaveIcon(widgetId, el, show = true) {
         .style("display", "none")
         .style("background-color", "#333")
         .style("border-radius", "3px")
+        .style("font-size", "12px")
+        .style("font-family", "Arial, sans-serif")
         .style("overflow", "hidden")
         .style("white-space", "nowrap");
 

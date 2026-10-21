@@ -1,16 +1,16 @@
-pandoc: '3.4'
+pandoc: 3.9.0.2
 pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
   BLASTP: BLASTP.html
   Examples: Examples.html
-  geneviewer: geneviewer.html
   LoadFastaFiles: LoadFastaFiles.html
-  LoadGenBankFiles: LoadGenBankFiles.html
   LoadGFF: LoadGFF.html
+  LoadGenBankFiles: LoadGenBankFiles.html
   MUMMER: MUMMER.html
   Transcripts: Transcripts.html
-last_built: 2025-06-25T13:20Z
+  geneviewer: geneviewer.html
+last_built: 2026-10-21T13:08Z
 urls:
   reference: https://nvelden.github.io/geneviewer/reference
   article: https://nvelden.github.io/geneviewer/articles

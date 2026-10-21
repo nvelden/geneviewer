@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">geneviewer</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,8 +30,8 @@
     <a class="dropdown-item" href="../articles/BLASTP.html">Cluster comparison using BlastP</a>
     <a class="dropdown-item" href="../articles/Examples.html">Example charts</a>
     <a class="dropdown-item" href="../articles/LoadFastaFiles.html">Loading Gene Clusters From FASTA Files</a>
-    <a class="dropdown-item" href="../articles/LoadGenBankFiles.html">Loading Gene Clusters From Genbank Files</a>
     <a class="dropdown-item" href="../articles/LoadGFF.html">Loading Gene Clusters From Generic Feature Format (GFF) Files</a>
+    <a class="dropdown-item" href="../articles/LoadGenBankFiles.html">Loading Gene Clusters From Genbank Files</a>
     <a class="dropdown-item" href="../articles/MUMMER.html">Genome alignment using MUMmer</a>
     <a class="dropdown-item" href="../articles/Transcripts.html">Visualizing gene Transcripts</a>
   </div>
@@ -59,6 +59,70 @@
       <small>Source: <a href="https://github.com/nvelden/geneviewer/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="geneviewer-020">geneviewer 0.2.0<a class="anchor" aria-label="anchor" href="#geneviewer-020"></a></h2>
+<div class="section level4">
+<h4 id="enhancements-0-2-0">Enhancements:<a class="anchor" aria-label="anchor" href="#enhancements-0-2-0"></a></h4>
+<ul><li>
+<code><a href="../reference/read_fasta.html">read_fasta()</a></code> is about 4-5 times faster on large FASTA files.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="bug-fixes-0-2-0">Bug fixes:<a class="anchor" aria-label="anchor" href="#bug-fixes-0-2-0"></a></h4>
+<ul><li>
+<code><a href="../reference/GC_chart.html">GC_chart()</a></code> no longer errors when <code>height</code> is a percentage (e.g. <code>height = "100%"</code>).</li>
+<li>
+<code>GC_cluster(prevent_gene_overlap = TRUE, cluster = ...)</code> now stacks overlapping genes in the selected clusters instead of the first ones.</li>
+<li>
+<code><a href="../reference/read_gbk.html">read_gbk()</a></code> no longer creates fake features from wrapped qualifier lines that start with a feature name (e.g. a <code>/note</code> line starting with “gene”) or from feature keys that start with another key (e.g. <code>CDS_motif</code> read as <code>CDS</code>).</li>
+<li>
+<code><a href="../reference/read_gbk.html">read_gbk()</a></code> now keeps qualifier values intact (e.g. closing brackets in <code>"... (PPTase)"</code>) and no longer errors on empty values (<code>/pseudo=""</code>) or values that contain <code>/key=</code>.</li>
+<li>
+<code><a href="../reference/read_bed.html">read_bed()</a></code> no longer adds 1 to <code>chromEnd</code>, <code>thickEnd</code> and <code>blockSizes</code> (BED ends are already 1-based), matching <code>rtracklayer::import.bed()</code>. Values in these columns are now 1 lower than before. Block columns are now always lists, so single-row BED12 files no longer error and files where every row has the same number of blocks are read correctly.</li>
+<li>
+<code><a href="../reference/protein_blast.html">protein_blast()</a></code> now works when the cluster column has a name other than <code>"cluster"</code> (set with the <code>cluster</code> argument).</li>
+<li>
+<code><a href="../reference/read_gff.html">read_gff()</a></code> now URL-decodes attribute values (e.g. <code>%2C</code> to <code>,</code>), keeps values that contain <code>=</code>, trims spaces around keys, keeps <code>#</code> inside lines, stops at a <code>##FASTA</code> section and no longer errors on rows with empty or missing attributes.</li>
+<li>
+<code><a href="../reference/read_fasta.html">read_fasta()</a></code> now reads files with a single sequence that has a <code>location</code>, keeps header values with spaces or square brackets intact (e.g. <code>[protein=3-oxoacyl-[acyl-carrier-protein] reductase]</code>, <code>OS=Homo sapiens</code>), and uses the full span of <code>join()</code> locations for <code>start</code> and <code>end</code>.</li>
+<li>
+<code>GC_scale(scale_breaks = TRUE)</code> no longer errors on clusters with a single gene or with only overlapping genes.</li>
+<li>
+<code>GC_scale(axis_type = "range")</code> now shifts genes when <code>hidden = TRUE</code>, only shifts the selected clusters (a single selected cluster no longer gets the genes of all clusters), keeps gene tracks from <code>GC_cluster(prevent_gene_overlap = TRUE)</code>, and passes <code>...</code> on to the scale options.</li>
+<li>
+<code>GC_normalize(custom_gaps = ...)</code> now measures the gap after a gene from its edges, so genes on the reverse strand get the right gap, and applies the gap after every gene with the given name.</li>
+<li>
+<code>GC_clusterLabel(cluster = ...)</code> without a <code>title</code> now labels each selected cluster with its own name instead of the names of the first clusters.</li>
+<li>Arguments with one value per cluster no longer error in <code>if()</code> checks: e.g. <code>GC_labels(label = c("a", "b"))</code>, <code>GC_genes(group = ...)</code> and <code>show = c(TRUE, FALSE)</code> in <code><a href="../reference/GC_labels.html">GC_labels()</a></code>, <code><a href="../reference/GC_clusterLabel.html">GC_clusterLabel()</a></code>, <code><a href="../reference/GC_clusterTitle.html">GC_clusterTitle()</a></code>, <code><a href="../reference/GC_clusterFooter.html">GC_clusterFooter()</a></code>, <code><a href="../reference/GC_coordinates.html">GC_coordinates()</a></code>, <code><a href="../reference/GC_scaleBar.html">GC_scaleBar()</a></code> and <code><a href="../reference/GC_tooltip.html">GC_tooltip()</a></code>. Arguments that take a single value (<code>GC_title(show)</code>, <code>GC_align(id, id_column)</code>, <code>GC_transcript(type, transcript)</code>, <code>GC_normalize(group)</code>) now give a clear error.</li>
+<li>
+<code><a href="../reference/GC_legend.html">GC_legend()</a></code> now gives an error for a <code>group</code> column that is not in the data, and when a legend is shown without any group. The checks tested <code>labels</code>, which is not an argument (it found <code><a href="https://rdrr.io/r/base/labels.html" class="external-link">base::labels</a></code>), so they never ran.</li>
+<li>Links no longer take the colour of another link when a link cannot be drawn. Removed unused link label code that referred to an undefined <code>identityLabel</code>.</li>
+<li>
+<code>GC_grid(margin = list(top = , bottom = ))</code> now works for charts with a percentage height (it errored), and the margins stay inside the chart height on standalone pages.</li>
+<li>
+<code><a href="../reference/genbank_to_fasta.html">genbank_to_fasta()</a></code> now converts GenBank files with several records (one FASTA record per GenBank record); it errored before.</li>
+<li>
+<code><a href="../reference/mummer_alignment.html">mummer_alignment()</a></code> no longer deletes unrelated files whose name contains <code>&lt;cluster1&gt;_&lt;cluster2&gt;</code> when <code>remove_files = TRUE</code>; it now removes only the files MUMmer wrote. Cluster files are matched by exact file name (names like <code>BGC1+2</code> work), file paths are quoted in the MUMmer commands, and names with spaces give a clear error.</li>
+<li>
+<code>protein_blast(parallel = TRUE)</code> now works on machines with one core (it tried to start 0 workers) and always stops its worker processes, also after an error. It uses at most 2 workers when <code>_R_CHECK_LIMIT_CORES_</code> is set (as in <code>R CMD check</code>).</li>
+<li>
+<code><a href="../reference/read_gbk.html">read_gbk()</a></code> no longer adds <code>translation = NA</code> to every feature without a translation (e.g. <code>gene</code> and <code>source</code>).</li>
+<li>Removed <code>.DS_Store</code> files from the package and the unused internal functions <code>cleanList()</code> and <code>adjust_to_range()</code>.</li>
+<li>Several geneviewer charts in one Shiny app (output IDs without a <code>-</code>, or Shiny modules) no longer draw into each other’s containers. The widget now uses its full element ID.</li>
+<li>Charts on the same page no longer share settings through global JavaScript variables (e.g. <code>save_button</code> of one chart was used by another chart after a resize).</li>
+<li>Removed deprecated <code>.data$</code> use in tidyselect calls (<code><a href="https://rdrr.io/pkg/AnnotationDbi/man/AnnotationDb-class.html" class="external-link">select()</a></code>, <code>pivot_wider()</code>), which gave warnings with tidyselect &gt;= 1.2.0.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.11" id="geneviewer-0111">geneviewer 0.1.11<a class="anchor" aria-label="anchor" href="#geneviewer-0111"></a></h2><p class="text-muted">CRAN release: 2025-10-01</p>
+<div class="section level4">
+<h4 id="enhancements-0-1-11">Enhancements:<a class="anchor" aria-label="anchor" href="#enhancements-0-1-11"></a></h4>
+<ul><li>Fix for setting tooltip and legend to FALSE</li>
+<li>Fix for links displayed behind graph</li>
+<li>Fix for getting proper strand directions in .gbk files</li>
+<li>Fix for passing additional CSS styles</li>
+<li>Add github actions to build Wasm assets for Shinylive</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.10" id="geneviewer-0110">geneviewer 0.1.10<a class="anchor" aria-label="anchor" href="#geneviewer-0110"></a></h2><p class="text-muted">CRAN release: 2025-01-10</p>
 <div class="section level4">

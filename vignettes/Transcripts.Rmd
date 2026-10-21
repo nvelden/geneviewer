@@ -25,7 +25,7 @@ This tutorial shows how to use `biomaRt` to load transcript data from Ensembl an
 
 Transcript data for the BRCA1 gene can be loaded using the `biomaRt` package, with the Ensembl gene ID obtained from the Ensembl website. In this example, we first load the necessary libraries. Next, we specify the Ensembl gene ID for BRCA1 and establish a connection to the Ensembl database using `useMart()`. Finally, we retrieve all transcript IDs associated with the BRCA1 gene using the `getBM()` function.
 
-```{r echo = TRUE, results='asis'}
+```{r echo = TRUE, eval = FALSE}
 library(biomaRt)
 library(geneviewer)
 library(dplyr)
@@ -42,13 +42,25 @@ transcrips <- getBM(attributes = c("ensembl_gene_id", "ensembl_transcript_id"),
 
 ```
 
+```{r include = FALSE}
+# The output in this article is made from the BRCA1_splice_variants data set
+# that comes with geneviewer, so it does not depend on the Ensembl servers.
+library(geneviewer)
+transcrips <- data.frame(
+  ensembl_gene_id = "ENSG00000012048",
+  ensembl_transcript_id = unique(BRCA1_splice_variants$ensembl_transcript_id)
+)
+```
+
+The results shown in this article come from the `BRCA1_splice_variants` data set that is included with `geneviewer` and was made with the code below. You can use it directly to follow along without connecting to Ensembl: `transcript_attributes <- BRCA1_splice_variants`.
+
 ```{r echo = FALSE, results='asis'}
 kable(head(transcrips))
 ```
 
 Now that we have all transcript IDs associated with the BRCA1 gene, we can retrieve the start and end positions of the exons, as well as the 5' and 3' UTRs. Additionally, we will add the strand information for each transcript. As an example, we only retrieve the information for the first 5 transcript IDs. We use the getBM function to retrieve the start and end positions for each feature separately. We rename the start and end columns, allowing us to combine all results into a single data frame using bind_rows from the `dplyr` package. Finally, we remove any rows with NA in the start column and add the strand information for each transcript.
 
-```{r echo = TRUE, results='asis'}
+```{r echo = TRUE, eval = FALSE}
 
 transcript_IDs <- transcrips$ensembl_transcript_id[1:5]
 
@@ -97,6 +109,10 @@ transcript_attributes <-
     by = "ensembl_transcript_id"
     )
 
+```
+
+```{r include = FALSE}
+transcript_attributes <- BRCA1_splice_variants[, c("ensembl_transcript_id", "type", "start", "end", "strand")]
 ```
 
 ```{r echo = FALSE, results='asis'}

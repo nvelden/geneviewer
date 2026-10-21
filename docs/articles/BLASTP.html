@@ -35,7 +35,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">geneviewer</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,8 +56,8 @@
     <a class="dropdown-item" href="../articles/BLASTP.html">Cluster comparison using BlastP</a>
     <a class="dropdown-item" href="../articles/Examples.html">Example charts</a>
     <a class="dropdown-item" href="../articles/LoadFastaFiles.html">Loading Gene Clusters From FASTA Files</a>
-    <a class="dropdown-item" href="../articles/LoadGenBankFiles.html">Loading Gene Clusters From Genbank Files</a>
     <a class="dropdown-item" href="../articles/LoadGFF.html">Loading Gene Clusters From Generic Feature Format (GFF) Files</a>
+    <a class="dropdown-item" href="../articles/LoadGenBankFiles.html">Loading Gene Clusters From Genbank Files</a>
     <a class="dropdown-item" href="../articles/MUMMER.html">Genome alignment using MUMmer</a>
     <a class="dropdown-item" href="../articles/Transcripts.html">Visualizing gene Transcripts</a>
   </div>
@@ -86,7 +86,7 @@
 
 
 
-<script src="BLASTP_files/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="BLASTP_files/geneviewerwidget-0.1.10/geneviewerwidget.js"></script><script src="BLASTP_files/Themes-0.1.10/./lib/geneviewer-0.1.10/Themes.js"></script><script src="BLASTP_files/geneviewer-0.1.10/./lib/geneviewer-0.1.10/geneviewer.js"></script><link href="BLASTP_files/D3-7.8.5/./lib/styles.css" rel="stylesheet">
+<script src="BLASTP_files/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="BLASTP_files/geneviewerwidget-0.2.0/geneviewerwidget.js"></script><script src="BLASTP_files/Themes-0.2.0/./lib/geneviewer-0.2.0/Themes.js"></script><script src="BLASTP_files/geneviewer-0.2.0/./lib/geneviewer-0.2.0/geneviewer.js"></script><link href="BLASTP_files/D3-7.8.5/./lib/styles.css" rel="stylesheet">
 <script src="BLASTP_files/D3-7.8.5/./lib/D3-7.8.5/d3.min.js"></script><script src="BLASTP_files/html2canvas-1.4.1/./lib/html2canvas-1.4.1/html2canvas.min.js"></script><script src="BLASTP_files/FileSaver-2.0.4-2.0.4/./lib/FileSaver-2.0.4/FileSaver.min.js"></script><link href="BLASTP_files/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
 <link href="BLASTP_files/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
 <div class="row">
@@ -150,16 +150,14 @@ that contains the start, end, strand, translation as well as a unique
 identifier for each gene and cluster as shown below.</p>
 <table class="table">
 <colgroup>
-<col width="0%">
 <col width="2%">
-<col width="88%">
+<col width="89%">
 <col width="2%">
 <col width="2%">
 <col width="1%">
 <col width="1%">
 </colgroup>
 <thead><tr>
-<th align="left"></th>
 <th align="left">protein_id</th>
 <th align="left">translation</th>
 <th align="left">cluster</th>
@@ -169,7 +167,6 @@ identifier for each gene and cluster as shown below.</p>
 </tr></thead>
 <tbody>
 <tr>
-<td align="left">1</td>
 <td align="left">AAU93784.2</td>
 <td align="left">MIASAPGEEVSLRAVCAAAGVQMPTLYHFFGNKQGLTDAVVERGFDLYLAEKSAGESTGDPIQDIRDGWDAHVAFGLRNPGFYTLMYGKVRPGYSPSAQARPSELLRELTRKAHEQGRLCTTPEQAAAHVLVTNIGVTLRQIVLATEDRDLSIAVREGVIAAITGSASSSPSLQADVRRVLEHAVTQRDLLGGEETALLTKWLSRLLAVGSDG</td>
 <td align="left">BGC0000054</td>
@@ -178,7 +175,6 @@ identifier for each gene and cluster as shown below.</p>
 <td align="right">869</td>
 </tr>
 <tr>
-<td align="left">2</td>
 <td align="left">AAU93785.1</td>
 <td align="left">MSLQYSCIADTCSYSLDIEGVTMSTHTLEGKTVLVAGGAKNLGGLISRQAAEAGANVALHYNSASTRADAEETLAAVEAAGGKGVILTGDLTVPDNVARLFADAESALGRVDVAVNTVGKVLRKPIADTTEAEYDAMFDINSKAAYFFIKEAGRHVADGGKVITIVTSLLGAFTDGYSTYAGGKSPVEHFTRAAAKEFAERGISVTAIAPGPMDTPFFYGQETPERVEFHRSQAMGGQLTQIEDISPIVRFLATEGWWITGQTIFANGGYTTR</td>
 <td align="left">BGC0000054</td>
@@ -187,7 +183,6 @@ identifier for each gene and cluster as shown below.</p>
 <td align="right">1746</td>
 </tr>
 <tr>
-<td align="left">4</td>
 <td align="left">AAU93786.2</td>
 <td align="left">MPSASRRGRRTLHADCDSRAQPENPSACLPWHPPPSSTRRTNVPQSRPASGQRRATPESPSSSSSRPTSRYAATSGGVALVGLATRSAIEQHPTTSGTAATQLSTSEIGCPRGATEQRHEHEQARPDAQTPRRPDRPCRRTPPPIVRRRPARRRGAGDEPGIRRRTCLATLRDAVDPRGPDGLAG</td>
 <td align="left">BGC0000054</td>
@@ -196,7 +191,6 @@ identifier for each gene and cluster as shown below.</p>
 <td align="right">2729</td>
 </tr>
 <tr>
-<td align="left">5</td>
 <td align="left">AAU93787.1</td>
 <td align="left">MRGIILAGGTGSRLHPITRGISKQLVPVYDKPMVYYPLSTLMLAGIRDILIITSPHEAELFVRLLGDGSAFGVNLSYAVQPTPDGLAQAFLIGESHLGQEPAALVLGDNIFHGTGMGYQLRRHTQTEVAAIFGYRTSNPQAYGVVEIGEDGRAISLEEKPQRPRSPYAVPGLYFYPDDVVEHAKTLVPSARGELEITDLNRLYLQEGRLHVEVLPRGTAWFDTGTFDSLNDASNFVRTIEARQGTLVGSPEEVAWRVGFLSDAELLERAERHSSSTYGPYLRALLDEGDDAHDPYRV</td>
 <td align="left">BGC0000054</td>
@@ -205,7 +199,6 @@ identifier for each gene and cluster as shown below.</p>
 <td align="right">3813</td>
 </tr>
 <tr>
-<td align="left">6</td>
 <td align="left">AAU93788.2</td>
 <td align="left">MTIDVPFLDLDAAYVELRPQIDAAVSGVLASGRYLLGAQTEAFEAEFAAACSAAHCVTVGSGCDALELSLTALGVGPGDEVVVPAHTFIATWLAVSRCGARPVPVEPSPDGYLVDVEAVEAAITPRTAAILVVHLYGEVADLAAIRRVADRHGLALVEDAAQSTGARGRDGAVVGSGSTAAAFSFYPGKNLGALGDGGAVVTADDDLARRVRLLRNYGSVAKYVHEVRGTNSRLDEIQAAVLRAKLPLLDAWNARRATIAALYLDRLEEASGVRLPPHDQGRSAWHLFVVRCHDRETLQRELTRHGVETLVHYPTPVHLSAAYADHGHRAGSLPHAERLAREVLSLPMGPHLPLPAAERVADLVAVLAARP</td>
 <td align="left">BGC0000054</td>
@@ -214,7 +207,6 @@ identifier for each gene and cluster as shown below.</p>
 <td align="right">4937</td>
 </tr>
 <tr>
-<td align="left">7</td>
 <td align="left">AAU93789.1</td>
 <td align="left">MRARQLRVAGGWEFTPTVHHDARGVFASPLQEEAFVAAVGHPFPVAQTNHIVSDRGVLRGVHFTASPGQSKYVHCAAGRALDVMIDVRTDSPTFGTWEAVELDPRRCNALYFPIGTAHAFMALEPGTIMSYLVSTPYDAELELAIDPFDPELALPWPADVPALLSGRDEVAMSFAQARAGGLLPRSGPRMVAEGVEP</td>
 <td align="left">BGC0000054</td>
@@ -395,8 +387,8 @@ we can color them by gene function. To do this we can bind the extra
 gene information specific to our query cluster from the
 <code>BGC0000055_info.csv</code> file.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># change the path to the folder where the .gbk files are saved</span></span>
-<span><span class="va">BGC0000055_info</span> <span class="op">&lt;-</span> <span class="st">"~/path/to/folder/BGC0000055_info.csv"</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># change the path to the folder where BGC0000055_info.csv is saved</span></span>
+<span><span class="va">BGC0000055_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"~/path/to/folder/BGC0000055_info.csv"</span>, fileEncoding <span class="op">=</span> <span class="st">"UTF-8-BOM"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
 <col width="9%">

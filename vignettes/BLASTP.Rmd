@@ -110,12 +110,12 @@ GC_legend(FALSE)
 Rather than assigning colors to genes based on their BlastP matches, we can color them by gene function. To do this we can bind the extra gene information specific to our query cluster from the `BGC0000055_info.csv` file. 
 
 ```{r include=FALSE}
-BGC0000055_info <- read.csv("~/Documents/2023 github/geneviewer/genbank_files/erythromycin/BGC0000055_info.csv")
+BGC0000055_info <- read.csv("~/Documents/2023 github/geneviewer/genbank_files/erythromycin/BGC0000055_info.csv", fileEncoding = "UTF-8-BOM")
 ```
 
 ```{r eval=FALSE, results='hide'}
-# change the path to the folder where the .gbk files are saved
-BGC0000055_info <- "~/path/to/folder/BGC0000055_info.csv"
+# change the path to the folder where BGC0000055_info.csv is saved
+BGC0000055_info <- read.csv("~/path/to/folder/BGC0000055_info.csv", fileEncoding = "UTF-8-BOM")
 ```
 
 ```{r echo = FALSE, results='asis'}

@@ -10,9 +10,11 @@ HTMLWidgets.widget({
       links,
       series,
       titleOptions,
-      legendOptions;
+      legendOptions,
+      saveButton;
 
-    var widgetId = el.id.split('-')[1];
+    // Unique per chart on the page; used in container and save button ids
+    var widgetId = el.id.replace(/[^A-Za-z0-9_-]/g, '_');
 
     var draw = function (width, height) {
 
@@ -21,6 +23,8 @@ HTMLWidgets.widget({
 
       el.style["height"] = "100%"
       el.style["position"] = "relative"
+      // Keep padding (GC_grid top/bottom margins) inside the chart height
+      el.style["boxSizing"] = "border-box"
 
       // Apply styles
       if (style && typeof style === 'object' && Object.keys(style).length > 0) {
@@ -113,16 +117,21 @@ HTMLWidgets.widget({
             sequenceOptions = cluster.sequence,
             geneOptions = cluster.genes,
             transcriptOptions = cluster.transcript,
-            coordinateOptions = cluster.coordinates;
-            scaleBarOptions = cluster.scaleBar;
-            annotationOptions = cluster.annotations;
-            trackMouse = cluster.trackMouse;
+            coordinateOptions = cluster.coordinates,
+            scaleBarOptions = cluster.scaleBar,
+            annotationOptions = cluster.annotations,
+            trackMouse = cluster.trackMouse,
             tooltipOptions = cluster.tooltip;
 
         var clonedContainerOptions = JSON.parse(JSON.stringify(containerOptions));
         clonedContainerOptions.height = computeSize(clonedContainerOptions.height, el.clientHeight);
         clonedContainerOptions.height -= titleOptions.height ? (titleOptions.height / clusters.length) : 0;
         clonedContainerOptions.height -= legendHeight ? (legendHeight / clusters.length) : 0;
+        // Percentage heights: take the top and bottom margins (padding) from the clusters
+        if (typeof containerOptions.height === "string" && containerOptions.height.endsWith("%")) {
+          var padding = (parseFloat(style?.paddingTop) || 0) + (parseFloat(style?.paddingBottom) || 0);
+          clonedContainerOptions.height -= padding / clusters.length;
+        }
         clonedContainerOptions.width = computeSize(clonedContainerOptions.width, el.clientWidth);
 
         var clusterLinks = getClusterLinks(graphLinks, clusterKey);
@@ -173,7 +182,7 @@ HTMLWidgets.widget({
       }
 
       // Save icon
-      createSaveIcon(widgetId, el, show = saveButton);
+      createSaveIcon(widgetId, el, saveButton);
 
     };
 

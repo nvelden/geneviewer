@@ -18,6 +18,7 @@
 - Clicking a legend item no longer hides genes that were clicked off in the legend of another chart on the same page.
 - `GC_trackMouse()` now shows the right position to the right of scale breaks (it was too small by the width of the breaks on the left).
 - Charts no longer create the global JavaScript variables `to` and `linearScale`, which could overwrite variables of the same name on the page.
+- Gene labels from `GC_labels()` and identity labels from `GC_links()` no longer share element ids. The overlap check of a gene label used the identity label with the same id, so identity labels were rotated instead of the gene labels.
 - `GC_sequence(start = 0)` and `end = 0` are no longer ignored; the line started at the first gene instead.
 - `GC_sequence(markerStyle = list(gap = ))` is now a distance in pixels between each break marker and the break, the same for every break. It was a percentage of the marker's x position, so breaks further right opened wider. Charts that set `gap` get a narrower gap.
 - A percentage `GC_title(height = )` or `GC_legend(height = )` now follows the chart height when the chart is resized; it kept the pixel height of the first draw.

@@ -3288,7 +3288,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     .data(labelData)
     .enter()
     .append("text")
-    .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-label-${i}`)
+    .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-link-label-${i}`)
     .attr("rowID", (d, i) => `${d["rowID"]}`)
     .attr("class", "link-text")
     .attr("x", (d, i) => this.xScale((d.start + d.end) / 2))

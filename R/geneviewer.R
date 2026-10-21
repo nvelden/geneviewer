@@ -29,7 +29,8 @@ magrittr::`%>%`
 #'   list(backgroundColor = "white", border = "2px solid black"). Default is an
 #'   empty list.
 #' @param elementId Optional identifier string for the widget. Default is NULL.
-#' @param save_button Logical, whether to include a save button. Default is TRUE.
+#' @param save_button Logical, whether to include a save button to save the
+#'   chart as SVG or PNG. Default is TRUE.
 #'
 #' @return A GC chart widget.
 #'

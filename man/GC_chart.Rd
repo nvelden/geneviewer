@@ -52,7 +52,8 @@ empty list.}
 
 \item{elementId}{Optional identifier string for the widget. Default is NULL.}
 
-\item{save_button}{Logical, whether to include a save button. Default is TRUE.}
+\item{save_button}{Logical, whether to include a save button to save the
+chart as SVG or PNG. Default is TRUE.}
 }
 \value{
 A GC chart widget.

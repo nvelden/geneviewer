@@ -2,6 +2,8 @@
 
 ### New features:
 - `GC_pattern()` fills genes, exons and legend markers with a pattern per group, for black and white figures. There are 16 patterns (`"diagonal"`, `"dots"`, `"crosshatch"`, `"checkerboard"`, `"bricks"`, `"inverseDots"` and more). Patterns, pattern colours and backgrounds can be set per group, and `background = NULL` draws the patterns on top of the gene colours. They are kept in the PNG from the save button.
+- The save button can now save charts as SVG, with all clusters, links, legends and titles in one vector file for publications. Hover the download icon and pick "Save as SVG" or "Save as PNG".
+- PNGs from the save button are now saved at three times the screen resolution (about 300 dpi), instead of at screen resolution.
 
 ### Bug fixes:
 - `GC_annotation(type = "symbol")` no longer also draws a curve from x = 0 to x = 100.

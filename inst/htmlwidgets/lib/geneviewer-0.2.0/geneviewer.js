@@ -2190,69 +2190,40 @@ container.prototype.tooltip = function (show = true, options = {}) {
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
-  // Generate CSS for the tooltip and its pseudo-element
-  const generateTooltipCSS = (opts, additionalOpts) => {
-    let additionalStyles = Object.entries(additionalOpts).map(([key, value]) => `${camelToKebab(key)}: ${value};`).join(' ');
-    return `
-            .cluster-tooltip {
-                ${additionalStyles}
-                opacity: ${opts.opacity};
-                position: ${opts.position};
-                background-color: ${opts.backgroundColor};
-                padding: ${opts.padding};
-                border-radius: ${opts.borderRadius};
-                border: ${opts.border};
-                box-shadow: ${opts.boxShadow};
-                pointer-events: ${opts.pointerEvents};
-                font-family: ${opts.fontFamily};
-                font-size: ${opts.fontSize};
-                z-index: ${opts.zIndex};
-                color: ${opts.color};
-                line-height: ${opts.lineHeight};
-            }
-            .cluster-tooltip::before {
-                content: "";
-                position: absolute;
-                top: 100%;
-                left: 50%;
-                transform: translateX(-50%);
-                border-width: 5px;
-                border-style: solid;
-                border-color: ${opts.backgroundColor} transparent transparent transparent;
-            }
-        `;
-  };
-
-  // Inject the generated CSS into the document
-  const styleTag = document.createElement("style");
-  styleTag.innerHTML = generateTooltipCSS(combinedOptions, additionalOptions);
-  document.head.appendChild(styleTag);
-
   // Ensure triggers is an array
   if (typeof combinedOptions.triggers === 'string') {
     combinedOptions.triggers = [combinedOptions.triggers];
   }
 
-  // Create the tooltip div if it doesn't exist
-  let tooltip = d3.select("body").select(".cluster-tooltip");
-  if (tooltip.empty()) {
-    tooltip = d3.select("body")
-      .append("div")
-      .attr("class", "cluster-tooltip")
-      .style("opacity", combinedOptions.opacity)
-      .style("position", combinedOptions.position)
-      .style("background-color", combinedOptions.backgroundColor)
-      .style("padding", combinedOptions.padding)
-      .style("border-radius", combinedOptions.borderRadius)
-      .style("border", combinedOptions.border)
-      .style("box-shadow", combinedOptions.boxShadow)
-      .style("pointer-events", combinedOptions.pointerEvents)
-      .style("font-family", combinedOptions.fontFamily)
-      .style("font-size", combinedOptions.fontSize)
-      .style("z-index", combinedOptions.zIndex)
-      .style("color", combinedOptions.color)
-      .style("line-height", combinedOptions.lineHeight);
-  }
+  // One tooltip per cluster, inside the widget element, so each cluster keeps
+  // its own options and the tooltip is removed when the widget redraws.
+  // The arrow (::before in styles.css) takes its colour from --tooltip-bg.
+  const host = this.svg.node().closest(".html-widget") || document.body;
+  const tooltip = d3.select(host)
+    .append("div")
+    .attr("class", "cluster-tooltip")
+    .style("opacity", combinedOptions.opacity)
+    .style("position", combinedOptions.position)
+    .style("background-color", combinedOptions.backgroundColor)
+    .style("--tooltip-bg", combinedOptions.backgroundColor)
+    .style("padding", combinedOptions.padding)
+    .style("border-radius", combinedOptions.borderRadius)
+    .style("border", combinedOptions.border)
+    .style("box-shadow", combinedOptions.boxShadow)
+    .style("pointer-events", combinedOptions.pointerEvents)
+    .style("font-family", combinedOptions.fontFamily)
+    .style("font-size", combinedOptions.fontSize)
+    .style("z-index", combinedOptions.zIndex)
+    .style("color", combinedOptions.color)
+    .style("line-height", combinedOptions.lineHeight);
+  setStyleFromOptions(tooltip, additionalOptions);
+
+  // Place the tooltip centred above the mouse, relative to the widget element
+  const moveTooltip = (event) => {
+    const [x, y] = d3.pointer(event, host);
+    tooltip.style("left", (x - tooltip.node().offsetWidth / 2) + "px")
+      .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
+  };
 
   // Function to generate tooltip content
   const d3Format = d3.format(",");
@@ -2283,28 +2254,18 @@ container.prototype.tooltip = function (show = true, options = {}) {
     selection.on("mouseover", (event, d) => {
       const dataPoint = this.data.find(item => item === d);
 
-      const x = event.pageX;
-      const y = event.pageY;
-
       const element = d3.select(event.currentTarget);
       element.classed("hovered", true);
 
       tooltip.transition()
         .duration(200)
         .style("opacity", 1);
-      tooltip.html(textAccessor(dataPoint))
-        .style("left", (x - tooltip.node().offsetWidth / 2) + "px")
-        .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
+      tooltip.html(textAccessor(dataPoint));
+      moveTooltip(event);
     });
 
     // Mousemove event to reposition the tooltip as the mouse moves
-    selection.on("mousemove", (event, d) => {
-      const x = event.pageX;
-      const y = event.pageY;
-
-      tooltip.style("left", (x - tooltip.node().offsetWidth / 2) + "px")
-        .style("top", (y - tooltip.node().offsetHeight - 15) + "px");
-    });
+    selection.on("mousemove", moveTooltip);
 
     // Mouseout event to hide the tooltip
     selection.on("mouseout", (event) => {
@@ -3090,8 +3051,10 @@ container.prototype.trackMouse = function(track = true) {
     this.style.cssText += "cursor: crosshair !important;";
   });
 
-  // Tooltip for displaying coordinates
-  const tooltip = d3.select("body").append("div")
+  // Tooltip for displaying coordinates, inside the widget element so it is
+  // removed when the widget redraws
+  const host = this.svg.node().closest(".html-widget") || document.body;
+  const tooltip = d3.select(host).append("div")
     .attr("class", "coordinate-tooltip")
     .style("background-color", "rgba(255, 255, 255, 0.9)")
     .style("padding", "8px")
@@ -3119,8 +3082,8 @@ container.prototype.trackMouse = function(track = true) {
 
     tooltip.html(`x: ${format(loci)} <br>y: ${yScale(y).toFixed(1)}`)
       .style("visibility", "visible")
-      .style("left", (event.pageX + 10) + "px")
-      .style("top", (event.pageY - 10) + "px");
+      .style("left", (d3.pointer(event, host)[0] + 10) + "px")
+      .style("top", (d3.pointer(event, host)[1] - 10) + "px");
   });
 
   this.svg.on("mouseout", () => {

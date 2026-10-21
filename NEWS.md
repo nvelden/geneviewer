@@ -9,6 +9,7 @@
 - `GC_scale(breaks = ...)` now works with breaks in any order; breaks not sorted by start put genes and axis ticks at the wrong position.
 - `GC_coordinates()` no longer stops the chart from drawing when a cluster has no genes in view (e.g. after `GC_scale(start = , end = )`); clusters below it and the bottom legend were missing.
 - The tooltip `mouseout` handler no longer relies on the deprecated global `window.event`.
+- Each chart now uses its own `GC_tooltip()` options; with several charts on a page, tooltips took the colours and font of another chart. Tooltips are now created inside the chart, so redraws (e.g. on resize) no longer add `<style>` tags to the page or (with `GC_trackMouse()`) extra tooltip elements.
 
 # geneviewer 0.2.0
 

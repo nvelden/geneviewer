@@ -362,8 +362,6 @@ function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
 }
 
 function getColorScale(colorScheme, customColors, uniqueGroups) {
-  let colorScale;
-
   const schemeCategory30 = [
     "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
     "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
@@ -373,43 +371,41 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
     "#ce6dbd", "#e7cb94", "#e7969c", "#6b6ecf", "#a55194"
   ];
 
+  // Colours are assigned to the non-null groups only, so genes() (which keeps
+  // null groups) and legend() (which drops them) give each group the same colour.
+  // Null groups are white.
+  const groups = uniqueGroups.filter(group => group !== null);
+  let range;
+
   if (customColors && typeof customColors === "string") {
     // Handle customColors as a single color
-    colorScale = d3.scaleOrdinal()
-      .domain(uniqueGroups)
-      .range(uniqueGroups.map(() => customColors));
+    range = groups.map(() => customColors);
   } else if (customColors && Array.isArray(customColors)) {
     // Handle customColors as an array
-    colorScale = d3.scaleOrdinal()
-      .domain(uniqueGroups)
-      .range(uniqueGroups.map((group, index) => customColors[index % customColors.length] || "#FFF"));
+    range = groups.map((group, index) => customColors[index % customColors.length] || "#FFF");
   } else if (customColors && typeof customColors === 'object') {
     // Handle customColors as an object
-    colorScale = d3.scaleOrdinal()
-      .domain(uniqueGroups)
-      .range(uniqueGroups.map(group => customColors[group] || "#FFF"));
-  } else if (colorScheme) {
-    if (!d3[colorScheme]) {
-      console.warn(`Warning: The color scheme "${colorScheme}" does not exist. Defaulting to schemeCategory30.`);
-      colorScale = d3.scaleOrdinal(schemeCategory30).domain(uniqueGroups);
-    } else {
-      colorScale = d3.scaleOrdinal(d3[colorScheme])
-        .domain(uniqueGroups);
-      // Check if uniqueGroups are more than the colors in the colorScale
-      if (uniqueGroups.length > colorScale.range().length) {
-        console.warn(`Warning: More unique groups than colors. Some colors will repeat.`);
-      }
+    range = groups.map(group => customColors[group] || "#FFF");
+  } else if (colorScheme && d3[colorScheme]) {
+    const scheme = d3[colorScheme];
+    // Check if there are more groups than colors in the scheme
+    if (groups.length > scheme.length) {
+      console.warn(`Warning: More unique groups than colors. Some colors will repeat.`);
     }
+    range = groups.map((group, index) => scheme[index % scheme.length]);
   } else {
+    if (colorScheme) {
+      console.warn(`Warning: The color scheme "${colorScheme}" does not exist. Defaulting to schemeCategory30.`);
+    }
     // Default to schemeCategory30
-    colorScale = d3.scaleOrdinal(schemeCategory30)
-      .domain(uniqueGroups)
-      .range(uniqueGroups.map(group =>
-        group === "No Hit" || group === null ? "#FFF" : schemeCategory30[uniqueGroups.indexOf(group) % schemeCategory30.length]
-      ));
+    range = groups.map((group, index) =>
+      group === "No Hit" ? "#FFF" : schemeCategory30[index % schemeCategory30.length]
+    );
   }
 
-  return colorScale;
+  return d3.scaleOrdinal()
+    .domain([...groups, null])
+    .range([...range, "#FFF"]);
 }
 
 

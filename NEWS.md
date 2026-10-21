@@ -3,6 +3,7 @@
 ### Bug fixes:
 - `GC_annotation(type = "symbol")` no longer also draws a curve from x = 0 to x = 100.
 - The default gene colours now give 30 different colours. Groups 12 and 22, 13 and 26, 15 and 29, and 20 and 25 had the same colour; groups 22, 25, 26 and 29 now get new colours.
+- Legend colours now match the gene colours when some genes have an `NA` group. Genes with an `NA` group are now always white, also with `colorScheme` or `customColors`.
 
 # geneviewer 0.2.0
 

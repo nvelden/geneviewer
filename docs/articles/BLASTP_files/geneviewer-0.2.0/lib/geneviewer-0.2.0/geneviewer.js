@@ -890,6 +890,7 @@ function createSaveIcon(widgetId, el, show = true) {
         .attr("id", `saveIcon-${widgetId}`)
         .style("display", "block")
         .style("text-align", "right")
+        .style("font-size", "20px")
         .style("color", "#D3D3D3")
         .style("padding", "5px")
         .style("cursor", "pointer");

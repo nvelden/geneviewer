@@ -408,7 +408,8 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
     .range([...range, "#FFF"]);
 }
 
-// Pattern tiles: each draws the foreground of a square pattern tile of size s.
+// Pattern tiles: each draws the foreground of a square pattern tile of size s
+// on the background colour bg.
 const genePatterns = {
   none: () => {},
   solid: (p, s, color) => p.append("rect").attr("width", s).attr("height", s).attr("fill", color),
@@ -429,11 +430,39 @@ const genePatterns = {
   dots: (p, s, color) => p.append("circle").attr("cx", s / 2).attr("cy", s / 2).attr("r", s / 5).attr("fill", color),
   zigzag: (p, s, color, w) => p.append("path")
     .attr("d", `M0,${s * 0.7}L${s / 2},${s * 0.3}L${s},${s * 0.7}`)
-    .attr("fill", "none").attr("stroke", color).attr("stroke-width", w)
+    .attr("fill", "none").attr("stroke", color).attr("stroke-width", w),
+  checkerboard: (p, s, color) => p.append("path")
+    .attr("d", `M0,0H${s / 2}V${s / 2}H0ZM${s / 2},${s / 2}H${s}V${s}H${s / 2}Z`)
+    .attr("fill", color),
+  rings: (p, s, color, w) => p.append("circle").attr("cx", s / 2).attr("cy", s / 2).attr("r", s / 3.2)
+    .attr("fill", "none").attr("stroke", color).attr("stroke-width", w * 0.8),
+  // Rows of bricks, each row offset by half a brick
+  bricks: (p, s, color, w) => p.append("path")
+    .attr("d", `M0,0H${s}M0,${s / 2}H${s}M${s / 4},0V${s / 2}M${s * 3 / 4},${s / 2}V${s}`)
+    .attr("stroke", color).attr("stroke-width", w),
+  plus: (p, s, color, w) => p.append("path")
+    .attr("d", `M${s / 2},${s * 0.2}V${s * 0.8}M${s * 0.2},${s / 2}H${s * 0.8}`)
+    .attr("stroke", color).attr("stroke-width", w),
+  // Filled band, so it reads as thick stripes at any strokeWidth
+  wideStripes: (p, s, color) => p.append("path")
+    .attr("d", `M0,${s}L${s},0H${s / 2}L0,${s / 2}ZM${s},${s / 2}V${s}H${s / 2}Z`)
+    .attr("fill", color),
+  // Background-coloured dots on a solid tile
+  inverseDots: (p, s, color, w, bg) => {
+    genePatterns.solid(p, s, color);
+    p.append("circle").attr("cx", s / 2).attr("cy", s / 2).attr("r", s / 4).attr("fill", bg);
+  }
 };
 
-// Mirror-image patterns (diagonal and antidiagonal) are far apart, so neighbouring groups do not look alike
-const defaultPatternOrder = ["diagonal", "dots", "horizontal", "crosshatch", "vertical", "zigzag", "solid", "grid", "antidiagonal"];
+// Tile size of each pattern relative to size; shapes that need more room get a larger tile
+const patternTileScale = { checkerboard: 4 / 3, rings: 7 / 6, bricks: 5 / 3, plus: 4 / 3, wideStripes: 4 / 3 };
+
+// Patterns that look alike (diagonal and wideStripes, dots and rings, grid and plus,
+// diagonal and antidiagonal) are far apart, so neighbouring groups do not look alike
+const defaultPatternOrder = [
+  "diagonal", "dots", "horizontal", "crosshatch", "vertical", "zigzag", "checkerboard", "solid",
+  "rings", "bricks", "inverseDots", "grid", "wideStripes", "plus", "antidiagonal"
+];
 
 // Returns the value for each group from a single value, an array (recycled) or an object (by group name).
 function valuesByGroup(values, groups, fallback) {
@@ -471,6 +500,7 @@ function getPatternScale(svg, pattern, uniqueGroups, colorScale, idPrefix) {
     }
   }
   const backgrounds = valuesByGroup(background, groups, null);
+  const colors = valuesByGroup(color, groups, "black");
 
   const svgId = svg.attr("id") || "geneviewer";
   const defs = svg.append("defs");
@@ -488,27 +518,34 @@ function getPatternScale(svg, pattern, uniqueGroups, colorScale, idPrefix) {
       type = "none";
     }
     const id = `${svgId}-${idPrefix}-pattern-${index}`;
+    const tileSize = size * (patternTileScale[type] ?? 1);
+    const bg = backgrounds[index] ?? colorScale(group);
     const tile = defs.append("pattern")
       .attr("id", id)
       .attr("patternUnits", "userSpaceOnUse")
-      .attr("width", size)
-      .attr("height", size);
+      .attr("width", tileSize)
+      .attr("height", tileSize);
     tile.append("rect")
-      .attr("width", size)
-      .attr("height", size)
-      .attr("fill", backgrounds[index] ?? colorScale(group));
-    genePatterns[type](tile, size, color, strokeWidth);
+      .attr("width", tileSize)
+      .attr("height", tileSize)
+      .attr("fill", bg);
+    genePatterns[type](tile, tileSize, colors[index], strokeWidth, bg);
     fills.set(group, `url(#${id})`);
     tiles.set(group, tile);
   });
+
+  const colorByGroup = new Map(groups.map((group, index) => [group, colors[index]]));
 
   return {
     fill: group => fills.get(group) ?? colorScale(group),
     // Lines (introns, UTR outlines) take the pattern colour when the
     // background replaces the gene colours, and keep the gene colour otherwise
-    stroke: group => (background === null || background === undefined) ? colorScale(group) : color,
-    // Outline for legend markers, so white and patterned markers stay visible
-    outline: color,
+    stroke: group => (background === null || background === undefined)
+      ? colorScale(group)
+      : (colorByGroup.get(group) ?? colors[0]),
+    // Outline for legend markers, so white and patterned markers stay visible;
+    // black when the groups have different pattern colours
+    outline: typeof color === "string" ? color : "black",
     // Starts the tiles of a group at (x, y), e.g. at the corner of its legend marker
     align: (group, x, y) => tiles.get(group)?.attr("x", x).attr("y", y)
   };

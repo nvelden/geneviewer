@@ -1149,14 +1149,17 @@ all_patterns <- c(
   "wideStripes", "plus", "antidiagonal", "none"
 )
 
+# Two rows of 8 genes
 pattern_genes <- data.frame(
-  start = seq(0, by = 100, length.out = 16),
-  end = seq(80, by = 100, length.out = 16),
-  pattern = all_patterns
+  start = rep(seq(0, by = 100, length.out = 8), 2),
+  end = rep(seq(85, by = 100, length.out = 8), 2),
+  pattern = all_patterns,
+  row = rep(c("1", "2"), each = 8)
 )
 
-GC_chart(pattern_genes, group = "pattern", height = "170px") %>%
-  GC_labels("pattern", fontSize = "9px") %>%
+GC_chart(pattern_genes, group = "pattern", cluster = "row",
+         height = "260px") %>%
+  GC_labels("pattern", fontSize = "11px") %>%
   GC_legend(order = all_patterns) %>%
   GC_pattern(patterns = setNames(as.list(all_patterns), all_patterns))
 ```
@@ -1202,7 +1205,8 @@ Like `background`, `color` can be a vector or a named list, so some groups can h
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_pattern(
-    patterns = c("diagonal", "dots", "horizontal", "checkerboard", "bricks", "rings"),
+    patterns = c("diagonal", "dots", "horizontal",
+                 "checkerboard", "bricks", "rings"),
     color = c("black", "black", "white", "black", "black", "white"),
     background = c("white", "white", "black", "white", "white", "black")
   )

@@ -432,20 +432,20 @@ GC_clusterTitle <- function(
   for (i in seq_along(clusters)) {
     # Default options
     options <- list(
-      title = title[(i - 1) %% length(title) + 1],
-      subtitle = subtitle[(i - 1) %% length(subtitle) + 1],
+      title = recycle_at(title, i),
+      subtitle = recycle_at(subtitle, i),
       subtitleFont = subtitleFont,
       titleFont = titleFont,
-      show = show[(i - 1) %% length(show) + 1]
+      show = recycle_at(show, i)
     )
 
     # Add arguments to options
     for (name in names(dots)) {
-      options[[name]] <- dots[[name]][(i - 1) %% length(dots[[name]]) + 1]
+      options[[name]] <- recycle_at(dots[[name]], i)
     }
 
     # Set height for each cluster
-    GC_chart$x$series[[clusters[i]]]$grid$margin$top <- height[(i - 1) %% length(height) + 1]
+    GC_chart$x$series[[clusters[i]]]$grid$margin$top <- recycle_at(height, i)
 
     # Set title options for each cluster
     GC_chart$x$series[[clusters[i]]]$clusterTitle <- options
@@ -527,15 +527,15 @@ GC_sequence <- function(
 
     # Default options
     options <- list(
-      show = show[(i-1) %% length(show) + 1],
-      y = y[(i-1) %% length(y) + 1],
+      show = recycle_at(show, i),
+      y = recycle_at(y, i),
       sequenceStyle = sequenceStyle,
       markerStyle = markerStyle
     )
 
     # Add ... arguments to options
     for(name in names(dots)) {
-      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+      options[[name]] <- recycle_at(dots[[name]], i)
     }
 
     # Set sequence options for each cluster
@@ -668,7 +668,7 @@ GC_grid <- function(
 
     # Update width if provided
     if (!is.null(width) && !is.null(cluster)) {
-      current_width <- width[(i-1) %% length(width) + 1]
+      current_width <- recycle_at(width, i)
       current_width <- get_relative_height(GC_chart$width, current_width)
       GC_chart$x$series[[cluster_name]]$container$style$width <- current_width
       GC_chart$x$series[[cluster_name]]$container$width <- current_width
@@ -677,7 +677,7 @@ GC_grid <- function(
     # Update height if provided
     if (!is.null(height)) {
       if(!is.null(cluster)){
-      current_height <- height[(i-1) %% length(height) + 1]
+      current_height <- recycle_at(height, i)
       current_height <- get_relative_height(chart_height, current_height)
       GC_chart$x$series[[cluster_name]]$container$height <- current_height
       } else {
@@ -839,9 +839,6 @@ GC_scale <- function(GC_chart,
   for (i in seq_along(clusters)) {
 
     subset_data <- GC_chart$x$series[[clusters[i]]]$data
-    start_idx <- (i - 1) %% length(start) + 1
-    stop_idx <- (i - 1) %% length(end) + 1
-    reverse_idx <- (i - 1) %% length(reverse) + 1
 
     # With a range axis, show one shared axis below the last cluster
     if (axis_type == "range" && !hidden && i < length(clusters)) {
@@ -862,15 +859,15 @@ GC_scale <- function(GC_chart,
 
     # Default options
     options <- list(
-      start = start[start_idx],
-      end = end[stop_idx],
+      start = recycle_at(start, i),
+      end = recycle_at(end, i),
       xMin = xMin,
       xMax = xMax,
       padding = padding,
       hidden = hidden_current,
       breaks = breaks_data,
       tickValues = tickValues,
-      reverse = reverse[reverse_idx],
+      reverse = recycle_at(reverse, i),
       axisPosition = axis_position,
       axisType = axis_type,
       scale_breaks = scale_breaks,
@@ -886,7 +883,7 @@ GC_scale <- function(GC_chart,
 
     # Add additional options
     for (name in names(dots)) {
-      options[[name]] <- dots[[name]][(i - 1) %% length(dots[[name]]) + 1]
+      options[[name]] <- recycle_at(dots[[name]], i)
     }
 
     # Set scale options for each cluster
@@ -979,7 +976,7 @@ GC_scaleBar <- function(
 
     # Default options
     options <- list(
-      show = show[(i-1) %% length(show) + 1],
+      show = recycle_at(show, i),
       scaleBarLineStyle = scaleBarLineStyle,
       scaleBarTickStyle = scaleBarTickStyle,
       labelStyle = labelStyle
@@ -987,7 +984,7 @@ GC_scaleBar <- function(
 
     # Add ... arguments to options
     for(name in names(dots)) {
-      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+      options[[name]] <- recycle_at(dots[[name]], i)
     }
 
     # Set scaleBar options for each cluster
@@ -1095,12 +1092,12 @@ GC_clusterLabel <- function(
   for(i in seq_along(clusters)){
 
     # Get the current position for this cluster
-    currentPosition <- position[(i-1) %% length(position) + 1]
+    currentPosition <- recycle_at(position, i)
 
     # Default options
     options <- list(
-      title = title[(i-1) %% length(title) + 1],
-      show = show[(i-1) %% length(show) + 1],
+      title = recycle_at(title, i),
+      show = recycle_at(show, i),
       wrapLabel = wrapLabel,
       wrapOptions = wrapOptions,
       position = currentPosition
@@ -1108,7 +1105,7 @@ GC_clusterLabel <- function(
 
     # Add ... arguments to options
     for(name in names(dots)) {
-      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+      options[[name]] <- recycle_at(dots[[name]], i)
     }
 
     # Set clusterLabel options for each cluster
@@ -1118,14 +1115,14 @@ GC_clusterLabel <- function(
     if (currentPosition == "left") {
       GC_chart <- GC_grid(
         GC_chart,
-        margin = list(left = width[(i-1) %% length(width) + 1]),
+        margin = list(left = recycle_at(width, i)),
         cluster = clusters[i]
       )
-      #GC_chart$x$series[[clusters[i]]]$grid$margin$left <- width[(i-1) %% length(width) + 1]
+      #GC_chart$x$series[[clusters[i]]]$grid$margin$left <- recycle_at(width, i)
     } else if (currentPosition == "right") {
       GC_chart <- GC_grid(
         GC_chart,
-        margin = list(right = width[(i-1) %% length(width) + 1]),
+        margin = list(right = recycle_at(width, i)),
         cluster = clusters[i]
       )
     }
@@ -1224,16 +1221,16 @@ GC_clusterFooter <- function(
 
     # Default options
     options <- list(
-      title = title[(i-1) %% length(title) + 1],
-      subtitle = subtitle[(i-1) %% length(subtitle) + 1],
-      show = show[(i-1) %% length(show) + 1],
+      title = recycle_at(title, i),
+      subtitle = recycle_at(subtitle, i),
+      show = recycle_at(show, i),
       subtitleFont = subtitleFont,
       titleFont = titleFont
     )
 
     # Add ... arguments to options
     for(name in names(dots)) {
-      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+      options[[name]] <- recycle_at(dots[[name]], i)
     }
 
     # Set footer options for each cluster
@@ -1341,8 +1338,8 @@ GC_labels <- function(
 
     # Default options
     options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
-      label = label[(i-1) %% length(label) + 1],
-      show = show[(i-1) %% length(show) + 1],
+      label = recycle_at(label, i),
+      show = recycle_at(show, i),
       itemStyle = itemStyle,
       ...
     ))
@@ -1448,7 +1445,7 @@ GC_coordinates <- function(
 
     # Default options
     options <- list(
-      show = show[(i-1) %% length(show) + 1],
+      show = recycle_at(show, i),
       ticksFormat = ticksFormat,
       tickStyle = tickStyle,
       textStyle = textStyle
@@ -1456,7 +1453,7 @@ GC_coordinates <- function(
 
     # Add ... arguments to options
     for(name in names(dots)) {
-      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+      options[[name]] <- recycle_at(dots[[name]], i)
     }
 
     # Set coordinates options for each cluster
@@ -1582,10 +1579,10 @@ GC_genes <- function(
 
     # Default options
     options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
-      group = group[(i-1) %% length(group) + 1],
-      marker = marker[(i-1) %% length(marker) + 1],
+      group = recycle_at(group, i),
+      marker = recycle_at(marker, i),
       markerSize = marker_size,
-      show = show[(i-1) %% length(show) + 1],
+      show = recycle_at(show, i),
       colorScheme = colorScheme,
       customColors = customColors,
       itemStyle = itemStyle,
@@ -1847,8 +1844,8 @@ GC_transcript <- function(GC_chart,
       function(x)
         ! is.null(x) && length(x) > 0,
       list(
-        group = group[(i - 1) %% length(group) + 1],
-        show = show[(i - 1) %% length(show) + 1],
+        group = recycle_at(group, i),
+        show = recycle_at(show, i),
         colorScheme = colorScheme,
         customColors = customColors,
         styleExons = styleExons,
@@ -1921,8 +1918,6 @@ GC_color <- function(
     warning("Both colorScheme and customColors are selected. Please choose only one.")
     return(GC_chart)
   }
-
-  series <- GC_chart$x
 
   # Update legend
   GC_chart$x$legend$legendOptions$colorScheme <- colorScheme
@@ -2378,12 +2373,12 @@ GC_tooltip <- function(
     # Default options
     options <- list(
       formatter = formatter,
-      show = show[(i-1) %% length(show) + 1]
+      show = recycle_at(show, i)
     )
 
     # Add arguments to options
     for(name in names(dots)) {
-      options[[name]] <- dots[[name]][(i-1) %% length(dots[[name]]) + 1]
+      options[[name]] <- recycle_at(dots[[name]], i)
     }
 
     # Set title options for each cluster
@@ -2669,8 +2664,8 @@ GC_normalize <-
     if(normalize){
     cluster_data <- normalize_gc_positions(
       cluster_data,
-      preserve_gene_length = preserve_gene_length[(i - 1) %% length(preserve_gene_length) + 1],
-      gap = gap[(i - 1) %% length(gap) + 1])
+      preserve_gene_length = recycle_at(preserve_gene_length, i),
+      gap = recycle_at(gap, i))
     }
 
     if (length(custom_gaps) > 0) {

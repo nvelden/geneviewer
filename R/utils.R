@@ -460,3 +460,16 @@ set_legend_colors <- function(GC_chart, colorScheme, customColors) {
   GC_chart$x$legend$legendOptions$customColors <- customColors
   GC_chart
 }
+
+#' Value for the i-th selected cluster
+#'
+#' Options given as vectors are recycled over the selected clusters.
+#'
+#' @param x A vector or list, or NULL.
+#' @param i Integer, the index of the cluster.
+#' @return The element of `x` for cluster `i` (a length-one vector or list), or
+#'   NULL when `x` is NULL.
+#' @noRd
+recycle_at <- function(x, i) {
+  x[(i - 1) %% length(x) + 1]
+}

@@ -1231,11 +1231,11 @@ container.prototype.scale = function (options = {}) {
               d3.max(this.data, d => Math.max(d.start, d.end));
 
   if(start == null){
-  this.minStart = addScalePadding(this.minStart, this.maxEnd, padding, to = "start")
+  this.minStart = addScalePadding(this.minStart, this.maxEnd, padding, "start")
   }
 
   if(end == null){
-  this.maxEnd = addScalePadding(this.minStart, this.maxEnd, padding, to = "end")
+  this.maxEnd = addScalePadding(this.minStart, this.maxEnd, padding, "end")
   }
 
   // Create scales
@@ -1255,7 +1255,7 @@ container.prototype.scale = function (options = {}) {
     const axisGroup = this.svg.append("g")
       .attr("transform", `translate(${this.margin.left},${this.margin.top + adjustedYOffset})`);
 
-    linearScale = d3.scaleLinear()
+    const linearScale = d3.scaleLinear()
       .domain([this.minStart, this.maxEnd])
       .range([0, this.width - this.margin.left - this.margin.right]);
 
@@ -1661,11 +1661,11 @@ container.prototype.sequence = function (show = true, options = {}) {
   var maxEnd = end || d3.max(this.data, d => Math.max(d.start, d.end));
 
   if(start == null){
-  minStart = addScalePadding(minStart, maxEnd, this.padding, to = "start")
+  minStart = addScalePadding(minStart, maxEnd, this.padding, "start")
   }
 
   if(end == null){
-  maxEnd = addScalePadding(minStart, maxEnd, this.padding, to = "end")
+  maxEnd = addScalePadding(minStart, maxEnd, this.padding, "end")
   }
 
   // Draw baseline with sequenceStyle

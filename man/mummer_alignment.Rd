@@ -29,12 +29,12 @@ the alignment sequence.}
 \item{seqtype}{The type of sequences, either "protein" or "nucleotide".}
 
 \item{mummer_options}{Additional command line options for MUMmer. To see all
-available options, you can run `nucmer --help` or `promer --help` in the
+available options, you can run \code{nucmer --help} or \code{promer --help} in the
 terminal depending on whether you are aligning nucleotide or protein
 sequences.}
 
 \item{filter_options}{Additional options for filtering MUMmer results. To
-view all filtering options, run `delta-filter --help` in the terminal.}
+view all filtering options, run \code{delta-filter --help} in the terminal.}
 
 \item{remove_files}{Logical indicating whether to remove intermediate files
 generated during the process, defaults to TRUE.}
@@ -44,7 +44,7 @@ generated during the process, defaults to TRUE.}
 }
 \value{
 A data frame combining all alignment results, or NULL if errors occur
-  during processing.
+during processing.
 }
 \description{
 This function orchestrates the alignment of sequences in a specified

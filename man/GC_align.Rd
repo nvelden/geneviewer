@@ -18,7 +18,7 @@ information.}
 "left", "right", or "center". Defaults to "left".}
 }
 \value{
-The modified `GC_chart` object with updated genomic coordinates.
+The modified \code{GC_chart} object with updated genomic coordinates.
 }
 \description{
 This function aligns clusters based on a specified gene id.

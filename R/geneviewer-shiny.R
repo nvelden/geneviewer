@@ -4,8 +4,9 @@
 #' interactive Rmd documents.
 #'
 #' @param outputId Output variable to read from.
-#' @param width, height Must be a valid CSS unit (like '100%', '400px', 'auto')
-#'   or a number, which will be coerced to a string and have 'px' appended.
+#' @param width Width of the output widget, must be a valid CSS unit (like
+#'   '100%', '400px', 'auto') or a number, which will be coerced to a string and
+#'   have 'px' appended.
 #' @param height Height of the output widget, must be a valid CSS unit (like
 #'   '100%', '400px', 'auto') or a number, which will be coerced to a string and
 #'   have 'px' appended.

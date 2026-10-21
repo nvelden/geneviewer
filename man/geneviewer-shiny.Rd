@@ -13,11 +13,12 @@ renderGC_chart(expr, env = parent.frame(), quoted = FALSE)
 \arguments{
 \item{outputId}{Output variable to read from.}
 
-\item{width, }{height Must be a valid CSS unit (like '100%', '400px', 'auto')
-or a number, which will be coerced to a string and have 'px' appended.}
+\item{width}{Width of the output widget, must be a valid CSS unit (like
+'100\%', '400px', 'auto') or a number, which will be coerced to a string and
+have 'px' appended.}
 
 \item{height}{Height of the output widget, must be a valid CSS unit (like
-'100%', '400px', 'auto') or a number, which will be coerced to a string and
+'100\%', '400px', 'auto') or a number, which will be coerced to a string and
 have 'px' appended.}
 
 \item{expr}{An expression that generates a GC chart.}
@@ -65,5 +66,5 @@ if (interactive()) {
 }
 }
 \seealso{
-[GC_chart()]
+\code{\link[=GC_chart]{GC_chart()}}
 }

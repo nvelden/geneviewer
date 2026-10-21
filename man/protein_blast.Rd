@@ -47,8 +47,8 @@ significant. Defaults to 30.}
 alignments. Defaults to TRUE.}
 }
 \value{
-A modified version of the input `data` dataframe, including
-  additional columns for BLAST results (identity, similarity).
+A modified version of the input \code{data} dataframe, including
+additional columns for BLAST results (identity, similarity).
 }
 \description{
 This function conducts a BLAST analysis for protein sequences within

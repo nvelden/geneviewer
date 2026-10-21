@@ -26,13 +26,13 @@ solid tile).}
 
 \item{color}{The colour of the pattern lines and dots: a single colour, a
 vector of colours recycled over the groups, or a named list of colours by
-group. For example, `color = "white"` with `background = "black"` gives
+group. For example, \code{color = "white"} with \code{background = "black"} gives
 white patterns on black.}
 
 \item{background}{The colour behind the pattern: a single colour, a vector
 of colours recycled over the groups, or a named list of colours by group.
-NULL keeps the gene colours set by `GC_color()`. When `background` is not
-NULL, intron lines and UTR outlines take `color`.}
+NULL keeps the gene colours set by \code{GC_color()}. When \code{background} is not
+NULL, intron lines and UTR outlines take \code{color}.}
 
 \item{size}{Numeric, the width and height of one pattern tile in pixels.}
 

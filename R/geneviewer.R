@@ -20,7 +20,7 @@ magrittr::`%>%`
 #'   strand, and -1, 0, 'reverse', 'antisense', "complement" or '-' to represent
 #'   the reverse strand. Default is NULL, meaning strand information is not
 #'   used.
-#' @param width Width specification for the chart, such as '100\%' or 500.
+#' @param width Width specification for the chart, such as '100%' or 500.
 #'   Default is unspecified.
 #' @param height Height specification for the chart, such as '400px' or 300.
 #'   Default is unspecified.

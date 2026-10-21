@@ -7,15 +7,15 @@
 get_introns(data)
 }
 \arguments{
-\item{data}{A dataframe containing `start` and `end` positions of transcripts.
-Optional columns are `type` (exon or UTR), `transcript` (containing unique
-transcript IDs), and `strand` (indicating the direction, forward or reverse,
+\item{data}{A dataframe containing \code{start} and \code{end} positions of transcripts.
+Optional columns are \code{type} (exon or UTR), \code{transcript} (containing unique
+transcript IDs), and \code{strand} (indicating the direction, forward or reverse,
 of each transcript).}
 }
 \value{
 A dataframe with the original exons and the calculated introns, sorted
-  by transcript and start position. Each row includes the `start`, `end`,
-  `type` (exon, UTR or intron), `transcript`, and `strand` for each segment.
+by transcript and start position. Each row includes the \code{start}, \code{end},
+\code{type} (exon, UTR or intron), \code{transcript}, and \code{strand} for each segment.
 }
 \description{
 This function takes a dataset containing transcript information and calculates

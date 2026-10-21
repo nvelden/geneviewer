@@ -3,7 +3,7 @@
 #'This function reads protein sequences from the specified FASTA file or all
 #'FASTA files within a directory. It specifically looks for metadata in the
 #'FASTA headers with key-value pairs separated by an equals sign `=`. For
-#'example, from the header '>protein1 [gene=scnD] [protein=ScnD]', it extracts
+#'example, from the header '>protein1 \[gene=scnD\] \[protein=ScnD\]', it extracts
 #''gene' as the key and 'scnD' as its value, and similarly for other key-value
 #'pairs.
 #'

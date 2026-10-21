@@ -37,7 +37,7 @@ the coordinate modifications. If NULL, applies to all clusters.}
 
 \item{cluster}{Numeric or character vector or NULL; specifies which clusters
 to generate coordinates for.
-       If NULL, labels will be applied to all clusters. Default is NULL.}
+If NULL, labels will be applied to all clusters. Default is NULL.}
 
 \item{...}{Additional arguments to be passed to the coordinate options.}
 }

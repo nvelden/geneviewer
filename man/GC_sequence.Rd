@@ -25,7 +25,7 @@ GC_sequence(
 
 \item{sequenceStyle}{A list of styling options for the sequence line.}
 
-\item{markerStyle}{A list of styling options for the sequence break markers, e.g. `markerHeight`, `tiltAmount` and `gap` (distance in pixels between each marker and the break), plus any CSS style.}
+\item{markerStyle}{A list of styling options for the sequence break markers, e.g. \code{markerHeight}, \code{tiltAmount} and \code{gap} (distance in pixels between each marker and the break), plus any CSS style.}
 
 \item{...}{Additional customization arguments for sequence display.}
 }
@@ -37,8 +37,8 @@ Modify the sequence display and break markers of specified clusters within a GC 
 }
 \details{
 This function allows customization of the sequence line and break markers in a GC chart.
-It offers options to adjust the sequence line (`sequenceStyle`) and break markers (`markerStyle`).
-The `y` parameter can be used to set the vertical position of the sequence.
+It offers options to adjust the sequence line (\code{sequenceStyle}) and break markers (\code{markerStyle}).
+The \code{y} parameter can be used to set the vertical position of the sequence.
 }
 \examples{
 genes_data <- data.frame(

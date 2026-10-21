@@ -69,11 +69,11 @@ getUpdatedClusters <- function(geneviewer, cluster) {
 #' Divide Dimension Value
 #'
 #' This function takes a dimension value (which can be in the format '100px',
-#' '100\%', or 100) and divides it by a given divisor. The result is returned in
+#' '100%', or 100) and divides it by a given divisor. The result is returned in
 #' the same format as the input.
 #'
 #' @param value A character or numeric value representing the dimension. It can
-#'   be in the format '100px', '100\%', or 100.
+#'   be in the format '100px', '100%', or 100.
 #' @param divisor A numeric value by which the dimension value will be divided.
 #'
 #' @return A character or numeric value representing the divided dimension.

@@ -7,12 +7,12 @@
 \format{
 A data frame with 23 rows and 6 columns:
 \describe{
-  \item{Identifiers}{Unique identifiers for the genes. A character vector.}
-  \item{Start}{Start positions of the genes on the chromosome. A numeric vector.}
-  \item{End}{End positions of the genes on the chromosome. A numeric vector.}
-  \item{Strand}{Strand orientation of the gene, either "+" or "-". A character vector.}
-  \item{Product}{Description of the gene products. A character vector.}
-  \item{Functions}{Functional categorization of the genes. A character vector.}
+\item{Identifiers}{Unique identifiers for the genes. A character vector.}
+\item{Start}{Start positions of the genes on the chromosome. A numeric vector.}
+\item{End}{End positions of the genes on the chromosome. A numeric vector.}
+\item{Strand}{Strand orientation of the gene, either "+" or "-". A character vector.}
+\item{Product}{Description of the gene products. A character vector.}
+\item{Functions}{Functional categorization of the genes. A character vector.}
 }
 }
 \usage{

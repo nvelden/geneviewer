@@ -20,7 +20,7 @@ GC_chart(
 }
 \arguments{
 \item{data}{Data frame containing genomic information or the file path to a
-folder containing `.gbk` files. When providing a file path, the data is
+folder containing \code{.gbk} files. When providing a file path, the data is
 loaded and processed into a data frame internally.}
 
 \item{start}{Column name that indicates start positions. Default is "start".}

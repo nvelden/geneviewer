@@ -17,7 +17,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Language: en-US
-RoxygenNote: 7.3.1
+Roxygen: list(markdown = TRUE)
 URL: https://github.com/nvelden/geneviewer
 BugReports: https://github.com/nvelden/geneviewer/issues
 Depends:
@@ -39,3 +39,4 @@ Suggests:
     Biostrings,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.1

@@ -25,8 +25,8 @@ and \code{blockSizes} are kept as they are. \code{blockStarts} become
 }
 \details{
 This function can read multiple BED files from a directory or a
-  single BED file from a specified path. It adds a 'filename' column with the
-  name of the file, and combines the data frames from all files into one.
+single BED file from a specified path. It adds a 'filename' column with the
+name of the file, and combines the data frames from all files into one.
 }
 \examples{
 \dontrun{

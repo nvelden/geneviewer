@@ -12,21 +12,21 @@ file or directory.}
 
 \item{sections}{An optional vector of strings representing the names of
 specific sections within the GenBank file to extract (e.g., "LOCUS",
-"DEFINITION", "ACCESSION", "VERSION"). If `NULL` (the default), the
+"DEFINITION", "ACCESSION", "VERSION"). If \code{NULL} (the default), the
 function extracts all available sections.}
 
 \item{features}{An optional vector of strings indicating specific feature
 types to extract from the FEATURES section of the GenBank file (e.g.,
-"CDS", "gene", "mRNA"). If `NULL` (the default), the function extracts all
+"CDS", "gene", "mRNA"). If \code{NULL} (the default), the function extracts all
 feature types present in the FEATURES section.}
 
-\item{origin}{A boolean flag; when set to `TRUE` (the default), the origin
+\item{origin}{A boolean flag; when set to \code{TRUE} (the default), the origin
 sequence data is included in the output.}
 }
 \value{
 A list containing the contents of the specified sections and features
-  of the GenBank file. Each section and feature is returned as a separate
-  list element.
+of the GenBank file. Each section and feature is returned as a separate
+list element.
 }
 \description{
 This function reads data from a single GenBank file or directory with

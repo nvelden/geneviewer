@@ -9,11 +9,11 @@ read_fasta(fasta_path, sequence = TRUE, keys = NULL, file_extension = "fasta")
 \arguments{
 \item{fasta_path}{Path to the FASTA file or directory containing FASTA files.}
 
-\item{sequence}{Logical; if `TRUE`, the protein sequences are included in the
+\item{sequence}{Logical; if \code{TRUE}, the protein sequences are included in the
 returned data frame.}
 
 \item{keys}{An optional vector of strings representing specific keys within
-the fasta header to retain in the final data frame. If `NULL` (the default),
+the fasta header to retain in the final data frame. If \code{NULL} (the default),
 all keys within the specified feature are included.}
 
 \item{file_extension}{Extension of the FASTA files to be read from the
@@ -21,12 +21,12 @@ directory (default is 'fasta').}
 }
 \value{
 A data frame with columns for each piece of information extracted from
- the FASTA headers.
+the FASTA headers.
 }
 \description{
 This function reads protein sequences from the specified FASTA file or all
 FASTA files within a directory. It specifically looks for metadata in the
-FASTA headers with key-value pairs separated by an equals sign `=`. For
+FASTA headers with key-value pairs separated by an equals sign \code{=}. For
 example, from the header '>protein1 [gene=scnD] [protein=ScnD]', it extracts
 'gene' as the key and 'scnD' as its value, and similarly for other key-value
 pairs.

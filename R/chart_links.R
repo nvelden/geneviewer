@@ -243,8 +243,6 @@ get_links <-
 #'   ) %>%
 #'   GC_labels(label = "group", cluster = 1) %>%
 #'   GC_clusterLabel()
-#' @seealso
-#' * [get_links()]
 #' @export
 GC_links <- function(
     GC_chart,

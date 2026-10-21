@@ -20,17 +20,17 @@ named list of features, with each feature being a character vector.}
 cluster's FEATURE list (e.g., "CDS" or "gene"). Defaults to "CDS".}
 
 \item{keys}{An optional vector of strings representing specific keys within
-the feature to retain in the final data frame. If `NULL` (the default), all
+the feature to retain in the final data frame. If \code{NULL} (the default), all
 keys within the specified feature are included.}
 
-\item{process_region}{A boolean flag; when set to `TRUE` (the default),
+\item{process_region}{A boolean flag; when set to \code{TRUE} (the default),
 special processing is performed on the 'region' key (if present) to extract
 'strand', 'start', and 'end' information.}
 }
 \value{
 A data frame where each row corresponds to a feature from the input
-  list. The data frame includes a 'cluster' column indicating the source gbk
-  file.
+list. The data frame includes a 'cluster' column indicating the source gbk
+file.
 }
 \description{
 This function processes a list of GenBank features (loaded by read_gbk())

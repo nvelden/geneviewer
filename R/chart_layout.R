@@ -489,7 +489,7 @@ GC_grid <- function(
 #' Default is NULL.
 #' @param padding Numeric value or percentage string indicating the padding on
 #' either side of the scale. The value can be a number or a string in the
-#' format of '2\%'. Default is 2.
+#' format of '2%'. Default is 2.
 #' @param hidden Logical flag indicating whether the axis is hidden. Default is
 #' FALSE.
 #' @param breaks List specifying settings for the scale breaks. Default is an

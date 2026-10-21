@@ -16,16 +16,16 @@ GC_normalize(
 }
 \arguments{
 \item{GC_chart}{A chart object containing genomic data and clustering
-information. The chart object must include a `series` component with data
+information. The chart object must include a \code{series} component with data
 for each cluster.}
 
 \item{group}{Column name containing gene names to apply custom gaps to.}
 
-\item{cluster}{A vector of cluster names to be normalized. If `NULL`, all
-clusters in the `GC_chart` will be normalized.}
+\item{cluster}{A vector of cluster names to be normalized. If \code{NULL}, all
+clusters in the \code{GC_chart} will be normalized.}
 
 \item{normalize}{A logical value indicating whether to normalize the gene
-positions within each cluster. Default is `TRUE`.}
+positions within each cluster. Default is \code{TRUE}.}
 
 \item{preserve_gene_length}{A logical vector indicating whether to preserve
 the original gene lengths for each cluster. If a single value is provided,
@@ -34,15 +34,15 @@ it is recycled for all clusters.}
 \item{gap}{A numeric vector specifying the proportion of the total length to
 be used as the gap between genes in each cluster. The value must be between
 0 and 1. If a single value is provided, it is recycled for all clusters. If
-`NULL`, the gaps are calculated based on the actual spacing between the
+\code{NULL}, the gaps are calculated based on the actual spacing between the
 genes in the original data.}
 
 \item{custom_gaps}{A named list where each name corresponds to a gene name and
 each value is a numeric factor by which to adjust the gap after that gene.}
 }
 \value{
-The modified `GC_chart` object with normalized gene coordinates for
-  the specified clusters.
+The modified \code{GC_chart} object with normalized gene coordinates for
+the specified clusters.
 }
 \description{
 This function normalizes the genomic coordinates of a set of genes within a

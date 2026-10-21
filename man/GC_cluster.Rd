@@ -22,13 +22,13 @@ GC_cluster(
 forward and reverse genes.}
 
 \item{strand_spacing}{Numeric, specifies the spacing between genes on
-different strands. Used only if `separate_strands` is TRUE.}
+different strands. Used only if \code{separate_strands} is TRUE.}
 
 \item{prevent_gene_overlap}{Logical, indicating whether to vertically separate
 overlapping genes.}
 
 \item{overlap_spacing}{Numeric, specifies the spacing between overlapping genes
-Used only if `prevent_gene_overlap` is TRUE.}
+Used only if \code{prevent_gene_overlap} is TRUE.}
 
 \item{cluster}{Optional; used to specify which clusters in the chart should have tooltips.}
 

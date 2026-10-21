@@ -14,12 +14,12 @@ GC_labels(
 )
 }
 \arguments{
-\item{GC_chart}{A `GC chart` object to which labels will be added.}
+\item{GC_chart}{A \verb{GC chart} object to which labels will be added.}
 
 \item{label}{Character vector, logical, or NULL. Specific labels for the clusters.
-If NULL and `GC_chart` has group names, those will be used as labels.}
+If NULL and \code{GC_chart} has group names, those will be used as labels.}
 
-\item{show}{Logical; controls the visibility of labels. Default is `TRUE`.}
+\item{show}{Logical; controls the visibility of labels. Default is \code{TRUE}.}
 
 \item{cluster}{Numeric or character vector or NULL; specifies which clusters should be labeled.
 If NULL, labels will be applied to all clusters. Default is NULL.}
@@ -29,12 +29,12 @@ If NULL, labels will be applied to all clusters. Default is NULL.}
 \item{...}{Additional arguments for further customization of the labels.}
 }
 \value{
-A `GC chart` object with updated label settings for each specified cluster.
+A \verb{GC chart} object with updated label settings for each specified cluster.
 }
 \description{
 This function adds labels to each cluster within a GC chart. It provides the
 option to show or hide the labels and supports customization of label properties.
-It can automatically pick up group names as labels from the `GC_chart` object if not provided.
+It can automatically pick up group names as labels from the \code{GC_chart} object if not provided.
 }
 \examples{
 genes_data <- data.frame(

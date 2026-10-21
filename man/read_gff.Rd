@@ -22,9 +22,9 @@ combines them into a single data frame.
 }
 \details{
 This function can read multiple GFF files from a directory or a
-  single GFF file. It processes each file, extracts the specified fields (if
-  provided), adds a 'name' column with the filename, and combines the data
-  frames from all files into one.
+single GFF file. It processes each file, extracts the specified fields (if
+provided), adds a 'name' column with the filename, and combines the data
+frames from all files into one.
 }
 \examples{
 \dontrun{

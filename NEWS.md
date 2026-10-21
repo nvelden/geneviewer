@@ -19,6 +19,7 @@
 - Charts no longer create the global JavaScript variables `to` and `linearScale`, which could overwrite variables of the same name on the page.
 - Gene labels from `GC_labels()` and identity labels from `GC_links()` no longer share element ids. The overlap check of a gene label used the identity label with the same id, so identity labels were rotated instead of the gene labels.
 - `GC_genes()` and `GC_transcript()` no longer drop the colours from `GC_color()` and the patterns from `GC_pattern()` when called after them. Their `colorScheme` and `customColors` now also set the legend colours (when no cluster or selection is given), so the legend matches the genes.
+- Identity (or similarity) labels from `GC_links()` and gene labels from `GC_labels()` no longer overlap. Each gene now has one label with the gene name and, below it, its identity; when labels are rotated to avoid overlap, both are shown on one line (e.g. "eryK 64.1%").
 - `itemStyle` values of 0 are no longer ignored in `GC_labels()`, `GC_genes()` and `GC_transcript()` (e.g. `rotate = 0`, `y = 0` or `cornerRadius = 0` for one gene); they fell back to the general option.
 - `GC_sequence(start = 0)` and `end = 0` are no longer ignored; the line started at the first gene instead.
 - `GC_sequence(markerStyle = list(gap = ))` is now a distance in pixels between each break marker and the break, the same for every break. It was a percentage of the marker's x position, so breaks further right opened wider. Charts that set `gap` get a narrower gap.

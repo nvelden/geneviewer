@@ -220,8 +220,8 @@ function adjustGeneLabels(container, labelSelector, options = {}) {
 }
 
 // Rotates labels that overlap another label of labelSelector in the
-// container's SVG. Call adjust(label, options) for each label in turn and
-// refresh(label) after restyling a label. Label sizes are measured once and
+// container's SVG. Call adjust(label, options) for each label in turn (it
+// returns true when it rotated the label) and refresh(label) after restyling a label. Label sizes are measured once and
 // measured again only when a label changes, instead of on every comparison.
 function createLabelAdjuster(container, labelSelector) {
   // Default options
@@ -282,9 +282,10 @@ function createLabelAdjuster(container, labelSelector) {
           .attr("transform", `rotate(${rotation}, ${centerX}, ${centerY})`);
 
         refresh(specificLabel);
-        break;
+        return true;
       }
     }
+    return false;
   };
 
   return { adjust, refresh };
@@ -2279,6 +2280,44 @@ container.prototype.scaleBar = function (show = true, options = {}) {
   return this;
 };
 
+// Adds the link label of the same gene (e.g. the identity % from links()) to a
+// gene label, as a second line below the name, and removes the link label.
+// Gene and link labels were drawn at the same place above the gene.
+function addLinkLabelLine(label, linkLabel) {
+  const text = d3.select(label);
+  const name = label.textContent;
+  label.textContent = "";
+  text.append("tspan").attr("class", "label-name").text(name);
+  const measure = text.append("tspan")
+    .attr("class", "label-measure")
+    .text(linkLabel.textContent);
+  // Keep the font and other styles of the link label; the gene label sets the
+  // alignment (the link label may have been rotated by its own overlap check)
+  for (const property of linkLabel.style) {
+    if (property === "text-anchor") continue;
+    measure.style(property, linkLabel.style.getPropertyValue(property));
+  }
+  linkLabel.remove();
+
+  if (name) {
+    // Second line below the name; move the label up a line so the link label
+    // stays where it was, just above the gene
+    measure.attr("x", text.attr("x")).attr("dy", "1.1em");
+    const lineHeight = 1.1 * parseFloat(getComputedStyle(measure.node()).fontSize);
+    text.attr("y", parseFloat(text.attr("y")) - lineHeight);
+  }
+}
+
+// A rotated two-line gene label becomes one line ("name 64%"), so rotated
+// labels next to each other stay one line thick
+function linkLabelLineToInline(label) {
+  const text = d3.select(label);
+  const measure = text.select(".label-measure");
+  if (measure.empty()) return;
+  measure.attr("x", null).attr("dy", null)
+    .attr("dx", text.select(".label-name").text() ? "0.3em" : null);
+}
+
 container.prototype.labels = function (label, show = true, options = {}) {
 
   if (!show) {
@@ -2371,6 +2410,10 @@ container.prototype.labels = function (label, show = true, options = {}) {
 
   const attributesByIndex = this.data.map((d, i) => getAttributesForIndex(d, i));
   const labelAdjuster = createLabelAdjuster(this, "text.label");
+  // Link labels (e.g. identity %) drawn by links() for the genes of this cluster
+  const linkLabelsByRow = new Map(
+    this.svg.selectAll(".link-text").nodes().map(node => [node.getAttribute("rowID"), node])
+  );
 
   // Adding the Label
   g.selectAll("text.label")
@@ -2394,13 +2437,19 @@ container.prototype.labels = function (label, show = true, options = {}) {
     .style("font-family", fontFamily)
     .style("cursor", cursor)
     .text(d => d[label])
+    // One label per gene: a gene with a link label gets it as a second line.
+    // Done for all labels before the overlap check, which measures them all at once
+    .each(function (d) {
+      const linkLabel = linkLabelsByRow.get(String(d.rowID));
+      if (linkLabel) addLinkLabelLine(this, linkLabel);
+    })
     .each(function (d, i) {
 
       const currentElement = d3.select(this);
       const attributes = attributesByIndex[i];
 
-      if (attributes.adjustLabels) {
-        labelAdjuster.adjust(this, attributes.labelAdjustmentOptions);
+      if (attributes.adjustLabels && labelAdjuster.adjust(this, attributes.labelAdjustmentOptions)) {
+        linkLabelLineToInline(this);
       }
       // Set additional options as attributes
       setStyleFromOptions(currentElement, additionalOptions);

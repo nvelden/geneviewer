@@ -45,7 +45,10 @@ GC_links(
 
 \item{show_links}{Logical; if \code{TRUE}, links are shown, otherwise hidden.}
 
-\item{label}{Logical; if \code{TRUE}, shows measure labels on the links, otherwise hidden.}
+\item{label}{Logical; if \code{TRUE}, shows measure labels on the links, otherwise hidden.
+When the genes also have labels from \code{\link[=GC_labels]{GC_labels()}}, the measure is shown
+below the gene name in the same label (or after it, when the label is
+rotated to avoid overlap).}
 
 \item{normal_color}{Color for the links in their normal state.}
 

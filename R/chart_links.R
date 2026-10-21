@@ -144,6 +144,9 @@ get_links <-
 #' @param measure Character; specifies which measure to use for link color intensity. Should be "identity", "similarity", or "none".
 #' @param show_links Logical; if `TRUE`, links are shown, otherwise hidden.
 #' @param label Logical; if `TRUE`, shows measure labels on the links, otherwise hidden.
+#'   When the genes also have labels from [GC_labels()], the measure is shown
+#'   below the gene name in the same label (or after it, when the label is
+#'   rotated to avoid overlap).
 #' @param normal_color Color for the links in their normal state.
 #' @param inverted_color Color for inverted links.
 #' @param use_group_colors Logical; if `TRUE`, color links by group.

@@ -369,8 +369,8 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
     "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
     "#393b79", "#637939", "#8c6d31", "#843c39", "#7b4173",
     "#bd9e39", "#ad494a", "#d6616b", "#31a354", "#cedb9c",
-    "#9c9ede", "#637939", "#8ca252", "#b5cf6b", "#cedb9c",
-    "#8c6d31", "#e7cb94", "#e7969c", "#7b4173", "#a55194"
+    "#9c9ede", "#5254a3", "#8ca252", "#b5cf6b", "#e7ba52",
+    "#ce6dbd", "#e7cb94", "#e7969c", "#6b6ecf", "#a55194"
   ];
 
   if (customColors && typeof customColors === "string") {

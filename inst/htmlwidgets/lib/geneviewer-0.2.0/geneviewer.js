@@ -2854,7 +2854,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
         element.classed("unselected", true);
       }
 
-      const unselectedLegend = d3.selectAll(".unselected").data();
+      // Only this legend's items: other charts on the page have their own
+      const unselectedLegend = g.selectAll(".unselected").data();
       const unselectedRowIds = this.data
         .filter(item => unselectedLegend.includes(item[group]))
         .map(item => item.rowID);

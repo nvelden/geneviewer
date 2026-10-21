@@ -2342,13 +2342,13 @@ container.prototype.labels = function (label, show = true, options = {}) {
 
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
-    const currentX = style.x || x;
-    const currentY = style.y || y;
+    const currentX = style.x ?? x;
+    const currentY = style.y ?? y;
 
-    const currentDx = style.dx || dx;
-    const currentDy = style.dy || dy;
-    const currentRotate = style.rotate || rotate;
-    var currentLabelAdjustmentOptions = style.labelAdjustmentOptions || labelAdjustmentOptions;
+    const currentDx = style.dx ?? dx;
+    const currentDy = style.dy ?? dy;
+    const currentRotate = style.rotate ?? rotate;
+    var currentLabelAdjustmentOptions = style.labelAdjustmentOptions ?? labelAdjustmentOptions;
       currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
     const currentAdjustLabels = style.adjustLabels !== undefined ? style.adjustLabels : adjustLabels;
 
@@ -2594,10 +2594,10 @@ container.prototype.genes = function (group, show = true, options = {}) {
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
     const geneLength = Math.abs(this.xScale(d.end) - this.xScale(d.start));
-    const currentX = style.x || x;
-    const currentY = style.y || y;
-    const marker = style.marker || combinedOptions.marker;
-    const markerSize = style.markerSize || combinedOptions.markerSize;
+    const currentX = style.x ?? x;
+    const currentY = style.y ?? y;
+    const marker = style.marker ?? combinedOptions.marker;
+    const markerSize = style.markerSize ?? combinedOptions.markerSize;
 
 
     // GenePath
@@ -2605,11 +2605,11 @@ container.prototype.genes = function (group, show = true, options = {}) {
         marker,
         geneLength,
         markerSize,
-        options = {
-          arrowheadWidth: style.arrowheadWidth || combinedOptions.arrowheadWidth,
-          arrowheadHeight: style.arrowheadHeight || combinedOptions.arrowheadHeight,
-          markerHeight: style.markerHeight || combinedOptions.markerHeight,
-          cornerRadius: style.cornerRadius || combinedOptions.cornerRadius
+        {
+          arrowheadWidth: style.arrowheadWidth ?? combinedOptions.arrowheadWidth,
+          arrowheadHeight: style.arrowheadHeight ?? combinedOptions.arrowheadHeight,
+          markerHeight: style.markerHeight ?? combinedOptions.markerHeight,
+          cornerRadius: style.cornerRadius ?? combinedOptions.cornerRadius
         }
       )
 
@@ -2765,21 +2765,21 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   const getAttributesForIndex = (d, i, styles, itemStyles) => {
     const style = itemStyles.find(s => s.index === i) || {};
     const geneLength = Math.abs(this.xScale(d.end) - this.xScale(d.start));
-    const currentX = style.x || x;
-    const currentY = style.y || y;
-    const marker = style.marker || styles.marker;
-    const markerSize = style.markerSize || styles.markerSize;
+    const currentX = style.x ?? x;
+    const currentY = style.y ?? y;
+    const marker = style.marker ?? styles.marker;
+    const markerSize = style.markerSize ?? styles.markerSize;
 
     // GenePath
     const { path, arrowheadWidth, arrowheadHeight, height } = getGenePath(
       marker,
       geneLength,
       markerSize,
-      options = {
-        arrowheadWidth: style.arrowheadWidth || styles.arrowheadWidth,
-        arrowheadHeight: style.arrowheadHeight || styles.arrowheadHeight,
-        markerHeight: style.markerHeight || styles.markerHeight,
-        cornerRadius: style.cornerRadius || styles.cornerRadius
+      {
+        arrowheadWidth: style.arrowheadWidth ?? styles.arrowheadWidth,
+        arrowheadHeight: style.arrowheadHeight ?? styles.arrowheadHeight,
+        markerHeight: style.markerHeight ?? styles.markerHeight,
+        cornerRadius: style.cornerRadius ?? styles.cornerRadius
       }
     );
 

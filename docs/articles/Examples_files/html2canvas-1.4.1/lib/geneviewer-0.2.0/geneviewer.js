@@ -219,7 +219,11 @@ function adjustGeneLabels(container, labelSelector, options = {}) {
   return container;
 }
 
-function adjustSpecificLabel(container, labelSelector, elementId, options = {}) {
+// Rotates labels that overlap another label of labelSelector in the
+// container's SVG. Call adjust(label, options) for each label in turn and
+// refresh(label) after restyling a label. Label sizes are measured once and
+// measured again only when a label changes, instead of on every comparison.
+function createLabelAdjuster(container, labelSelector) {
   // Default options
   const defaultOptions = {
     rotation: -65, // Rotation angle (in degrees)
@@ -229,9 +233,6 @@ function adjustSpecificLabel(container, labelSelector, elementId, options = {}) 
     dy: "0em", // Vertical adjustment
   };
 
-  // Merge default options with the provided options
-  const { rotation, offsetX, offsetY, dx, dy } = { ...defaultOptions, ...options };
-
   const overlapPercentage = (rect1, rect2) => {
     const x_overlap = Math.max(0, Math.min(rect1.right, rect2.right) - Math.max(rect1.left, rect2.left));
     const y_overlap = Math.max(0, Math.min(rect1.bottom, rect2.bottom) - Math.max(rect1.top, rect2.top));
@@ -240,29 +241,36 @@ function adjustSpecificLabel(container, labelSelector, elementId, options = {}) 
     return (overlapArea / rect1Area) * 100;
   };
 
-  // Select all the labels based on the provided selector
-  var labels = container.svg.selectAll(labelSelector).nodes();
+  // Measured on the first adjust(), when all labels are drawn
+  let labels = null;
+  const rects = new Map();
 
-  // Select the specific label using the provided elementId
-  var specificLabel = container.svg.select(`#${elementId}`).node();
+  const refresh = (label) => {
+    if (labels) rects.set(label, label.getBoundingClientRect());
+  };
 
-  // Calculate the label's original center position
-  const bbox = specificLabel.getBBox();
-  var centerX = bbox.x + bbox.width / 2;
-  var centerY = bbox.y;
+  const adjust = (specificLabel, options = {}) => {
+    if (!labels) {
+      labels = container.svg.selectAll(labelSelector).nodes();
+      labels.forEach(label => rects.set(label, label.getBoundingClientRect()));
+    }
 
-  centerX += offsetX
-  centerY += (rotation < 0) ? bbox.height : bbox.height / 2;
-  centerY += offsetY;
+    const { rotation, offsetX, offsetY, dx, dy } = { ...defaultOptions, ...options };
 
-  // Check for overlap with other labels
-  for (var i = 0; i < labels.length; i++) {
-    if (labels[i] !== specificLabel) { // Ensure we're not comparing the label with itself
-      var labelRect = labels[i].getBoundingClientRect();
-      var specificLabelRect = specificLabel.getBoundingClientRect();
+    // Calculate the label's original center position
+    const bbox = specificLabel.getBBox();
+    let centerX = bbox.x + bbox.width / 2;
+    let centerY = bbox.y;
 
+    centerX += offsetX;
+    centerY += (rotation < 0) ? bbox.height : bbox.height / 2;
+    centerY += offsetY;
+
+    // Check for overlap with other labels
+    const specificLabelRect = rects.get(specificLabel);
+    for (const label of labels) {
       // If the specific label overlaps with another label
-      if (overlapPercentage(specificLabelRect, labelRect) > 0) {
+      if (label !== specificLabel && overlapPercentage(specificLabelRect, rects.get(label)) > 0) {
 
         // Adjust the label rotation and position
         d3.select(specificLabel)
@@ -273,12 +281,13 @@ function adjustSpecificLabel(container, labelSelector, elementId, options = {}) 
           .attr("y", centerY)
           .attr("transform", `rotate(${rotation}, ${centerX}, ${centerY})`);
 
-        // Break out of the loop once we've adjusted the specific label
+        refresh(specificLabel);
         break;
       }
     }
-  }
-  return container;
+  };
+
+  return { adjust, refresh };
 }
 
 function camelToKebab(string) {
@@ -763,9 +772,6 @@ function addScalePadding(startValue, endValue, padding, to) {
   }
 }
 
-// Scale of the PNG from the save button; 3 gives about 300 dpi at 100% zoom
-const pngExportScale = 3;
-
 // Styles copied from the page onto each element of an exported SVG, so it
 // looks the same without the page's stylesheets (e.g. styles.css, fonts)
 const svgExportInheritedStyles = [
@@ -925,10 +931,7 @@ function createSaveIcon(widgetId, el, show = true) {
       {
         label: "Save as PNG",
         save: function () {
-          html2canvas(el, {
-            backgroundColor: null,
-            scale: Math.max(pngExportScale, window.devicePixelRatio || 1)
-          }).then(canvas => {
+          html2canvas(el, { backgroundColor: null }).then(canvas => {
             canvas.toBlob(function (blob) {
               saveAs(blob, "graph.png");
             });
@@ -1019,7 +1022,7 @@ function getLinkCoordinates(graphContainer, data) {
     return links;
 };
 
-function makeLinks(graphContainer, links, clusters) {
+function makeLinks(graphContainer, links) {
 
     if (!links || links.length === 0) {
         return;
@@ -2327,9 +2330,6 @@ container.prototype.labels = function (label, show = true, options = {}) {
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
 
-  // Placeholder function for getUniqueId
-  const getUniqueId = (label) => label; // Replace with your actual implementation
-
   // Create the group
   const g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
@@ -2337,18 +2337,15 @@ container.prototype.labels = function (label, show = true, options = {}) {
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
 
-  // Check for existing labels
-  const existingLabels = g.selectAll("text.label");
-
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
-    const currentX = style.x || x;
-    const currentY = style.y || y;
+    const currentX = style.x ?? x;
+    const currentY = style.y ?? y;
 
-    const currentDx = style.dx || dx;
-    const currentDy = style.dy || dy;
-    const currentRotate = style.rotate || rotate;
-    var currentLabelAdjustmentOptions = style.labelAdjustmentOptions || labelAdjustmentOptions;
+    const currentDx = style.dx ?? dx;
+    const currentDy = style.dy ?? dy;
+    const currentRotate = style.rotate ?? rotate;
+    var currentLabelAdjustmentOptions = style.labelAdjustmentOptions ?? labelAdjustmentOptions;
       currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
     const currentAdjustLabels = style.adjustLabels !== undefined ? style.adjustLabels : adjustLabels;
 
@@ -2372,7 +2369,8 @@ container.prototype.labels = function (label, show = true, options = {}) {
     };
   };
 
-  const self = this;
+  const attributesByIndex = this.data.map((d, i) => getAttributesForIndex(d, i));
+  const labelAdjuster = createLabelAdjuster(this, "text.label");
 
   // Adding the Label
   g.selectAll("text.label")
@@ -2382,16 +2380,14 @@ container.prototype.labels = function (label, show = true, options = {}) {
     .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-label-${i}`)
     .attr("rowID", (d, i) => `${d["rowID"]}`)
     .attr("class", "label")
-    .attr("x", (d, i) => getAttributesForIndex(d, i).xPos)
-    .attr("y", (d, i) => getAttributesForIndex(d, i).yPos)
-    .attr("dx", (d, i) => getAttributesForIndex(d, i).dx)
-    .attr("dy", (d, i) => getAttributesForIndex(d, i).dy)
+    .attr("x", (d, i) => attributesByIndex[i].xPos)
+    .attr("y", (d, i) => attributesByIndex[i].yPos)
+    .attr("dx", (d, i) => attributesByIndex[i].dx)
+    .attr("dy", (d, i) => attributesByIndex[i].dy)
     .attr("text-anchor", textAnchor)
     .attr("transform", (d, i) => {
-      const xPos = getAttributesForIndex(d, i).xPos;
-      const yPos = getAttributesForIndex(d, i).yPos;
-      const rotateValue = getAttributesForIndex(d, i).rotate;
-      return `rotate(${rotateValue}, ${xPos}, ${yPos})`;
+      const { xPos, yPos, rotate } = attributesByIndex[i];
+      return `rotate(${rotate}, ${xPos}, ${yPos})`;
     })
     .style("font-size", fontSize)
     .style("font-style", fontStyle)
@@ -2401,15 +2397,16 @@ container.prototype.labels = function (label, show = true, options = {}) {
     .each(function (d, i) {
 
       const currentElement = d3.select(this);
-      const attributes = getAttributesForIndex(d, i);
+      const attributes = attributesByIndex[i];
 
       if (attributes.adjustLabels) {
-        adjustSpecificLabel(self, "text.label", currentElement.attr("id"), attributes.labelAdjustmentOptions);
+        labelAdjuster.adjust(this, attributes.labelAdjustmentOptions);
       }
       // Set additional options as attributes
       setStyleFromOptions(currentElement, additionalOptions);
       // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
+      labelAdjuster.refresh(this);
 
     });
 
@@ -2544,6 +2541,42 @@ container.prototype.tooltip = function (show = true, options = {}) {
   return this; // Return the instance for method chaining
 };
 
+// Path and position of the gene (or exon, intron, UTR) marker of d, the i-th
+// item. styles holds the marker options and itemStyles the per-item overrides.
+// Also sets the marker height and spacing on the container, used by labels.
+function getMarkerAttributes(container, d, i, y, styles, itemStyles) {
+  const style = itemStyles.find(s => s.index === i) || {};
+  const geneLength = Math.abs(container.xScale(d.end) - container.xScale(d.start));
+  const currentY = style.y ?? y;
+
+  const { path, arrowheadWidth, arrowheadHeight, height } = getGenePath(
+    style.marker ?? styles.marker,
+    geneLength,
+    style.markerSize ?? styles.markerSize,
+    {
+      arrowheadWidth: style.arrowheadWidth ?? styles.arrowheadWidth,
+      arrowheadHeight: style.arrowheadHeight ?? styles.arrowheadHeight,
+      markerHeight: style.markerHeight ?? styles.markerHeight,
+      cornerRadius: style.cornerRadius ?? styles.cornerRadius
+    }
+  );
+
+  container.markerHeight = height;
+  container.geneStrandSpacing = container.separateStrands ? (height / 2 + container.strandSpacing) : 0;
+  container.geneOverlapSpacing = (height + container.overlapSpacing);
+
+  // Calculate Y position based on geneTrack
+  const currentGeneStrandSpacing = (d.strand === "forward" && container.geneStrandSpacing !== 0)
+    ? container.geneStrandSpacing
+    : -container.geneStrandSpacing;
+  const currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * container.geneOverlapSpacing : 0;
+
+  const yPos = container.yScale(currentY) - currentGeneStrandSpacing + currentOverlapSpacing;
+  const xPos = container.xScale(d.start);
+
+  return { xPos, yPos, path, arrowheadWidth, arrowheadHeight, height };
+}
+
 container.prototype.genes = function (group, show = true, options = {}) {
 
   if (!show) {
@@ -2591,43 +2624,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
 
-  const getAttributesForIndex = (d, i) => {
-    const style = itemStyle.find(s => s.index === i) || {};
-    const geneLength = Math.abs(this.xScale(d.end) - this.xScale(d.start));
-    const currentX = style.x || x;
-    const currentY = style.y || y;
-    const marker = style.marker || combinedOptions.marker;
-    const markerSize = style.markerSize || combinedOptions.markerSize;
-
-
-    // GenePath
-    const  { path, arrowheadWidth, arrowheadHeight, height }  = getGenePath(
-        marker,
-        geneLength,
-        markerSize,
-        options = {
-          arrowheadWidth: style.arrowheadWidth || combinedOptions.arrowheadWidth,
-          arrowheadHeight: style.arrowheadHeight || combinedOptions.arrowheadHeight,
-          markerHeight: style.markerHeight || combinedOptions.markerHeight,
-          cornerRadius: style.cornerRadius || combinedOptions.cornerRadius
-        }
-      )
-
-    this.markerHeight = height;
-    this.geneStrandSpacing = this.separateStrands ? (height / 2 + this.strandSpacing) : 0;
-    this.geneOverlapSpacing = (height + this.overlapSpacing);
-
-    // Calculate Y position based on geneTrack
-    const currentGeneStrandSpacing = (d.strand == "forward" && this.geneStrandSpacing !== 0)
-                                 ? this.geneStrandSpacing
-                                 : -this.geneStrandSpacing;
-    var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
-
-    const yPos = this.yScale(currentY) - currentGeneStrandSpacing + currentOverlapSpacing;
-    const xPos = this.xScale(d.start);
-
-    return { xPos, yPos, path, arrowheadWidth, arrowheadHeight, height };
-  };
+  const getAttributesForIndex = (d, i) => getMarkerAttributes(this, d, i, y, combinedOptions, itemStyle);
 
   g.selectAll(".gene")
     .data(this.data)
@@ -2762,42 +2759,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
 
-  const getAttributesForIndex = (d, i, styles, itemStyles) => {
-    const style = itemStyles.find(s => s.index === i) || {};
-    const geneLength = Math.abs(this.xScale(d.end) - this.xScale(d.start));
-    const currentX = style.x || x;
-    const currentY = style.y || y;
-    const marker = style.marker || styles.marker;
-    const markerSize = style.markerSize || styles.markerSize;
-
-    // GenePath
-    const { path, arrowheadWidth, arrowheadHeight, height } = getGenePath(
-      marker,
-      geneLength,
-      markerSize,
-      options = {
-        arrowheadWidth: style.arrowheadWidth || styles.arrowheadWidth,
-        arrowheadHeight: style.arrowheadHeight || styles.arrowheadHeight,
-        markerHeight: style.markerHeight || styles.markerHeight,
-        cornerRadius: style.cornerRadius || styles.cornerRadius
-      }
-    );
-
-    this.markerHeight = height;
-    this.geneStrandSpacing = this.separateStrands ? (height / 2 + this.strandSpacing) : 0;
-    this.geneOverlapSpacing = (height + this.overlapSpacing);
-
-    // Calculate Y position based on geneTrack
-    const currentGeneStrandSpacing = (d.strand === "forward" && this.geneStrandSpacing !== 0)
-      ? this.geneStrandSpacing
-      : -this.geneStrandSpacing;
-    const currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
-
-    const yPos = this.yScale(currentY) - currentGeneStrandSpacing + currentOverlapSpacing;
-    const xPos = this.xScale(d.start);
-
-    return { xPos, yPos, path, arrowheadWidth, arrowheadHeight, height };
-  };
+  const getAttributesForIndex = (d, i, styles, itemStyles) => getMarkerAttributes(this, d, i, y, styles, itemStyles);
 
   if (styleExons.show) {
     // Add exons
@@ -3272,7 +3234,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
   }
 
   if(label){
-    const self = this;
+    const labelAdjuster = createLabelAdjuster(this, ".link-text");
 
     const labelData = this.data.filter(d =>
       d[measure] != null &&
@@ -3288,7 +3250,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     .data(labelData)
     .enter()
     .append("text")
-    .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-label-${i}`)
+    .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-link-label-${i}`)
     .attr("rowID", (d, i) => `${d["rowID"]}`)
     .attr("class", "link-text")
     .attr("x", (d, i) => this.xScale((d.start + d.end) / 2))
@@ -3302,8 +3264,9 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     .attr("cluster", clusterKey)
     .each(function (d, i) {
       const currentElement = d3.select(this);
-      adjustSpecificLabel(self, ".link-text", currentElement.attr("id"), labelAdjustmentOptions);
+      labelAdjuster.adjust(this, labelAdjustmentOptions);
       setStyleFromOptions(currentElement, additionalOptionsLabelStyle);
+      labelAdjuster.refresh(this);
     });
   }
 

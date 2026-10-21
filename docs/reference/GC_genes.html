@@ -60,7 +60,7 @@ assign custom colors, filter by cluster, and accept additional options."><meta p
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Modify Gene Characteristics within a Chart</h1>
-      <small class="dont-index">Source: <a href="https://github.com/nvelden/geneviewer/blob/HEAD/R/geneviewer.R" class="external-link"><code>R/geneviewer.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/nvelden/geneviewer/blob/HEAD/R/chart_genes.R" class="external-link"><code>R/chart_genes.R</code></a></small>
       <div class="d-none name"><code>GC_genes.Rd</code></div>
     </div>
 
@@ -112,11 +112,14 @@ Allowed values are 'arrow', 'boxarrow', 'box', 'cbox', and 'rbox'.</p></dd>
 
 
 <dt>colorScheme</dt>
-<dd><p>Character or NULL, the name of the color scheme to use.</p></dd>
+<dd><p>Character or NULL, the name of the color scheme to use.
+When no <code>cluster</code> is selected, the legend uses the same colours. NULL keeps
+the colours set by <code><a href="GC_color.html">GC_color()</a></code>.</p></dd>
 
 
 <dt>customColors</dt>
-<dd><p>List or NULL, custom colors to apply to the genes.</p></dd>
+<dd><p>List or NULL, custom colors to apply to the genes. When no
+<code>cluster</code> is selected, the legend uses the same colours.</p></dd>
 
 
 <dt>cluster</dt>

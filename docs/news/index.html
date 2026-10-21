@@ -66,7 +66,6 @@
 <ul><li>
 <code><a href="../reference/GC_pattern.html">GC_pattern()</a></code> fills genes, exons and legend markers with a pattern per group, for black and white figures. There are 16 patterns (<code>"diagonal"</code>, <code>"dots"</code>, <code>"crosshatch"</code>, <code>"checkerboard"</code>, <code>"bricks"</code>, <code>"inverseDots"</code> and more). Patterns, pattern colours and backgrounds can be set per group, and <code>background = NULL</code> draws the patterns on top of the gene colours. They are kept in the PNG from the save button.</li>
 <li>The save button can now save charts as SVG, with all clusters, links, legends and titles in one vector file for publications. Hover the download icon and pick “Save as SVG” or “Save as PNG”.</li>
-<li>PNGs from the save button are now saved at three times the screen resolution (about 300 dpi), instead of at screen resolution.</li>
 </ul></div>
 <div class="section level4">
 <h4 id="bug-fixes-development-version">Bug fixes:<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h4>
@@ -87,6 +86,11 @@
 <li>
 <code><a href="../reference/GC_trackMouse.html">GC_trackMouse()</a></code> now shows the right position to the right of scale breaks (it was too small by the width of the breaks on the left).</li>
 <li>Charts no longer create the global JavaScript variables <code>to</code> and <code>linearScale</code>, which could overwrite variables of the same name on the page.</li>
+<li>Gene labels from <code><a href="../reference/GC_labels.html">GC_labels()</a></code> and identity labels from <code><a href="../reference/GC_links.html">GC_links()</a></code> no longer share element ids. The overlap check of a gene label used the identity label with the same id, so identity labels were rotated instead of the gene labels.</li>
+<li>
+<code><a href="../reference/GC_genes.html">GC_genes()</a></code> and <code><a href="../reference/GC_transcript.html">GC_transcript()</a></code> no longer drop the colours from <code><a href="../reference/GC_color.html">GC_color()</a></code> and the patterns from <code><a href="../reference/GC_pattern.html">GC_pattern()</a></code> when called after them. Their <code>colorScheme</code> and <code>customColors</code> now also set the legend colours (when no cluster or selection is given), so the legend matches the genes.</li>
+<li>
+<code>itemStyle</code> values of 0 are no longer ignored in <code><a href="../reference/GC_labels.html">GC_labels()</a></code>, <code><a href="../reference/GC_genes.html">GC_genes()</a></code> and <code><a href="../reference/GC_transcript.html">GC_transcript()</a></code> (e.g. <code>rotate = 0</code>, <code>y = 0</code> or <code>cornerRadius = 0</code> for one gene); they fell back to the general option.</li>
 <li>
 <code>GC_sequence(start = 0)</code> and <code>end = 0</code> are no longer ignored; the line started at the first gene instead.</li>
 <li>

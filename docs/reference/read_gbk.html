@@ -85,19 +85,19 @@ file or directory.</p></dd>
 <dt>sections</dt>
 <dd><p>An optional vector of strings representing the names of
 specific sections within the GenBank file to extract (e.g., "LOCUS",
-"DEFINITION", "ACCESSION", "VERSION"). If `NULL` (the default), the
+"DEFINITION", "ACCESSION", "VERSION"). If <code>NULL</code> (the default), the
 function extracts all available sections.</p></dd>
 
 
 <dt>features</dt>
 <dd><p>An optional vector of strings indicating specific feature
 types to extract from the FEATURES section of the GenBank file (e.g.,
-"CDS", "gene", "mRNA"). If `NULL` (the default), the function extracts all
+"CDS", "gene", "mRNA"). If <code>NULL</code> (the default), the function extracts all
 feature types present in the FEATURES section.</p></dd>
 
 
 <dt>origin</dt>
-<dd><p>A boolean flag; when set to `TRUE` (the default), the origin
+<dd><p>A boolean flag; when set to <code>TRUE</code> (the default), the origin
 sequence data is included in the output.</p></dd>
 
 </dl></div>
@@ -106,8 +106,8 @@ sequence data is included in the output.</p></dd>
     
 
 <p>A list containing the contents of the specified sections and features
-  of the GenBank file. Each section and feature is returned as a separate
-  list element.</p>
+of the GenBank file. Each section and feature is returned as a separate
+list element.</p>
     </div>
 
     <div class="section level2">

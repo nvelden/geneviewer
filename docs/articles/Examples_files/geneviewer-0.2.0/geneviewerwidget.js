@@ -67,7 +67,7 @@ HTMLWidgets.widget({
 
       if (legendOptions?.group !== null && legendOptions?.show) {
 
-        var legendContainer = d3.select(el)
+        d3.select(el)
           .append("div")
           .attr("id", `geneviewer-legend-container-${widgetId}`)
           .classed("geneviewer-container", true);
@@ -75,7 +75,7 @@ HTMLWidgets.widget({
         var legendOpts = { ...legendOptions, width: width,
                            height: computeSize(legendOptions.height, el.clientHeight) };
 
-        var legendContainer = createContainer(`#geneviewer-legend-container-${widgetId}`,
+        createContainer(`#geneviewer-legend-container-${widgetId}`,
           "svg-container",
           "legendOptions",
           legendOpts)
@@ -88,7 +88,7 @@ HTMLWidgets.widget({
 
       }
 
-      var graph = d3.select(el)
+      d3.select(el)
         .append("div")
         .attr("id", `geneviewer-graph-container-${widgetId}`)
         .style("flex-direction", graphContainer["direction"])
@@ -145,7 +145,7 @@ HTMLWidgets.widget({
         linksOptions = links[0].options;
         }
 
-        var cluster = createContainer(`#geneviewer-graph-container-${widgetId}`, "svg-container", 'containerOptions',  clonedContainerOptions)
+        createContainer(`#geneviewer-graph-container-${widgetId}`, "svg-container", 'containerOptions',  clonedContainerOptions)
           .cluster(clusterOptions)
           .theme("preset")
           .title(clusterTitleOptions?.title, clusterTitleOptions?.subtitle, clusterTitleOptions?.show ?? false, clusterTitleOptions)
@@ -166,23 +166,9 @@ HTMLWidgets.widget({
 
       });
 
-      // Bottom Legend
+      // Bottom legend: drawn above to measure its height, then moved below the clusters
       if (legendOptions?.position == "bottom" && legendOptions?.show && legendOptions?.group !== null) {
-
-        d3.select(`#geneviewer-legend-container-${widgetId}`).remove();
-
-        var legendContainer = d3.select(el)
-          .append("div")
-          .attr("id", `geneviewer-legend-container-${widgetId}`)
-          .classed("geneviewer-container", true);
-
-        var legendContainer = createContainer(`#geneviewer-legend-container-${widgetId}`,
-          "svg-container",
-          "legendOptions",
-          legendOpts)
-          .legendData(data)
-          .legend(legendOpts.group ?? false, legendOpts.show ?? false, el.id, legendOpts);
-
+        el.appendChild(legendElement);
       }
 
       // Save icon
@@ -190,23 +176,13 @@ HTMLWidgets.widget({
 
     };
 
-    var addLinks = function(width, height, clusters) {
-
-     if (!links || links.length === 0) {
+    var addLinks = function () {
+      if (!links || links.length === 0) {
         return;
-    }
-    // Remove all existing links
-    const graphContainer = d3.select(`#geneviewer-graph-container-${widgetId}`);
-    //graphContainer.selectAll(".link-marker").remove();
-
-    makeLinks(graphContainer, links, clusters);
-
-    // Remove all existing links
-    const colorBarContainer = d3.select(`#geneviewer-graph-container-${widgetId}`);
-    //graphContainer.selectAll(".link-marker").remove();
-
-    makeColorBar(graphContainer, links);
-
+      }
+      const graphContainer = d3.select(`#geneviewer-graph-container-${widgetId}`);
+      makeLinks(graphContainer, links);
+      makeColorBar(graphContainer, links);
     };
 
     return {
@@ -220,11 +196,11 @@ HTMLWidgets.widget({
         titleOptions = input.title;
         legendOptions = input.legend;
         draw(width, height);
-        addLinks(width, height);
+        addLinks();
       },
       resize: function (width, height) {
         draw(width, height);
-        addLinks(width, height);
+        addLinks();
       }
     };
   }

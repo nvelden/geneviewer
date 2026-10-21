@@ -62,7 +62,7 @@ lengths and to introduce customized gaps between the genes."><meta property="og:
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Normalize Gene Clusters in a Genomic Chart</h1>
-      <small class="dont-index">Source: <a href="https://github.com/nvelden/geneviewer/blob/HEAD/R/geneviewer.R" class="external-link"><code>R/geneviewer.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/nvelden/geneviewer/blob/HEAD/R/chart_align.R" class="external-link"><code>R/chart_align.R</code></a></small>
       <div class="d-none name"><code>GC_normalize.Rd</code></div>
     </div>
 
@@ -90,7 +90,7 @@ lengths and to introduce customized gaps between the genes.</p>
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>GC_chart</dt>
 <dd><p>A chart object containing genomic data and clustering
-information. The chart object must include a `series` component with data
+information. The chart object must include a <code>series</code> component with data
 for each cluster.</p></dd>
 
 
@@ -99,13 +99,13 @@ for each cluster.</p></dd>
 
 
 <dt>cluster</dt>
-<dd><p>A vector of cluster names to be normalized. If `NULL`, all
-clusters in the `GC_chart` will be normalized.</p></dd>
+<dd><p>A vector of cluster names to be normalized. If <code>NULL</code>, all
+clusters in the <code>GC_chart</code> will be normalized.</p></dd>
 
 
 <dt>normalize</dt>
 <dd><p>A logical value indicating whether to normalize the gene
-positions within each cluster. Default is `TRUE`.</p></dd>
+positions within each cluster. Default is <code>TRUE</code>.</p></dd>
 
 
 <dt>preserve_gene_length</dt>
@@ -118,7 +118,7 @@ it is recycled for all clusters.</p></dd>
 <dd><p>A numeric vector specifying the proportion of the total length to
 be used as the gap between genes in each cluster. The value must be between
 0 and 1. If a single value is provided, it is recycled for all clusters. If
-`NULL`, the gaps are calculated based on the actual spacing between the
+<code>NULL</code>, the gaps are calculated based on the actual spacing between the
 genes in the original data.</p></dd>
 
 
@@ -131,8 +131,8 @@ each value is a numeric factor by which to adjust the gap after that gene.</p></
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>The modified `GC_chart` object with normalized gene coordinates for
-  the specified clusters.</p>
+<p>The modified <code>GC_chart</code> object with normalized gene coordinates for
+the specified clusters.</p>
     </div>
 
     <div class="section level2">

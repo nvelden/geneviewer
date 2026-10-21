@@ -16,6 +16,7 @@
 - `GC_sequence(start = 0)` and `end = 0` are no longer ignored; the line started at the first gene instead.
 - `GC_sequence(markerStyle = list(gap = ))` is now a distance in pixels between each break marker and the break, the same for every break. It was a percentage of the marker's x position, so breaks further right opened wider. Charts that set `gap` get a narrower gap.
 - A percentage `GC_title(height = )` or `GC_legend(height = )` now follows the chart height when the chart is resized; it kept the pixel height of the first draw.
+- Smaller fixes: legend items fade on hover again (an invalid CSS selector dropped the transition), legend items have unique ids, the 3' and 5' transcript labels have their own classes (`three-prime-label`, `five-prime-label`), and unused or invalid styles were removed from the footer subtitle and the link layer.
 
 # geneviewer 0.2.0
 

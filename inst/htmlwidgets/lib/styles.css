@@ -19,8 +19,8 @@
 
 /* Common styles */
 .legend .legend-marker,
-.legend .legend-label
-.label. {
+.legend .legend-label,
+.label {
     transition: 0.3s ease-in-out;  /* Smooth transitions */
 }
 

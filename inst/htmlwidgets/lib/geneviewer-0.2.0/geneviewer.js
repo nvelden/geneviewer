@@ -779,9 +779,7 @@ function makeLinks(graphContainer, links, clusters) {
       .attr("height", graphRect.height)
       .classed("GeneLink", true)
       .style("position", "absolute")
-      .style("z-index", 1)
-      .style("left", `${graphContainer.left}px`)
-      .style("top", `${graphContainer.top}px`);
+      .style("z-index", 1);
 
     links.forEach(function(link) {
 
@@ -1518,7 +1516,7 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
       .each(function () {
         const currentElement = d3.select(this);
         parseAndStyleText(subtitle, currentElement, subtitleFont);
-        setStyleFromOptions(currentElement, subtitleFont);
+        setStyleFromOptions(currentElement, additionalOptionsSubtitleFont);
       });
   }
 
@@ -2676,7 +2674,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
     g.append("text")
         .attr("x", xPosition3Prime)
         .attr("y", (d) => this.yScale(y + labelOptions.yOffset))
-        .attr("class", `5-label`)
+        .attr("class", "three-prime-label")
         .attr("text-anchor", "middle")
         .attr("alignment-baseline", "middle")
         .style("font-size", labelOptions.fontSize)
@@ -2691,7 +2689,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
     g.append("text")
         .attr("x", xPosition5Prime)
         .attr("y", (d) => this.yScale(y + labelOptions.yOffset))
-        .attr("class", `5-label`)
+        .attr("class", "five-prime-label")
         .attr("text-anchor", "middle")
         .attr("alignment-baseline", "middle")
         .style("font-size", labelOptions.fontSize)
@@ -2797,7 +2795,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
       const textLabel = legendGroup
         .append("text")
         .attr("class", "legend-label")
-        .attr("id", (d, i) => `legend-label-${i}`)
+        .attr("id", `legend-label-${i}`)
         .attr("dy", legendTextOptions.dy)
         .style("text-anchor", legendTextOptions.textAnchor)
         .style("font-size", legendTextOptions.fontSize)
@@ -2825,7 +2823,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
       const rect = legendGroup
         .append("rect")
         .attr("class", "legend-marker")
-        .attr("id", (d, i) => `legend-marker-${i}`)
+        .attr("id", `legend-marker-${i}`)
         .style("cursor", legendOptions.cursor)
         .attr("x", currentX)
         .attr("y", currentY)

@@ -654,11 +654,32 @@ GC_pattern <- function(
     strokeWidth = 1
 ) {
 
+  pattern <- pattern_to_js(list(
+    patterns = patterns,
+    color = color,
+    background = background,
+    size = size,
+    strokeWidth = strokeWidth
+  ))
+
+  GC_chart$x$legend$legendOptions$pattern <- pattern
+
+  for(cluster_name in names(GC_chart$x$series)){
+    GC_chart$x$series[[cluster_name]]$genes$pattern <- pattern
+    GC_chart$x$series[[cluster_name]]$transcript$pattern <- pattern
+  }
+
+  return(GC_chart)
+}
+
+# Pattern settings of GC_pattern() and GC_theme(pattern = ) as sent to the
+# browser; NULL settings are dropped
+pattern_to_js <- function(pattern) {
   available <- c("none", "solid", "horizontal", "vertical", "diagonal",
                  "antidiagonal", "grid", "crosshatch", "dots", "zigzag",
                  "checkerboard", "rings", "bricks", "plus", "wideStripes",
                  "inverseDots")
-  unknown <- setdiff(unlist(patterns), available)
+  unknown <- setdiff(unlist(pattern$patterns), available)
   if (length(unknown) > 0) {
     stop("Unknown pattern(s): ", paste(unknown, collapse = ", "),
          ". Available patterns: ", paste(available, collapse = ", "))
@@ -680,8 +701,6 @@ GC_pattern <- function(
     x[] <- if (is.list(x)) lapply(x, as_css_color) else as_css_color(x)
     x
   }
-  color <- to_css(color)
-  background <- to_css(background)
 
   # Named vectors become objects by group in JavaScript, unnamed ones arrays
   as_js_values <- function(x) {
@@ -691,22 +710,13 @@ GC_pattern <- function(
     as.list(x)
   }
 
-  pattern <- Filter(Negate(is.null), list(
-    patterns = as_js_values(patterns),
-    color = as_js_values(color),
-    background = as_js_values(background),
-    size = size,
-    strokeWidth = strokeWidth
+  Filter(Negate(is.null), list(
+    patterns = as_js_values(pattern$patterns),
+    color = as_js_values(to_css(pattern$color)),
+    background = as_js_values(to_css(pattern$background)),
+    size = pattern$size,
+    strokeWidth = pattern$strokeWidth
   ))
-
-  GC_chart$x$legend$legendOptions$pattern <- pattern
-
-  for(cluster_name in names(GC_chart$x$series)){
-    GC_chart$x$series[[cluster_name]]$genes$pattern <- pattern
-    GC_chart$x$series[[cluster_name]]$transcript$pattern <- pattern
-  }
-
-  return(GC_chart)
 }
 
 #' Set Legend for a Gene Chart

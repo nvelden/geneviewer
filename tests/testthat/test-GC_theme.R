@@ -101,3 +101,27 @@ test_that("the theme is converted when the chart is drawn", {
   # The chart object keeps the theme as set
   expect_equal(themed$x$theme$palette, geneviewer_theme("classic")$palette)
 })
+
+test_that("the bw theme fills genes, exons and legend markers with patterns", {
+  js <- theme_to_js(geneviewer_theme("bw"))
+  bw_pattern <- list(color = "#000000", background = "#FFFFFF", size = 6, strokeWidth = 1)
+  expect_equal(js$geneOptions$pattern, bw_pattern)
+  expect_equal(js$transcriptOptions$pattern, bw_pattern)
+  expect_equal(js$legendOptions$legendOptions$pattern, bw_pattern)
+
+  # Patterns set with the theme are merged with those of the current theme
+  themed <- GC_theme(chart, "bw", pattern = list(patterns = c("dots", "grid"),
+                                                 background = "grey90"))
+  js <- theme_to_js(themed$x$theme)
+  expect_equal(js$geneOptions$pattern$patterns, list("dots", "grid"))
+  expect_equal(js$geneOptions$pattern$background, "#E5E5E5")
+  expect_equal(js$geneOptions$pattern$color, "#000000")
+
+  # FALSE removes the patterns of the theme
+  expect_null(GC_theme(themed, pattern = FALSE)$x$theme$pattern)
+  expect_equal(GC_theme(themed, pattern = FALSE)$x$theme$textColor, "black")
+
+  expect_error(GC_theme(chart, pattern = "dots"), "arguments of GC_pattern")
+  expect_error(GC_theme(chart, pattern = list(type = "dots")), "arguments of GC_pattern")
+  expect_error(GC_theme(chart, pattern = list(patterns = "stars")), "Unknown pattern")
+})

@@ -7,8 +7,9 @@
 #'
 #' Call `GC_theme()` with a `theme` to start from that theme, or without one to
 #' change the current theme. The global settings (`fontFamily`, `textColor`,
-#' `lineColor`, `background`, `palette`) are applied to all components; options
-#' set for a component, in the theme or in `...`, take precedence over them.
+#' `lineColor`, `background`, `palette`, `pattern`) are applied to all
+#' components; options set for a component, in the theme or in `...`, take
+#' precedence over them.
 #'
 #' The options of each component are those of its `GC_` function, by their
 #' argument name (e.g. `normal_color`) or their name in the browser (e.g.
@@ -44,8 +45,10 @@
 #'
 #' @param GC_chart The GC chart object to be modified.
 #' @param theme The theme to start from: the name of a built-in theme
-#'   (`"default"`, `"minimal"`, `"classic"` or `"dark"`, see
-#'   [geneviewer_theme()]) or a list of theme settings. Default is NULL: change
+#'   (`"default"`, `"minimal"`, `"classic"`, `"dark"` or `"bw"`, see
+#'   [geneviewer_theme()]) or a list of theme settings. `"bw"` is black and
+#'   white: genes, exons and legend markers are filled with a pattern per
+#'   group. Default is NULL: change
 #'   the current theme of the chart.
 #' @param fontFamily Font family of all text, e.g. `"Arial"`.
 #' @param textColor Colour of all text.
@@ -56,6 +59,12 @@
 #'   `"schemeSet2"`) or a vector of colours, used in the order of the groups.
 #'   Colours set with [GC_color()] or the `colorScheme` or `customColors` of
 #'   [GC_genes()] take precedence.
+#' @param pattern Patterns of the genes, exons and legend markers: a list with
+#'   the arguments of [GC_pattern()] (`patterns`, `color`, `background`,
+#'   `size`, `strokeWidth`), e.g. `list(patterns = c("dots", "grid"))`. Set
+#'   with the theme, they are merged with the patterns of the current theme;
+#'   [GC_pattern()] takes precedence. `FALSE` removes the patterns of the
+#'   theme.
 #' @param ... Options per component, as lists named after the component (see
 #'   Details), e.g. `labels = list(fontSize = "10px")`.
 #'
@@ -84,6 +93,10 @@
 #' chart %>% GC_theme("classic", fontFamily = "Georgia",
 #'                    palette = c("#1b9e77", "#d95f02", "#7570b3"))
 #'
+#' # Black and white with patterns, and other patterns
+#' chart %>% GC_theme("bw")
+#' chart %>% GC_theme("bw", pattern = list(patterns = c("dots", "crosshatch", "none")))
+#'
 #' # Change one component; options of the GC_ functions still take precedence
 #' chart %>%
 #'   GC_theme("minimal", labels = list(fontSize = "14px", fill = "grey")) %>%
@@ -98,6 +111,7 @@ GC_theme <- function(
     lineColor = NULL,
     background = NULL,
     palette = NULL,
+    pattern = NULL,
     ...
 ) {
 
@@ -113,13 +127,17 @@ GC_theme <- function(
       textColor = textColor,
       lineColor = lineColor,
       background = background,
-      palette = palette
+      palette = palette,
+      pattern = if (!isFALSE(pattern)) pattern
     )),
     list(...)
   )
   check_theme(settings)
 
   GC_chart$x$theme <- merge_theme_settings(base, settings)
+  if (isFALSE(pattern)) {
+    GC_chart$x$theme$pattern <- NULL
+  }
 
   return(GC_chart)
 }
@@ -129,8 +147,8 @@ GC_theme <- function(
 #' Returns the settings of a built-in theme of [GC_theme()], to see them or to
 #' start a theme of your own.
 #'
-#' @param name Name of the theme: `"default"`, `"minimal"`, `"classic"` or
-#'   `"dark"`.
+#' @param name Name of the theme: `"default"`, `"minimal"`, `"classic"`,
+#'   `"dark"` or `"bw"`.
 #'
 #' @return A list of theme settings, to use as the `theme` of [GC_theme()].
 #'
@@ -182,12 +200,22 @@ builtin_themes <- list(
                    border = "1px solid #555555"),
     trackMouse = list(backgroundColor = "rgba(45, 45, 45, 0.95)",
                       border = "1px solid #555555")
+  ),
+  bw = list(
+    fontFamily = "Arial, Helvetica, sans-serif",
+    textColor = "black",
+    lineColor = "black",
+    pattern = list(color = "black", background = "white", size = 6, strokeWidth = 1),
+    genes = list(stroke = "black", strokeWidth = 0.75),
+    transcript = list(styleExons = list(stroke = "black", strokeWidth = 0.75)),
+    links = list(normal_color = "#bdbdbd", inverted_color = "#525252",
+                 colorBarOptions = list(barOptions = list(stroke = "black")))
   )
 )
 
 # Global settings and components of a theme, with the key of each component in
 # the browser (geneviewer.js)
-theme_global_settings <- c("fontFamily", "textColor", "lineColor", "background", "palette")
+theme_global_settings <- c("fontFamily", "textColor", "lineColor", "background", "palette", "pattern")
 
 theme_components <- c(
   chart = "chartOptions",
@@ -253,13 +281,22 @@ check_theme <- function(settings) {
       stop("Theme setting '", name, "' must be a list of options")
     }
   }
-  for (name in intersect(names(settings), setdiff(theme_global_settings, "palette"))) {
+  for (name in intersect(names(settings), setdiff(theme_global_settings, c("palette", "pattern")))) {
     if (!is.character(settings[[name]]) || length(settings[[name]]) != 1) {
       stop("Theme setting '", name, "' must be a single character string")
     }
   }
   if (!is.null(settings$palette) && !is.character(settings$palette)) {
     stop("palette must be the name of a d3 colour scheme or a character vector of colours")
+  }
+  if (!is.null(settings$pattern)) {
+    pattern_args <- c("patterns", "color", "background", "size", "strokeWidth")
+    if (!is.list(settings$pattern) || is.null(names(settings$pattern)) ||
+        !all(names(settings$pattern) %in% pattern_args)) {
+      stop("pattern must be a list with the arguments of GC_pattern(): ",
+           paste(pattern_args, collapse = ", "))
+    }
+    pattern_to_js(settings$pattern)
   }
   unknown <- setdiff(names(settings$annotations), names(theme_annotation_types))
   if (length(unknown) > 0) {
@@ -311,6 +348,7 @@ theme_global_options <- function(theme) {
     palette <- as.list(palette)
   }
   colors <- Filter(Negate(is.null), list(colorScheme = palette))
+  pattern <- if (!is.null(theme$pattern)) list(pattern = pattern_to_js(theme$pattern))
 
   options <- list(
     chart = list(style = Filter(Negate(is.null), list(backgroundColor = theme$background))),
@@ -319,13 +357,13 @@ theme_global_options <- function(theme) {
     clusterFooter = list(titleFont = text, subtitleFont = text),
     clusterLabel = text,
     sequence = list(sequenceStyle = line, markerStyle = line),
-    genes = colors,
-    transcript = c(colors, list(labelOptions = html_text)),
+    genes = c(colors, pattern),
+    transcript = c(colors, pattern, list(labelOptions = html_text)),
     labels = text,
     coordinates = list(textStyle = text, tickStyle = line),
     scale = list(textStyle = text, tickStyle = line, lineStyle = line),
     scaleBar = list(labelStyle = text, scaleBarLineStyle = line, scaleBarTickStyle = line),
-    legend = list(legendOptions = colors, legendTextOptions = text),
+    legend = list(legendOptions = c(colors, pattern), legendTextOptions = text),
     links = list(labelStyle = text,
                  colorBarOptions = list(labelOptions = text, titleOptions = text)),
     tooltip = html_text,

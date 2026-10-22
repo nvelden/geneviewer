@@ -12,6 +12,7 @@ GC_theme(
   lineColor = NULL,
   background = NULL,
   palette = NULL,
+  pattern = NULL,
   ...
 )
 }
@@ -19,8 +20,10 @@ GC_theme(
 \item{GC_chart}{The GC chart object to be modified.}
 
 \item{theme}{The theme to start from: the name of a built-in theme
-(\code{"default"}, \code{"minimal"}, \code{"classic"} or \code{"dark"}, see
-\code{\link[=geneviewer_theme]{geneviewer_theme()}}) or a list of theme settings. Default is NULL: change
+(\code{"default"}, \code{"minimal"}, \code{"classic"}, \code{"dark"} or \code{"bw"}, see
+\code{\link[=geneviewer_theme]{geneviewer_theme()}}) or a list of theme settings. \code{"bw"} is black and
+white: genes, exons and legend markers are filled with a pattern per
+group. Default is NULL: change
 the current theme of the chart.}
 
 \item{fontFamily}{Font family of all text, e.g. \code{"Arial"}.}
@@ -37,6 +40,13 @@ the scale bar.}
 Colours set with \code{\link[=GC_color]{GC_color()}} or the \code{colorScheme} or \code{customColors} of
 \code{\link[=GC_genes]{GC_genes()}} take precedence.}
 
+\item{pattern}{Patterns of the genes, exons and legend markers: a list with
+the arguments of \code{\link[=GC_pattern]{GC_pattern()}} (\code{patterns}, \code{color}, \code{background},
+\code{size}, \code{strokeWidth}), e.g. \code{list(patterns = c("dots", "grid"))}. Set
+with the theme, they are merged with the patterns of the current theme;
+\code{\link[=GC_pattern]{GC_pattern()}} takes precedence. \code{FALSE} removes the patterns of the
+theme.}
+
 \item{...}{Options per component, as lists named after the component (see
 Details), e.g. \code{labels = list(fontSize = "10px")}.}
 }
@@ -52,8 +62,9 @@ always take precedence over the theme, whatever the order of the calls.
 \details{
 Call \code{GC_theme()} with a \code{theme} to start from that theme, or without one to
 change the current theme. The global settings (\code{fontFamily}, \code{textColor},
-\code{lineColor}, \code{background}, \code{palette}) are applied to all components; options
-set for a component, in the theme or in \code{...}, take precedence over them.
+\code{lineColor}, \code{background}, \code{palette}, \code{pattern}) are applied to all
+components; options set for a component, in the theme or in \code{...}, take
+precedence over them.
 
 The options of each component are those of its \code{GC_} function, by their
 argument name (e.g. \code{normal_color}) or their name in the browser (e.g.
@@ -107,6 +118,10 @@ chart \%>\% GC_theme("dark")
 # A built-in theme with other fonts and colours
 chart \%>\% GC_theme("classic", fontFamily = "Georgia",
                    palette = c("#1b9e77", "#d95f02", "#7570b3"))
+
+# Black and white with patterns, and other patterns
+chart \%>\% GC_theme("bw")
+chart \%>\% GC_theme("bw", pattern = list(patterns = c("dots", "crosshatch", "none")))
 
 # Change one component; options of the GC_ functions still take precedence
 chart \%>\%

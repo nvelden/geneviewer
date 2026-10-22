@@ -96,7 +96,7 @@ For additional examples and the corresponding code to create the plots, please v
 
 <hr>
 
-<img src="man/figures/human_hox_genes.png"/>
+<img src="man/figures/human_hox_genes_dark.png"/>
 
 ## Issues
 

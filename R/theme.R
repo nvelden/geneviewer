@@ -9,7 +9,9 @@
 #' change the current theme. The global settings (`fontFamily`, `textColor`,
 #' `lineColor`, `background`, `palette`, `pattern`) are applied to all
 #' components; options set for a component, in the theme or in `...`, take
-#' precedence over them.
+#' precedence over them. `textScale` scales all text of the chart: the default font
+#' sizes and those set in the theme, not those set with the other `GC_`
+#' functions.
 #'
 #' The options of each component are those of its `GC_` function, by their
 #' argument name (e.g. `normal_color`) or their name in the browser (e.g.
@@ -50,6 +52,10 @@
 #'   white: genes, exons and legend markers are filled with a pattern per
 #'   group. Default is NULL: change
 #'   the current theme of the chart.
+#' @param textScale Text size, as a factor of the default font sizes: e.g. `1.5`
+#'   makes all text one and a half times as large. Font sizes set in the theme
+#'   are scaled too; those set with the other `GC_` functions are not. The
+#'   title and its default height grow with the text.
 #' @param fontFamily Font family of all text, e.g. `"Arial"`.
 #' @param textColor Colour of all text.
 #' @param lineColor Colour of the sequence line, the axis, the coordinates and
@@ -97,6 +103,9 @@
 #' chart %>% GC_theme("bw")
 #' chart %>% GC_theme("bw", pattern = list(patterns = c("dots", "crosshatch", "none")))
 #'
+#' # Larger text, e.g. for a slide or a figure that is printed small
+#' chart %>% GC_theme("classic", textScale = 1.4)
+#'
 #' # Change one component; options of the GC_ functions still take precedence
 #' chart %>%
 #'   GC_theme("minimal", labels = list(fontSize = "14px", fill = "grey")) %>%
@@ -106,6 +115,7 @@
 GC_theme <- function(
     GC_chart,
     theme = NULL,
+    textScale = NULL,
     fontFamily = NULL,
     textColor = NULL,
     lineColor = NULL,
@@ -123,6 +133,7 @@ GC_theme <- function(
 
   settings <- c(
     Filter(Negate(is.null), list(
+      textScale = textScale,
       fontFamily = fontFamily,
       textColor = textColor,
       lineColor = lineColor,
@@ -176,8 +187,9 @@ builtin_themes <- list(
   minimal = list(
     textColor = "#444444",
     lineColor = "#bdbdbd",
-    genes = list(stroke = "none"),
-    transcript = list(styleExons = list(strokeWidth = 0)),
+    # A thin outline in the line colour, so white genes (e.g. "No Hit") stay visible
+    genes = list(stroke = "#bdbdbd", strokeWidth = 0.5),
+    transcript = list(styleExons = list(stroke = "#bdbdbd", strokeWidth = 0.5)),
     labels = list(fontStyle = "normal", fontSize = "11px"),
     clusterLabel = list(fontWeight = "normal"),
     links = list(linkStyle = list(fillOpacity = 0.5))
@@ -189,17 +201,28 @@ builtin_themes <- list(
     palette = okabe_ito,
     genes = list(stroke = "black", strokeWidth = 0.75)
   ),
+  # The colours and flat style of the ECharts dark theme
   dark = list(
-    background = "#1e1e1e",
-    textColor = "#e0e0e0",
-    lineColor = "#8c8c8c",
-    genes = list(stroke = "#1e1e1e"),
-    links = list(normal_color = "#9e9e9e", linkStyle = list(fillOpacity = 0.6),
-                 colorBarOptions = list(barOptions = list(stroke = "#8c8c8c"))),
-    tooltip = list(backgroundColor = "rgba(45, 45, 45, 0.95)",
-                   border = "1px solid #555555"),
-    trackMouse = list(backgroundColor = "rgba(45, 45, 45, 0.95)",
-                      border = "1px solid #555555")
+    background = "#100C2A",
+    textColor = "#B9B8CE",
+    lineColor = "#B9B8CE",
+    palette = c("#4992ff", "#7cffb2", "#fddd60", "#ff6e76", "#58d9f9",
+                "#05c091", "#ff8a45", "#8d48e3", "#dd79ff"),
+    title = list(titleFont = list(fill = "#EEF1FA")),
+    clusterTitle = list(titleFont = list(fill = "#EEF1FA")),
+    clusterLabel = list(fontWeight = "normal"),
+    sequence = list(sequenceStyle = list(stroke = "#484753")),
+    genes = list(stroke = "none"),
+    transcript = list(styleExons = list(strokeWidth = 0)),
+    labels = list(fontStyle = "normal", fontSize = "11px"),
+    legend = list(legendOptions = list(rx = "3px")),
+    links = list(normal_color = "#4992ff", inverted_color = "#ff6e76",
+                 low_color = "#100C2A", linkStyle = list(fillOpacity = 0.6),
+                 colorBarOptions = list(barOptions = list(stroke = "none"))),
+    tooltip = list(backgroundColor = "rgba(53, 52, 80, 0.95)",
+                   border = "1px solid #71708A"),
+    trackMouse = list(backgroundColor = "rgba(53, 52, 80, 0.95)",
+                      border = "1px solid #71708A")
   ),
   bw = list(
     fontFamily = "Arial, Helvetica, sans-serif",
@@ -215,7 +238,7 @@ builtin_themes <- list(
 
 # Global settings and components of a theme, with the key of each component in
 # the browser (geneviewer.js)
-theme_global_settings <- c("fontFamily", "textColor", "lineColor", "background", "palette", "pattern")
+theme_global_settings <- c("textScale", "fontFamily", "textColor", "lineColor", "background", "palette", "pattern")
 
 theme_components <- c(
   chart = "chartOptions",
@@ -281,7 +304,12 @@ check_theme <- function(settings) {
       stop("Theme setting '", name, "' must be a list of options")
     }
   }
-  for (name in intersect(names(settings), setdiff(theme_global_settings, c("palette", "pattern")))) {
+  if (!is.null(settings$textScale) &&
+      (!is.numeric(settings$textScale) || length(settings$textScale) != 1 ||
+       is.na(settings$textScale) || settings$textScale <= 0)) {
+    stop("textScale must be a single positive number")
+  }
+  for (name in intersect(names(settings), setdiff(theme_global_settings, c("textScale", "palette", "pattern")))) {
     if (!is.character(settings[[name]]) || length(settings[[name]]) != 1) {
       stop("Theme setting '", name, "' must be a single character string")
     }
@@ -411,5 +439,7 @@ theme_to_js <- function(theme) {
   for (type in names(options$annotations)) {
     js[[theme_annotation_types[[type]]]] <- options$annotations[[type]]
   }
+  # Scales the font sizes in the browser, where the defaults are known
+  js$textScale <- theme$textScale
   js
 }

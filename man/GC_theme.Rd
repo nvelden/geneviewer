@@ -7,6 +7,7 @@
 GC_theme(
   GC_chart,
   theme = NULL,
+  textScale = NULL,
   fontFamily = NULL,
   textColor = NULL,
   lineColor = NULL,
@@ -25,6 +26,11 @@ GC_theme(
 white: genes, exons and legend markers are filled with a pattern per
 group. Default is NULL: change
 the current theme of the chart.}
+
+\item{textScale}{Text size, as a factor of the default font sizes: e.g. \code{1.5}
+makes all text one and a half times as large. Font sizes set in the theme
+are scaled too; those set with the other \code{GC_} functions are not. The
+title and its default height grow with the text.}
 
 \item{fontFamily}{Font family of all text, e.g. \code{"Arial"}.}
 
@@ -64,7 +70,9 @@ Call \code{GC_theme()} with a \code{theme} to start from that theme, or without 
 change the current theme. The global settings (\code{fontFamily}, \code{textColor},
 \code{lineColor}, \code{background}, \code{palette}, \code{pattern}) are applied to all
 components; options set for a component, in the theme or in \code{...}, take
-precedence over them.
+precedence over them. \code{textScale} scales all text of the chart: the default font
+sizes and those set in the theme, not those set with the other \code{GC_}
+functions.
 
 The options of each component are those of its \code{GC_} function, by their
 argument name (e.g. \code{normal_color}) or their name in the browser (e.g.
@@ -122,6 +130,9 @@ chart \%>\% GC_theme("classic", fontFamily = "Georgia",
 # Black and white with patterns, and other patterns
 chart \%>\% GC_theme("bw")
 chart \%>\% GC_theme("bw", pattern = list(patterns = c("dots", "crosshatch", "none")))
+
+# Larger text, e.g. for a slide or a figure that is printed small
+chart \%>\% GC_theme("classic", textScale = 1.4)
 
 # Change one component; options of the GC_ functions still take precedence
 chart \%>\%

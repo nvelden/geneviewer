@@ -152,6 +152,9 @@ get_links <-
 #'   NULL: the color of the theme, otherwise "#969696".
 #' @param inverted_color Color for inverted links. Default is NULL: the color
 #'   of the theme, otherwise "#d62728".
+#' @param low_color Color of links with the lowest measure: links run from
+#'   this color (a measure of 0) to `normal_color` or `inverted_color` (100).
+#'   Default is NULL: the color of the theme, otherwise white.
 #' @param use_group_colors Logical; if `TRUE`, color links by group.
 #' @param color_bar Logical; if `TRUE`, the color bar is displayed. Default is
 #'   NULL: as set by the theme, otherwise `TRUE`.
@@ -264,6 +267,7 @@ GC_links <- function(
     label = TRUE,
     normal_color = NULL,
     inverted_color = NULL,
+    low_color = NULL,
     use_group_colors = FALSE,
     color_bar = NULL,
     colorBarOptions = list(),
@@ -328,6 +332,7 @@ GC_links <- function(
     label = label,
     normalColor = normal_color,
     invertedColor = inverted_color,
+    lowColor = low_color,
     useGroupColors = use_group_colors,
     value1 = value1,
     value2 = value2,

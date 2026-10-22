@@ -14,6 +14,7 @@ GC_genes(
   customColors = NULL,
   cluster = NULL,
   itemStyle = list(),
+  corner_radius = NULL,
   ...
 )
 }
@@ -42,6 +43,11 @@ the colours set by \code{GC_color()}.}
 
 \item{itemStyle}{List, a list of styles to apply to individual items in the
 chart.}
+
+\item{corner_radius}{Numeric or NULL, radius in pixels of the rounded corners
+of 'arrow', 'boxarrow', 'box' and 'rbox' markers, e.g. \code{3} for soft
+corners. The inner corners of arrows stay sharp. Default is NULL: sharp
+corners, and 5 for 'rbox'.}
 
 \item{...}{Additional arguments to be passed to the gene options.}
 }

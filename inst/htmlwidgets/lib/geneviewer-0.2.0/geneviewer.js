@@ -334,6 +334,13 @@ function removeNullKeys(obj) {
   return cleanObj;
 }
 
+// True for an opaque white colour ("#FFF", "white", "rgb(255, 255, 255)"),
+// false for other colours and pattern fills ("url(#...)")
+function isWhite(color) {
+  const rgb = typeof color === "string" ? d3.color(color)?.rgb() : null;
+  return !!rgb && rgb.r === 255 && rgb.g === 255 && rgb.b === 255 && rgb.opacity === 1;
+}
+
 function isPlainObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -363,11 +370,45 @@ function deepMergeOptions(base, override) {
   return result;
 }
 
+// Multiplies a size ("12px", "1.2em", 12) by factor, keeping its unit
+function scaleSize(value, factor) {
+  if (typeof value === "number") {
+    return value * factor;
+  }
+  const match = typeof value === "string" && value.trim().match(/^(-?[\d.]+)([a-z%]*)$/i);
+  return match ? `${parseFloat(match[1]) * factor}${match[2]}` : value;
+}
+
+// Scales every fontSize in options (at any level) by factor. Returns new objects.
+function scaleFontSizes(options, factor) {
+  if (!isPlainObject(options)) {
+    return options;
+  }
+  const result = {};
+  for (const key in options) {
+    result[key] = key === "fontSize" ? scaleSize(options[key], factor) : scaleFontSizes(options[key], factor);
+  }
+  return result;
+}
+
 // Order of precedence: defaultOptions < theme (themeOptions[themeOptionsKey]) < userOptions.
 // themeOptions: the chart theme, by default the theme of the container (this).
+// The textScale of the theme scales the font sizes of the defaults and the theme,
+// not those set by the user.
 function mergeOptions(defaultOptions, themeOptionsKey, userOptions = {}, themeOptions = this?.themeOptions) {
   const themeOpts = themeOptions?.[themeOptionsKey];
-  return deepMergeOptions(deepMergeOptions(defaultOptions, themeOpts), userOptions);
+  let options = deepMergeOptions(defaultOptions, themeOpts);
+  const textScale = themeTextScale(themeOptions);
+  if (textScale !== 1) {
+    options = scaleFontSizes(options, textScale);
+  }
+  return deepMergeOptions(options, userOptions);
+}
+
+// Text size of the theme, as a factor of the default font sizes
+function themeTextScale(themeOptions) {
+  const textScale = themeOptions?.textScale;
+  return typeof textScale === "number" && textScale > 0 ? textScale : 1;
 }
 
 function getColorScale(colorScheme, customColors, uniqueGroups) {
@@ -1030,7 +1071,9 @@ function getLinkCoordinates(graphContainer, data) {
 // Link colours, shared by the links and the colour bar
 const defaultLinkColors = {
   normalColor: "#969696",
-  invertedColor: "#d62728"
+  invertedColor: "#d62728",
+  // Colour of a link with a measure of 0, e.g. the background on a dark chart
+  lowColor: "#FFFFFF"
 };
 
 function makeLinks(graphContainer, links, themeOptions = {}) {
@@ -1079,7 +1122,7 @@ function makeLinks(graphContainer, links, themeOptions = {}) {
     links.forEach(function(link) {
 
         const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options, themeOptions)
-        const { curve, invertedColor, normalColor, useGroupColors, color, linkStyle, measure } = combinedOptions;
+        const { curve, invertedColor, normalColor, lowColor, useGroupColors, color, linkStyle, measure } = combinedOptions;
 
         const additionalOptionsLinkStyle = extractAdditionalOptions(linkStyle, defaultOptions.linkStyle);
 
@@ -1094,7 +1137,7 @@ function makeLinks(graphContainer, links, themeOptions = {}) {
                 }
 
                 const baseColor = coordinate[0].strand == coordinate[1].strand ? d3.rgb(normalColor) : d3.rgb(invertedColor)
-                var colorScale = d3.scaleSequential(t => d3.interpolate("#FFFFFF", baseColor)(t))
+                var colorScale = d3.scaleSequential(t => d3.interpolate(lowColor, baseColor)(t))
                     .domain([0, 100]);
                 const identity = combinedOptions.measure === "none" ? 100 : (link.data?.[measure]?.[index] ?? 100);
                 const linkColor = useGroupColors ? coordinate[0].groupColor : colorScale(identity)
@@ -1267,14 +1310,14 @@ function makeColorBar(graphContainer, links, themeOptions = {}) {
     const xPosition = contentWidth - width - colorBarOptions.x;
     const yPosition = contentHeight - height - colorBarOptions.y;
 
-    // Draw a gradient bar from white to color (maxValue at the top) at x
+    // Draw a gradient bar from lowColor to color (maxValue at the top) at x
     const drawBar = (baseId, color, x) => {
         const gradientId = getUniqueId(baseId);
         const gradient = defs.append("linearGradient")
             .attr("id", gradientId)
             .attr("gradientTransform", "rotate(90)");
 
-        const colorScale = d3.scaleSequential(t => d3.interpolate("#FFF", color)(t))
+        const colorScale = d3.scaleSequential(t => d3.interpolate(linkOptions.lowColor, color)(t))
             .domain([0, 100]);
 
         gradient.append("stop")
@@ -1583,12 +1626,14 @@ container.prototype.title = function (title, subtitle, show = true, options = {}
     return this;
   }
 
-  // Default options for title and subtitle
+  // Default options for title and subtitle; the position and spacing grow with
+  // the text size of the theme
+  const size = themeTextScale(this.themeOptions);
   const defaultOptions = {
     x: 0,
-    y: 20,
+    y: 20 * size,
     align: "center",
-    spacing: 20, // Default spacing between title and subtitle
+    spacing: 20 * size, // Default spacing between title and subtitle
     titleFont: {
       fontSize: "16px",
       fontStyle: "normal",
@@ -1693,7 +1738,7 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
     x: 0,
     y: 0,
     align: "left",
-    spacing: 12, // Default spacing between title and subtitle
+    spacing: 12 * themeTextScale(this.themeOptions), // Default spacing between title and subtitle
     titleFont: {
       fontSize: "12px",
       fontWeight: "bold",
@@ -1783,7 +1828,7 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
 // The cluster label is drawn in the left or right margin of the cluster. Returns
 // that margin as { left: width } or { right: width }, set before the container is
 // created. Width: of the label (user) > margin (user, GC_grid) > of the label
-// (theme) > margin (theme) > 100px.
+// (theme) > margin (theme) > 100px (times the text size of the theme).
 function clusterLabelMargin(containerOptions, labelOptions, themeOptions = {}) {
   const themeLabelOptions = themeOptions?.clusterLabelOptions ?? {};
   const position = labelOptions?.position ?? themeLabelOptions.position ?? "left";
@@ -1791,7 +1836,7 @@ function clusterLabelMargin(containerOptions, labelOptions, themeOptions = {}) {
     containerOptions?.margin?.[position] ??
     themeLabelOptions.width ??
     themeOptions?.containerOptions?.margin?.[position] ??
-    "100px";
+    `${100 * themeTextScale(themeOptions)}px`;
   return { [position]: width };
 }
 
@@ -2591,6 +2636,47 @@ container.prototype.tooltip = function (show = true, options = {}) {
   return this; // Return the instance for method chaining
 };
 
+// Closed SVG path through points, with the outer corners rounded by radius
+// (0: sharp); inner corners, e.g. where the shaft of an arrow meets its head,
+// stay sharp. Repeated points are dropped, and the radius is limited to half
+// of the shortest side next to a corner, so short genes keep their shape.
+function roundedPolygonPath(points, radius) {
+    const pts = points.filter((p, i) => {
+        const prev = points[(i - 1 + points.length) % points.length];
+        return Math.abs(p[0] - prev[0]) > 1e-6 || Math.abs(p[1] - prev[1]) > 1e-6;
+    });
+    if (!(radius > 0) || pts.length < 3) {
+        return `M${pts.map(p => `${p[0]} ${p[1]}`).join(" L")} Z`;
+    }
+    const n = pts.length;
+    const sideLength = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+    // Point at distance d from a towards b
+    const towards = (a, b, d) => {
+        const l = sideLength(a, b);
+        return [a[0] + (b[0] - a[0]) * d / l, a[1] + (b[1] - a[1]) * d / l];
+    };
+    // Sign of the turn at a corner: the same as the orientation of the
+    // polygon for outer corners
+    const turn = (a, p, b) => (p[0] - a[0]) * (b[1] - p[1]) - (p[1] - a[1]) * (b[0] - p[0]);
+    const orientation = Math.sign(pts.reduce((sum, p, i) => {
+        const next = pts[(i + 1) % n];
+        return sum + p[0] * next[1] - next[0] * p[1];
+    }, 0));
+    const corners = pts.map((p, i) => {
+        const prev = pts[(i - 1 + n) % n];
+        const next = pts[(i + 1) % n];
+        const outer = Math.sign(turn(prev, p, next)) === orientation;
+        const r = outer ? Math.min(radius, sideLength(prev, p) / 2, sideLength(p, next) / 2) : 0;
+        return { p, start: towards(p, prev, r), end: towards(p, next, r) };
+    });
+    let path = `M${corners[0].end[0]} ${corners[0].end[1]}`;
+    for (let i = 1; i <= n; i++) {
+        const { p, start, end } = corners[i % n];
+        path += ` L${start[0]} ${start[1]} Q${p[0]} ${p[1]} ${end[0]} ${end[1]}`;
+    }
+    return path + " Z";
+}
+
 // SVG path and size of a marker ("arrow", "box", "rbox", ...) of the given length
 function getGenePath(marker, length, markerSize, options = {}) {
     const sizeDefaults = {
@@ -2633,13 +2719,15 @@ function getGenePath(marker, length, markerSize, options = {}) {
         case "arrow":
         case "boxarrow":
         case "box":
-            path = `M0 ${shaftTop}
-                L0 ${shaftBottom}
-                L${shaftLength} ${shaftBottom}
-                L${shaftLength} ${scaledArrowheadHeight}
-                L${length} ${(scaledArrowheadHeight / 2)}
-                L${shaftLength} 0
-                L${shaftLength} ${shaftTop} Z`;
+            path = roundedPolygonPath([
+                [0, shaftTop],
+                [0, shaftBottom],
+                [shaftLength, shaftBottom],
+                [shaftLength, scaledArrowheadHeight],
+                [length, scaledArrowheadHeight / 2],
+                [shaftLength, 0],
+                [shaftLength, shaftTop]
+            ], cornerRadius || 0);
             break;
         case "rbox":
             effectiveCornerRadius = Math.min(cornerRadius, scaledMarkerHeight / 2, length / 2);
@@ -3196,7 +3284,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
         .attr("width", legendSize)
         .attr("height", legendSize)
         .style("fill", patternScale.fill(d))
-        .style("stroke", patternScale.outline)
+        .style("stroke", patternScale.outline ?? (isWhite(patternScale.fill(d)) ? "#bdbdbd" : null))
         .each(() => patternScale.align(d, currentX, currentY))
         .each(function () {
           const currentElement = d3.select(this);

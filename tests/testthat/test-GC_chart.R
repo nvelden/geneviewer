@@ -1334,3 +1334,13 @@ test_that("GC_transcript keeps the settings of the whole chart made before it (B
   expect_equal(before$x$title$title, "Title")
   expect_equal(before$x$series[[1]]$container$margin$left, 150)
 })
+
+test_that("GC_genes() sends corner_radius to the browser as cornerRadius", {
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
+  rounded <- GC_genes(chart, marker = "boxarrow", corner_radius = 3)
+  expect_true(all(sapply(rounded$x$series, function(s) s$genes$cornerRadius) == 3))
+  expect_null(GC_genes(chart)$x$series[[1]]$genes$cornerRadius)
+  # In a theme, by its argument name
+  themed <- GC_theme(chart, genes = list(corner_radius = 3))
+  expect_equal(theme_to_js(themed$x$theme)$geneOptions$cornerRadius, 3)
+})

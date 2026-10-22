@@ -7,7 +7,7 @@ test_that("GC_theme() starts from a built-in theme and changes the current theme
   # Without a theme, the current theme is changed
   themed <- GC_theme(themed, textColor = "white", labels = list(fontSize = "9px"))
   expect_equal(themed$x$theme$textColor, "white")
-  expect_equal(themed$x$theme$background, "#1e1e1e")
+  expect_equal(themed$x$theme$background, "#100C2A")
   expect_equal(themed$x$theme$labels$fontSize, "9px")
 
   # Nested options are merged, NULL removes a component
@@ -124,4 +124,18 @@ test_that("the bw theme fills genes, exons and legend markers with patterns", {
   expect_error(GC_theme(chart, pattern = "dots"), "arguments of GC_pattern")
   expect_error(GC_theme(chart, pattern = list(type = "dots")), "arguments of GC_pattern")
   expect_error(GC_theme(chart, pattern = list(patterns = "stars")), "Unknown pattern")
+})
+
+test_that("textScale is kept in the theme and sent to the browser", {
+  themed <- GC_theme(chart, "minimal", textScale = 1.5)
+  expect_equal(themed$x$theme$textScale, 1.5)
+  expect_equal(theme_to_js(themed$x$theme)$textScale, 1.5)
+  # Kept when the theme is changed, replaced by a new theme
+  expect_equal(GC_theme(themed, textColor = "red")$x$theme$textScale, 1.5)
+  expect_null(GC_theme(themed, "classic")$x$theme$textScale)
+  expect_null(theme_to_js(list(labels = list(fontSize = "10px")))$textScale)
+
+  expect_error(GC_theme(chart, textScale = "large"), "single positive number")
+  expect_error(GC_theme(chart, textScale = c(1, 2)), "single positive number")
+  expect_error(GC_theme(chart, textScale = 0), "single positive number")
 })

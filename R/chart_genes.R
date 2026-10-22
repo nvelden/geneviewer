@@ -123,6 +123,10 @@ GC_labels <- function(
 #'   aesthetics.
 #' @param marker Character or NULL, type of marker to represent genes on the chart.
 #' Allowed values are 'arrow', 'boxarrow', 'box', 'cbox', and 'rbox'.
+#' @param corner_radius Numeric or NULL, radius in pixels of the rounded corners
+#'   of 'arrow', 'boxarrow', 'box' and 'rbox' markers, e.g. `3` for soft
+#'   corners. The inner corners of arrows stay sharp. Default is NULL: sharp
+#'   corners, and 5 for 'rbox'.
 #' @param marker_size Character or NULL, size category of the marker
 #' ('small', 'medium', 'large').
 #' @param show Logical, whether to show the genes or not.
@@ -190,6 +194,7 @@ GC_genes <- function(
     customColors = NULL,
     cluster = NULL,
     itemStyle = list(),
+    corner_radius = NULL,
     ...
 ) {
 
@@ -219,6 +224,7 @@ GC_genes <- function(
     options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
       group = recycle_at(group, i),
       marker = recycle_at(marker, i),
+      cornerRadius = corner_radius,
       markerSize = marker_size,
       show = recycle_at(show, i),
       colorScheme = colorScheme,

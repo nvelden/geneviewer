@@ -17,6 +17,7 @@ GC_links(
   label = TRUE,
   normal_color = NULL,
   inverted_color = NULL,
+  low_color = NULL,
   use_group_colors = FALSE,
   color_bar = NULL,
   colorBarOptions = list(),
@@ -56,6 +57,10 @@ NULL: the color of the theme, otherwise "#969696".}
 
 \item{inverted_color}{Color for inverted links. Default is NULL: the color
 of the theme, otherwise "#d62728".}
+
+\item{low_color}{Color of links with the lowest measure: links run from
+this color (a measure of 0) to \code{normal_color} or \code{inverted_color} (100).
+Default is NULL: the color of the theme, otherwise white.}
 
 \item{use_group_colors}{Logical; if \code{TRUE}, color links by group.}
 

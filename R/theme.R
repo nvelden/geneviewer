@@ -60,7 +60,8 @@
 #' @param textColor Colour of all text.
 #' @param lineColor Colour of the sequence line, the axis, the coordinates and
 #'   the scale bar.
-#' @param background Background colour of the chart.
+#' @param background Background colour of the chart, also the fill of the
+#'   UTRs of transcripts.
 #' @param palette Gene colours: the name of a d3 colour scheme (e.g.
 #'   `"schemeSet2"`) or a geneviewer palette (e.g. `"okabeIto"`, see
 #'   [geneviewer_palette()]), or a vector of colours, used in the order of the groups.
@@ -186,8 +187,10 @@ geneviewer_theme <- function(name = "default") {
 #' in the `colorScheme` of [GC_genes()], [GC_transcript()] and [GC_color()]:
 #'
 #' - `"okabeIto"`: 8 colours that stay distinct with colour blindness
-#'   (Okabe & Ito), the palette of the `"classic"` theme.
-#' - `"vivid"`: 9 bright colours for dark backgrounds, the palette of the
+#'   (Okabe & Ito).
+#' - `"classic"`: 9 clear colours, the palette of the `"classic"` theme.
+#' - `"vivid"`: 9 bright colours for dark backgrounds.
+#' - `"dark"`: 11 soft colours for dark backgrounds, the palette of the
 #'   `"dark"` theme.
 #' - `"vintage"`: 10 muted colours, the palette of the `"vintage"` theme.
 #' - `"infographic"`: 15 strong colours, the palette of the `"infographic"`
@@ -226,8 +229,12 @@ geneviewer_palette <- function(name = NULL) {
 geneviewer_palettes <- list(
   okabeIto = c("#E69F00", "#56B4E9", "#009E73", "#F0E442",
                "#0072B2", "#D55E00", "#CC79A7", "#999999"),
+  classic = c("#5470c6", "#91cc75", "#fac858", "#ee6666", "#73c0de",
+              "#3ba272", "#fc8452", "#9a60b4", "#ea7ccc"),
   vivid = c("#4992ff", "#7cffb2", "#fddd60", "#ff6e76", "#58d9f9",
             "#05c091", "#ff8a45", "#8d48e3", "#dd79ff"),
+  dark = c("#dd6b66", "#759aa0", "#e69d87", "#8dc1a9", "#ea7e53", "#eedd78",
+           "#73a373", "#73b9bc", "#7289ab", "#91ca8c", "#f49f42"),
   vintage = c("#d87c7c", "#919e8b", "#d7ab82", "#6e7074", "#61a0a8",
               "#efa18d", "#787464", "#cc7e63", "#724e58", "#4b565b"),
   infographic = c("#C1232B", "#27727B", "#FCCE10", "#E87C25", "#B5C334",
@@ -238,6 +245,14 @@ geneviewer_palettes <- list(
 )
 
 # Built-in themes, as settings for GC_theme()
+
+# The default tooltip of ECharts, with 12px text like the rest of the chart
+# (ECharts uses 14px and 10px padding)
+echarts_tooltip <- list(backgroundColor = "#ffffff", color = "#6d6e73",
+                        border = "1px solid #b7b9be", borderRadius = "4px",
+                        fontSize = "12px", fontFamily = "sans-serif", padding = "8px",
+                        boxShadow = "1px 2px 10px rgba(0, 0, 0, 0.2)")
+
 
 builtin_themes <- list(
   default = list(),
@@ -251,33 +266,66 @@ builtin_themes <- list(
     clusterLabel = list(fontWeight = "normal"),
     links = list(linkStyle = list(fillOpacity = 0.5))
   ),
+  # The default theme of ECharts 5: only the genes and links are coloured. The
+  # title colour (#464646) for titles, cluster labels and the legend, the
+  # subtitle colour (#6E7079) for the other text and all lines; sans-serif
+  # 12px text, an 18px title, 5px axis ticks and the ECharts tooltip
   classic = list(
-    fontFamily = "Arial, Helvetica, sans-serif",
-    textColor = "black",
-    lineColor = "black",
-    palette = "okabeIto",
-    genes = list(stroke = "black", strokeWidth = 0.75)
-  ),
-  # The colours and flat style of the ECharts dark theme
-  dark = list(
-    background = "#100C2A",
-    textColor = "#B9B8CE",
-    lineColor = "#B9B8CE",
-    palette = "vivid",
-    title = list(titleFont = list(fill = "#EEF1FA")),
-    clusterTitle = list(titleFont = list(fill = "#EEF1FA")),
-    sequence = list(sequenceStyle = list(stroke = "#484753")),
+    fontFamily = "sans-serif",
+    textColor = "#6E7079",
+    lineColor = "#6E7079",
+    palette = "classic",
+    title = list(titleFont = list(fontSize = "18px", fill = "#464646"),
+                 subtitleFont = list(fontSize = "12px")),
+    clusterTitle = list(titleFont = list(fill = "#464646")),
+    clusterLabel = list(fill = "#464646"),
     genes = list(stroke = "none", corner_radius = 3),
-    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3)),
-    labels = list(fontStyle = "normal", fontSize = "11px"),
+    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
+                      styleUTRs = list(cornerRadius = 3)),
+    labels = list(fontStyle = "normal", fontSize = "12px"),
+    # Coordinates keep 10px: at 12px the numbers of adjacent genes overlap
+    coordinates = list(tickStyle = list(lineLength = 5)),
+    scale = list(textStyle = list(fontSize = "12px"), tickStyle = list(lineLength = 5)),
+    scaleBar = list(labelStyle = list(fontSize = "12px")),
+    legend = list(corner_radius = 3, legendTextOptions = list(fill = "#464646")),
+    # Links in the blue and red of the palette
+    links = list(normal_color = "#5470c6", inverted_color = "#ee6666",
+                 linkStyle = list(fillOpacity = 0.6),
+                 colorBarOptions = list(barOptions = list(stroke = "none"),
+                                        labelOptions = list(fontSize = 12),
+                                        titleOptions = list(fontSize = 12))),
+    tooltip = echarts_tooltip,
+    trackMouse = echarts_tooltip
+  ),
+  # The ECharts dark theme (ECharts 4) on the ECharts defaults: #eee for all
+  # text and lines but the subtitle (#aaa), sans-serif 12px text, an 18px
+  # title, 5px axis ticks, links in the colours of the theme fading into the
+  # background, and the light ECharts tooltip
+  dark = list(
+    fontFamily = "sans-serif",
+    background = "#333333",
+    textColor = "#eeeeee",
+    lineColor = "#eeeeee",
+    palette = "dark",
+    title = list(titleFont = list(fontSize = "18px"),
+                 subtitleFont = list(fontSize = "12px", fill = "#aaaaaa")),
+    clusterTitle = list(subtitleFont = list(fill = "#aaaaaa")),
+    genes = list(stroke = "none", corner_radius = 3),
+    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
+                      styleUTRs = list(cornerRadius = 3)),
+    labels = list(fontStyle = "normal", fontSize = "12px"),
+    # Coordinates keep 10px: at 12px the numbers of adjacent genes overlap
+    coordinates = list(tickStyle = list(lineLength = 5)),
+    scale = list(textStyle = list(fontSize = "12px"), tickStyle = list(lineLength = 5)),
+    scaleBar = list(labelStyle = list(fontSize = "12px")),
     legend = list(corner_radius = 3),
-    links = list(normal_color = "#4992ff", inverted_color = "#ff6e76",
-                 low_color = "#100C2A", linkStyle = list(fillOpacity = 0.6),
-                 colorBarOptions = list(barOptions = list(stroke = "none"))),
-    tooltip = list(backgroundColor = "rgba(53, 52, 80, 0.95)",
-                   border = "1px solid #71708A"),
-    trackMouse = list(backgroundColor = "rgba(53, 52, 80, 0.95)",
-                      border = "1px solid #71708A")
+    links = list(normal_color = "#759aa0", inverted_color = "#dd6b66",
+                 low_color = "#333333", linkStyle = list(fillOpacity = 0.6),
+                 colorBarOptions = list(barOptions = list(stroke = "none"),
+                                        labelOptions = list(fontSize = 12),
+                                        titleOptions = list(fontSize = 12))),
+    tooltip = echarts_tooltip,
+    trackMouse = echarts_tooltip
   ),
   # The colours and flat style of the ECharts vintage theme: its palette and
   # background, with the text and axis colours of the ECharts defaults
@@ -290,12 +338,15 @@ builtin_themes <- list(
     clusterTitle = list(subtitleFont = list(fill = "#787464")),
     sequence = list(sequenceStyle = list(stroke = "#c9c2b5")),
     genes = list(stroke = "none", corner_radius = 3),
-    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3)),
+    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
+                      styleUTRs = list(cornerRadius = 3)),
     labels = list(fontStyle = "normal", fontSize = "11px"),
     legend = list(corner_radius = 3),
     links = list(normal_color = "#61a0a8", inverted_color = "#d87c7c",
                  low_color = "#fef8ef", linkStyle = list(fillOpacity = 0.6),
-                 colorBarOptions = list(barOptions = list(stroke = "none")))
+                 colorBarOptions = list(barOptions = list(stroke = "none"))),
+    tooltip = echarts_tooltip,
+    trackMouse = echarts_tooltip
   ),
   # The ECharts infographic theme on the ECharts defaults: only the genes and
   # links are coloured. The title colour (#464646) for titles, cluster labels and the
@@ -311,7 +362,8 @@ builtin_themes <- list(
     clusterTitle = list(titleFont = list(fill = "#464646")),
     clusterLabel = list(fill = "#464646"),
     genes = list(stroke = "none", corner_radius = 3),
-    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3)),
+    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
+                      styleUTRs = list(cornerRadius = 3)),
     labels = list(fontStyle = "normal", fontSize = "12px"),
     # Coordinates keep 10px: at 12px the numbers of adjacent genes overlap
     coordinates = list(tickStyle = list(lineLength = 5)),
@@ -325,9 +377,9 @@ builtin_themes <- list(
                                         labelOptions = list(fontSize = 12),
                                         titleOptions = list(fontSize = 12))),
     tooltip = list(backgroundColor = "rgba(50, 50, 50, 0.85)", color = "#ffffff",
-                   border = "none", borderRadius = "4px", fontSize = "14px"),
+                   border = "none", borderRadius = "4px", fontSize = "12px"),
     trackMouse = list(backgroundColor = "rgba(50, 50, 50, 0.85)", color = "#ffffff",
-                      border = "none", borderRadius = "4px", fontSize = "14px")
+                      border = "none", borderRadius = "4px", fontSize = "12px")
   ),
   bw = list(
     fontFamily = "Arial, Helvetica, sans-serif",
@@ -493,7 +545,9 @@ theme_global_options <- function(theme) {
     clusterLabel = text,
     sequence = list(sequenceStyle = line, markerStyle = line),
     genes = c(colors, pattern),
-    transcript = c(colors, pattern, list(labelOptions = html_text)),
+    # UTRs are open boxes, filled with the background
+    transcript = c(colors, pattern, list(labelOptions = html_text),
+                   list(styleUTRs = Filter(Negate(is.null), list(fill = theme$background)))),
     labels = text,
     coordinates = list(textStyle = text, tickStyle = line),
     scale = list(textStyle = text, tickStyle = line, lineStyle = line),

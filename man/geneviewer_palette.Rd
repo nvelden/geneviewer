@@ -21,8 +21,10 @@ in the \code{colorScheme} of \code{\link[=GC_genes]{GC_genes()}}, \code{\link[=G
 \details{
 \itemize{
 \item \code{"okabeIto"}: 8 colours that stay distinct with colour blindness
-(Okabe & Ito), the palette of the \code{"classic"} theme.
-\item \code{"vivid"}: 9 bright colours for dark backgrounds, the palette of the
+(Okabe & Ito).
+\item \code{"classic"}: 9 clear colours, the palette of the \code{"classic"} theme.
+\item \code{"vivid"}: 9 bright colours for dark backgrounds.
+\item \code{"dark"}: 11 soft colours for dark backgrounds, the palette of the
 \code{"dark"} theme.
 \item \code{"vintage"}: 10 muted colours, the palette of the \code{"vintage"} theme.
 \item \code{"infographic"}: 15 strong colours, the palette of the \code{"infographic"}

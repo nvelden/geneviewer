@@ -39,7 +39,8 @@ title and its default height grow with the text.}
 \item{lineColor}{Colour of the sequence line, the axis, the coordinates and
 the scale bar.}
 
-\item{background}{Background colour of the chart.}
+\item{background}{Background colour of the chart, also the fill of the
+UTRs of transcripts.}
 
 \item{palette}{Gene colours: the name of a d3 colour scheme (e.g.
 \code{"schemeSet2"}) or a geneviewer palette (e.g. \code{"okabeIto"}, see

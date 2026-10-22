@@ -7,7 +7,7 @@ test_that("GC_theme() starts from a built-in theme and changes the current theme
   # Without a theme, the current theme is changed
   themed <- GC_theme(themed, textColor = "white", labels = list(fontSize = "9px"))
   expect_equal(themed$x$theme$textColor, "white")
-  expect_equal(themed$x$theme$background, "#100C2A")
+  expect_equal(themed$x$theme$background, "#333333")
   expect_equal(themed$x$theme$labels$fontSize, "9px")
 
   # Nested options are merged, NULL removes a component
@@ -96,7 +96,7 @@ test_that("the theme is converted when the chart is drawn", {
   htmlwidgets::saveWidget(themed, file, selfcontained = FALSE)
   html <- paste(readLines(file, warn = FALSE), collapse = "")
   expect_match(html, '"theme":\\{"chartOptions"|"theme":\\{"titleOptions"')
-  expect_match(html, '"geneOptions":\\{"colorScheme":\\["#E69F00"')
+  expect_match(html, '"geneOptions":\\{"colorScheme":\\["#5470c6"')
 
   # The chart object keeps the theme as set
   expect_equal(themed$x$theme$palette, geneviewer_theme("classic")$palette)
@@ -141,7 +141,7 @@ test_that("textScale is kept in the theme and sent to the browser", {
 })
 
 test_that("geneviewer palettes are used by name and sent as colours", {
-  expect_equal(geneviewer_palette(), c("okabeIto", "vivid", "vintage", "infographic", "greys", "blues"))
+  expect_equal(geneviewer_palette(), c("okabeIto", "classic", "vivid", "dark", "vintage", "infographic", "greys", "blues"))
   expect_equal(geneviewer_theme("vintage")$palette, "vintage")
   vintage <- theme_to_js(geneviewer_theme("vintage"))
   expect_equal(vintage$geneOptions$cornerRadius, 3)
@@ -151,7 +151,7 @@ test_that("geneviewer palettes are used by name and sent as colours", {
   expect_equal(dark$legendOptions$cornerRadius, 3)
   expect_equal(geneviewer_palette("vivid")[1], "#4992ff")
   expect_error(geneviewer_palette("echarts"), "name must be one of")
-  expect_equal(geneviewer_theme("classic")$palette, "okabeIto")
+  expect_equal(geneviewer_theme("classic")$palette, "classic")
 
   # In a theme, GC_genes() and GC_color(); d3 scheme names are kept
   render <- function(x) render_theme(x)$x
@@ -164,4 +164,13 @@ test_that("geneviewer palettes are used by name and sent as colours", {
                as.list(geneviewer_palette("greys")))
   expect_equal(render(GC_genes(chart, colorScheme = "schemeSet2"))$series[[1]]$genes$colorScheme,
                "schemeSet2")
+})
+
+test_that("the UTRs of transcripts are filled with the background of the theme", {
+  expect_equal(theme_to_js(geneviewer_theme("dark"))$transcriptOptions$styleUTRs$fill, "#333333")
+  expect_equal(theme_to_js(list(background = "black"))$transcriptOptions$styleUTRs$fill, "black")
+  expect_null(theme_to_js(geneviewer_theme("minimal"))$transcriptOptions$styleUTRs)
+  # A fill set for the UTRs in the theme takes precedence
+  themed <- list(background = "black", transcript = list(styleUTRs = list(fill = "red")))
+  expect_equal(theme_to_js(themed)$transcriptOptions$styleUTRs$fill, "red")
 })

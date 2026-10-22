@@ -197,6 +197,17 @@ test_that("the publication theme follows journal figure guidelines", {
   expect_equal(js$trackMouseOptions$boxShadow, "none")
 })
 
+test_that("the font and text colour of the theme reach the labels of arc annotations", {
+  js <- theme_to_js(list(fontFamily = "Georgia", textColor = "white"))
+  expect_equal(js$curveAnnotationOptions$textStyle$fontFamily, "Georgia")
+  expect_equal(js$curveAnnotationOptions$textStyle$fill, "white")
+  # Options of the arc in the theme take precedence
+  themed <- list(textColor = "white", annotations = list(arc = list(textStyle = list(fill = "red"))))
+  expect_equal(theme_to_js(themed)$curveAnnotationOptions$textStyle$fill, "red")
+  expect_equal(theme_to_js(geneviewer_theme("publication"))$curveAnnotationOptions$textStyle$fontFamily,
+               "Arial, Helvetica, sans-serif")
+})
+
 test_that("the UTRs of transcripts are filled with the background of the theme", {
   expect_equal(theme_to_js(geneviewer_theme("dark"))$transcriptOptions$styleUTRs$fill, "#333333")
   expect_equal(theme_to_js(list(background = "black"))$transcriptOptions$styleUTRs$fill, "black")

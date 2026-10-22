@@ -624,7 +624,8 @@ theme_global_options <- function(theme) {
                  colorBarOptions = list(labelOptions = text, titleOptions = text)),
     tooltip = html_text,
     trackMouse = html_text,
-    annotations = list(text = list(style = text), textMarker = list(textStyle = text))
+    annotations = list(text = list(style = text), textMarker = list(textStyle = text),
+                       arc = list(textStyle = text))
   )
   drop_empty(options)
 }

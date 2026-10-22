@@ -1403,3 +1403,28 @@ test_that("a title of the default height is not cut off (B54)", {
 
   expect_lte(overflow, 0)
 })
+
+test_that("the legend of a chart with a fixed width is not scaled down (B55)", {
+  skip_on_cran()
+  skip_if_not_installed("chromote")
+  skip_if(is.null(tryCatch(chromote::find_chrome(), error = function(e) NULL)), "Chrome not found")
+
+  genes <- data.frame(start = c(10, 50), end = c(40, 80), group = c("A", "B"))
+  file <- tempfile(fileext = ".html")
+  chart <- GC_chart(genes, group = "group", width = "600px", height = "150px")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+
+  # A window much wider than the chart
+  session <- chromote::ChromoteSession$new(width = 1600, height = 600)
+  on.exit(session$close(), add = TRUE)
+  loaded <- session$Page$loadEventFired(wait_ = FALSE)
+  session$Page$navigate(paste0("file://", normalizePath(file)), wait_ = FALSE)
+  session$wait_for(loaded)
+  scale <- session$Runtime$evaluate("
+    (() => {
+      const svg = document.querySelector('[id^=geneviewer-legend-container] svg');
+      return svg.getBoundingClientRect().width / svg.viewBox.baseVal.width;
+    })()")$result$value
+
+  expect_equal(scale, 1)
+})

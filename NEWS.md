@@ -18,6 +18,7 @@
 - The geneviewer vignette has a new "Themes" section on `GC_theme()`: the built-in themes, the global settings and palettes, `textScale`, options per component and making a theme of your own with `geneviewer_theme()`.
 
 ### Bug fixes:
+- The legend of a chart with a fixed width (e.g. `GC_chart(width = "900px")`) no longer gets smaller in a wider browser window: it was laid out at the width of the window and then scaled down into the chart, e.g. in a page saved with `htmlwidgets::saveWidget()`.
 - The bottom of letters such as g, y and p in a title without a subtitle is no longer cut off: the default title height is now 40 pixels instead of 30, so `GC_title(height = )` is no longer needed for titles of 16 or 18 pixels.
 - A named list of `customColors` (in `GC_color()`, `GC_genes()` and `GC_transcript()`) that leaves out groups no longer makes those groups white: they keep the colours of `colorScheme`, the theme palette or the default colours, e.g. `GC_color(customColors = list(Other = "grey"))` only changes "Other". `GC_color()` now takes `colorScheme` together with a named list of `customColors`.
 - `GC_transcript()` no longer drops the settings of the whole chart made before it: the title, legend, theme and `GC_grid()` margins and direction are kept. Settings per cluster are for the old clusters and are set after `GC_transcript()`.

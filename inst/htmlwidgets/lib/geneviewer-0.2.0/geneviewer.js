@@ -2440,8 +2440,12 @@ container.prototype.labels = function (label, show = true, options = {}) {
     const currentDx = style.dx ?? dx;
     const currentDy = style.dy ?? dy;
     const currentRotate = style.rotate ?? rotate;
-    var currentLabelAdjustmentOptions = style.labelAdjustmentOptions ?? labelAdjustmentOptions;
-      currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
+    // Labels of genes on a lower track (prevent_gene_overlap) go below their
+    // gene, so they don't run into the genes of the track above
+    // (placeLabel() below moves them back above when that side is free)
+    const below = d.geneTrack > 1;
+    const currentLabelAdjustmentOptions = { ...(style.labelAdjustmentOptions ?? labelAdjustmentOptions) };
+    currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
     const currentAdjustLabels = style.adjustLabels !== undefined ? style.adjustLabels : adjustLabels;
 
       // Calculate Y position based on geneTrack
@@ -2450,7 +2454,11 @@ container.prototype.labels = function (label, show = true, options = {}) {
                                  : -this.geneStrandSpacing;
     var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
 
-    const yPos = this.yScale(currentY) - (this.markerHeight / 2) - currentGeneStrandSpacing + currentOverlapSpacing;
+    // Below the gene: the same gap to the gene as a label above it
+    const geneY = this.yScale(this.markerY ?? 50);
+    const yAbove = this.yScale(currentY) - (this.markerHeight / 2) - currentGeneStrandSpacing + currentOverlapSpacing;
+    const yBelow = 2 * geneY - this.yScale(currentY) + (this.markerHeight / 2) - currentGeneStrandSpacing + currentOverlapSpacing;
+    const yPos = below ? yBelow : yAbove;
     const xPos = this.xScale((d.start + d.end) / 2) + currentX;
 
     return {
@@ -2460,8 +2468,34 @@ container.prototype.labels = function (label, show = true, options = {}) {
       dy: currentDy,
       rotate: currentRotate,
       labelAdjustmentOptions: currentLabelAdjustmentOptions,
-      adjustLabels: currentAdjustLabels
+      adjustLabels: currentAdjustLabels,
+      below,
+      yAbove
     };
+  };
+
+  // Pixel x ranges of the genes on each track
+  const genesByTrack = d3.group(this.data, d => d.geneTrack ?? 1);
+  const trackHasGeneIn = (track, left, right) => (genesByTrack.get(track) || []).some(gene => {
+    const [geneLeft, geneRight] = [this.xScale(gene.start), this.xScale(gene.end)].sort((a, b) => a - b);
+    return geneLeft < right && geneRight > left;
+  });
+
+  // A label below its gene that runs into a gene of the next track goes back
+  // above its gene when no gene of the track above is in the way there
+  const placeLabel = (element, d, attributes) => {
+    if (!attributes.below) return;
+    const bbox = element.getBBox();
+    const left = bbox.x;
+    const right = bbox.x + bbox.width;
+    if (trackHasGeneIn(d.geneTrack + 1, left, right) && !trackHasGeneIn(d.geneTrack - 1, left, right)) {
+      attributes.below = false;
+      attributes.yPos = attributes.yAbove;
+      d3.select(element)
+        .attr("dominant-baseline", null)
+        .attr("y", attributes.yPos)
+        .attr("transform", `rotate(${attributes.rotate}, ${attributes.xPos}, ${attributes.yPos})`);
+    }
   };
 
   const attributesByIndex = this.data.map((d, i) => getAttributesForIndex(d, i));
@@ -2484,6 +2518,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
     .attr("dx", (d, i) => attributesByIndex[i].dx)
     .attr("dy", (d, i) => attributesByIndex[i].dy)
     .attr("text-anchor", textAnchor)
+    .attr("dominant-baseline", (d, i) => attributesByIndex[i].below ? "hanging" : null)
     .attr("transform", (d, i) => {
       const { xPos, yPos, rotate } = attributesByIndex[i];
       return `rotate(${rotate}, ${xPos}, ${yPos})`;
@@ -2498,6 +2533,14 @@ container.prototype.labels = function (label, show = true, options = {}) {
     .each(function (d) {
       const linkLabel = linkLabelsByRow.get(String(d.rowID));
       if (linkLabel) addLinkLabelLine(this, linkLabel);
+    })
+    .each(function (d, i) {
+      const attributes = attributesByIndex[i];
+      placeLabel(this, d, attributes);
+      // Labels below their gene rotate downwards when they overlap
+      if (attributes.below) {
+        attributes.labelAdjustmentOptions.rotation = Math.abs(attributes.labelAdjustmentOptions.rotation);
+      }
     })
     .each(function (d, i) {
 
@@ -2795,6 +2838,7 @@ function getMarkerAttributes(container, d, i, y, styles, itemStyles) {
   );
 
   container.markerHeight = height;
+  container.markerY = currentY;
   container.geneStrandSpacing = container.separateStrands ? (height / 2 + container.strandSpacing) : 0;
   container.geneOverlapSpacing = (height + container.overlapSpacing);
 

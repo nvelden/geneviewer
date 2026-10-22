@@ -478,13 +478,17 @@ GC_chart(erythromycin_cluster,
 
 ### *Saccharopolyspora erythraea* Erythromycin BlastP
 
-The BlastP results with the `"infographic"` theme. Genes without a BlastP hit have no group and stay white, so the genes get a thin grey outline (`GC_theme()` is only available in the development version).
+The BlastP results with the `"infographic"` theme, dark text and the colour-blind safe `"okabeIto"` palette. Genes without a BlastP hit get their own white "No Hit" group, last in the legend, and all genes get a thin grey outline so the white genes stay visible (`GC_theme()` is only available in the development version).
 
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
 ### Erythromycin BlastP
-GC_chart(erythromycin_BlastP, 
+# Genes without a BlastP hit have no function: give them their own group
+blastp <- erythromycin_BlastP
+blastp$Functions[is.na(blastp$Functions)] <- "No Hit"
+
+GC_chart(blastp, 
          cluster = "cluster",
          strand = "strand",
          group = "Functions",
@@ -500,13 +504,19 @@ GC_chart(erythromycin_BlastP,
            ) %>%
   GC_clusterLabel() %>%
   GC_genes(stroke = "#6E7079", strokeWidth = 0.5) %>%
-  GC_theme("infographic")
+  GC_legend(order = c(setdiff(sort(unique(blastp$Functions)), "No Hit"), "No Hit")) %>%
+  GC_color(customColors = list("No Hit" = "white")) %>%
+  GC_theme("infographic", textColor = "#333333", palette = "okabeIto")
 ```
 </details>
 
 ```{r echo = FALSE, results='asis'}
 ### Erythromycin BlastP
-GC_chart(erythromycin_BlastP, 
+# Genes without a BlastP hit have no function: give them their own group
+blastp <- erythromycin_BlastP
+blastp$Functions[is.na(blastp$Functions)] <- "No Hit"
+
+GC_chart(blastp, 
          cluster = "cluster",
          strand = "strand",
          group = "Functions",
@@ -522,7 +532,9 @@ GC_chart(erythromycin_BlastP,
            ) %>%
   GC_clusterLabel() %>%
   GC_genes(stroke = "#6E7079", strokeWidth = 0.5) %>%
-  GC_theme("infographic")
+  GC_legend(order = c(setdiff(sort(unique(blastp$Functions)), "No Hit"), "No Hit")) %>%
+  GC_color(customColors = list("No Hit" = "white")) %>%
+  GC_theme("infographic", textColor = "#333333", palette = "okabeIto")
 ```
 
 <details>

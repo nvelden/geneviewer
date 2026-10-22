@@ -142,7 +142,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
 
 <br>
 
-The same gene clusters in black and white, using patterns instead of colours (`GC_pattern()` is only available in the development version).
+The same gene clusters in black and white with the `"bw"` theme, using patterns instead of colours (`GC_theme()` is only available in the development version).
 
 <details>
 <summary>Click to see the code</summary>
@@ -162,7 +162,7 @@ The same gene clusters in black and white, using patterns instead of colours (`G
   GC_scaleBar(y = 20) %>%
   GC_scale(cluster = 1,  scale_breaks = TRUE, hidden = TRUE) %>%
   GC_scale(cluster = 2, reverse = TRUE, hidden = TRUE) %>%
-  GC_pattern()
+  GC_theme("bw")
 ```
 </details>
 
@@ -182,7 +182,7 @@ The same gene clusters in black and white, using patterns instead of colours (`G
   GC_scaleBar(y = 20) %>%
   GC_scale(cluster = 1,  scale_breaks = TRUE, hidden = TRUE) %>%
   GC_scale(cluster = 2, reverse = TRUE, hidden = TRUE) %>%
-  GC_pattern()
+  GC_theme("bw")
 ```
 
 <br>

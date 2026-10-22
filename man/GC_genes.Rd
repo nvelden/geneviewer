@@ -32,8 +32,9 @@ Allowed values are 'arrow', 'boxarrow', 'box', 'cbox', and 'rbox'.}
 
 \item{show}{Logical, whether to show the genes or not.}
 
-\item{colorScheme}{Character or NULL, the name of the color scheme to use.
-When no \code{cluster} is selected, the legend uses the same colours. NULL keeps
+\item{colorScheme}{Character or NULL, the name of the color scheme to use: a
+d3 scheme (e.g. "schemeSet2") or a geneviewer palette (e.g. "okabeIto",
+see \code{\link[=geneviewer_palette]{geneviewer_palette()}}). When no \code{cluster} is selected, the legend uses the same colours. NULL keeps
 the colours set by \code{GC_color()}.}
 
 \item{customColors}{List or NULL, custom colors to apply to the genes. When no

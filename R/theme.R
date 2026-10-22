@@ -47,7 +47,7 @@
 #'
 #' @param GC_chart The GC chart object to be modified.
 #' @param theme The theme to start from: the name of a built-in theme
-#'   (`"default"`, `"minimal"`, `"classic"`, `"dark"` or `"bw"`, see
+#'   (`"default"`, `"minimal"`, `"classic"`, `"dark"`, `"vintage"` or `"bw"`, see
 #'   [geneviewer_theme()]) or a list of theme settings. `"bw"` is black and
 #'   white: genes, exons and legend markers are filled with a pattern per
 #'   group. Default is NULL: change
@@ -62,7 +62,8 @@
 #'   the scale bar.
 #' @param background Background colour of the chart.
 #' @param palette Gene colours: the name of a d3 colour scheme (e.g.
-#'   `"schemeSet2"`) or a vector of colours, used in the order of the groups.
+#'   `"schemeSet2"`) or a geneviewer palette (e.g. `"okabeIto"`, see
+#'   [geneviewer_palette()]), or a vector of colours, used in the order of the groups.
 #'   Colours set with [GC_color()] or the `colorScheme` or `customColors` of
 #'   [GC_genes()] take precedence.
 #' @param pattern Patterns of the genes, exons and legend markers: a list with
@@ -159,7 +160,7 @@ GC_theme <- function(
 #' start a theme of your own.
 #'
 #' @param name Name of the theme: `"default"`, `"minimal"`, `"classic"`,
-#'   `"dark"` or `"bw"`.
+#'   `"dark"`, `"vintage"` or `"bw"`.
 #'
 #' @return A list of theme settings, to use as the `theme` of [GC_theme()].
 #'
@@ -178,9 +179,60 @@ geneviewer_theme <- function(name = "default") {
   builtin_themes[[name]]
 }
 
+#' Colours of a geneviewer Palette
+#'
+#' Besides the d3 colour schemes (e.g. `"schemeSet2"`), the gene colours can be
+#' set by the name of a geneviewer palette, in [GC_theme()] (`palette`) and
+#' in the `colorScheme` of [GC_genes()], [GC_transcript()] and [GC_color()]:
+#'
+#' - `"okabeIto"`: 8 colours that stay distinct with colour blindness
+#'   (Okabe & Ito), the palette of the `"classic"` theme.
+#' - `"vivid"`: 9 bright colours for dark backgrounds, the palette of the
+#'   `"dark"` theme.
+#' - `"vintage"`: 10 muted colours, the palette of the `"vintage"` theme.
+#' - `"greys"`: 6 greys, from dark to light.
+#' - `"blues"`: 7 blues, from dark to light.
+#'
+#' @param name Name of the palette. Default is NULL: the names of all
+#'   palettes.
+#'
+#' @return The colours of the palette, or the names of all palettes.
+#'
+#' @examples
+#' geneviewer_palette("okabeIto")
+#' geneviewer_palette()
+#'
+#' genes_data <- data.frame(
+#'   start = c(10, 90, 130, 170, 210),
+#'   end = c(40, 120, 160, 200, 240),
+#'   group = c('A', 'B', 'B', 'A', 'C')
+#' )
+#' GC_chart(genes_data, group = "group", height = "100px") %>%
+#'   GC_genes(colorScheme = "okabeIto")
+#'
+#' @export
+geneviewer_palette <- function(name = NULL) {
+  if (is.null(name)) {
+    return(names(geneviewer_palettes))
+  }
+  if (!is.character(name) || length(name) != 1 || !name %in% names(geneviewer_palettes)) {
+    stop("name must be one of: ", paste0('"', names(geneviewer_palettes), '"', collapse = ", "))
+  }
+  geneviewer_palettes[[name]]
+}
+
+geneviewer_palettes <- list(
+  okabeIto = c("#E69F00", "#56B4E9", "#009E73", "#F0E442",
+               "#0072B2", "#D55E00", "#CC79A7", "#999999"),
+  vivid = c("#4992ff", "#7cffb2", "#fddd60", "#ff6e76", "#58d9f9",
+            "#05c091", "#ff8a45", "#8d48e3", "#dd79ff"),
+  vintage = c("#d87c7c", "#919e8b", "#d7ab82", "#6e7074", "#61a0a8",
+              "#efa18d", "#787464", "#cc7e63", "#724e58", "#4b565b"),
+  greys = c("#252525", "#525252", "#737373", "#969696", "#bdbdbd", "#d9d9d9"),
+  blues = c("#08306b", "#08519c", "#2171b5", "#4292c6", "#6baed6", "#9ecae1", "#c6dbef")
+)
+
 # Built-in themes, as settings for GC_theme()
-okabe_ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442",
-               "#0072B2", "#D55E00", "#CC79A7", "#999999")
 
 builtin_themes <- list(
   default = list(),
@@ -198,7 +250,7 @@ builtin_themes <- list(
     fontFamily = "Arial, Helvetica, sans-serif",
     textColor = "black",
     lineColor = "black",
-    palette = okabe_ito,
+    palette = "okabeIto",
     genes = list(stroke = "black", strokeWidth = 0.75)
   ),
   # The colours and flat style of the ECharts dark theme
@@ -206,16 +258,14 @@ builtin_themes <- list(
     background = "#100C2A",
     textColor = "#B9B8CE",
     lineColor = "#B9B8CE",
-    palette = c("#4992ff", "#7cffb2", "#fddd60", "#ff6e76", "#58d9f9",
-                "#05c091", "#ff8a45", "#8d48e3", "#dd79ff"),
+    palette = "vivid",
     title = list(titleFont = list(fill = "#EEF1FA")),
     clusterTitle = list(titleFont = list(fill = "#EEF1FA")),
-    clusterLabel = list(fontWeight = "normal"),
     sequence = list(sequenceStyle = list(stroke = "#484753")),
-    genes = list(stroke = "none"),
-    transcript = list(styleExons = list(strokeWidth = 0)),
+    genes = list(stroke = "none", corner_radius = 3),
+    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3)),
     labels = list(fontStyle = "normal", fontSize = "11px"),
-    legend = list(legendOptions = list(rx = "3px")),
+    legend = list(corner_radius = 3),
     links = list(normal_color = "#4992ff", inverted_color = "#ff6e76",
                  low_color = "#100C2A", linkStyle = list(fillOpacity = 0.6),
                  colorBarOptions = list(barOptions = list(stroke = "none"))),
@@ -223,6 +273,24 @@ builtin_themes <- list(
                    border = "1px solid #71708A"),
     trackMouse = list(backgroundColor = "rgba(53, 52, 80, 0.95)",
                       border = "1px solid #71708A")
+  ),
+  # The colours and flat style of the ECharts vintage theme: its palette and
+  # background, with the text and axis colours of the ECharts defaults
+  vintage = list(
+    background = "#fef8ef",
+    textColor = "#3f3a33",
+    lineColor = "#787464",
+    palette = "vintage",
+    title = list(subtitleFont = list(fill = "#787464")),
+    clusterTitle = list(subtitleFont = list(fill = "#787464")),
+    sequence = list(sequenceStyle = list(stroke = "#c9c2b5")),
+    genes = list(stroke = "none", corner_radius = 3),
+    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3)),
+    labels = list(fontStyle = "normal", fontSize = "11px"),
+    legend = list(corner_radius = 3),
+    links = list(normal_color = "#61a0a8", inverted_color = "#d87c7c",
+                 low_color = "#fef8ef", linkStyle = list(fillOpacity = 0.6),
+                 colorBarOptions = list(barOptions = list(stroke = "none")))
   ),
   bw = list(
     fontFamily = "Arial, Helvetica, sans-serif",
@@ -370,9 +438,11 @@ theme_global_options <- function(theme) {
   html_text <- c(font, Filter(Negate(is.null), list(color = theme$textColor)))
   line <- Filter(Negate(is.null), list(stroke = theme$lineColor))
 
-  # A d3 scheme name, or colours (a list, so one colour is still an array)
+  # A d3 scheme or palette name, or colours (a list, so one colour is still an
+  # array). Palette names are replaced by their colours by render_theme().
   palette <- theme$palette
-  if (!is.null(palette) && !(length(palette) == 1 && grepl("^scheme", palette))) {
+  if (!is.null(palette) && !(length(palette) == 1 &&
+                             (grepl("^scheme", palette) || palette %in% names(geneviewer_palettes)))) {
     palette <- as.list(palette)
   }
   colors <- Filter(Negate(is.null), list(colorScheme = palette))
@@ -414,7 +484,27 @@ drop_empty <- function(x) {
 # to the browser in its form there when the chart is drawn
 render_theme <- function(widget) {
   widget$x$theme <- theme_to_js(widget$x$theme)
+  widget$x <- resolve_palette_names(widget$x)
   widget
+}
+
+# Replaces each colorScheme that is the name of a geneviewer palette by its
+# colours; d3 scheme names are left for the browser
+resolve_palette_names <- function(x) {
+  if (!is.list(x)) {
+    return(x)
+  }
+  for (i in seq_along(x)) {
+    name <- names(x)[i]
+    value <- x[[i]]
+    if (identical(name, "colorScheme") && is.character(value) && length(value) == 1 &&
+        value %in% names(geneviewer_palettes)) {
+      x[[i]] <- as.list(geneviewer_palettes[[value]])
+    } else if (is.list(value)) {
+      x[[i]] <- resolve_palette_names(value)
+    }
+  }
+  x
 }
 
 # The theme as sent to the browser: the options of each component, under the

@@ -139,3 +139,29 @@ test_that("textScale is kept in the theme and sent to the browser", {
   expect_error(GC_theme(chart, textScale = c(1, 2)), "single positive number")
   expect_error(GC_theme(chart, textScale = 0), "single positive number")
 })
+
+test_that("geneviewer palettes are used by name and sent as colours", {
+  expect_equal(geneviewer_palette(), c("okabeIto", "vivid", "vintage", "greys", "blues"))
+  expect_equal(geneviewer_theme("vintage")$palette, "vintage")
+  vintage <- theme_to_js(geneviewer_theme("vintage"))
+  expect_equal(vintage$geneOptions$cornerRadius, 3)
+  expect_equal(vintage$legendOptions$cornerRadius, 3)
+  dark <- theme_to_js(geneviewer_theme("dark"))
+  expect_equal(dark$geneOptions$cornerRadius, 3)
+  expect_equal(dark$legendOptions$cornerRadius, 3)
+  expect_equal(geneviewer_palette("vivid")[1], "#4992ff")
+  expect_error(geneviewer_palette("echarts"), "name must be one of")
+  expect_equal(geneviewer_theme("classic")$palette, "okabeIto")
+
+  # In a theme, GC_genes() and GC_color(); d3 scheme names are kept
+  render <- function(x) render_theme(x)$x
+  expect_equal(render(GC_theme(chart, palette = "blues"))$theme$geneOptions$colorScheme,
+               as.list(geneviewer_palette("blues")))
+  rendered <- render(GC_genes(chart, colorScheme = "vivid"))
+  expect_equal(rendered$series[[1]]$genes$colorScheme, as.list(geneviewer_palette("vivid")))
+  expect_equal(rendered$legend$legendOptions$colorScheme, as.list(geneviewer_palette("vivid")))
+  expect_equal(render(GC_color(chart, colorScheme = "greys"))$series[[1]]$genes$colorScheme,
+               as.list(geneviewer_palette("greys")))
+  expect_equal(render(GC_genes(chart, colorScheme = "schemeSet2"))$series[[1]]$genes$colorScheme,
+               "schemeSet2")
+})

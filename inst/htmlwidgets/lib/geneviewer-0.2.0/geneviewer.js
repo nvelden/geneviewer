@@ -1235,11 +1235,13 @@ function makeColorBar(graphContainer, links, themeOptions = {}) {
             height: 60,
             labelOptions: {
               fontSize: 8,
+              fontFamily: "sans-serif",
               xOffset: 2,
               yOffset: 0
             },
             titleOptions: {
               fontSize: 10,
+              fontFamily: "sans-serif",
               xOffset: 2,
               yOffset: 0
             },
@@ -1351,6 +1353,7 @@ function makeColorBar(graphContainer, links, themeOptions = {}) {
         .attr("alignment-baseline", "bottom")
         .attr("text-anchor", "middle")
         .attr("font-size", titleOptions.fontSize)
+        .style("font-family", titleOptions.fontFamily)
         .text(linkOptions.measure)
         .each(function () {
             const currentElement = d3.select(this);
@@ -1372,6 +1375,7 @@ function makeColorBar(graphContainer, links, themeOptions = {}) {
         .attr("y", yPosition - labelOptions.yOffset)
         .attr("alignment-baseline", "middle")
         .attr("font-size", labelOptions.fontSize)
+        .style("font-family", labelOptions.fontFamily)
         .text(maxValue + '%')
         .each(function () {
             const currentElement = d3.select(this);
@@ -1383,6 +1387,7 @@ function makeColorBar(graphContainer, links, themeOptions = {}) {
         .attr("y", yPosition + height + labelOptions.yOffset)
         .attr("alignment-baseline", "middle")
         .attr("font-size", labelOptions.fontSize)
+        .style("font-family", labelOptions.fontFamily)
         .text(minValue + '%')
         .each(function () {
             const currentElement = d3.select(this);
@@ -3180,6 +3185,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     orientation: "horizontal",
     adjustHeight: true,
     order: [],
+    cornerRadius: 0,
     legendOptions: {
       cursor: "pointer",
       colorScheme: null,
@@ -3196,7 +3202,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'legendOptions', options);
-  const { x, y, width, orientation, adjustHeight, order, legendOptions, legendTextOptions } = combinedOptions;
+  const { x, y, width, orientation, adjustHeight, order, cornerRadius, legendOptions, legendTextOptions } = combinedOptions;
 
   const additionalLegendOptions = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
   const additionalLegendTextOptions = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
@@ -3283,6 +3289,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
         .attr("y", currentY)
         .attr("width", legendSize)
         .attr("height", legendSize)
+        .attr("rx", cornerRadius)
         .style("fill", patternScale.fill(d))
         .style("stroke", patternScale.outline ?? (isWhite(patternScale.fill(d)) ? "#bdbdbd" : null))
         .each(() => patternScale.align(d, currentX, currentY))

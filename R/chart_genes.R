@@ -130,8 +130,9 @@ GC_labels <- function(
 #' @param marker_size Character or NULL, size category of the marker
 #' ('small', 'medium', 'large').
 #' @param show Logical, whether to show the genes or not.
-#' @param colorScheme Character or NULL, the name of the color scheme to use.
-#'   When no `cluster` is selected, the legend uses the same colours. NULL keeps
+#' @param colorScheme Character or NULL, the name of the color scheme to use: a
+#'   d3 scheme (e.g. "schemeSet2") or a geneviewer palette (e.g. "okabeIto",
+#'   see [geneviewer_palette()]). When no `cluster` is selected, the legend uses the same colours. NULL keeps
 #'   the colours set by `GC_color()`.
 #' @param customColors List or NULL, custom colors to apply to the genes. When no
 #'   `cluster` is selected, the legend uses the same colours.
@@ -273,8 +274,9 @@ GC_genes <- function(
 #'@param selection Numeric or character, the specific transcript to filter
 #'  transcripts by.
 #'@param show Logical, whether to show the transcripts or not.
-#'@param colorScheme Character or NULL, the name of the color scheme to use.
-#'  When no `selection` is made, the legend uses the same colours. NULL keeps
+#'@param colorScheme Character or NULL, the name of the color scheme to use: a
+#'  d3 scheme (e.g. "schemeSet2") or a geneviewer palette (e.g. "okabeIto",
+#'  see [geneviewer_palette()]). When no `selection` is made, the legend uses the same colours. NULL keeps
 #'  the colours set by `GC_color()`.
 #'@param customColors List or NULL, custom colors to apply to the genes. When no
 #'  `selection` is made, the legend uses the same colours.
@@ -534,8 +536,9 @@ GC_transcript <- function(GC_chart,
 #'
 #' @param GC_chart The gene chart object to be modified.
 #' @param colorScheme Optional; character or NULL, the name of a predefined
-#' color scheme to apply to the genes.Acceptable values include D3.js's built-in
-#' color schemes like "schemeCategory10", "schemeAccent", "schemeTableau10".
+#' color scheme to apply to the genes. Acceptable values include D3.js's built-in
+#' color schemes like "schemeCategory10", "schemeAccent", "schemeTableau10",
+#' and the geneviewer palettes like "okabeIto" (see [geneviewer_palette()]).
 #' @param customColors Either NULL, a list of color values, or a named list of
 #' color values.
 #'
@@ -749,6 +752,8 @@ pattern_to_js <- function(pattern) {
 #'   empty list.
 #' @param legendOptions List, additional options for the legend.
 #' @param legendTextOptions List, additional text options for the legend.
+#' @param corner_radius Numeric or NULL, radius in pixels of the rounded corners
+#'   of the legend markers, e.g. `3`. Default is NULL: square markers.
 #' @param ... Additional arguments to be passed to the legend configuration.
 #'
 #' @return Returns the modified gene chart object with the legend configured.
@@ -804,6 +809,7 @@ GC_legend <- function(
     style = list(),
     legendOptions = list(),
     legendTextOptions = list(),
+    corner_radius = NULL,
     ...
 ) {
 
@@ -835,6 +841,7 @@ GC_legend <- function(
     show = show,
     order = order,
     position = position,
+    cornerRadius = corner_radius,
     style = style,
     legendOptions = legendOptions,
     legendTextOptions = legendTextOptions,

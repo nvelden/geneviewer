@@ -10,8 +10,9 @@ GC_color(GC_chart, colorScheme = NULL, customColors = NULL)
 \item{GC_chart}{The gene chart object to be modified.}
 
 \item{colorScheme}{Optional; character or NULL, the name of a predefined
-color scheme to apply to the genes.Acceptable values include D3.js's built-in
-color schemes like "schemeCategory10", "schemeAccent", "schemeTableau10".}
+color scheme to apply to the genes. Acceptable values include D3.js's built-in
+color schemes like "schemeCategory10", "schemeAccent", "schemeTableau10",
+and the geneviewer palettes like "okabeIto" (see \code{\link[=geneviewer_palette]{geneviewer_palette()}}).}
 
 \item{customColors}{Either NULL, a list of color values, or a named list of
 color values.}

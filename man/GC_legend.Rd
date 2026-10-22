@@ -14,6 +14,7 @@ GC_legend(
   style = list(),
   legendOptions = list(),
   legendTextOptions = list(),
+  corner_radius = NULL,
   ...
 )
 }
@@ -43,6 +44,9 @@ empty list.}
 \item{legendOptions}{List, additional options for the legend.}
 
 \item{legendTextOptions}{List, additional text options for the legend.}
+
+\item{corner_radius}{Numeric or NULL, radius in pixels of the rounded corners
+of the legend markers, e.g. \code{3}. Default is NULL: square markers.}
 
 \item{...}{Additional arguments to be passed to the legend configuration.}
 }

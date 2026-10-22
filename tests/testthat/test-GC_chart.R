@@ -1344,3 +1344,11 @@ test_that("GC_genes() sends corner_radius to the browser as cornerRadius", {
   themed <- GC_theme(chart, genes = list(corner_radius = 3))
   expect_equal(theme_to_js(themed$x$theme)$geneOptions$cornerRadius, 3)
 })
+
+test_that("GC_legend() sends corner_radius to the browser as cornerRadius", {
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
+  expect_equal(GC_legend(chart, corner_radius = 3)$x$legend$cornerRadius, 3)
+  expect_null(GC_legend(chart)$x$legend$cornerRadius)
+  themed <- GC_theme(chart, legend = list(corner_radius = 3))
+  expect_equal(theme_to_js(themed$x$theme)$legendOptions$cornerRadius, 3)
+})

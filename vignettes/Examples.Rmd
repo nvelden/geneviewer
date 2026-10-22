@@ -537,42 +537,58 @@ GC_chart(blastp,
   GC_theme("infographic", textColor = "#333333", palette = "okabeIto")
 ```
 
+The two Erythromycin clusters linked by their BlastP hits, with the `"classic"` theme, dark text and the `"okabeIto"` palette. The genes are coloured by function, as in the chart above, and the links connect the genes with the same BlastP hit: blue for genes in the same direction, red for reversed ones (`GC_theme()` is only available in the development version).
+
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
 library(dplyr)
 ### Erythromycin BlastP
-GC_chart(erythromycin_BlastP %>% dplyr::filter(cluster %in% c("BGC0000055", "BGC0000054")), 
+# Genes without a BlastP hit have no function: give them their own group
+blastp <- erythromycin_BlastP %>% dplyr::filter(cluster %in% c("BGC0000055", "BGC0000054"))
+blastp$Functions[is.na(blastp$Functions)] <- "No Hit"
+
+GC_chart(blastp, 
          cluster = "cluster",
          strand = "strand",
-         group = "BlastP",
-         height = 250) %>%
+         group = "Functions",
+         height = 260) %>%
   GC_labels("Gene", cluster = 1) %>%
-  GC_genes(marker_size = "small", marker = "rbox", markerHeight = 15) %>%
+  GC_genes(marker_size = "small", marker = "rbox", markerHeight = 15,
+           stroke = "#6E7079", strokeWidth = 0.5) %>%
   GC_links(group = "BlastP", 
            label = FALSE,
            color_bar = FALSE
            ) %>%
   GC_clusterLabel() %>%
-  GC_legend(FALSE)
+  GC_legend(order = c(setdiff(sort(unique(blastp$Functions)), "No Hit"), "No Hit")) %>%
+  GC_color(customColors = list("No Hit" = "white")) %>%
+  GC_theme("classic", textColor = "#333333", palette = "okabeIto")
 ```
 </details>
 
 ```{r echo = FALSE, results='asis'}
 library(dplyr)
 ### Erythromycin BlastP
-GC_chart(erythromycin_BlastP %>% dplyr::filter(cluster %in% c("BGC0000055", "BGC0000054")), 
+# Genes without a BlastP hit have no function: give them their own group
+blastp <- erythromycin_BlastP %>% dplyr::filter(cluster %in% c("BGC0000055", "BGC0000054"))
+blastp$Functions[is.na(blastp$Functions)] <- "No Hit"
+
+GC_chart(blastp, 
          cluster = "cluster",
          strand = "strand",
-         group = "BlastP",
-         height = 250) %>%
+         group = "Functions",
+         height = 260) %>%
   GC_labels("Gene", cluster = 1) %>%
-  GC_genes(marker_size = "small", marker = "rbox", markerHeight = 15) %>%
+  GC_genes(marker_size = "small", marker = "rbox", markerHeight = 15,
+           stroke = "#6E7079", strokeWidth = 0.5) %>%
   GC_links(group = "BlastP", 
            label = FALSE,
            color_bar = FALSE
            ) %>%
   GC_clusterLabel() %>%
-  GC_legend(FALSE)
+  GC_legend(order = c(setdiff(sort(unique(blastp$Functions)), "No Hit"), "No Hit")) %>%
+  GC_color(customColors = list("No Hit" = "white")) %>%
+  GC_theme("classic", textColor = "#333333", palette = "okabeIto")
 ```
 

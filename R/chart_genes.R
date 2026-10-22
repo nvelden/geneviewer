@@ -286,6 +286,12 @@ GC_genes <- function(
 #'  and position.
 #'@param ... Additional arguments to be passed to the gene options.
 #'
+#'@details The first call of `GC_transcript()` makes the chart again with the
+#'  transcripts as clusters. Settings of the whole chart made before it (e.g.
+#'  [GC_title()], [GC_legend()], [GC_theme()] and the margins of [GC_grid()])
+#'  are kept. Settings per cluster (e.g. [GC_labels()], [GC_clusterTitle()])
+#'  are for the old clusters: set them after `GC_transcript()`.
+#'
 #'@return Returns the modified gene chart object.
 #'
 #' @examples
@@ -452,10 +458,11 @@ GC_transcript <- function(GC_chart,
     }
     new_params$strand <- strand
 
-    # The chart is made again for the transcripts; keep its theme
-    theme <- GC_chart$x$theme
+    # The chart is made again with the transcripts as clusters; keep the
+    # settings of the whole chart
+    old_chart <- GC_chart
     GC_chart <- do.call(geneviewer::GC_chart, new_params)
-    GC_chart$x$theme <- theme
+    GC_chart <- keep_chart_settings(GC_chart, old_chart)
 
     for (trans in transcripts) {
         GC_chart$x$series[[trans]]$genes <- list(group = NULL, show = FALSE)

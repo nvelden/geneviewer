@@ -1309,3 +1309,28 @@ test_that("GC_genes and GC_transcript keep GC_color and GC_pattern settings (B43
     cols
   )
 })
+
+test_that("GC_transcript keeps the settings of the whole chart made before it (B50)", {
+  brca <- subset(BRCA1_splice_variants, ensembl_transcript_id %in% unique(ensembl_transcript_id)[1:2])
+  chart <- GC_chart(brca, start = "start", end = "end", strand = "strand", group = "type", height = "300px")
+  transcripts <- function(chart) GC_transcript(chart, transcript = "ensembl_transcript_id", type = "type")
+  settings <- function(chart) {
+    chart %>%
+      GC_title("Title", subtitle = "Subtitle") %>%
+      GC_legend(position = "top", style = list(backgroundColor = "yellow")) %>%
+      GC_theme("dark") %>%
+      GC_grid(margin = list(top = 40, bottom = 20, left = 150), direction = "row")
+  }
+
+  before <- transcripts(settings(chart))
+  after <- settings(transcripts(chart))
+
+  for (name in c("title", "legend", "theme", "style", "graphContainer")) {
+    expect_equal(before$x[[name]], after$x[[name]], label = name)
+  }
+  expect_equal(before$height, after$height)
+  expect_equal(lapply(before$x$series, `[[`, "container"),
+               lapply(after$x$series, `[[`, "container"))
+  expect_equal(before$x$title$title, "Title")
+  expect_equal(before$x$series[[1]]$container$margin$left, 150)
+})

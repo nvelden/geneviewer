@@ -461,6 +461,42 @@ set_legend_colors <- function(GC_chart, colorScheme, customColors) {
   GC_chart
 }
 
+#' Keep the settings of the whole chart in a chart made again
+#'
+#' `GC_transcript()` makes the chart again with `GC_chart()`, with the
+#' transcripts as clusters. This keeps the title, legend, theme and width of
+#' the old chart, and its `GC_grid()` margins and direction. Settings per
+#' cluster are for the old clusters and are not kept.
+#'
+#' @param GC_chart The chart made again.
+#' @param old_chart The chart before it was made again.
+#' @return The gene chart object.
+#' @noRd
+keep_chart_settings <- function(GC_chart, old_chart) {
+  old <- old_chart$x
+  GC_chart$x$title <- old$title
+  GC_chart$x$legend <- old$legend
+  GC_chart$x$theme <- old$theme
+  GC_chart$width <- old_chart$width
+
+  # GC_grid() margins: left and right are kept when all clusters had the same
+  # (a margin for the whole chart); top and bottom are the padding of the chart
+  margins <- lapply(old$series, function(series) series$container$margin)
+  same_margin <- length(margins) > 0 &&
+    all(vapply(margins, identical, logical(1), margins[[1]]))
+  margin <- if (same_margin) margins[[1]] else list()
+  margin$top <- old$style$paddingTop
+  margin$bottom <- old$style$paddingBottom
+  if (length(margin) > 0) {
+    GC_chart <- GC_grid(GC_chart, margin = margin)
+  }
+  if (identical(old$graphContainer$direction, "row")) {
+    GC_chart <- GC_grid(GC_chart, direction = "row")
+  }
+
+  GC_chart
+}
+
 #' Value for the i-th selected cluster
 #'
 #' Options given as vectors are recycled over the selected clusters.

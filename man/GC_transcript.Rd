@@ -83,6 +83,13 @@ based on the given parameters. It can show/hide transcripts, apply a color
 scheme, assign custom colors, filter by cluster, and accept additional
 options.
 }
+\details{
+The first call of \code{GC_transcript()} makes the chart again with the
+transcripts as clusters. Settings of the whole chart made before it (e.g.
+\code{\link[=GC_title]{GC_title()}}, \code{\link[=GC_legend]{GC_legend()}}, \code{\link[=GC_theme]{GC_theme()}} and the margins of \code{\link[=GC_grid]{GC_grid()}})
+are kept. Settings per cluster (e.g. \code{\link[=GC_labels]{GC_labels()}}, \code{\link[=GC_clusterTitle]{GC_clusterTitle()}})
+are for the old clusters: set them after \code{GC_transcript()}.
+}
 \examples{
 transcript_data <- data.frame(
   transcript = c("transcript1", "transcript1", "transcript1", "transcript1",

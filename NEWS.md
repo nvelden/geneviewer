@@ -11,6 +11,7 @@
 - Options given as a list (e.g. `labelAdjustmentOptions`, `colorBarOptions = list(labelOptions = )`) now keep the defaults of the options they leave out, at every level.
 
 ### Bug fixes:
+- `GC_transcript()` no longer drops the settings of the whole chart made before it: the title, legend, theme and `GC_grid()` margins and direction are kept. Settings per cluster are for the old clusters and are set after `GC_transcript()`.
 - `GC_legend(backgroundColor = )` now sets the legend background; it had no effect.
 - When a chart is redrawn in Shiny, styles of `GC_chart(style = )` that are no longer set are removed; e.g. a background colour stayed after it was removed.
 - `GC_annotation(type = "symbol")` no longer also draws a curve from x = 0 to x = 100.

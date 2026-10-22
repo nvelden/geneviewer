@@ -92,7 +92,7 @@ chart <- GC_chart(
   end = "end",
   group = "gene_kind",
   strand = "strand",
-  height = "130px"
+  height = "150px"
 )
 chart
 ```
@@ -111,7 +111,9 @@ colors <- list(
 chart %>%
   GC_genes(
     marker = "boxarrow",
-    marker_size = "small"
+    marker_size = "small",
+    stroke = "#6E7079",
+    strokeWidth = 0.5
   ) %>%
   GC_title(
     "BGC0000001: abyssomicin C biosynthetic gene cluster
@@ -130,7 +132,8 @@ chart %>%
     <b>Product:</b> {product}<br>
     <b>Region:</b>{start} - {end}
     "
-  )
+  ) %>%
+  GC_theme("classic", textColor = "#333333")
 ```
 
 ### Loading Multiple GenBank files
@@ -216,6 +219,7 @@ GC_chart(
     <b>Product:</b> {product}<br>
     <b>Region:</b>{start} - {end}
     "
-  )
+  ) %>%
+  GC_theme("classic", textColor = "#333333")
 ```
 

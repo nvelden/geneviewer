@@ -68,7 +68,7 @@ For additional examples and the corresponding code to create the plots, please v
 
 <hr>
 
-<img src="man/figures/BRCA1_splice_variants.png"/>
+<img src="man/figures/BRCA1_splice_variants_infographic.png"/>
 
 <hr>
 

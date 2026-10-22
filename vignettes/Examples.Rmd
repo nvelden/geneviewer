@@ -95,8 +95,6 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
 
 ### Omphalotin gene clusters
 
-The Omphalotin gene clusters with the `"vintage"` theme (`GC_theme()` is only available in the development version).
-
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, results='hide'}
@@ -137,8 +135,6 @@ The Omphalotin gene clusters with the `"vintage"` theme (`GC_theme()` is only av
 ```
 
 <br>
-
-The same gene clusters in black and white with the `"bw"` theme, using patterns instead of colours (`GC_theme()` is only available in the development version).
 
 <details>
 <summary>Click to see the code</summary>
@@ -299,8 +295,6 @@ The same gene clusters in black and white with the `"bw"` theme, using patterns 
 
 ### *H. sapiens* Hox genes using `biomaRt`
 
-The Hox gene clusters with the `"dark"` theme (`GC_theme()` is only available in the development version).
-
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
@@ -386,8 +380,6 @@ GC_chart(
 
 ### BRCA1 splice variants
 
-The BRCA1 splice variants with the `"infographic"` theme and dark text (`GC_theme()` is only available in the development version).
-
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
@@ -432,8 +424,6 @@ GC_chart(BRCA1_splice_variants, height = "600px") %>%
 ```
 
 ### *Saccharopolyspora erythraea* Erythromycin
-
-The Erythromycin gene cluster with the `"classic"` theme. The theme palette colours the groups and `customColors` only sets "Other" to grey (`GC_theme()` and partial `customColors` are only available in the development version).
 
 <details>
 <summary>Click to see the code</summary>
@@ -482,8 +472,6 @@ GC_chart(erythromycin_cluster,
 
 ### *Saccharopolyspora erythraea* Erythromycin BlastP
 
-The BlastP results with the `"infographic"` theme, dark text and the colour-blind safe `"okabeIto"` palette. Genes without a BlastP hit get their own white "No Hit" group, last in the legend, and all genes get a thin grey outline so the white genes stay visible (`GC_theme()` is only available in the development version).
-
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
@@ -540,8 +528,6 @@ GC_chart(blastp,
   GC_color(customColors = list("No Hit" = "white")) %>%
   GC_theme("infographic", textColor = "#333333", palette = "okabeIto")
 ```
-
-The two Erythromycin clusters linked by their BlastP hits, with the `"classic"` theme, dark text and the `"okabeIto"` palette. The genes are coloured by function, as in the chart above, and the links connect the genes with the same BlastP hit: blue for genes in the same direction, red for reversed ones (`GC_theme()` is only available in the development version).
 
 <details>
 <summary>Click to see the code</summary>

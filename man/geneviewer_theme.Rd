@@ -7,8 +7,8 @@
 geneviewer_theme(name = "default")
 }
 \arguments{
-\item{name}{Name of the theme: \code{"default"}, \code{"minimal"}, \code{"classic"},
-\code{"dark"}, \code{"vintage"}, \code{"infographic"} or \code{"bw"}.}
+\item{name}{Name of the theme: \code{"default"}, \code{"classic"},
+\code{"dark"}, \code{"vintage"}, \code{"infographic"}, \code{"publication"} or \code{"bw"}.}
 }
 \value{
 A list of theme settings, to use as the \code{theme} of \code{\link[=GC_theme]{GC_theme()}}.
@@ -20,8 +20,8 @@ start a theme of your own.
 \examples{
 geneviewer_theme("dark")
 
-# A theme of your own, based on "minimal"
-my_theme <- utils::modifyList(geneviewer_theme("minimal"),
+# A theme of your own, based on "classic"
+my_theme <- utils::modifyList(geneviewer_theme("classic"),
                               list(textColor = "navy"))
 
 }

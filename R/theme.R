@@ -45,9 +45,20 @@
 #' A theme only sets how things look: it does not add components to the chart
 #' (e.g. a scale needs [GC_scale()]) or change the data.
 #'
+#' The `"publication"` theme follows common journal figure guidelines: Arial
+#' or Helvetica, 7 pt text when the chart is used at its final print size,
+#' black text and keylines, visible axis ticks, no patterns or shadows, and the
+#' colour-blind-safe Wong palette. Gene labels are italic, as gene symbols are
+#' in journals; use `GC_labels(fontStyle = "normal")` for protein names or
+#' other labels. Journals often also require axis labels with
+#' units in parentheses and bold panel labels; these are content-specific and
+#' must be added by the author. Export as SVG to retain
+#' editable vector text and artwork, then check that fonts are embedded when
+#' converting to the PDF or EPS supplied to the journal.
+#'
 #' @param GC_chart The GC chart object to be modified.
 #' @param theme The theme to start from: the name of a built-in theme
-#'   (`"default"`, `"minimal"`, `"classic"`, `"dark"`, `"vintage"`, `"infographic"` or `"bw"`, see
+#'   (`"default"`, `"classic"`, `"dark"`, `"vintage"`, `"infographic"`, `"publication"` or `"bw"`, see
 #'   [geneviewer_theme()]) or a list of theme settings. `"bw"` is black and
 #'   white: genes, exons and legend markers are filled with a pattern per
 #'   group. Default is NULL: change
@@ -110,7 +121,7 @@
 #'
 #' # Change one component; options of the GC_ functions still take precedence
 #' chart %>%
-#'   GC_theme("minimal", labels = list(fontSize = "14px", fill = "grey")) %>%
+#'   GC_theme("classic", labels = list(fontSize = "14px", fill = "grey")) %>%
 #'   GC_labels("name", fontSize = "10px")
 #'
 #' @export
@@ -160,16 +171,16 @@ GC_theme <- function(
 #' Returns the settings of a built-in theme of [GC_theme()], to see them or to
 #' start a theme of your own.
 #'
-#' @param name Name of the theme: `"default"`, `"minimal"`, `"classic"`,
-#'   `"dark"`, `"vintage"`, `"infographic"` or `"bw"`.
+#' @param name Name of the theme: `"default"`, `"classic"`,
+#'   `"dark"`, `"vintage"`, `"infographic"`, `"publication"` or `"bw"`.
 #'
 #' @return A list of theme settings, to use as the `theme` of [GC_theme()].
 #'
 #' @examples
 #' geneviewer_theme("dark")
 #'
-#' # A theme of your own, based on "minimal"
-#' my_theme <- utils::modifyList(geneviewer_theme("minimal"),
+#' # A theme of your own, based on "classic"
+#' my_theme <- utils::modifyList(geneviewer_theme("classic"),
 #'                               list(textColor = "navy"))
 #'
 #' @export
@@ -187,7 +198,8 @@ geneviewer_theme <- function(name = "default") {
 #' in the `colorScheme` of [GC_genes()], [GC_transcript()] and [GC_color()]:
 #'
 #' - `"okabeIto"`: 8 colours that stay distinct with colour blindness
-#'   (Okabe & Ito).
+#'   (Okabe & Ito, also known as the Wong palette), the palette of the
+#'   `"publication"` theme.
 #' - `"classic"`: 9 clear colours, the palette of the `"classic"` theme.
 #' - `"vivid"`: 9 bright colours for dark backgrounds.
 #' - `"dark"`: 11 soft colours for dark backgrounds, the palette of the
@@ -256,16 +268,6 @@ echarts_tooltip <- list(backgroundColor = "#ffffff", color = "#6d6e73",
 
 builtin_themes <- list(
   default = list(),
-  minimal = list(
-    textColor = "#444444",
-    lineColor = "#bdbdbd",
-    # A thin outline in the line colour, so white genes (e.g. "No Hit") stay visible
-    genes = list(stroke = "#bdbdbd", strokeWidth = 0.5),
-    transcript = list(styleExons = list(stroke = "#bdbdbd", strokeWidth = 0.5)),
-    labels = list(fontStyle = "normal", fontSize = "11px"),
-    clusterLabel = list(fontWeight = "normal"),
-    links = list(linkStyle = list(fillOpacity = 0.5))
-  ),
   # The default theme of ECharts 5: only the genes and links are coloured. The
   # title colour (#464646) for titles, cluster labels and the legend, the
   # subtitle colour (#6E7079) for the other text and all lines; sans-serif
@@ -380,6 +382,51 @@ builtin_themes <- list(
                    border = "none", borderRadius = "4px", fontSize = "12px"),
     trackMouse = list(backgroundColor = "rgba(50, 50, 50, 0.85)", color = "#ffffff",
                       border = "none", borderRadius = "4px", fontSize = "12px")
+  ),
+  # Figures for journals, after common journal figure guidelines, in the style
+  # of the other themes: Arial or Helvetica, text of 7 pt (9.33px; at most 7
+  # and at least 5 pt in print), black text and keylines, italic gene labels,
+  # black axis lines with ticks, no gridlines, patterns or shadows, and the colour-blind-safe colours
+  # of Wong (2011), with links in its blue and vermillion. Journals reserve
+  # 8 pt bold text for panel labels, which authors add separately. Sizes are
+  # for a chart drawn at its final print size.
+  publication = list(
+    fontFamily = "Arial, Helvetica, sans-serif",
+    textColor = "black",
+    lineColor = "black",
+    palette = "okabeIto",
+    title = list(titleFont = list(fontSize = "9.33px", fill = "black"),
+                 subtitleFont = list(fontSize = "9.33px")),
+    clusterTitle = list(titleFont = list(fontSize = "9.33px"), subtitleFont = list(fontSize = "9.33px")),
+    clusterFooter = list(titleFont = list(fontSize = "9.33px"), subtitleFont = list(fontSize = "9.33px")),
+    clusterLabel = list(fontSize = "9.33px"),
+    genes = list(stroke = "black", strokeWidth = 0.75, corner_radius = 3),
+    # No keylines on exons and UTRs: on a short exon the outline hides its colour
+    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
+                      styleUTRs = list(cornerRadius = 3, fontSize = "9.33px"),
+                      labelOptions = list(fontSize = "9.33px")),
+    # Gene symbols are italic in journals
+    labels = list(fontStyle = "italic", fontSize = "9.33px"),
+    coordinates = list(textStyle = list(fontSize = "9.33px"), tickStyle = list(lineLength = 4)),
+    scale = list(textStyle = list(fontSize = "9.33px"), tickStyle = list(lineLength = 4)),
+    scaleBar = list(labelStyle = list(fontSize = "9.33px")),
+    legend = list(corner_radius = 2,
+                  legendOptions = list(stroke = "black", strokeWidth = 0.75),
+                  legendTextOptions = list(fontSize = "9.33px")),
+    links = list(normal_color = "#0072B2", inverted_color = "#D55E00",
+                 linkStyle = list(fillOpacity = 0.6), labelStyle = list(fontSize = "9.33px"),
+                 colorBarOptions = list(barOptions = list(stroke = "none"),
+                                        labelOptions = list(fontSize = 9.33),
+                                        titleOptions = list(fontSize = 9.33))),
+    annotations = list(text = list(style = list(fontSize = "9.33px")),
+                       textMarker = list(textStyle = list(fontSize = "9.33px")),
+                       arc = list(textStyle = list(fontSize = "9.33px"))),
+    tooltip = list(backgroundColor = "white", color = "black",
+                   border = "1px solid black", borderRadius = "0",
+                   boxShadow = "none", fontSize = "9.33px", padding = "8px"),
+    trackMouse = list(backgroundColor = "white", color = "black",
+                      border = "1px solid black", borderRadius = "0",
+                      boxShadow = "none", fontSize = "9.33px", padding = "8px")
   ),
   # Black and white, in the style of the other themes: black for titles,
   # cluster labels and the legend, grey (#555555) for the other text and all

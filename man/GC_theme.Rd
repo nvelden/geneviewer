@@ -21,7 +21,7 @@ GC_theme(
 \item{GC_chart}{The GC chart object to be modified.}
 
 \item{theme}{The theme to start from: the name of a built-in theme
-(\code{"default"}, \code{"minimal"}, \code{"classic"}, \code{"dark"}, \code{"vintage"}, \code{"infographic"} or \code{"bw"}, see
+(\code{"default"}, \code{"classic"}, \code{"dark"}, \code{"vintage"}, \code{"infographic"}, \code{"publication"} or \code{"bw"}, see
 \code{\link[=geneviewer_theme]{geneviewer_theme()}}) or a list of theme settings. \code{"bw"} is black and
 white: genes, exons and legend markers are filled with a pattern per
 group. Default is NULL: change
@@ -107,6 +107,17 @@ argument name (e.g. \code{normal_color}) or their name in the browser (e.g.
 
 A theme only sets how things look: it does not add components to the chart
 (e.g. a scale needs \code{\link[=GC_scale]{GC_scale()}}) or change the data.
+
+The \code{"publication"} theme follows common journal figure guidelines: Arial
+or Helvetica, 7 pt text when the chart is used at its final print size,
+black text and keylines, visible axis ticks, no patterns or shadows, and the
+colour-blind-safe Wong palette. Gene labels are italic, as gene symbols are
+in journals; use \code{GC_labels(fontStyle = "normal")} for protein names or
+other labels. Journals often also require axis labels with
+units in parentheses and bold panel labels; these are content-specific and
+must be added by the author. Export as SVG to retain
+editable vector text and artwork, then check that fonts are embedded when
+converting to the PDF or EPS supplied to the journal.
 }
 \examples{
 genes_data <- data.frame(
@@ -138,7 +149,7 @@ chart \%>\% GC_theme("classic", textScale = 1.4)
 
 # Change one component; options of the GC_ functions still take precedence
 chart \%>\%
-  GC_theme("minimal", labels = list(fontSize = "14px", fill = "grey")) \%>\%
+  GC_theme("classic", labels = list(fontSize = "14px", fill = "grey")) \%>\%
   GC_labels("name", fontSize = "10px")
 
 }

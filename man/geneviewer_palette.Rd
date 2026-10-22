@@ -21,7 +21,8 @@ in the \code{colorScheme} of \code{\link[=GC_genes]{GC_genes()}}, \code{\link[=G
 \details{
 \itemize{
 \item \code{"okabeIto"}: 8 colours that stay distinct with colour blindness
-(Okabe & Ito).
+(Okabe & Ito, also known as the Wong palette), the palette of the
+\code{"publication"} theme.
 \item \code{"classic"}: 9 clear colours, the palette of the \code{"classic"} theme.
 \item \code{"vivid"}: 9 bright colours for dark backgrounds.
 \item \code{"dark"}: 11 soft colours for dark backgrounds, the palette of the

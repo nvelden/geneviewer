@@ -127,7 +127,7 @@ test_that("the bw theme fills genes, exons and legend markers with patterns", {
 })
 
 test_that("textScale is kept in the theme and sent to the browser", {
-  themed <- GC_theme(chart, "minimal", textScale = 1.5)
+  themed <- GC_theme(chart, "classic", textScale = 1.5)
   expect_equal(themed$x$theme$textScale, 1.5)
   expect_equal(theme_to_js(themed$x$theme)$textScale, 1.5)
   # Kept when the theme is changed, replaced by a new theme
@@ -166,11 +166,54 @@ test_that("geneviewer palettes are used by name and sent as colours", {
                "schemeSet2")
 })
 
+test_that("the publication theme follows journal figure guidelines", {
+  theme <- geneviewer_theme("publication")
+  js <- theme_to_js(theme)
+
+  expect_equal(theme$fontFamily, "Arial, Helvetica, sans-serif")
+  expect_equal(theme$textColor, "black")
+  expect_equal(theme$lineColor, "black")
+  expect_equal(theme$palette, "okabeIto")
+  expect_null(theme$pattern)
+
+  # Journals permit 5--7 pt text other than 8 pt bold panel labels. At the CSS
+  # reference resolution, 7 pt is 9.33 px.
+  expect_equal(js$titleOptions$titleFont$fontSize, "9.33px")
+  expect_equal(js$labelsOptions$fontSize, "9.33px")
+  expect_equal(js$labelsOptions$fontStyle, "italic")
+  expect_equal(js$scaleOptions$textStyle$fontSize, "9.33px")
+  expect_equal(js$legendOptions$legendTextOptions$fontSize, "9.33px")
+  expect_equal(js$textAnnotationOptions$style$fontSize, "9.33px")
+  expect_equal(js$textMarkerAnnotationOptions$textStyle$fontSize, "9.33px")
+  expect_equal(js$curveAnnotationOptions$textStyle$fontSize, "9.33px")
+
+  expect_equal(js$scaleOptions$lineStyle$stroke, "black")
+  expect_equal(js$scaleOptions$tickStyle$stroke, "black")
+  expect_gt(js$scaleOptions$tickStyle$lineLength, 0)
+  expect_equal(js$geneOptions$stroke, "black")
+  expect_equal(js$legendOptions$legendOptions$stroke, "black")
+  expect_equal(js$tooltipOptions$color, "black")
+  expect_equal(js$tooltipOptions$boxShadow, "none")
+  expect_equal(js$trackMouseOptions$boxShadow, "none")
+})
+
 test_that("the UTRs of transcripts are filled with the background of the theme", {
   expect_equal(theme_to_js(geneviewer_theme("dark"))$transcriptOptions$styleUTRs$fill, "#333333")
   expect_equal(theme_to_js(list(background = "black"))$transcriptOptions$styleUTRs$fill, "black")
-  expect_null(theme_to_js(geneviewer_theme("minimal"))$transcriptOptions$styleUTRs)
+  expect_null(theme_to_js(geneviewer_theme("default"))$transcriptOptions$styleUTRs)
   # A fill set for the UTRs in the theme takes precedence
   themed <- list(background = "black", transcript = list(styleUTRs = list(fill = "red")))
   expect_equal(theme_to_js(themed)$transcriptOptions$styleUTRs$fill, "red")
+})
+
+test_that("the publication theme keeps all general text at 7 pt", {
+  js <- theme_to_js(geneviewer_theme("publication"))
+  font_sizes <- function(x) {
+    if (!is.list(x)) return(NULL)
+    sizes <- if (!is.null(x$fontSize)) as.numeric(sub("px$", "", x$fontSize))
+    c(sizes, unlist(lapply(x, font_sizes)))
+  }
+  expect_true(all(font_sizes(js) <= 9.33))
+  expect_equal(js$titleOptions$titleFont$fontSize, "9.33px")
+  expect_equal(geneviewer_theme("publication")$palette, "okabeIto")
 })

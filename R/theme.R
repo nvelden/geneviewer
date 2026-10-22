@@ -381,15 +381,35 @@ builtin_themes <- list(
     trackMouse = list(backgroundColor = "rgba(50, 50, 50, 0.85)", color = "#ffffff",
                       border = "none", borderRadius = "4px", fontSize = "12px")
   ),
+  # Black and white, in the style of the other themes: black for titles,
+  # cluster labels and the legend, grey (#555555) for the other text and all
+  # lines; sans-serif 12px text, an 18px title, 5px axis ticks, rounded genes
+  # and legend markers with a black outline around the patterns, grey links
+  # and the ECharts tooltip
   bw = list(
-    fontFamily = "Arial, Helvetica, sans-serif",
-    textColor = "black",
-    lineColor = "black",
+    fontFamily = "sans-serif",
+    textColor = "#555555",
+    lineColor = "#555555",
     pattern = list(color = "black", background = "white", size = 6, strokeWidth = 1),
-    genes = list(stroke = "black", strokeWidth = 0.75),
-    transcript = list(styleExons = list(stroke = "black", strokeWidth = 0.75)),
+    title = list(titleFont = list(fontSize = "18px", fill = "black"),
+                 subtitleFont = list(fontSize = "12px")),
+    clusterTitle = list(titleFont = list(fill = "black")),
+    clusterLabel = list(fill = "black"),
+    genes = list(stroke = "black", strokeWidth = 0.75, corner_radius = 3),
+    transcript = list(styleExons = list(stroke = "black", strokeWidth = 0.75, cornerRadius = 3),
+                      styleUTRs = list(cornerRadius = 3)),
+    labels = list(fontStyle = "normal", fontSize = "12px"),
+    # Coordinates keep 10px: at 12px the numbers of adjacent genes overlap
+    coordinates = list(tickStyle = list(lineLength = 5)),
+    scale = list(textStyle = list(fontSize = "12px"), tickStyle = list(lineLength = 5)),
+    scaleBar = list(labelStyle = list(fontSize = "12px")),
+    legend = list(corner_radius = 3, legendTextOptions = list(fill = "black")),
     links = list(normal_color = "#bdbdbd", inverted_color = "#525252",
-                 colorBarOptions = list(barOptions = list(stroke = "black")))
+                 colorBarOptions = list(barOptions = list(stroke = "#555555"),
+                                        labelOptions = list(fontSize = 12),
+                                        titleOptions = list(fontSize = 12))),
+    tooltip = echarts_tooltip,
+    trackMouse = echarts_tooltip
   )
 )
 

@@ -119,7 +119,7 @@ test_that("the bw theme fills genes, exons and legend markers with patterns", {
 
   # FALSE removes the patterns of the theme
   expect_null(GC_theme(themed, pattern = FALSE)$x$theme$pattern)
-  expect_equal(GC_theme(themed, pattern = FALSE)$x$theme$textColor, "black")
+  expect_equal(GC_theme(themed, pattern = FALSE)$x$theme$textColor, "#555555")
 
   expect_error(GC_theme(chart, pattern = "dots"), "arguments of GC_pattern")
   expect_error(GC_theme(chart, pattern = list(type = "dots")), "arguments of GC_pattern")

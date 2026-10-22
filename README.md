@@ -58,45 +58,45 @@ GC_chart(gene_cluster, group = "class", height = "100px") %>%
   GC_labels("name")
 ```
 
-<img src="man/figures/ophA_gene_cluster.png"/>
+<img src="man/figures/ophA_gene_cluster_2x.png" width="776"/>
 
 ## Examples
 
 For additional examples and the corresponding code to create the plots, please visit the [Examples](https://nvelden.github.io/geneviewer/articles/Examples.html) section.
 
-<img src="man/figures/erythromycin_BlastP_okabeIto_800.png"/>
+<img src="man/figures/erythromycin_BlastP_okabeIto_2x.png" width="776"/>
 
 <hr>
 
-<img src="man/figures/BRCA1_splice_variants_infographic.png"/>
+<img src="man/figures/BRCA1_splice_variants_infographic_2x.png" width="776"/>
 
 <hr>
 
-<img src="man/figures/MUMmer_publication.png"/>
+<img src="man/figures/MUMmer_publication_2x.png" width="776"/>
 
 <hr>
 
-<img src="man/figures/erythromycin_link_functions.png"/>
+<img src="man/figures/erythromycin_link_functions_2x.png" width="776"/>
 
 <hr>
 
-<img src="man/figures/ophA_clusters_vintage.png"/>
+<img src="man/figures/ophA_clusters_vintage_2x.png" width="776"/>
 
 <hr>
 
-<img src="man/figures/ophA_clusters_patterns.png"/>
+<img src="man/figures/ophA_clusters_patterns_2x.png" width="776"/>
 
 <hr>
 
-<img src="man/figures/ophA_gene_links.png"/>
+<img src="man/figures/ophA_gene_links_2x.png" width="776"/>
 
 <hr>
 
-<img src="man/figures/erythromycin_cluster_classic.png"/>
+<img src="man/figures/erythromycin_cluster_classic_2x.png" width="776"/>
 
 <hr>
 
-<img src="man/figures/human_hox_genes_dark.png"/>
+<img src="man/figures/human_hox_genes_dark_2x.png" width="776"/>
 
 ## Issues
 

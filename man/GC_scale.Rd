@@ -9,18 +9,18 @@ GC_scale(
   cluster = NULL,
   start = NULL,
   end = NULL,
-  padding = 2,
+  padding = NULL,
   hidden = FALSE,
   breaks = list(),
   tickValues = NULL,
   reverse = FALSE,
-  axis_position = "bottom",
+  axis_position = NULL,
   axis_type = "position",
   y = NULL,
   scale_breaks = FALSE,
   scale_break_threshold = 20,
   scale_break_padding = 1,
-  ticksCount = 10,
+  ticksCount = NULL,
   ticksFormat = NULL,
   tickStyle = list(),
   textStyle = list(),
@@ -42,7 +42,7 @@ Default is NULL.}
 
 \item{padding}{Numeric value or percentage string indicating the padding on
 either side of the scale. The value can be a number or a string in the
-format of '2\%'. Default is 2.}
+format of '2\%'. Default is NULL: as set by the theme, otherwise 2.}
 
 \item{hidden}{Logical flag indicating whether the axis is hidden. Default is
 FALSE.}
@@ -57,7 +57,7 @@ the top of the cluster. If NULL, the default tick values are used.}
 corresponding cluster. Default is FALSE.}
 
 \item{axis_position}{Character string indicating the type of the axis ('top' or
-bottom'). Default is 'bottom'.}
+bottom'). Default is NULL: as set by the theme, otherwise 'bottom'.}
 
 \item{axis_type}{Character string indicating the type of the axis ('position' or
 'range'). Default is 'position'.}
@@ -75,7 +75,7 @@ percentage for determining scale breaks. Default is 20.}
 side of a scale break. Default is 1.}
 
 \item{ticksCount}{Numeric value indicating the number of ticks on the scale.
-Default is 10.}
+Default is NULL: as set by the theme, otherwise 10.}
 
 \item{ticksFormat}{Format for tick labels; depends on axis_type, defaulting
 to ",.0f" for 'position' or ".2s" for 'range' when NULL.}

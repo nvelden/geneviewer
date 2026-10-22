@@ -334,41 +334,40 @@ function removeNullKeys(obj) {
   return cleanObj;
 }
 
-function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
-  let combinedOptions = { ...defaultOptions };
-  let themeOpts    = removeNullKeys(this.themeOptions?.[themeOptionsKey] ?? {});
-  userOptions      = removeNullKeys(userOptions);
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
 
-  // existing deep-merge for keys you know about
-  for (let key in defaultOptions) {
-    if (
-      typeof defaultOptions[key] === 'object' &&
-      !Array.isArray(defaultOptions[key]) &&
-      defaultOptions[key] !== null
-    ) {
-      combinedOptions[key] = {
-        ...defaultOptions[key],
-        ...(themeOpts[key]  || {}),
-        ...(userOptions[key] || {})
-      };
+// Deep merge of options: nested objects are merged at every level, other values
+// (arrays included) replace the base value. null means not set, and so does an
+// empty array in place of an object (an empty list() from R). Returns new objects,
+// so the base and override (e.g. a theme shared by all clusters) are not changed.
+function deepMergeOptions(base, override) {
+  const result = { ...base };
+  if (!isPlainObject(override)) {
+    return result;
+  }
+  for (const key in override) {
+    const value = override[key];
+    if (value === null || value === undefined) {
+      continue;
     }
-    else {
-      combinedOptions[key] = userOptions[key] !== undefined
-        ? userOptions[key]
-        : (themeOpts[key] !== undefined
-           ? themeOpts[key]
-           : defaultOptions[key]);
+    if (isPlainObject(value)) {
+      result[key] = deepMergeOptions(isPlainObject(result[key]) ? result[key] : {}, value);
+    } else if (Array.isArray(value) && value.length === 0 && isPlainObject(result[key])) {
+      continue;
+    } else {
+      result[key] = value;
     }
   }
+  return result;
+}
 
-  // ← new: copy any extra flat keys from userOptions
-  for (let key in userOptions) {
-    if (!(key in defaultOptions)) {
-      combinedOptions[key] = userOptions[key];
-    }
-  }
-
-  return combinedOptions;
+// Order of precedence: defaultOptions < theme (themeOptions[themeOptionsKey]) < userOptions.
+// themeOptions: the chart theme, by default the theme of the container (this).
+function mergeOptions(defaultOptions, themeOptionsKey, userOptions = {}, themeOptions = this?.themeOptions) {
+  const themeOpts = themeOptions?.[themeOptionsKey];
+  return deepMergeOptions(deepMergeOptions(defaultOptions, themeOpts), userOptions);
 }
 
 function getColorScale(colorScheme, customColors, uniqueGroups) {
@@ -396,8 +395,9 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
   } else if (customColors && typeof customColors === 'object') {
     // Handle customColors as an object
     range = groups.map(group => customColors[group] || "#FFF");
-  } else if (colorScheme && d3[colorScheme]) {
-    const scheme = d3[colorScheme];
+  } else if (colorScheme && (Array.isArray(colorScheme) || d3[colorScheme])) {
+    // A d3 scheme name or an array of colours (e.g. the palette of a theme)
+    const scheme = Array.isArray(colorScheme) ? colorScheme : d3[colorScheme];
     // Check if there are more groups than colors in the scheme
     if (groups.length > scheme.length) {
       console.warn(`Warning: More unique groups than colors. Some colors will repeat.`);
@@ -689,7 +689,9 @@ function container(svg, margin, width, height) {
   this.height = height;
 }
 
-function createContainer(targetElementId, id, themeOptionsKey, options = {}) {
+// themeOptions: the chart theme ({ geneOptions: {...}, labelsOptions: {...}, ... }),
+// kept on the container so all of its components use it
+function createContainer(targetElementId, id, themeOptionsKey, options = {}, themeOptions = {}) {
 
   const defaultOptions = {
     id: id || "svg-container",
@@ -702,7 +704,7 @@ function createContainer(targetElementId, id, themeOptionsKey, options = {}) {
   };
 
   // Merge default options and user-specified options
-  const combinedOptions = mergeOptions.call(this, defaultOptions, themeOptionsKey, options);
+  const combinedOptions = mergeOptions(defaultOptions, themeOptionsKey, options, themeOptions);
   const { id: containerId, margin: originalMargin, style, width, height } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
@@ -736,7 +738,9 @@ function createContainer(targetElementId, id, themeOptionsKey, options = {}) {
     svg.style(key, value);
   });
 
-  return new container(svg, computedMargin, width, height);
+  const newContainer = new container(svg, computedMargin, width, height);
+  newContainer.themeOptions = themeOptions;
+  return newContainer;
 }
 
 function addScalePadding(startValue, endValue, padding, to) {
@@ -1023,7 +1027,13 @@ function getLinkCoordinates(graphContainer, data) {
     return links;
 };
 
-function makeLinks(graphContainer, links) {
+// Link colours, shared by the links and the colour bar
+const defaultLinkColors = {
+  normalColor: "#969696",
+  invertedColor: "#d62728"
+};
+
+function makeLinks(graphContainer, links, themeOptions = {}) {
 
     if (!links || links.length === 0) {
         return;
@@ -1031,8 +1041,7 @@ function makeLinks(graphContainer, links) {
     // Default options for title and subtitle
     const defaultOptions = {
       curve: true,
-      invertedColor: "red",
-      normalColor: "blue",
+      ...defaultLinkColors,
       useGroupColors: false,
       color: "lightgrey",
       measure: "identity",
@@ -1069,7 +1078,7 @@ function makeLinks(graphContainer, links) {
 
     links.forEach(function(link) {
 
-        const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options)
+        const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options, themeOptions)
         const { curve, invertedColor, normalColor, useGroupColors, color, linkStyle, measure } = combinedOptions;
 
         const additionalOptionsLinkStyle = extractAdditionalOptions(linkStyle, defaultOptions.linkStyle);
@@ -1167,28 +1176,12 @@ function linkColorTypes(links) {
     return { normal, inverted };
 }
 
-function makeColorBar(graphContainer, links) {
-
-    if (links[0].options.colorBar === false){
-      return null;
-    }
-    if (links[0].options.measure === 'none'){
-      return null;
-    }
-    if (!links[0].data.hasOwnProperty('identity') && !links[0].data.hasOwnProperty('similarity')) {
-      return null;
-    }
-
-    // Only draw a gradient for the link colours on the chart
-    const { normal: hasNormal, inverted: hasInverted } = linkColorTypes(links);
-    if (!hasNormal && !hasInverted) {
-      return null;
-    }
+function makeColorBar(graphContainer, links, themeOptions = {}) {
 
     // Default options for the color bars (both normal and inverted)
     const defaultOptions = {
-        invertedColor: "#d62728",
-        normalColor: "#969696",
+        colorBar: true,
+        ...defaultLinkColors,
         measure: "identity",
         margin: { top: 5, right: 25, bottom: 0, left: 50 },
         colorBarOptions: {
@@ -1215,14 +1208,23 @@ function makeColorBar(graphContainer, links) {
         }
     };
 
-    // Extract user-supplied options and merge them with the defaults
-    const linkOptions = { ...defaultOptions, ...links[0].options };
-    const colorBarOptions = { ...defaultOptions.colorBarOptions, ...links[0].options.colorBarOptions };
+    // Theme link options under the user options, as in makeLinks()
+    const linkOptions = mergeOptions(defaultOptions, "linkOptions", links[0].options, themeOptions);
+    const { colorBarOptions } = linkOptions;
+    const { labelOptions, titleOptions, barOptions } = colorBarOptions;
 
-    // Extract sub-options for labels, titles, and bars
-    const labelOptions = { ...defaultOptions.colorBarOptions.labelOptions, ...colorBarOptions.labelOptions };
-    const titleOptions = { ...defaultOptions.colorBarOptions.titleOptions, ...colorBarOptions.titleOptions };
-    const barOptions = { ...defaultOptions.colorBarOptions.barOptions, ...colorBarOptions.barOptions };
+    if (linkOptions.colorBar === false || linkOptions.measure === 'none') {
+      return null;
+    }
+    if (!links[0].data.hasOwnProperty('identity') && !links[0].data.hasOwnProperty('similarity')) {
+      return null;
+    }
+
+    // Only draw a gradient for the link colours on the chart
+    const { normal: hasNormal, inverted: hasInverted } = linkColorTypes(links);
+    if (!hasNormal && !hasInverted) {
+      return null;
+    }
 
     // Assuming `extractAdditionalOptions` is a function that extracts non-default options
     const additionalOptionsLabel = extractAdditionalOptions(labelOptions, defaultOptions.colorBarOptions.labelOptions);
@@ -1306,7 +1308,7 @@ function makeColorBar(graphContainer, links) {
         .attr("alignment-baseline", "bottom")
         .attr("text-anchor", "middle")
         .attr("font-size", titleOptions.fontSize)
-        .text(links[0].options.measure)
+        .text(linkOptions.measure)
         .each(function () {
             const currentElement = d3.select(this);
             setStyleFromOptions(currentElement, additionalOptionsTitle);
@@ -1368,18 +1370,10 @@ container.prototype.cluster = function (options = {}) {
   return this;
 };
 
-container.prototype.theme = function (themeName) {
-  // Make sure the theme exists
-  if (!themes.hasOwnProperty(themeName)) {
-    throw new Error(`Theme '${themeName}' does not exist.`);
-  }
-
-  // Retrieve the theme
-  const themeOptions = themes[themeName];
-
-  // Save the theme options to the instance for later use
-  this.themeOptions = themeOptions;
-
+// Sets the theme ({ geneOptions: {...}, ... }) used by the components drawn
+// after it. createContainer() already sets the chart theme.
+container.prototype.theme = function (themeOptions) {
+  this.themeOptions = themeOptions ?? {};
   return this;
 };
 
@@ -1577,7 +1571,8 @@ container.prototype.scale = function (options = {}) {
   return this;
 };
 
-container.prototype.title = function (title, subtitle, show = true, options = {}) {
+// themeOptionsKey: "titleOptions" for the chart title, "clusterTitleOptions" for a cluster
+container.prototype.title = function (title, subtitle, show = true, options = {}, themeOptionsKey = "titleOptions") {
 
   // Return early if neither title nor subtitle is provided
   if (!title && !subtitle) {
@@ -1612,7 +1607,7 @@ container.prototype.title = function (title, subtitle, show = true, options = {}
     },
   };
 
-  const combinedOptions = mergeOptions.call(this, defaultOptions, 'titleOptions', options);
+  const combinedOptions = mergeOptions.call(this, defaultOptions, themeOptionsKey, options);
   const { x, y, titleFont, subtitleFont, align, spacing } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
@@ -1785,6 +1780,21 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
   return this;
 };
 
+// The cluster label is drawn in the left or right margin of the cluster. Returns
+// that margin as { left: width } or { right: width }, set before the container is
+// created. Width: of the label (user) > margin (user, GC_grid) > of the label
+// (theme) > margin (theme) > 100px.
+function clusterLabelMargin(containerOptions, labelOptions, themeOptions = {}) {
+  const themeLabelOptions = themeOptions?.clusterLabelOptions ?? {};
+  const position = labelOptions?.position ?? themeLabelOptions.position ?? "left";
+  const width = labelOptions?.width ??
+    containerOptions?.margin?.[position] ??
+    themeLabelOptions.width ??
+    themeOptions?.containerOptions?.margin?.[position] ??
+    "100px";
+  return { [position]: width };
+}
+
 container.prototype.clusterLabel = function (title, show = true, options = {}) {
   if (!show) {
     return this;
@@ -1795,6 +1805,7 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     x: 0,
     y: 0,
     position: 'left',
+    width: null, // the margin the label is drawn in, see clusterLabelMargin()
     wrapLabel: true,
     wrapOptions: {},
     fontSize: "12px",
@@ -2358,12 +2369,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
       itemStyle: [] // [{"index": 3,"y": 20}]
   };
 
-  // If theme options exist, use them as the default options
-  if (this.themeOptions && this.themeOptions.labelsOptions) {
-    options = { ...this.themeOptions.labelsOptions, ...options };
-  }
-
-  const combinedOptions = { ...defaultOptions, ...options };
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'labelsOptions', options);
   const { x, y, start, end, adjustLabels, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
@@ -2488,12 +2494,7 @@ container.prototype.tooltip = function (show = true, options = {}) {
     lineHeight: "1.5"
   };
 
-  // If theme options exist, use them as the default options
-  if (this.themeOptions && this.themeOptions.tooltipOptions) {
-    options = { ...this.themeOptions.tooltipOptions, ...options };
-  }
-
-  const combinedOptions = { ...defaultOptions, ...options };
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'tooltipOptions', options);
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -2589,6 +2590,96 @@ container.prototype.tooltip = function (show = true, options = {}) {
 
   return this; // Return the instance for method chaining
 };
+
+// SVG path and size of a marker ("arrow", "box", "rbox", ...) of the given length
+function getGenePath(marker, length, markerSize, options = {}) {
+    const sizeDefaults = {
+        small: { scale: 0.75 },
+        medium: { scale: 1 },
+        large: { scale: 1.25 }
+    };
+
+    const markerDefaults = {
+        arrow: { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 15 },
+        boxarrow: { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 30 },
+        box: { arrowheadWidth: 0, arrowheadHeight: 30, markerHeight: 30 },
+        rbox: { arrowheadWidth: 0, arrowheadHeight: 30, markerHeight: 30, cornerRadius: 5 },
+        cbox: { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 30 },
+        intron: { arrowheadWidth: 0, arrowheadHeight: 0, markerHeight: 20 },  // Add intron default
+        // Add other marker types if needed
+    };
+
+    const sizeOptions = sizeDefaults[markerSize] || sizeDefaults.medium;
+    const markerOptions = markerDefaults[marker] || {};
+
+    const combinedOptions = deepMergeOptions(markerOptions, options);
+
+    // Scale the dimensions based on size
+    const { arrowheadWidth, arrowheadHeight, markerHeight, cornerRadius } = combinedOptions;
+    const scaledArrowheadWidth = arrowheadWidth * sizeOptions.scale;
+    const scaledArrowheadHeight = arrowheadHeight * sizeOptions.scale;
+    const scaledMarkerHeight = markerHeight * sizeOptions.scale;
+
+    let shaftLength = length - scaledArrowheadWidth;
+    shaftLength = Math.max(0, shaftLength);
+    const shaftTop = (scaledArrowheadHeight - scaledMarkerHeight) / 2;
+    const shaftBottom = shaftTop + scaledMarkerHeight;
+
+    let path;
+    let height = Math.max(scaledMarkerHeight, scaledArrowheadHeight);
+    let effectiveCornerRadius;
+
+    switch (marker) {
+        case "arrow":
+        case "boxarrow":
+        case "box":
+            path = `M0 ${shaftTop}
+                L0 ${shaftBottom}
+                L${shaftLength} ${shaftBottom}
+                L${shaftLength} ${scaledArrowheadHeight}
+                L${length} ${(scaledArrowheadHeight / 2)}
+                L${shaftLength} 0
+                L${shaftLength} ${shaftTop} Z`;
+            break;
+        case "rbox":
+            effectiveCornerRadius = Math.min(cornerRadius, scaledMarkerHeight / 2, length / 2);
+            height = scaledMarkerHeight;
+            path = `M ${effectiveCornerRadius},0
+                     H ${length - effectiveCornerRadius}
+                     A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 ${length},${effectiveCornerRadius}
+                     V ${scaledMarkerHeight - effectiveCornerRadius}
+                     A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 ${length - effectiveCornerRadius},${scaledMarkerHeight}
+                     H ${effectiveCornerRadius}
+                     A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 0,${scaledMarkerHeight - effectiveCornerRadius}
+                     V ${effectiveCornerRadius}
+                     A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 ${effectiveCornerRadius},0
+                     Z`;
+            break;
+        case "cbox":
+            effectiveCornerRadius = Math.min(scaledMarkerHeight / 2, length / 2);
+            height = scaledMarkerHeight;
+            path = `M ${effectiveCornerRadius} 0
+                 L ${length - effectiveCornerRadius} 0
+                 Q ${length} ${scaledMarkerHeight / 2} ${length - effectiveCornerRadius} ${scaledMarkerHeight}
+                 L ${effectiveCornerRadius} ${scaledMarkerHeight}
+                 Q 0 ${scaledMarkerHeight / 2} ${effectiveCornerRadius} 0
+                 Z`;
+            break;
+        case "intron":
+            // Create a V-shaped path for the intron
+            const midPoint = length / 2;
+            height = scaledMarkerHeight / 2
+            path = `M0 ${height}
+                    L${midPoint} 0
+                    L${length} ${height}`;
+            break;
+        default:
+            console.warn(`Marker type '${marker}' not recognized.`);
+            path = "";
+    }
+
+    return { path, length, scaledArrowheadWidth, scaledArrowheadHeight, height };
+}
 
 // Path and position of the gene (or exon, intron, UTR) marker of d, the i-th
 // item. styles holds the marker options and itemStyles the per-item overrides.
@@ -2788,7 +2879,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
     itemStyleUTRs: []
   };
 
-  const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'transcriptOptions', options);
   const { x, y, colorScheme, customColors, pattern, styleExons, styleIntrons, styleUTRs, itemStyleExons, itemStyleIntrons, itemStyleUTRs, labelOptions } = combinedOptions;
 
   // Extract additional options that aren't in defaultOptions
@@ -3323,15 +3414,32 @@ container.prototype.links = function (links, clusterKey, options = {}) {
 };
 // Annotations
 
-container.prototype.trackMouse = function(track = true) {
+container.prototype.trackMouse = function(track = true, options = {}) {
   if (!track) {
     return this;
   }
 
-  // Change cursor to crosshair
-  this.svg.style("cursor", "crosshair");
+  // Styles of the coordinate tooltip
+  const defaultOptions = {
+    cursor: "crosshair",
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    padding: "8px",
+    borderRadius: "4px",
+    border: "1px solid rgba(0,0,0,0.1)",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    fontFamily: "Arial, sans-serif",
+    fontSize: "12px",
+    color: "#333",
+    lineHeight: "1.5",
+    zIndex: 1000
+  };
+
+  const { cursor, show, ...tooltipStyle } = mergeOptions.call(this, defaultOptions, 'trackMouseOptions', options);
+
+  // Change cursor
+  this.svg.style("cursor", cursor);
     this.svg.selectAll("*").each(function() {
-    this.style.cssText += "cursor: crosshair !important;";
+    this.style.cssText += `cursor: ${cursor} !important;`;
   });
 
   // Tooltip for displaying coordinates, inside the widget element so it is
@@ -3339,19 +3447,10 @@ container.prototype.trackMouse = function(track = true) {
   const host = this.svg.node().closest(".html-widget") || document.body;
   const tooltip = d3.select(host).append("div")
     .attr("class", "coordinate-tooltip")
-    .style("background-color", "rgba(255, 255, 255, 0.9)")
-    .style("padding", "8px")
-    .style("border-radius", "4px")
-    .style("border", "1px solid rgba(0,0,0,0.1)")
-    .style("box-shadow", "0 4px 6px rgba(0, 0, 0, 0.1)")
     .style("pointer-events", "none")
-    .style("font-family", "Arial, sans-serif")
-    .style("font-size", "12px")
-    .style("color", "#333")
-    .style("line-height", "1.5")
     .style("position", "absolute")
-    .style("visibility", "hidden")
-    .style("z-index", "1000");
+    .style("visibility", "hidden");
+  setStyleFromOptions(tooltip, tooltipStyle);
 
   const xScale = d3.scaleLinear().domain([0 + this.margin.left, this.width - this.margin.right]).range([0, 100]);
   const yScale = d3.scaleLinear().domain([this.height - this.margin.bottom, 0 + this.margin.top]).range([0, 100]);
@@ -3870,7 +3969,7 @@ container.prototype.createPromoterAnnotation = function(group, options) {
   };
 
   // Merge default options and user-specified options
-  const combinedOptions = mergeOptions.call(this, defaultOptions, "PromoterAnnotationOptions", options);
+  const combinedOptions = mergeOptions.call(this, defaultOptions, "promoterAnnotationOptions", options);
   let { x, y, direction, rotation, scale, style } = combinedOptions;
 
     // Extract additional options that are not in defaultOptions

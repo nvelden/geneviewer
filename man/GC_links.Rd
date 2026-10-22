@@ -11,14 +11,14 @@ GC_links(
   value1 = NULL,
   value2 = NULL,
   cluster = NULL,
-  curve = TRUE,
+  curve = NULL,
   measure = "identity",
   show_links = TRUE,
   label = TRUE,
-  normal_color = "#969696",
-  inverted_color = "#d62728",
+  normal_color = NULL,
+  inverted_color = NULL,
   use_group_colors = FALSE,
-  color_bar = TRUE,
+  color_bar = NULL,
   colorBarOptions = list(),
   linkWidth = NULL,
   linkStyle = list(),
@@ -39,7 +39,8 @@ GC_links(
 
 \item{cluster}{Numeric or character vector or NULL; specifies which clusters.}
 
-\item{curve}{Logical; if \code{TRUE}, links are curved, otherwise straight.}
+\item{curve}{Logical; if \code{TRUE}, links are curved, otherwise straight.
+Default is NULL: as set by the theme, otherwise \code{TRUE}.}
 
 \item{measure}{Character; specifies which measure to use for link color intensity. Should be "identity", "similarity", or "none".}
 
@@ -50,13 +51,16 @@ When the genes also have labels from \code{\link[=GC_labels]{GC_labels()}}, the 
 below the gene name in the same label (or after it, when the label is
 rotated to avoid overlap).}
 
-\item{normal_color}{Color for the links in their normal state.}
+\item{normal_color}{Color for the links in their normal state. Default is
+NULL: the color of the theme, otherwise "#969696".}
 
-\item{inverted_color}{Color for inverted links.}
+\item{inverted_color}{Color for inverted links. Default is NULL: the color
+of the theme, otherwise "#d62728".}
 
 \item{use_group_colors}{Logical; if \code{TRUE}, color links by group.}
 
-\item{color_bar}{Logical; if \code{TRUE}, the color bar is displayed.}
+\item{color_bar}{Logical; if \code{TRUE}, the color bar is displayed. Default is
+NULL: as set by the theme, otherwise \code{TRUE}.}
 
 \item{colorBarOptions}{List of options to customize the color bar appearance.}
 

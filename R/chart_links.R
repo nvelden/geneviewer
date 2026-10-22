@@ -141,16 +141,20 @@ get_links <-
 #' @param value2 Optional vector of group values to generate links for.
 #' @param cluster Numeric or character vector or NULL; specifies which clusters.
 #' @param curve Logical; if `TRUE`, links are curved, otherwise straight.
+#'   Default is NULL: as set by the theme, otherwise `TRUE`.
 #' @param measure Character; specifies which measure to use for link color intensity. Should be "identity", "similarity", or "none".
 #' @param show_links Logical; if `TRUE`, links are shown, otherwise hidden.
 #' @param label Logical; if `TRUE`, shows measure labels on the links, otherwise hidden.
 #'   When the genes also have labels from [GC_labels()], the measure is shown
 #'   below the gene name in the same label (or after it, when the label is
 #'   rotated to avoid overlap).
-#' @param normal_color Color for the links in their normal state.
-#' @param inverted_color Color for inverted links.
+#' @param normal_color Color for the links in their normal state. Default is
+#'   NULL: the color of the theme, otherwise "#969696".
+#' @param inverted_color Color for inverted links. Default is NULL: the color
+#'   of the theme, otherwise "#d62728".
 #' @param use_group_colors Logical; if `TRUE`, color links by group.
-#' @param color_bar Logical; if `TRUE`, the color bar is displayed.
+#' @param color_bar Logical; if `TRUE`, the color bar is displayed. Default is
+#'   NULL: as set by the theme, otherwise `TRUE`.
 #' @param colorBarOptions List of options to customize the color bar appearance.
 #' @param linkWidth Numeric; specifies the width of the links. A value of `1`
 #' represents full width, and `0` represents no width.
@@ -254,14 +258,14 @@ GC_links <- function(
     value1 = NULL,
     value2 = NULL,
     cluster = NULL,
-    curve = TRUE,
+    curve = NULL,
     measure = "identity",
     show_links = TRUE,
     label = TRUE,
-    normal_color = "#969696",
-    inverted_color = "#d62728",
+    normal_color = NULL,
+    inverted_color = NULL,
     use_group_colors = FALSE,
-    color_bar = TRUE,
+    color_bar = NULL,
     colorBarOptions = list(),
     linkWidth = NULL,
     linkStyle = list(),

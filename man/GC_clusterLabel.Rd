@@ -8,10 +8,10 @@ GC_clusterLabel(
   GC_chart,
   title = NULL,
   show = TRUE,
-  width = "100px",
+  width = NULL,
   cluster = NULL,
-  position = "left",
-  wrapLabel = TRUE,
+  position = NULL,
+  wrapLabel = NULL,
   wrapOptions = list(),
   ...
 )
@@ -23,16 +23,18 @@ GC_clusterLabel(
 
 \item{show}{Logical. Whether to show the cluster label. Default is TRUE.}
 
-\item{width}{Character. The width of the cluster label. Default is "100px".}
+\item{width}{Character. The width of the cluster label, which sets the left
+or right margin of the cluster. Default is NULL: a margin set with
+\code{\link[=GC_grid]{GC_grid()}}, otherwise the width of the theme, otherwise "100px".}
 
 \item{cluster}{Numeric or character vector. Clusters in the GC chart to update.
 Default is NULL.}
 
 \item{position}{Character. Position of the label, either "left" or "right".
-Default is "left".}
+Default is NULL: the position of the theme, otherwise "left".}
 
 \item{wrapLabel}{Logical. Indicates whether the label should be wrapped.
-Default is TRUE.}
+Default is NULL: as set by the theme, otherwise TRUE.}
 
 \item{wrapOptions}{List. Specifies the wrapping options.
 Default is an empty List.}

@@ -8,7 +8,7 @@ GC_sequence(
   GC_chart,
   show = TRUE,
   cluster = NULL,
-  y = 50,
+  y = NULL,
   sequenceStyle = list(),
   markerStyle = list(),
   ...
@@ -21,7 +21,8 @@ GC_sequence(
 
 \item{cluster}{Numeric or character vector specifying clusters to update.}
 
-\item{y}{Vertical position of the sequence line (default is 50).}
+\item{y}{Vertical position of the sequence line. Default is NULL: as set by
+the theme, otherwise 50.}
 
 \item{sequenceStyle}{A list of styling options for the sequence line.}
 

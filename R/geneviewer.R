@@ -125,7 +125,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   x$style <- style
   x$title$style <- list(width = "100%")
   x$legend <- list(
-    group = group, show = show_legend, position = "bottom",
+    group = group, show = show_legend,
     width = width
   )
   x$legend$style <- list(width = "100%", backgroundColor = style$backgroundColor)
@@ -207,6 +207,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     height = height,
     package = "geneviewer",
     dependencies = dependencies,
-    elementId = elementId
+    elementId = elementId,
+    preRenderHook = render_theme
   )
 }

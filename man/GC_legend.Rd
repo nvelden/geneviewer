@@ -8,9 +8,9 @@ GC_legend(
   GC_chart,
   group = NULL,
   show = TRUE,
-  backgroundColor = "#0000",
+  backgroundColor = NULL,
   order = list(),
-  position = "bottom",
+  position = NULL,
   style = list(),
   legendOptions = list(),
   legendTextOptions = list(),
@@ -26,12 +26,14 @@ the legend. If NULL, groups are taken from the 'group' attribute of the
 
 \item{show}{Logical, specifies whether to display the legend.}
 
-\item{backgroundColor}{String, the background color of the legend.}
+\item{backgroundColor}{String, the background color of the legend. Same as
+\code{style = list(backgroundColor = ...)}, which takes precedence. Default is
+NULL: as set by the theme, otherwise transparent.}
 
 \item{order}{Optional; list, specifies the order of the legend labels.}
 
 \item{position}{Character. Position of the legend, either "top" or "bottom".
-Default is "bottom".}
+Default is NULL: the position of the theme, otherwise "bottom".}
 
 \item{style}{A list of CSS styles to be applied to the chart container. Each
 element of the list should be a valid CSS property-value pair. For example,

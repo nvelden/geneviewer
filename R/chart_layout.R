@@ -7,7 +7,9 @@
 #' @param title Character vector. Titles to set for the clusters.
 #' @param subtitle Character vector. Subtitles to set for the clusters.
 #' @param show Logical. Whether to display the title. Default is TRUE.
-#' @param height Character. Height for the title (e.g., "50px").
+#' @param height Character. Height for the title (e.g., "50px"). Default is
+#'   NULL: the height of the theme, otherwise 50 pixels with a subtitle and 30
+#'   without.
 #' @param style A list of CSS styles to be applied to the chart container. Each
 #'   element of the list should be a valid CSS property-value pair. For example,
 #'   list(backgroundColor = "white", border = "2px solid black").
@@ -94,14 +96,6 @@ GC_title <- function(
 
   if (!show || is.null(title) && is.null(subtitle)) {
     return(GC_chart)
-  }
-
-  if (is.null(height)) {
-    if (!is.null(title) && !is.null(subtitle)) {
-      height <- 50
-    } else if (!is.null(title) || !is.null(subtitle)) {
-      height <- 30
-    }
   }
 
   # Capture arguments and filter out NULL or empty values
@@ -251,7 +245,8 @@ GC_clusterTitle <- function(
 #' @param GC_chart A GC chart object.
 #' @param show Logical, whether to display the sequence (default is TRUE).
 #' @param cluster Numeric or character vector specifying clusters to update.
-#' @param y Vertical position of the sequence line (default is 50).
+#' @param y Vertical position of the sequence line. Default is NULL: as set by
+#'   the theme, otherwise 50.
 #' @param sequenceStyle A list of styling options for the sequence line.
 #' @param markerStyle A list of styling options for the sequence break markers, e.g. `markerHeight`, `tiltAmount` and `gap` (distance in pixels between each marker and the break), plus any CSS style.
 #' @param ... Additional customization arguments for sequence display.
@@ -298,7 +293,7 @@ GC_sequence <- function(
     GC_chart,
     show = TRUE,
     cluster = NULL,
-    y = 50,
+    y = NULL,
     sequenceStyle = list(),
     markerStyle = list(),
     ...
@@ -489,13 +484,13 @@ GC_grid <- function(
 #' Default is NULL.
 #' @param padding Numeric value or percentage string indicating the padding on
 #' either side of the scale. The value can be a number or a string in the
-#' format of '2%'. Default is 2.
+#' format of '2%'. Default is NULL: as set by the theme, otherwise 2.
 #' @param hidden Logical flag indicating whether the axis is hidden. Default is
 #' FALSE.
 #' @param breaks List specifying settings for the scale breaks. Default is an
 #' empty list ().
 #' @param axis_position Character string indicating the type of the axis ('top' or
-#' bottom'). Default is 'bottom'.
+#' bottom'). Default is NULL: as set by the theme, otherwise 'bottom'.
 #' @param axis_type Character string indicating the type of the axis ('position' or
 #' 'range'). Default is 'position'.
 #' @param tickValues Numeric vector or NULL, custom tick values to be used at
@@ -509,7 +504,7 @@ GC_grid <- function(
 #' @param scale_break_padding Numeric value indicating the padding on either
 #' side of a scale break. Default is 1.
 #' @param ticksCount Numeric value indicating the number of ticks on the scale.
-#' Default is 10.
+#' Default is NULL: as set by the theme, otherwise 10.
 #' @param ticksFormat Format for tick labels; depends on axis_type, defaulting
 #' to ",.0f" for 'position' or ".2s" for 'range' when NULL.
 #' @param y Numeric value from 1 to 100 indicating the y-position of the x-axis.
@@ -576,18 +571,18 @@ GC_scale <- function(GC_chart,
                      cluster = NULL,
                      start = NULL,
                      end = NULL,
-                     padding = 2,
+                     padding = NULL,
                      hidden = FALSE,
                      breaks = list(),
                      tickValues = NULL,
                      reverse = FALSE,
-                     axis_position = "bottom",
+                     axis_position = NULL,
                      axis_type = "position", # range
                      y = NULL,
                      scale_breaks = FALSE,
                      scale_break_threshold = 20,
                      scale_break_padding = 1,
-                     ticksCount = 10,
+                     ticksCount = NULL,
                      ticksFormat = NULL,
                      tickStyle = list(),
                      textStyle = list(),
@@ -791,13 +786,15 @@ GC_scaleBar <- function(
 #' @param GC_chart A GC chart object.
 #' @param title Character vector. The title for the cluster label. Default is NULL.
 #' @param show Logical. Whether to show the cluster label. Default is TRUE.
-#' @param width Character. The width of the cluster label. Default is "100px".
+#' @param width Character. The width of the cluster label, which sets the left
+#' or right margin of the cluster. Default is NULL: a margin set with
+#' [GC_grid()], otherwise the width of the theme, otherwise "100px".
 #' @param cluster Numeric or character vector. Clusters in the GC chart to update.
 #' Default is NULL.
 #' @param position Character. Position of the label, either "left" or "right".
-#' Default is "left".
+#' Default is NULL: the position of the theme, otherwise "left".
 #' @param wrapLabel Logical. Indicates whether the label should be wrapped.
-#' Default is TRUE.
+#' Default is NULL: as set by the theme, otherwise TRUE.
 #' @param wrapOptions List. Specifies the wrapping options.
 #' Default is an empty List.
 #' @param ... Additional customization arguments for the cluster label,
@@ -851,10 +848,10 @@ GC_clusterLabel <- function(
     GC_chart,
     title = NULL,
     show = TRUE,
-    width = "100px",
+    width = NULL,
     cluster = NULL,
-    position = "left",
-    wrapLabel = TRUE,
+    position = NULL,
+    wrapLabel = NULL,
     wrapOptions = list(),
     ...
 ) {
@@ -878,17 +875,16 @@ GC_clusterLabel <- function(
 
   for(i in seq_along(clusters)){
 
-    # Get the current position for this cluster
-    currentPosition <- recycle_at(position, i)
-
-    # Default options
-    options <- list(
+    # Default options. The browser sets the cluster margin for the label from
+    # its width and position, so a theme can set them too (clusterLabelMargin())
+    options <- Filter(Negate(is.null), list(
       title = recycle_at(title, i),
       show = recycle_at(show, i),
+      width = recycle_at(width, i),
       wrapLabel = wrapLabel,
       wrapOptions = wrapOptions,
-      position = currentPosition
-    )
+      position = recycle_at(position, i)
+    ))
 
     # Add ... arguments to options
     for(name in names(dots)) {
@@ -897,22 +893,6 @@ GC_clusterLabel <- function(
 
     # Set clusterLabel options for each cluster
     GC_chart$x$series[[clusters[i]]]$clusterLabel <- options
-
-    # Set width for each cluster based on position
-    if (currentPosition == "left") {
-      GC_chart <- GC_grid(
-        GC_chart,
-        margin = list(left = recycle_at(width, i)),
-        cluster = clusters[i]
-      )
-      #GC_chart$x$series[[clusters[i]]]$grid$margin$left <- recycle_at(width, i)
-    } else if (currentPosition == "right") {
-      GC_chart <- GC_grid(
-        GC_chart,
-        margin = list(right = recycle_at(width, i)),
-        cluster = clusters[i]
-      )
-    }
 
   }
   return(GC_chart)

@@ -452,7 +452,10 @@ GC_transcript <- function(GC_chart,
     }
     new_params$strand <- strand
 
+    # The chart is made again for the transcripts; keep its theme
+    theme <- GC_chart$x$theme
     GC_chart <- do.call(geneviewer::GC_chart, new_params)
+    GC_chart$x$theme <- theme
 
     for (trans in transcripts) {
         GC_chart$x$series[[trans]]$genes <- list(group = NULL, show = FALSE)
@@ -711,10 +714,12 @@ GC_pattern <- function(
 #'   the legend. If NULL, groups are taken from the 'group' attribute of the
 #'   'GC_chart' object.
 #' @param show Logical, specifies whether to display the legend.
-#' @param backgroundColor String, the background color of the legend.
+#' @param backgroundColor String, the background color of the legend. Same as
+#'   `style = list(backgroundColor = ...)`, which takes precedence. Default is
+#'   NULL: as set by the theme, otherwise transparent.
 #' @param order Optional; list, specifies the order of the legend labels.
 #' @param position Character. Position of the legend, either "top" or "bottom".
-#'   Default is "bottom".
+#'   Default is NULL: the position of the theme, otherwise "bottom".
 #' @param style A list of CSS styles to be applied to the chart container. Each
 #'   element of the list should be a valid CSS property-value pair. For example,
 #'   list(backgroundColor = "white", border = "2px solid black"). Default is an
@@ -770,9 +775,9 @@ GC_legend <- function(
     GC_chart,
     group = NULL,
     show = TRUE,
-    backgroundColor = "#0000",
+    backgroundColor = NULL,
     order = list(),
-    position = "bottom",
+    position = NULL,
     style = list(),
     legendOptions = list(),
     legendTextOptions = list(),
@@ -796,11 +801,15 @@ GC_legend <- function(
     stop("group column not found in data")
   }
 
+  # The legend container takes its background from style
+  if (!is.null(backgroundColor) && is.null(style$backgroundColor)) {
+    style$backgroundColor <- backgroundColor
+  }
+
   # Capture arguments and filter out NULL or empty values
   options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
     group = group,
     show = show,
-    backgroundColor = backgroundColor,
     order = order,
     position = position,
     style = style,

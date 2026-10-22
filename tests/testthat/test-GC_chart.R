@@ -416,9 +416,9 @@ test_that("GC_clusterLabel updates cluster labels for specified clusters correct
   expect_equal(dbophA_label$fontFamily, "Arial")
   expect_equal(dbophA_label$cursor, "pointer")
 
-  # Verify grid settings for label width
-  expect_equal(updated_chart$x$series$ophA$container$margin$left, "150px")
-  expect_equal(updated_chart$x$series$dbophA$container$margin$right, "150px")
+  # The label width is sent with the label; the browser sets the margin from it
+  expect_equal(ophA_label$width, "150px")
+  expect_equal(dbophA_label$width, "150px")
 
 })
 
@@ -841,7 +841,9 @@ test_that("GC_legend updates legend options with all options correctly", {
   # Verify legend settings
   expect_equal(updated_chart$x$legend$group, "class")
   expect_true(updated_chart$x$legend$show)
-  expect_equal(updated_chart$x$legend$backgroundColor, "#0000")
+  # backgroundColor is sent as style$backgroundColor; style takes precedence
+  expect_null(updated_chart$x$legend$backgroundColor)
+  expect_equal(GC_legend(chart, backgroundColor = "yellow")$x$legend$style$backgroundColor, "yellow")
   expect_equal(updated_chart$x$legend$order, rev(unique(ophA_clusters$class)))
   expect_equal(updated_chart$x$legend$position, "bottom")
   expect_equal(updated_chart$x$legend$orientation, "horizontal")

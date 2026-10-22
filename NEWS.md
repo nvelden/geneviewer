@@ -1,10 +1,18 @@
 # geneviewer (development version)
 
 ### New features:
+- `GC_theme()` sets the default look of the whole chart: start from a built-in theme (`"default"`, `"minimal"`, `"classic"` with a colour-blind-safe palette, or `"dark"`), set the font, text and line colours, background and gene colours of all components at once, and change the options of any component (e.g. `labels = list(fontSize = "10px")`). Options set with the other `GC_` functions always take precedence over the theme, whatever the order of the calls. `geneviewer_theme()` returns the settings of a built-in theme.
 - `GC_pattern()` fills genes, exons and legend markers with a pattern per group, for black and white figures. There are 16 patterns (`"diagonal"`, `"dots"`, `"crosshatch"`, `"checkerboard"`, `"bricks"`, `"inverseDots"` and more). Patterns, pattern colours and backgrounds can be set per group, and `background = NULL` draws the patterns on top of the gene colours. They are kept in the PNG from the save button.
 - The save button can now save charts as SVG, with all clusters, links, legends and titles in one vector file for publications. Hover the download icon and pick "Save as SVG" or "Save as PNG".
+- `GC_trackMouse()` takes the styles of the coordinate tooltip (e.g. `backgroundColor`, `fontSize`) and `cursor`.
+
+### Changes:
+- A cluster margin set with `GC_grid(margin = )` is now kept by `GC_clusterLabel()` without `width`, whatever the order of the calls; `GC_clusterLabel()` called after `GC_grid()` set the margin to 100px. `GC_clusterLabel(width = )` still sets the margin.
+- Options given as a list (e.g. `labelAdjustmentOptions`, `colorBarOptions = list(labelOptions = )`) now keep the defaults of the options they leave out, at every level.
 
 ### Bug fixes:
+- `GC_legend(backgroundColor = )` now sets the legend background; it had no effect.
+- When a chart is redrawn in Shiny, styles of `GC_chart(style = )` that are no longer set are removed; e.g. a background colour stayed after it was removed.
 - `GC_annotation(type = "symbol")` no longer also draws a curve from x = 0 to x = 100.
 - The default gene colours now give 30 different colours. Groups 12 and 22, 13 and 26, 15 and 29, and 20 and 25 had the same colour; groups 22, 25, 26 and 29 now get new colours.
 - Legend colours now match the gene colours when some genes have an `NA` group. Genes with an `NA` group are now always white, also with `colorScheme` or `customColors`.

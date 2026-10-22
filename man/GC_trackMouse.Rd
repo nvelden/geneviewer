@@ -4,7 +4,7 @@
 \alias{GC_trackMouse}
 \title{Track Mouse Movement in a GC_chart}
 \usage{
-GC_trackMouse(GC_chart, show = TRUE, cluster = NULL)
+GC_trackMouse(GC_chart, show = TRUE, cluster = NULL, ...)
 }
 \arguments{
 \item{GC_chart}{A GC chart object to which the annotations will be added.}
@@ -13,6 +13,10 @@ GC_trackMouse(GC_chart, show = TRUE, cluster = NULL)
 
 \item{cluster}{Numeric or character vector specifying the clusters to which
 annotations should be added.}
+
+\item{...}{CSS styles of the coordinate tooltip, such as \code{backgroundColor},
+\code{fontSize} or \code{color}, and \code{cursor} for the cursor over the cluster
+(default "crosshair").}
 }
 \value{
 Updated GC chart object with mouse tracking settings.

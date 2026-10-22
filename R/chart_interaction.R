@@ -102,6 +102,9 @@ GC_annotation <- function(
 #' @param show Logical, specifies whether to track the mouse or not.
 #' @param cluster Numeric or character vector specifying the clusters to which
 #' annotations should be added.
+#' @param ... CSS styles of the coordinate tooltip, such as `backgroundColor`,
+#'   `fontSize` or `color`, and `cursor` for the cursor over the cluster
+#'   (default "crosshair").
 #' @return Updated GC chart object with mouse tracking settings.
 #'
 #' @examples
@@ -123,7 +126,8 @@ GC_annotation <- function(
 GC_trackMouse <- function(
     GC_chart,
     show = TRUE,
-    cluster = NULL
+    cluster = NULL,
+    ...
 ) {
 
   # Update the GC_chart object with title and options for each cluster
@@ -131,7 +135,7 @@ GC_trackMouse <- function(
 
   for(i in seq_along(clusters)){
 
-      GC_chart$x$series[[clusters[i]]]$trackMouse$show <- show
+      GC_chart$x$series[[clusters[i]]]$trackMouse <- c(list(show = recycle_at(show, i)), list(...))
 
   }
 

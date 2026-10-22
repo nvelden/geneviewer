@@ -92,7 +92,7 @@ For additional examples and the corresponding code to create the plots, please v
 
 <hr>
 
-<img src="man/figures/erythromycin_cluster.png"/>
+<img src="man/figures/erythromycin_cluster_classic.png"/>
 
 <hr>
 

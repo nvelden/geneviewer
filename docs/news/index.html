@@ -87,7 +87,8 @@
 </ul></div>
 <div class="section level4">
 <h4 id="bug-fixes-development-version">Bug fixes:<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h4>
-<ul><li>
+<ul><li>A named list of <code>customColors</code> (in <code><a href="../reference/GC_color.html">GC_color()</a></code>, <code><a href="../reference/GC_genes.html">GC_genes()</a></code> and <code><a href="../reference/GC_transcript.html">GC_transcript()</a></code>) that leaves out groups no longer makes those groups white: they keep the colours of <code>colorScheme</code>, the theme palette or the default colours, e.g. <code>GC_color(customColors = list(Other = "grey"))</code> only changes “Other”. <code><a href="../reference/GC_color.html">GC_color()</a></code> now takes <code>colorScheme</code> together with a named list of <code>customColors</code>.</li>
+<li>
 <code><a href="../reference/GC_transcript.html">GC_transcript()</a></code> no longer drops the settings of the whole chart made before it: the title, legend, theme and <code><a href="../reference/GC_grid.html">GC_grid()</a></code> margins and direction are kept. Settings per cluster are for the old clusters and are set after <code><a href="../reference/GC_transcript.html">GC_transcript()</a></code>.</li>
 <li>
 <code>GC_legend(backgroundColor = )</code> now sets the legend background; it had no effect.</li>

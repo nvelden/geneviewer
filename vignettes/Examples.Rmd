@@ -429,97 +429,53 @@ GC_chart(BRCA1_splice_variants, height = "600px") %>%
 
 ### *Saccharopolyspora erythraea* Erythromycin
 
+The Erythromycin gene cluster with the `"classic"` theme. The theme palette colours the groups and `customColors` only sets "Other" to grey (`GC_theme()` and partial `customColors` are only available in the development version).
+
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
-colors <- list(
-  "Tailoring (Hydroxylation)" = "#d62728", 
-  "Precursor biosynthesis" = "#2ca02c",
-  "Tailoring (Glycosylation)" = "#e6b0aa", 
-  "Scaffold biosynthesis" = "#9467bd", 
-  "Tailoring (Methylation)" = "#8b0000", 
-  "Activation / processing" = "#1f77b4", 
-  "Resistance / immunity" = "#f7dc6f" ,
-  "Other" = "#808080"
-)
-
-GC_chart(erythromycin_cluster, 
+GC_chart(erythromycin_cluster,
          start = "Start",
          end = "End",
-         height = "160px",
-         group = "Functions") %>%
+         group = "Functions",
+         height = "170px") %>%
   GC_title(
     title = "Erythromycin A biosynthetic gene cluster from <i>Saccharopolyspora erythraea</i>",
     height = 40,
     align = "left"
-    ) %>%
-  GC_genes(
-    marker = "boxarrow",
-    marker_size = "small"
   ) %>%
+  GC_genes(marker = "boxarrow", marker_size = "small") %>%
   GC_tooltip(
-    formatter = "<b>{Identifiers}</b>
-                 <br>{Product}
-                 <br>{start} - {end}({Strand})" 
+    formatter = "<b>{Identifiers}</b><br>{Product}<br>{start} - {end}({Strand})"
   ) %>%
-  GC_scale(
-    start = 778000,
-    end = 832000,
-    ticksCount = 8
-  ) %>%
-  GC_legend(
-    legendTextOptions = list(fontSize = "12px"),
-    order = c(setdiff(sort(erythromycin_cluster$Functions), "Other"), "Other")
-    
-    ) %>%
-  GC_color(customColors = colors)
+  GC_scale(start = 778000, end = 832000, ticksCount = 8) %>%
+  GC_legend(order = c(setdiff(sort(erythromycin_cluster$Functions), "Other"), "Other")) %>%
+  GC_color(customColors = list(Other = "grey")) %>%
+  GC_theme("classic")
 ```
 </details>
 
 <br>
 
 ```{r echo = FALSE, results='asis'}
-colors <- list(
-  "Tailoring (Hydroxylation)" = "#d62728", 
-  "Precursor biosynthesis" = "#2ca02c",
-  "Tailoring (Glycosylation)" = "#e6b0aa", 
-  "Scaffold biosynthesis" = "#9467bd", 
-  "Tailoring (Methylation)" = "#8b0000", 
-  "Activation / processing" = "#1f77b4", 
-  "Resistance / immunity" = "#f7dc6f" ,
-  "Other" = "#808080"
-)
-
-GC_chart(erythromycin_cluster, 
+GC_chart(erythromycin_cluster,
          start = "Start",
          end = "End",
-         height = "160px",
-         group = "Functions") %>%
+         group = "Functions",
+         height = "170px") %>%
   GC_title(
     title = "Erythromycin A biosynthetic gene cluster from <i>Saccharopolyspora erythraea</i>",
-    height = "40px",
+    height = 40,
     align = "left"
-    ) %>%
-  GC_genes(
-    marker = "boxarrow",
-    marker_size = "small"
   ) %>%
+  GC_genes(marker = "boxarrow", marker_size = "small") %>%
   GC_tooltip(
-    formatter = "<b>{Identifiers}</b>
-                 <br>{Product}
-                 <br>{start} - {end}({Strand})" 
+    formatter = "<b>{Identifiers}</b><br>{Product}<br>{start} - {end}({Strand})"
   ) %>%
-  GC_scale(
-    start = 778000,
-    end = 832000,
-    ticksCount = 8
-  ) %>%
-  GC_legend(
-    legendTextOptions = list(fontSize = "12px"),
-    order = c(setdiff(sort(erythromycin_cluster$Functions), "Other"), "Other")
-    
-    ) %>%
-  GC_color(customColors = colors) 
+  GC_scale(start = 778000, end = 832000, ticksCount = 8) %>%
+  GC_legend(order = c(setdiff(sort(erythromycin_cluster$Functions), "Other"), "Other")) %>%
+  GC_color(customColors = list(Other = "grey")) %>%
+  GC_theme("classic")
 ```
 
 ### *Saccharopolyspora erythraea* Erythromycin BlastP

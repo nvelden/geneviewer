@@ -80,7 +80,7 @@ For additional examples and the corresponding code to create the plots, please v
 
 <hr>
 
-<img src="man/figures/ophA_clusters.png"/>
+<img src="man/figures/ophA_clusters_vintage.png"/>
 
 <hr>
 

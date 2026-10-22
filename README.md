@@ -76,7 +76,7 @@ For additional examples and the corresponding code to create the plots, please v
 
 <hr>
 
-<img src="man/figures/erythromycin_link_classic.png"/>
+<img src="man/figures/erythromycin_link_functions.png"/>
 
 <hr>
 

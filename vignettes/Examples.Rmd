@@ -552,7 +552,7 @@ GC_chart(blastp,
          cluster = "cluster",
          strand = "strand",
          group = "Functions",
-         height = 260) %>%
+         height = 250) %>%
   GC_labels("Gene", cluster = 1) %>%
   GC_genes(marker_size = "small", marker = "rbox", markerHeight = 15,
            stroke = "#6E7079", strokeWidth = 0.5) %>%
@@ -561,7 +561,7 @@ GC_chart(blastp,
            color_bar = FALSE
            ) %>%
   GC_clusterLabel() %>%
-  GC_legend(order = c(setdiff(sort(unique(blastp$Functions)), "No Hit"), "No Hit")) %>%
+  GC_legend(FALSE) %>%
   GC_color(customColors = list("No Hit" = "white")) %>%
   GC_theme("classic", textColor = "#333333", palette = "okabeIto")
 ```
@@ -578,7 +578,7 @@ GC_chart(blastp,
          cluster = "cluster",
          strand = "strand",
          group = "Functions",
-         height = 260) %>%
+         height = 250) %>%
   GC_labels("Gene", cluster = 1) %>%
   GC_genes(marker_size = "small", marker = "rbox", markerHeight = 15,
            stroke = "#6E7079", strokeWidth = 0.5) %>%
@@ -587,7 +587,7 @@ GC_chart(blastp,
            color_bar = FALSE
            ) %>%
   GC_clusterLabel() %>%
-  GC_legend(order = c(setdiff(sort(unique(blastp$Functions)), "No Hit"), "No Hit")) %>%
+  GC_legend(FALSE) %>%
   GC_color(customColors = list("No Hit" = "white")) %>%
   GC_theme("classic", textColor = "#333333", palette = "okabeIto")
 ```

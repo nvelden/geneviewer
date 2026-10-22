@@ -1080,8 +1080,22 @@ const defaultLinkColors = {
   normalColor: "#969696",
   invertedColor: "#d62728",
   // Colour of a link with a measure of 0, e.g. the background on a dark chart
-  lowColor: "#FFFFFF"
+  lowColor: "#FFFFFF",
+  // Measures of the lightest and the full link colour
+  vmin: 0,
+  vmax: 100
 };
+
+// Colour of a link by its measure: from nearly white (10%
+// of the colour) at vmin to the colour at vmax; measures outside are clamped
+function linkColorScale(lowColor, color, vmin, vmax) {
+  const nearlyWhite = d3.interpolateRgb(lowColor, color)(0.1);
+  return d3.scaleLinear()
+    .domain([vmin, vmax])
+    .range([nearlyWhite, color])
+    .interpolate(d3.interpolateRgb)
+    .clamp(true);
+}
 
 function makeLinks(graphContainer, links, themeOptions = {}) {
 
@@ -1129,7 +1143,7 @@ function makeLinks(graphContainer, links, themeOptions = {}) {
     links.forEach(function(link) {
 
         const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options, themeOptions)
-        const { curve, invertedColor, normalColor, lowColor, useGroupColors, color, linkStyle, measure } = combinedOptions;
+        const { curve, invertedColor, normalColor, lowColor, vmin, vmax, useGroupColors, color, linkStyle, measure } = combinedOptions;
 
         const additionalOptionsLinkStyle = extractAdditionalOptions(linkStyle, defaultOptions.linkStyle);
 
@@ -1144,8 +1158,7 @@ function makeLinks(graphContainer, links, themeOptions = {}) {
                 }
 
                 const baseColor = coordinate[0].strand == coordinate[1].strand ? d3.rgb(normalColor) : d3.rgb(invertedColor)
-                var colorScale = d3.scaleSequential(t => d3.interpolate(lowColor, baseColor)(t))
-                    .domain([0, 100]);
+                var colorScale = linkColorScale(lowColor, baseColor, vmin, vmax);
                 const identity = combinedOptions.measure === "none" ? 100 : (link.data?.[measure]?.[index] ?? 100);
                 const linkColor = useGroupColors ? coordinate[0].groupColor : colorScale(identity)
 
@@ -1305,9 +1318,9 @@ function makeColorBar(graphContainer, links, themeOptions = {}) {
 
     const defs = g.append("defs");
 
-    const identityArray = links.flatMap(link => link.data[linkOptions.measure]);
-    const minValue = Math.round(Math.min(...identityArray));
-    const maxValue = Math.round(Math.max(...identityArray));
+    // The bar runs from vmin to vmax, like the colours of the links
+    const minValue = linkOptions.vmin;
+    const maxValue = linkOptions.vmax;
 
     // Calculate dimensions for drawing the color bar
     const contentWidth = graphRect.width - linkOptions.margin.left - linkOptions.margin.right;
@@ -1326,8 +1339,7 @@ function makeColorBar(graphContainer, links, themeOptions = {}) {
             .attr("id", gradientId)
             .attr("gradientTransform", "rotate(90)");
 
-        const colorScale = d3.scaleSequential(t => d3.interpolate(linkOptions.lowColor, color)(t))
-            .domain([0, 100]);
+        const colorScale = linkColorScale(linkOptions.lowColor, color, minValue, maxValue);
 
         gradient.append("stop")
             .attr("offset", "0%")

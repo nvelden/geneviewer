@@ -81,7 +81,9 @@ HTMLWidgets.widget({
           .attr("id", `geneviewer-legend-container-${widgetId}`)
           .classed("geneviewer-container", true);
 
-        var legendOpts = { ...legendOptions, width: width,
+        // The width of the chart, as for the title: in a standalone page the width
+        // htmlwidgets passes is that of the window, also for a chart of fixed width
+        var legendOpts = { ...legendOptions, width: el.clientWidth,
                            height: computeSize(legendOptions.height, el.clientHeight) };
 
         createContainer(`#geneviewer-legend-container-${widgetId}`,

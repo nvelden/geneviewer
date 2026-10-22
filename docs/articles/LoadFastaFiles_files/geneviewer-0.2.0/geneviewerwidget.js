@@ -54,8 +54,9 @@ HTMLWidgets.widget({
           .attr("id", `geneviewer-title-container-${widgetId}`)
           .classed("geneviewer-container", true);
 
-        // Default height: room for the title and the subtitle, at the text size of the theme
-        var defaultTitleHeight = (titleOptions.title && titleOptions.subtitle ? 50 : 30) * themeTextScale(theme);
+        // Default height: room for the title and the subtitle, with the descenders
+        // of an 18px title, at the text size of the theme
+        var defaultTitleHeight = (titleOptions.title && titleOptions.subtitle ? 50 : 40) * themeTextScale(theme);
         var titleHeightOption = mergeOptions({ height: defaultTitleHeight }, "titleOptions", titleOptions, theme).height;
         titleHeight = computeSize(titleHeightOption, el.clientHeight);
         var titleOpts = { ...titleOptions, width: el.clientWidth, height: titleHeight };
@@ -80,7 +81,9 @@ HTMLWidgets.widget({
           .attr("id", `geneviewer-legend-container-${widgetId}`)
           .classed("geneviewer-container", true);
 
-        var legendOpts = { ...legendOptions, width: width,
+        // The width of the chart, as for the title: in a standalone page the width
+        // htmlwidgets passes is that of the window, also for a chart of fixed width
+        var legendOpts = { ...legendOptions, width: el.clientWidth,
                            height: computeSize(legendOptions.height, el.clientHeight) };
 
         createContainer(`#geneviewer-legend-container-${widgetId}`,

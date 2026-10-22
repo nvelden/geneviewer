@@ -74,11 +74,14 @@
 <li>
 <code>GC_genes(corner_radius = )</code> rounds the corners of the “arrow”, “boxarrow” and “box” markers (e.g. <code>corner_radius = 3</code> for soft corners; the inner corners of arrows stay sharp) and sets those of “rbox”. Exons take <code>cornerRadius</code> in <code>styleExons</code>, and themes in <code>genes = list(corner_radius = )</code>. <code>GC_legend(corner_radius = )</code> rounds the corners of the legend markers.</li>
 <li>
+<code>GC_links(vmin = , vmax = )</code> set the measures of the lightest and the full link colour, and the ends of the colour bar (0 and 100 by default): e.g. <code>vmin = floor(min(alignment$identity))</code> spreads the colours over the identities of an alignment, so differences are easier to see. Measures outside are drawn in the colour of the nearest end.</li>
+<li>
 <code><a href="../reference/GC_trackMouse.html">GC_trackMouse()</a></code> takes the styles of the coordinate tooltip (e.g. <code>backgroundColor</code>, <code>fontSize</code>) and <code>cursor</code>.</li>
 </ul></div>
 <div class="section level4">
 <h4 id="changes-development-version">Changes:<a class="anchor" aria-label="anchor" href="#changes-development-version"></a></h4>
-<ul><li>The title and labels of the link colour bar are now in sans-serif, like the other text; they used the serif font of the browser.</li>
+<ul><li>Links now fade to nearly white (10% of the link colour) at the lowest measure instead of white, so they stay visible on the background. The colour bar now runs from <code>vmin</code> to <code>vmax</code> (0% to 100% by default) instead of from the lowest to the highest measure in the data.</li>
+<li>The title and labels of the link colour bar are now in sans-serif, like the other text; they used the serif font of the browser.</li>
 <li>With a theme background, the UTRs of transcripts are filled with the background instead of white.</li>
 <li>White legend markers (e.g. “No Hit” or a white custom colour) now get a light grey outline, so they stay visible on a white background.</li>
 <li>A cluster margin set with <code>GC_grid(margin = )</code> is now kept by <code><a href="../reference/GC_clusterLabel.html">GC_clusterLabel()</a></code> without <code>width</code>, whatever the order of the calls; <code><a href="../reference/GC_clusterLabel.html">GC_clusterLabel()</a></code> called after <code><a href="../reference/GC_grid.html">GC_grid()</a></code> set the margin to 100px. <code>GC_clusterLabel(width = )</code> still sets the margin.</li>
@@ -87,7 +90,9 @@
 </ul></div>
 <div class="section level4">
 <h4 id="bug-fixes-development-version">Bug fixes:<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h4>
-<ul><li>A named list of <code>customColors</code> (in <code><a href="../reference/GC_color.html">GC_color()</a></code>, <code><a href="../reference/GC_genes.html">GC_genes()</a></code> and <code><a href="../reference/GC_transcript.html">GC_transcript()</a></code>) that leaves out groups no longer makes those groups white: they keep the colours of <code>colorScheme</code>, the theme palette or the default colours, e.g. <code>GC_color(customColors = list(Other = "grey"))</code> only changes “Other”. <code><a href="../reference/GC_color.html">GC_color()</a></code> now takes <code>colorScheme</code> together with a named list of <code>customColors</code>.</li>
+<ul><li>The legend of a chart with a fixed width (e.g. <code>GC_chart(width = "900px")</code>) no longer gets smaller in a wider browser window: it was laid out at the width of the window and then scaled down into the chart, e.g. in a page saved with <code><a href="https://rdrr.io/pkg/htmlwidgets/man/saveWidget.html" class="external-link">htmlwidgets::saveWidget()</a></code>.</li>
+<li>The bottom of letters such as g, y and p in a title without a subtitle is no longer cut off: the default title height is now 40 pixels instead of 30, so <code>GC_title(height = )</code> is no longer needed for titles of 16 or 18 pixels.</li>
+<li>A named list of <code>customColors</code> (in <code><a href="../reference/GC_color.html">GC_color()</a></code>, <code><a href="../reference/GC_genes.html">GC_genes()</a></code> and <code><a href="../reference/GC_transcript.html">GC_transcript()</a></code>) that leaves out groups no longer makes those groups white: they keep the colours of <code>colorScheme</code>, the theme palette or the default colours, e.g. <code>GC_color(customColors = list(Other = "grey"))</code> only changes “Other”. <code><a href="../reference/GC_color.html">GC_color()</a></code> now takes <code>colorScheme</code> together with a named list of <code>customColors</code>.</li>
 <li>
 <code><a href="../reference/GC_transcript.html">GC_transcript()</a></code> no longer drops the settings of the whole chart made before it: the title, legend, theme and <code><a href="../reference/GC_grid.html">GC_grid()</a></code> margins and direction are kept. Settings per cluster are for the old clusters and are set after <code><a href="../reference/GC_transcript.html">GC_transcript()</a></code>.</li>
 <li>

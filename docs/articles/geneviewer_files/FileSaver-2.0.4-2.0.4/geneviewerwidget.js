@@ -11,29 +11,34 @@ HTMLWidgets.widget({
       series,
       titleOptions,
       legendOptions,
+      theme,
       saveButton;
 
     // Unique per chart on the page; used in container and save button ids
     var widgetId = el.id.replace(/[^A-Za-z0-9_-]/g, '_');
+
+    // Chart styles set on el by the last draw
+    var appliedStyleKeys = [];
 
     var draw = function (width, height) {
 
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
 
+      // Remove the chart styles of an earlier render (e.g. in Shiny) first, so
+      // the base styles below are kept when a removed style overrode one of them
+      appliedStyleKeys.forEach(function (key) { el.style[key] = ""; });
+
       el.style["height"] = "100%"
       el.style["position"] = "relative"
       // Keep padding (GC_grid top/bottom margins) inside the chart height
       el.style["boxSizing"] = "border-box"
 
-      // Apply styles
-      if (style && typeof style === 'object' && Object.keys(style).length > 0) {
-          // Apply styles from the style object
-          for (var key in style) {
-              if (style.hasOwnProperty(key)) {
-                  el.style[key] = style[key];
-              }
-          }
+      // Apply styles: GC_chart(style) over the chart style of the theme
+      var chartStyle = mergeOptions({ style: {} }, "chartOptions", { style: style }, theme).style;
+      appliedStyleKeys = Object.keys(chartStyle);
+      for (var key in chartStyle) {
+          el.style[key] = chartStyle[key];
       }
 
       // Add Title
@@ -42,22 +47,25 @@ HTMLWidgets.widget({
 
       var titleHeight = 0;
 
-      if (titleOptions !== null && titleOptions?.height !== null && titleOptions?.show) {
+      if (titleOptions?.show) {
 
         var titleContainer = d3.select(el)
           .append("div")
           .attr("id", `geneviewer-title-container-${widgetId}`)
           .classed("geneviewer-container", true);
 
-
-        titleHeight = computeSize(titleOptions.height, el.clientHeight);
+        // Default height: room for the title and the subtitle, at the text size of the theme
+        var defaultTitleHeight = (titleOptions.title && titleOptions.subtitle ? 50 : 30) * themeTextScale(theme);
+        var titleHeightOption = mergeOptions({ height: defaultTitleHeight }, "titleOptions", titleOptions, theme).height;
+        titleHeight = computeSize(titleHeightOption, el.clientHeight);
         var titleOpts = { ...titleOptions, width: el.clientWidth, height: titleHeight };
 
         var title = createContainer(
           `#geneviewer-title-container-${widgetId}`,
           "svg-container",
           "titleOptions",
-          titleOpts)
+          titleOpts,
+          theme)
           .title(titleOpts.title, titleOpts.subtitle, titleOpts.show ?? false, titleOpts)
       }
 
@@ -78,7 +86,8 @@ HTMLWidgets.widget({
         createContainer(`#geneviewer-legend-container-${widgetId}`,
           "svg-container",
           "legendOptions",
-          legendOpts)
+          legendOpts,
+          theme)
           .legendData(data)
           .legend(legendOpts.group ?? false, legendOpts.show ?? false, el.id, legendOpts);
 
@@ -133,10 +142,18 @@ HTMLWidgets.widget({
         clonedContainerOptions.height -= legendHeight ? (legendHeight / clusters.length) : 0;
         // Percentage heights: take the top and bottom margins (padding) from the clusters
         if (typeof containerOptions.height === "string" && containerOptions.height.endsWith("%")) {
-          var padding = (parseFloat(style?.paddingTop) || 0) + (parseFloat(style?.paddingBottom) || 0);
+          var padding = (parseFloat(chartStyle.paddingTop) || 0) + (parseFloat(chartStyle.paddingBottom) || 0);
           clonedContainerOptions.height -= padding / clusters.length;
         }
         clonedContainerOptions.width = computeSize(clonedContainerOptions.width, el.clientWidth);
+
+        // Room for the cluster label in the left or right margin
+        if (clusterLabelOptions?.show) {
+          clonedContainerOptions.margin = {
+            ...clonedContainerOptions.margin,
+            ...clusterLabelMargin(containerOptions, clusterLabelOptions, theme)
+          };
+        }
 
         var clusterLinks = getClusterLinks(graphLinks, clusterKey);
         var linksOptions = {};
@@ -145,10 +162,9 @@ HTMLWidgets.widget({
         linksOptions = links[0].options;
         }
 
-        createContainer(`#geneviewer-graph-container-${widgetId}`, "svg-container", 'containerOptions',  clonedContainerOptions)
+        createContainer(`#geneviewer-graph-container-${widgetId}`, "svg-container", 'containerOptions',  clonedContainerOptions, theme)
           .cluster(clusterOptions)
-          .theme("preset")
-          .title(clusterTitleOptions?.title, clusterTitleOptions?.subtitle, clusterTitleOptions?.show ?? false, clusterTitleOptions)
+          .title(clusterTitleOptions?.title, clusterTitleOptions?.subtitle, clusterTitleOptions?.show ?? false, clusterTitleOptions, "clusterTitleOptions")
           .footer(footerOptions?.title, footerOptions?.subtitle, footerOptions?.show ?? false, footerOptions)
           .clusterLabel(clusterLabelOptions?.title, clusterLabelOptions?.show ?? false, clusterLabelOptions)
           .geneData(data, clusterData)
@@ -161,13 +177,14 @@ HTMLWidgets.widget({
           .labels(labelOptions?.label, labelOptions?.show ?? false, labelOptions)
           .scaleBar(scaleBarOptions?.show ?? false, scaleBarOptions)
           .addAnnotations(annotationOptions)
-          .trackMouse(trackMouse?.show ?? false)
+          .trackMouse(trackMouse?.show ?? false, trackMouse)
           .tooltip(tooltipOptions?.show ?? false, tooltipOptions);
 
       });
 
       // Bottom legend: drawn above to measure its height, then moved below the clusters
-      if (legendOptions?.position == "bottom" && legendOptions?.show && legendOptions?.group !== null) {
+      var legendPosition = mergeOptions({ position: "bottom" }, "legendOptions", legendOptions, theme).position;
+      if (legendPosition == "bottom"&& legendOptions?.show && legendOptions?.group !== null) {
         el.appendChild(legendElement);
       }
 
@@ -181,8 +198,8 @@ HTMLWidgets.widget({
         return;
       }
       const graphContainer = d3.select(`#geneviewer-graph-container-${widgetId}`);
-      makeLinks(graphContainer, links);
-      makeColorBar(graphContainer, links);
+      makeLinks(graphContainer, links, theme);
+      makeColorBar(graphContainer, links, theme);
     };
 
     return {
@@ -195,6 +212,7 @@ HTMLWidgets.widget({
         saveButton = input.saveButton;
         titleOptions = input.title;
         legendOptions = input.legend;
+        theme = input.theme ?? {};
         draw(width, height);
         addLinks();
       },

@@ -220,8 +220,8 @@ function adjustGeneLabels(container, labelSelector, options = {}) {
 }
 
 // Rotates labels that overlap another label of labelSelector in the
-// container's SVG. Call adjust(label, options) for each label in turn and
-// refresh(label) after restyling a label. Label sizes are measured once and
+// container's SVG. Call adjust(label, options) for each label in turn (it
+// returns true when it rotated the label) and refresh(label) after restyling a label. Label sizes are measured once and
 // measured again only when a label changes, instead of on every comparison.
 function createLabelAdjuster(container, labelSelector) {
   // Default options
@@ -282,9 +282,10 @@ function createLabelAdjuster(container, labelSelector) {
           .attr("transform", `rotate(${rotation}, ${centerX}, ${centerY})`);
 
         refresh(specificLabel);
-        break;
+        return true;
       }
     }
+    return false;
   };
 
   return { adjust, refresh };
@@ -333,41 +334,81 @@ function removeNullKeys(obj) {
   return cleanObj;
 }
 
-function mergeOptions(defaultOptions, themeOptionsKey, userOptions) {
-  let combinedOptions = { ...defaultOptions };
-  let themeOpts    = removeNullKeys(this.themeOptions?.[themeOptionsKey] ?? {});
-  userOptions      = removeNullKeys(userOptions);
+// True for an opaque white colour ("#FFF", "white", "rgb(255, 255, 255)"),
+// false for other colours and pattern fills ("url(#...)")
+function isWhite(color) {
+  const rgb = typeof color === "string" ? d3.color(color)?.rgb() : null;
+  return !!rgb && rgb.r === 255 && rgb.g === 255 && rgb.b === 255 && rgb.opacity === 1;
+}
 
-  // existing deep-merge for keys you know about
-  for (let key in defaultOptions) {
-    if (
-      typeof defaultOptions[key] === 'object' &&
-      !Array.isArray(defaultOptions[key]) &&
-      defaultOptions[key] !== null
-    ) {
-      combinedOptions[key] = {
-        ...defaultOptions[key],
-        ...(themeOpts[key]  || {}),
-        ...(userOptions[key] || {})
-      };
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+// Deep merge of options: nested objects are merged at every level, other values
+// (arrays included) replace the base value. null means not set, and so does an
+// empty array in place of an object (an empty list() from R). Returns new objects,
+// so the base and override (e.g. a theme shared by all clusters) are not changed.
+function deepMergeOptions(base, override) {
+  const result = { ...base };
+  if (!isPlainObject(override)) {
+    return result;
+  }
+  for (const key in override) {
+    const value = override[key];
+    if (value === null || value === undefined) {
+      continue;
     }
-    else {
-      combinedOptions[key] = userOptions[key] !== undefined
-        ? userOptions[key]
-        : (themeOpts[key] !== undefined
-           ? themeOpts[key]
-           : defaultOptions[key]);
+    if (isPlainObject(value)) {
+      result[key] = deepMergeOptions(isPlainObject(result[key]) ? result[key] : {}, value);
+    } else if (Array.isArray(value) && value.length === 0 && isPlainObject(result[key])) {
+      continue;
+    } else {
+      result[key] = value;
     }
   }
+  return result;
+}
 
-  // ← new: copy any extra flat keys from userOptions
-  for (let key in userOptions) {
-    if (!(key in defaultOptions)) {
-      combinedOptions[key] = userOptions[key];
-    }
+// Multiplies a size ("12px", "1.2em", 12) by factor, keeping its unit
+function scaleSize(value, factor) {
+  if (typeof value === "number") {
+    return value * factor;
   }
+  const match = typeof value === "string" && value.trim().match(/^(-?[\d.]+)([a-z%]*)$/i);
+  return match ? `${parseFloat(match[1]) * factor}${match[2]}` : value;
+}
 
-  return combinedOptions;
+// Scales every fontSize in options (at any level) by factor. Returns new objects.
+function scaleFontSizes(options, factor) {
+  if (!isPlainObject(options)) {
+    return options;
+  }
+  const result = {};
+  for (const key in options) {
+    result[key] = key === "fontSize" ? scaleSize(options[key], factor) : scaleFontSizes(options[key], factor);
+  }
+  return result;
+}
+
+// Order of precedence: defaultOptions < theme (themeOptions[themeOptionsKey]) < userOptions.
+// themeOptions: the chart theme, by default the theme of the container (this).
+// The textScale of the theme scales the font sizes of the defaults and the theme,
+// not those set by the user.
+function mergeOptions(defaultOptions, themeOptionsKey, userOptions = {}, themeOptions = this?.themeOptions) {
+  const themeOpts = themeOptions?.[themeOptionsKey];
+  let options = deepMergeOptions(defaultOptions, themeOpts);
+  const textScale = themeTextScale(themeOptions);
+  if (textScale !== 1) {
+    options = scaleFontSizes(options, textScale);
+  }
+  return deepMergeOptions(options, userOptions);
+}
+
+// Text size of the theme, as a factor of the default font sizes
+function themeTextScale(themeOptions) {
+  const textScale = themeOptions?.textScale;
+  return typeof textScale === "number" && textScale > 0 ? textScale : 1;
 }
 
 function getColorScale(colorScheme, customColors, uniqueGroups) {
@@ -395,8 +436,9 @@ function getColorScale(colorScheme, customColors, uniqueGroups) {
   } else if (customColors && typeof customColors === 'object') {
     // Handle customColors as an object
     range = groups.map(group => customColors[group] || "#FFF");
-  } else if (colorScheme && d3[colorScheme]) {
-    const scheme = d3[colorScheme];
+  } else if (colorScheme && (Array.isArray(colorScheme) || d3[colorScheme])) {
+    // A d3 scheme name or an array of colours (e.g. the palette of a theme)
+    const scheme = Array.isArray(colorScheme) ? colorScheme : d3[colorScheme];
     // Check if there are more groups than colors in the scheme
     if (groups.length > scheme.length) {
       console.warn(`Warning: More unique groups than colors. Some colors will repeat.`);
@@ -688,7 +730,9 @@ function container(svg, margin, width, height) {
   this.height = height;
 }
 
-function createContainer(targetElementId, id, themeOptionsKey, options = {}) {
+// themeOptions: the chart theme ({ geneOptions: {...}, labelsOptions: {...}, ... }),
+// kept on the container so all of its components use it
+function createContainer(targetElementId, id, themeOptionsKey, options = {}, themeOptions = {}) {
 
   const defaultOptions = {
     id: id || "svg-container",
@@ -701,7 +745,7 @@ function createContainer(targetElementId, id, themeOptionsKey, options = {}) {
   };
 
   // Merge default options and user-specified options
-  const combinedOptions = mergeOptions.call(this, defaultOptions, themeOptionsKey, options);
+  const combinedOptions = mergeOptions(defaultOptions, themeOptionsKey, options, themeOptions);
   const { id: containerId, margin: originalMargin, style, width, height } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
@@ -735,7 +779,9 @@ function createContainer(targetElementId, id, themeOptionsKey, options = {}) {
     svg.style(key, value);
   });
 
-  return new container(svg, computedMargin, width, height);
+  const newContainer = new container(svg, computedMargin, width, height);
+  newContainer.themeOptions = themeOptions;
+  return newContainer;
 }
 
 function addScalePadding(startValue, endValue, padding, to) {
@@ -1022,7 +1068,15 @@ function getLinkCoordinates(graphContainer, data) {
     return links;
 };
 
-function makeLinks(graphContainer, links) {
+// Link colours, shared by the links and the colour bar
+const defaultLinkColors = {
+  normalColor: "#969696",
+  invertedColor: "#d62728",
+  // Colour of a link with a measure of 0, e.g. the background on a dark chart
+  lowColor: "#FFFFFF"
+};
+
+function makeLinks(graphContainer, links, themeOptions = {}) {
 
     if (!links || links.length === 0) {
         return;
@@ -1030,8 +1084,7 @@ function makeLinks(graphContainer, links) {
     // Default options for title and subtitle
     const defaultOptions = {
       curve: true,
-      invertedColor: "red",
-      normalColor: "blue",
+      ...defaultLinkColors,
       useGroupColors: false,
       color: "lightgrey",
       measure: "identity",
@@ -1068,8 +1121,8 @@ function makeLinks(graphContainer, links) {
 
     links.forEach(function(link) {
 
-        const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options)
-        const { curve, invertedColor, normalColor, useGroupColors, color, linkStyle, measure } = combinedOptions;
+        const combinedOptions = mergeOptions(defaultOptions, "linkOptions", link.options, themeOptions)
+        const { curve, invertedColor, normalColor, lowColor, useGroupColors, color, linkStyle, measure } = combinedOptions;
 
         const additionalOptionsLinkStyle = extractAdditionalOptions(linkStyle, defaultOptions.linkStyle);
 
@@ -1084,7 +1137,7 @@ function makeLinks(graphContainer, links) {
                 }
 
                 const baseColor = coordinate[0].strand == coordinate[1].strand ? d3.rgb(normalColor) : d3.rgb(invertedColor)
-                var colorScale = d3.scaleSequential(t => d3.interpolate("#FFFFFF", baseColor)(t))
+                var colorScale = d3.scaleSequential(t => d3.interpolate(lowColor, baseColor)(t))
                     .domain([0, 100]);
                 const identity = combinedOptions.measure === "none" ? 100 : (link.data?.[measure]?.[index] ?? 100);
                 const linkColor = useGroupColors ? coordinate[0].groupColor : colorScale(identity)
@@ -1166,28 +1219,12 @@ function linkColorTypes(links) {
     return { normal, inverted };
 }
 
-function makeColorBar(graphContainer, links) {
-
-    if (links[0].options.colorBar === false){
-      return null;
-    }
-    if (links[0].options.measure === 'none'){
-      return null;
-    }
-    if (!links[0].data.hasOwnProperty('identity') && !links[0].data.hasOwnProperty('similarity')) {
-      return null;
-    }
-
-    // Only draw a gradient for the link colours on the chart
-    const { normal: hasNormal, inverted: hasInverted } = linkColorTypes(links);
-    if (!hasNormal && !hasInverted) {
-      return null;
-    }
+function makeColorBar(graphContainer, links, themeOptions = {}) {
 
     // Default options for the color bars (both normal and inverted)
     const defaultOptions = {
-        invertedColor: "#d62728",
-        normalColor: "#969696",
+        colorBar: true,
+        ...defaultLinkColors,
         measure: "identity",
         margin: { top: 5, right: 25, bottom: 0, left: 50 },
         colorBarOptions: {
@@ -1198,11 +1235,13 @@ function makeColorBar(graphContainer, links) {
             height: 60,
             labelOptions: {
               fontSize: 8,
+              fontFamily: "sans-serif",
               xOffset: 2,
               yOffset: 0
             },
             titleOptions: {
               fontSize: 10,
+              fontFamily: "sans-serif",
               xOffset: 2,
               yOffset: 0
             },
@@ -1214,14 +1253,23 @@ function makeColorBar(graphContainer, links) {
         }
     };
 
-    // Extract user-supplied options and merge them with the defaults
-    const linkOptions = { ...defaultOptions, ...links[0].options };
-    const colorBarOptions = { ...defaultOptions.colorBarOptions, ...links[0].options.colorBarOptions };
+    // Theme link options under the user options, as in makeLinks()
+    const linkOptions = mergeOptions(defaultOptions, "linkOptions", links[0].options, themeOptions);
+    const { colorBarOptions } = linkOptions;
+    const { labelOptions, titleOptions, barOptions } = colorBarOptions;
 
-    // Extract sub-options for labels, titles, and bars
-    const labelOptions = { ...defaultOptions.colorBarOptions.labelOptions, ...colorBarOptions.labelOptions };
-    const titleOptions = { ...defaultOptions.colorBarOptions.titleOptions, ...colorBarOptions.titleOptions };
-    const barOptions = { ...defaultOptions.colorBarOptions.barOptions, ...colorBarOptions.barOptions };
+    if (linkOptions.colorBar === false || linkOptions.measure === 'none') {
+      return null;
+    }
+    if (!links[0].data.hasOwnProperty('identity') && !links[0].data.hasOwnProperty('similarity')) {
+      return null;
+    }
+
+    // Only draw a gradient for the link colours on the chart
+    const { normal: hasNormal, inverted: hasInverted } = linkColorTypes(links);
+    if (!hasNormal && !hasInverted) {
+      return null;
+    }
 
     // Assuming `extractAdditionalOptions` is a function that extracts non-default options
     const additionalOptionsLabel = extractAdditionalOptions(labelOptions, defaultOptions.colorBarOptions.labelOptions);
@@ -1264,14 +1312,14 @@ function makeColorBar(graphContainer, links) {
     const xPosition = contentWidth - width - colorBarOptions.x;
     const yPosition = contentHeight - height - colorBarOptions.y;
 
-    // Draw a gradient bar from white to color (maxValue at the top) at x
+    // Draw a gradient bar from lowColor to color (maxValue at the top) at x
     const drawBar = (baseId, color, x) => {
         const gradientId = getUniqueId(baseId);
         const gradient = defs.append("linearGradient")
             .attr("id", gradientId)
             .attr("gradientTransform", "rotate(90)");
 
-        const colorScale = d3.scaleSequential(t => d3.interpolate("#FFF", color)(t))
+        const colorScale = d3.scaleSequential(t => d3.interpolate(linkOptions.lowColor, color)(t))
             .domain([0, 100]);
 
         gradient.append("stop")
@@ -1305,7 +1353,8 @@ function makeColorBar(graphContainer, links) {
         .attr("alignment-baseline", "bottom")
         .attr("text-anchor", "middle")
         .attr("font-size", titleOptions.fontSize)
-        .text(links[0].options.measure)
+        .style("font-family", titleOptions.fontFamily)
+        .text(linkOptions.measure)
         .each(function () {
             const currentElement = d3.select(this);
             setStyleFromOptions(currentElement, additionalOptionsTitle);
@@ -1326,6 +1375,7 @@ function makeColorBar(graphContainer, links) {
         .attr("y", yPosition - labelOptions.yOffset)
         .attr("alignment-baseline", "middle")
         .attr("font-size", labelOptions.fontSize)
+        .style("font-family", labelOptions.fontFamily)
         .text(maxValue + '%')
         .each(function () {
             const currentElement = d3.select(this);
@@ -1337,6 +1387,7 @@ function makeColorBar(graphContainer, links) {
         .attr("y", yPosition + height + labelOptions.yOffset)
         .attr("alignment-baseline", "middle")
         .attr("font-size", labelOptions.fontSize)
+        .style("font-family", labelOptions.fontFamily)
         .text(minValue + '%')
         .each(function () {
             const currentElement = d3.select(this);
@@ -1367,18 +1418,10 @@ container.prototype.cluster = function (options = {}) {
   return this;
 };
 
-container.prototype.theme = function (themeName) {
-  // Make sure the theme exists
-  if (!themes.hasOwnProperty(themeName)) {
-    throw new Error(`Theme '${themeName}' does not exist.`);
-  }
-
-  // Retrieve the theme
-  const themeOptions = themes[themeName];
-
-  // Save the theme options to the instance for later use
-  this.themeOptions = themeOptions;
-
+// Sets the theme ({ geneOptions: {...}, ... }) used by the components drawn
+// after it. createContainer() already sets the chart theme.
+container.prototype.theme = function (themeOptions) {
+  this.themeOptions = themeOptions ?? {};
   return this;
 };
 
@@ -1576,7 +1619,8 @@ container.prototype.scale = function (options = {}) {
   return this;
 };
 
-container.prototype.title = function (title, subtitle, show = true, options = {}) {
+// themeOptionsKey: "titleOptions" for the chart title, "clusterTitleOptions" for a cluster
+container.prototype.title = function (title, subtitle, show = true, options = {}, themeOptionsKey = "titleOptions") {
 
   // Return early if neither title nor subtitle is provided
   if (!title && !subtitle) {
@@ -1587,12 +1631,14 @@ container.prototype.title = function (title, subtitle, show = true, options = {}
     return this;
   }
 
-  // Default options for title and subtitle
+  // Default options for title and subtitle; the position and spacing grow with
+  // the text size of the theme
+  const size = themeTextScale(this.themeOptions);
   const defaultOptions = {
     x: 0,
-    y: 20,
+    y: 20 * size,
     align: "center",
-    spacing: 20, // Default spacing between title and subtitle
+    spacing: 20 * size, // Default spacing between title and subtitle
     titleFont: {
       fontSize: "16px",
       fontStyle: "normal",
@@ -1611,7 +1657,7 @@ container.prototype.title = function (title, subtitle, show = true, options = {}
     },
   };
 
-  const combinedOptions = mergeOptions.call(this, defaultOptions, 'titleOptions', options);
+  const combinedOptions = mergeOptions.call(this, defaultOptions, themeOptionsKey, options);
   const { x, y, titleFont, subtitleFont, align, spacing } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
@@ -1697,7 +1743,7 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
     x: 0,
     y: 0,
     align: "left",
-    spacing: 12, // Default spacing between title and subtitle
+    spacing: 12 * themeTextScale(this.themeOptions), // Default spacing between title and subtitle
     titleFont: {
       fontSize: "12px",
       fontWeight: "bold",
@@ -1784,6 +1830,21 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
   return this;
 };
 
+// The cluster label is drawn in the left or right margin of the cluster. Returns
+// that margin as { left: width } or { right: width }, set before the container is
+// created. Width: of the label (user) > margin (user, GC_grid) > of the label
+// (theme) > margin (theme) > 100px (times the text size of the theme).
+function clusterLabelMargin(containerOptions, labelOptions, themeOptions = {}) {
+  const themeLabelOptions = themeOptions?.clusterLabelOptions ?? {};
+  const position = labelOptions?.position ?? themeLabelOptions.position ?? "left";
+  const width = labelOptions?.width ??
+    containerOptions?.margin?.[position] ??
+    themeLabelOptions.width ??
+    themeOptions?.containerOptions?.margin?.[position] ??
+    `${100 * themeTextScale(themeOptions)}px`;
+  return { [position]: width };
+}
+
 container.prototype.clusterLabel = function (title, show = true, options = {}) {
   if (!show) {
     return this;
@@ -1794,6 +1855,7 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     x: 0,
     y: 0,
     position: 'left',
+    width: null, // the margin the label is drawn in, see clusterLabelMargin()
     wrapLabel: true,
     wrapOptions: {},
     fontSize: "12px",
@@ -2279,6 +2341,44 @@ container.prototype.scaleBar = function (show = true, options = {}) {
   return this;
 };
 
+// Adds the link label of the same gene (e.g. the identity % from links()) to a
+// gene label, as a second line below the name, and removes the link label.
+// Gene and link labels were drawn at the same place above the gene.
+function addLinkLabelLine(label, linkLabel) {
+  const text = d3.select(label);
+  const name = label.textContent;
+  label.textContent = "";
+  text.append("tspan").attr("class", "label-name").text(name);
+  const measure = text.append("tspan")
+    .attr("class", "label-measure")
+    .text(linkLabel.textContent);
+  // Keep the font and other styles of the link label; the gene label sets the
+  // alignment (the link label may have been rotated by its own overlap check)
+  for (const property of linkLabel.style) {
+    if (property === "text-anchor") continue;
+    measure.style(property, linkLabel.style.getPropertyValue(property));
+  }
+  linkLabel.remove();
+
+  if (name) {
+    // Second line below the name; move the label up a line so the link label
+    // stays where it was, just above the gene
+    measure.attr("x", text.attr("x")).attr("dy", "1.1em");
+    const lineHeight = 1.1 * parseFloat(getComputedStyle(measure.node()).fontSize);
+    text.attr("y", parseFloat(text.attr("y")) - lineHeight);
+  }
+}
+
+// A rotated two-line gene label becomes one line ("name 64%"), so rotated
+// labels next to each other stay one line thick
+function linkLabelLineToInline(label) {
+  const text = d3.select(label);
+  const measure = text.select(".label-measure");
+  if (measure.empty()) return;
+  measure.attr("x", null).attr("dy", null)
+    .attr("dx", text.select(".label-name").text() ? "0.3em" : null);
+}
+
 container.prototype.labels = function (label, show = true, options = {}) {
 
   if (!show) {
@@ -2319,12 +2419,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
       itemStyle: [] // [{"index": 3,"y": 20}]
   };
 
-  // If theme options exist, use them as the default options
-  if (this.themeOptions && this.themeOptions.labelsOptions) {
-    options = { ...this.themeOptions.labelsOptions, ...options };
-  }
-
-  const combinedOptions = { ...defaultOptions, ...options };
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'labelsOptions', options);
   const { x, y, start, end, adjustLabels, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
@@ -2345,8 +2440,12 @@ container.prototype.labels = function (label, show = true, options = {}) {
     const currentDx = style.dx ?? dx;
     const currentDy = style.dy ?? dy;
     const currentRotate = style.rotate ?? rotate;
-    var currentLabelAdjustmentOptions = style.labelAdjustmentOptions ?? labelAdjustmentOptions;
-      currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
+    // Labels of genes on a lower track (prevent_gene_overlap) go below their
+    // gene, so they don't run into the genes of the track above
+    // (placeLabel() below moves them back above when that side is free)
+    const below = d.geneTrack > 1;
+    const currentLabelAdjustmentOptions = { ...(style.labelAdjustmentOptions ?? labelAdjustmentOptions) };
+    currentLabelAdjustmentOptions.rotation = -Math.abs(currentLabelAdjustmentOptions.rotation);
     const currentAdjustLabels = style.adjustLabels !== undefined ? style.adjustLabels : adjustLabels;
 
       // Calculate Y position based on geneTrack
@@ -2355,7 +2454,11 @@ container.prototype.labels = function (label, show = true, options = {}) {
                                  : -this.geneStrandSpacing;
     var currentOverlapSpacing = d.geneTrack ? (d.geneTrack - 1) * this.geneOverlapSpacing : 0;
 
-    const yPos = this.yScale(currentY) - (this.markerHeight / 2) - currentGeneStrandSpacing + currentOverlapSpacing;
+    // Below the gene: the same gap to the gene as a label above it
+    const geneY = this.yScale(this.markerY ?? 50);
+    const yAbove = this.yScale(currentY) - (this.markerHeight / 2) - currentGeneStrandSpacing + currentOverlapSpacing;
+    const yBelow = 2 * geneY - this.yScale(currentY) + (this.markerHeight / 2) - currentGeneStrandSpacing + currentOverlapSpacing;
+    const yPos = below ? yBelow : yAbove;
     const xPos = this.xScale((d.start + d.end) / 2) + currentX;
 
     return {
@@ -2365,12 +2468,42 @@ container.prototype.labels = function (label, show = true, options = {}) {
       dy: currentDy,
       rotate: currentRotate,
       labelAdjustmentOptions: currentLabelAdjustmentOptions,
-      adjustLabels: currentAdjustLabels
+      adjustLabels: currentAdjustLabels,
+      below,
+      yAbove
     };
+  };
+
+  // Pixel x ranges of the genes on each track
+  const genesByTrack = d3.group(this.data, d => d.geneTrack ?? 1);
+  const trackHasGeneIn = (track, left, right) => (genesByTrack.get(track) || []).some(gene => {
+    const [geneLeft, geneRight] = [this.xScale(gene.start), this.xScale(gene.end)].sort((a, b) => a - b);
+    return geneLeft < right && geneRight > left;
+  });
+
+  // A label below its gene that runs into a gene of the next track goes back
+  // above its gene when no gene of the track above is in the way there
+  const placeLabel = (element, d, attributes) => {
+    if (!attributes.below) return;
+    const bbox = element.getBBox();
+    const left = bbox.x;
+    const right = bbox.x + bbox.width;
+    if (trackHasGeneIn(d.geneTrack + 1, left, right) && !trackHasGeneIn(d.geneTrack - 1, left, right)) {
+      attributes.below = false;
+      attributes.yPos = attributes.yAbove;
+      d3.select(element)
+        .attr("dominant-baseline", null)
+        .attr("y", attributes.yPos)
+        .attr("transform", `rotate(${attributes.rotate}, ${attributes.xPos}, ${attributes.yPos})`);
+    }
   };
 
   const attributesByIndex = this.data.map((d, i) => getAttributesForIndex(d, i));
   const labelAdjuster = createLabelAdjuster(this, "text.label");
+  // Link labels (e.g. identity %) drawn by links() for the genes of this cluster
+  const linkLabelsByRow = new Map(
+    this.svg.selectAll(".link-text").nodes().map(node => [node.getAttribute("rowID"), node])
+  );
 
   // Adding the Label
   g.selectAll("text.label")
@@ -2385,6 +2518,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
     .attr("dx", (d, i) => attributesByIndex[i].dx)
     .attr("dy", (d, i) => attributesByIndex[i].dy)
     .attr("text-anchor", textAnchor)
+    .attr("dominant-baseline", (d, i) => attributesByIndex[i].below ? "hanging" : null)
     .attr("transform", (d, i) => {
       const { xPos, yPos, rotate } = attributesByIndex[i];
       return `rotate(${rotate}, ${xPos}, ${yPos})`;
@@ -2394,13 +2528,27 @@ container.prototype.labels = function (label, show = true, options = {}) {
     .style("font-family", fontFamily)
     .style("cursor", cursor)
     .text(d => d[label])
+    // One label per gene: a gene with a link label gets it as a second line.
+    // Done for all labels before the overlap check, which measures them all at once
+    .each(function (d) {
+      const linkLabel = linkLabelsByRow.get(String(d.rowID));
+      if (linkLabel) addLinkLabelLine(this, linkLabel);
+    })
+    .each(function (d, i) {
+      const attributes = attributesByIndex[i];
+      placeLabel(this, d, attributes);
+      // Labels below their gene rotate downwards when they overlap
+      if (attributes.below) {
+        attributes.labelAdjustmentOptions.rotation = Math.abs(attributes.labelAdjustmentOptions.rotation);
+      }
+    })
     .each(function (d, i) {
 
       const currentElement = d3.select(this);
       const attributes = attributesByIndex[i];
 
-      if (attributes.adjustLabels) {
-        labelAdjuster.adjust(this, attributes.labelAdjustmentOptions);
+      if (attributes.adjustLabels && labelAdjuster.adjust(this, attributes.labelAdjustmentOptions)) {
+        linkLabelLineToInline(this);
       }
       // Set additional options as attributes
       setStyleFromOptions(currentElement, additionalOptions);
@@ -2439,12 +2587,7 @@ container.prototype.tooltip = function (show = true, options = {}) {
     lineHeight: "1.5"
   };
 
-  // If theme options exist, use them as the default options
-  if (this.themeOptions && this.themeOptions.tooltipOptions) {
-    options = { ...this.themeOptions.tooltipOptions, ...options };
-  }
-
-  const combinedOptions = { ...defaultOptions, ...options };
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'tooltipOptions', options);
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -2541,6 +2684,139 @@ container.prototype.tooltip = function (show = true, options = {}) {
   return this; // Return the instance for method chaining
 };
 
+// Closed SVG path through points, with the outer corners rounded by radius
+// (0: sharp); inner corners, e.g. where the shaft of an arrow meets its head,
+// stay sharp. Repeated points are dropped, and the radius is limited to half
+// of the shortest side next to a corner, so short genes keep their shape.
+function roundedPolygonPath(points, radius) {
+    const pts = points.filter((p, i) => {
+        const prev = points[(i - 1 + points.length) % points.length];
+        return Math.abs(p[0] - prev[0]) > 1e-6 || Math.abs(p[1] - prev[1]) > 1e-6;
+    });
+    if (!(radius > 0) || pts.length < 3) {
+        return `M${pts.map(p => `${p[0]} ${p[1]}`).join(" L")} Z`;
+    }
+    const n = pts.length;
+    const sideLength = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+    // Point at distance d from a towards b
+    const towards = (a, b, d) => {
+        const l = sideLength(a, b);
+        return [a[0] + (b[0] - a[0]) * d / l, a[1] + (b[1] - a[1]) * d / l];
+    };
+    // Sign of the turn at a corner: the same as the orientation of the
+    // polygon for outer corners
+    const turn = (a, p, b) => (p[0] - a[0]) * (b[1] - p[1]) - (p[1] - a[1]) * (b[0] - p[0]);
+    const orientation = Math.sign(pts.reduce((sum, p, i) => {
+        const next = pts[(i + 1) % n];
+        return sum + p[0] * next[1] - next[0] * p[1];
+    }, 0));
+    const corners = pts.map((p, i) => {
+        const prev = pts[(i - 1 + n) % n];
+        const next = pts[(i + 1) % n];
+        const outer = Math.sign(turn(prev, p, next)) === orientation;
+        const r = outer ? Math.min(radius, sideLength(prev, p) / 2, sideLength(p, next) / 2) : 0;
+        return { p, start: towards(p, prev, r), end: towards(p, next, r) };
+    });
+    let path = `M${corners[0].end[0]} ${corners[0].end[1]}`;
+    for (let i = 1; i <= n; i++) {
+        const { p, start, end } = corners[i % n];
+        path += ` L${start[0]} ${start[1]} Q${p[0]} ${p[1]} ${end[0]} ${end[1]}`;
+    }
+    return path + " Z";
+}
+
+// SVG path and size of a marker ("arrow", "box", "rbox", ...) of the given length
+function getGenePath(marker, length, markerSize, options = {}) {
+    const sizeDefaults = {
+        small: { scale: 0.75 },
+        medium: { scale: 1 },
+        large: { scale: 1.25 }
+    };
+
+    const markerDefaults = {
+        arrow: { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 15 },
+        boxarrow: { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 30 },
+        box: { arrowheadWidth: 0, arrowheadHeight: 30, markerHeight: 30 },
+        rbox: { arrowheadWidth: 0, arrowheadHeight: 30, markerHeight: 30, cornerRadius: 5 },
+        cbox: { arrowheadWidth: 10, arrowheadHeight: 30, markerHeight: 30 },
+        intron: { arrowheadWidth: 0, arrowheadHeight: 0, markerHeight: 20 },  // Add intron default
+        // Add other marker types if needed
+    };
+
+    const sizeOptions = sizeDefaults[markerSize] || sizeDefaults.medium;
+    const markerOptions = markerDefaults[marker] || {};
+
+    const combinedOptions = deepMergeOptions(markerOptions, options);
+
+    // Scale the dimensions based on size
+    const { arrowheadWidth, arrowheadHeight, markerHeight, cornerRadius } = combinedOptions;
+    const scaledArrowheadWidth = arrowheadWidth * sizeOptions.scale;
+    const scaledArrowheadHeight = arrowheadHeight * sizeOptions.scale;
+    const scaledMarkerHeight = markerHeight * sizeOptions.scale;
+
+    let shaftLength = length - scaledArrowheadWidth;
+    shaftLength = Math.max(0, shaftLength);
+    const shaftTop = (scaledArrowheadHeight - scaledMarkerHeight) / 2;
+    const shaftBottom = shaftTop + scaledMarkerHeight;
+
+    let path;
+    let height = Math.max(scaledMarkerHeight, scaledArrowheadHeight);
+    let effectiveCornerRadius;
+
+    switch (marker) {
+        case "arrow":
+        case "boxarrow":
+        case "box":
+            path = roundedPolygonPath([
+                [0, shaftTop],
+                [0, shaftBottom],
+                [shaftLength, shaftBottom],
+                [shaftLength, scaledArrowheadHeight],
+                [length, scaledArrowheadHeight / 2],
+                [shaftLength, 0],
+                [shaftLength, shaftTop]
+            ], cornerRadius || 0);
+            break;
+        case "rbox":
+            effectiveCornerRadius = Math.min(cornerRadius, scaledMarkerHeight / 2, length / 2);
+            height = scaledMarkerHeight;
+            path = `M ${effectiveCornerRadius},0
+                     H ${length - effectiveCornerRadius}
+                     A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 ${length},${effectiveCornerRadius}
+                     V ${scaledMarkerHeight - effectiveCornerRadius}
+                     A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 ${length - effectiveCornerRadius},${scaledMarkerHeight}
+                     H ${effectiveCornerRadius}
+                     A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 0,${scaledMarkerHeight - effectiveCornerRadius}
+                     V ${effectiveCornerRadius}
+                     A ${effectiveCornerRadius},${effectiveCornerRadius} 0 0 1 ${effectiveCornerRadius},0
+                     Z`;
+            break;
+        case "cbox":
+            effectiveCornerRadius = Math.min(scaledMarkerHeight / 2, length / 2);
+            height = scaledMarkerHeight;
+            path = `M ${effectiveCornerRadius} 0
+                 L ${length - effectiveCornerRadius} 0
+                 Q ${length} ${scaledMarkerHeight / 2} ${length - effectiveCornerRadius} ${scaledMarkerHeight}
+                 L ${effectiveCornerRadius} ${scaledMarkerHeight}
+                 Q 0 ${scaledMarkerHeight / 2} ${effectiveCornerRadius} 0
+                 Z`;
+            break;
+        case "intron":
+            // Create a V-shaped path for the intron
+            const midPoint = length / 2;
+            height = scaledMarkerHeight / 2
+            path = `M0 ${height}
+                    L${midPoint} 0
+                    L${length} ${height}`;
+            break;
+        default:
+            console.warn(`Marker type '${marker}' not recognized.`);
+            path = "";
+    }
+
+    return { path, length, scaledArrowheadWidth, scaledArrowheadHeight, height };
+}
+
 // Path and position of the gene (or exon, intron, UTR) marker of d, the i-th
 // item. styles holds the marker options and itemStyles the per-item overrides.
 // Also sets the marker height and spacing on the container, used by labels.
@@ -2562,6 +2838,7 @@ function getMarkerAttributes(container, d, i, y, styles, itemStyles) {
   );
 
   container.markerHeight = height;
+  container.markerY = currentY;
   container.geneStrandSpacing = container.separateStrands ? (height / 2 + container.strandSpacing) : 0;
   container.geneOverlapSpacing = (height + container.overlapSpacing);
 
@@ -2739,7 +3016,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
     itemStyleUTRs: []
   };
 
-  const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
+  const combinedOptions = mergeOptions.call(this, defaultOptions, 'transcriptOptions', options);
   const { x, y, colorScheme, customColors, pattern, styleExons, styleIntrons, styleUTRs, itemStyleExons, itemStyleIntrons, itemStyleUTRs, labelOptions } = combinedOptions;
 
   // Extract additional options that aren't in defaultOptions
@@ -2952,6 +3229,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     orientation: "horizontal",
     adjustHeight: true,
     order: [],
+    cornerRadius: 0,
     legendOptions: {
       cursor: "pointer",
       colorScheme: null,
@@ -2968,7 +3246,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'legendOptions', options);
-  const { x, y, width, orientation, adjustHeight, order, legendOptions, legendTextOptions } = combinedOptions;
+  const { x, y, width, orientation, adjustHeight, order, cornerRadius, legendOptions, legendTextOptions } = combinedOptions;
 
   const additionalLegendOptions = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
   const additionalLegendTextOptions = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
@@ -3055,8 +3333,9 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
         .attr("y", currentY)
         .attr("width", legendSize)
         .attr("height", legendSize)
+        .attr("rx", cornerRadius)
         .style("fill", patternScale.fill(d))
-        .style("stroke", patternScale.outline)
+        .style("stroke", patternScale.outline ?? (isWhite(patternScale.fill(d)) ? "#bdbdbd" : null))
         .each(() => patternScale.align(d, currentX, currentY))
         .each(function () {
           const currentElement = d3.select(this);
@@ -3274,15 +3553,32 @@ container.prototype.links = function (links, clusterKey, options = {}) {
 };
 // Annotations
 
-container.prototype.trackMouse = function(track = true) {
+container.prototype.trackMouse = function(track = true, options = {}) {
   if (!track) {
     return this;
   }
 
-  // Change cursor to crosshair
-  this.svg.style("cursor", "crosshair");
+  // Styles of the coordinate tooltip
+  const defaultOptions = {
+    cursor: "crosshair",
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    padding: "8px",
+    borderRadius: "4px",
+    border: "1px solid rgba(0,0,0,0.1)",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    fontFamily: "Arial, sans-serif",
+    fontSize: "12px",
+    color: "#333",
+    lineHeight: "1.5",
+    zIndex: 1000
+  };
+
+  const { cursor, show, ...tooltipStyle } = mergeOptions.call(this, defaultOptions, 'trackMouseOptions', options);
+
+  // Change cursor
+  this.svg.style("cursor", cursor);
     this.svg.selectAll("*").each(function() {
-    this.style.cssText += "cursor: crosshair !important;";
+    this.style.cssText += `cursor: ${cursor} !important;`;
   });
 
   // Tooltip for displaying coordinates, inside the widget element so it is
@@ -3290,19 +3586,10 @@ container.prototype.trackMouse = function(track = true) {
   const host = this.svg.node().closest(".html-widget") || document.body;
   const tooltip = d3.select(host).append("div")
     .attr("class", "coordinate-tooltip")
-    .style("background-color", "rgba(255, 255, 255, 0.9)")
-    .style("padding", "8px")
-    .style("border-radius", "4px")
-    .style("border", "1px solid rgba(0,0,0,0.1)")
-    .style("box-shadow", "0 4px 6px rgba(0, 0, 0, 0.1)")
     .style("pointer-events", "none")
-    .style("font-family", "Arial, sans-serif")
-    .style("font-size", "12px")
-    .style("color", "#333")
-    .style("line-height", "1.5")
     .style("position", "absolute")
-    .style("visibility", "hidden")
-    .style("z-index", "1000");
+    .style("visibility", "hidden");
+  setStyleFromOptions(tooltip, tooltipStyle);
 
   const xScale = d3.scaleLinear().domain([0 + this.margin.left, this.width - this.margin.right]).range([0, 100]);
   const yScale = d3.scaleLinear().domain([this.height - this.margin.bottom, 0 + this.margin.top]).range([0, 100]);
@@ -3821,7 +4108,7 @@ container.prototype.createPromoterAnnotation = function(group, options) {
   };
 
   // Merge default options and user-specified options
-  const combinedOptions = mergeOptions.call(this, defaultOptions, "PromoterAnnotationOptions", options);
+  const combinedOptions = mergeOptions.call(this, defaultOptions, "promoterAnnotationOptions", options);
   let { x, y, direction, rotation, scale, style } = combinedOptions;
 
     // Extract additional options that are not in defaultOptions

@@ -64,12 +64,35 @@
 <div class="section level4">
 <h4 id="new-features-development-version">New features:<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h4>
 <ul><li>
+<code><a href="../reference/GC_theme.html">GC_theme()</a></code> sets the default look of the whole chart: start from a built-in theme (<code>"default"</code>, <code>"classic"</code>, <code>"dark"</code>, <code>"vintage"</code> and <code>"infographic"</code> with the colours of the ECharts default (version 5), dark, vintage and infographic themes, <code>"publication"</code> for journal figures, after common journal figure guidelines (Arial, 7 pt text, black text and axes, italic gene labels, colour-blind safe colours), or <code>"bw"</code>: black and white with a pattern per group, in the same style), set the font, text and line colours, background, gene colours and patterns of all components at once, and change the options of any component (e.g. <code>labels = list(fontSize = "10px")</code>). <code>textScale</code> scales all text at once (e.g. <code>textScale = 1.5</code>), with the title and the default cluster label width growing with it. Options set with the other <code>GC_</code> functions always take precedence over the theme, whatever the order of the calls. <code><a href="../reference/geneviewer_theme.html">geneviewer_theme()</a></code> returns the settings of a built-in theme.</li>
+<li>
 <code><a href="../reference/GC_pattern.html">GC_pattern()</a></code> fills genes, exons and legend markers with a pattern per group, for black and white figures. There are 16 patterns (<code>"diagonal"</code>, <code>"dots"</code>, <code>"crosshatch"</code>, <code>"checkerboard"</code>, <code>"bricks"</code>, <code>"inverseDots"</code> and more). Patterns, pattern colours and backgrounds can be set per group, and <code>background = NULL</code> draws the patterns on top of the gene colours. They are kept in the PNG from the save button.</li>
 <li>The save button can now save charts as SVG, with all clusters, links, legends and titles in one vector file for publications. Hover the download icon and pick “Save as SVG” or “Save as PNG”.</li>
+<li>Gene colours can be set by the name of a geneviewer palette, besides the d3 colour schemes: <code>"okabeIto"</code> (colour-blind safe), <code>"classic"</code> (clear colours), <code>"vivid"</code> (bright colours for dark backgrounds), <code>"dark"</code> (soft colours for dark backgrounds), <code>"vintage"</code> (muted colours), <code>"infographic"</code> (strong colours), <code>"greys"</code> and <code>"blues"</code>, in <code>GC_theme(palette = )</code> and the <code>colorScheme</code> of <code><a href="../reference/GC_genes.html">GC_genes()</a></code>, <code><a href="../reference/GC_transcript.html">GC_transcript()</a></code> and <code><a href="../reference/GC_color.html">GC_color()</a></code>. <code><a href="../reference/geneviewer_palette.html">geneviewer_palette()</a></code> returns their colours.</li>
+<li>
+<code>GC_links(low_color = )</code> sets the colour of links with the lowest identity (white by default), e.g. the background colour on a dark chart.</li>
+<li>
+<code>GC_genes(corner_radius = )</code> rounds the corners of the “arrow”, “boxarrow” and “box” markers (e.g. <code>corner_radius = 3</code> for soft corners; the inner corners of arrows stay sharp) and sets those of “rbox”. Exons take <code>cornerRadius</code> in <code>styleExons</code>, and themes in <code>genes = list(corner_radius = )</code>. <code>GC_legend(corner_radius = )</code> rounds the corners of the legend markers.</li>
+<li>
+<code><a href="../reference/GC_trackMouse.html">GC_trackMouse()</a></code> takes the styles of the coordinate tooltip (e.g. <code>backgroundColor</code>, <code>fontSize</code>) and <code>cursor</code>.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="changes-development-version">Changes:<a class="anchor" aria-label="anchor" href="#changes-development-version"></a></h4>
+<ul><li>The title and labels of the link colour bar are now in sans-serif, like the other text; they used the serif font of the browser.</li>
+<li>With a theme background, the UTRs of transcripts are filled with the background instead of white.</li>
+<li>White legend markers (e.g. “No Hit” or a white custom colour) now get a light grey outline, so they stay visible on a white background.</li>
+<li>A cluster margin set with <code>GC_grid(margin = )</code> is now kept by <code><a href="../reference/GC_clusterLabel.html">GC_clusterLabel()</a></code> without <code>width</code>, whatever the order of the calls; <code><a href="../reference/GC_clusterLabel.html">GC_clusterLabel()</a></code> called after <code><a href="../reference/GC_grid.html">GC_grid()</a></code> set the margin to 100px. <code>GC_clusterLabel(width = )</code> still sets the margin.</li>
+<li>Options given as a list (e.g. <code>labelAdjustmentOptions</code>, <code>colorBarOptions = list(labelOptions = )</code>) now keep the defaults of the options they leave out, at every level.</li>
+<li>The geneviewer vignette has a new “Themes” section on <code><a href="../reference/GC_theme.html">GC_theme()</a></code>: the built-in themes, the global settings and palettes, <code>textScale</code>, options per component and making a theme of your own with <code><a href="../reference/geneviewer_theme.html">geneviewer_theme()</a></code>.</li>
 </ul></div>
 <div class="section level4">
 <h4 id="bug-fixes-development-version">Bug fixes:<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h4>
 <ul><li>
+<code><a href="../reference/GC_transcript.html">GC_transcript()</a></code> no longer drops the settings of the whole chart made before it: the title, legend, theme and <code><a href="../reference/GC_grid.html">GC_grid()</a></code> margins and direction are kept. Settings per cluster are for the old clusters and are set after <code><a href="../reference/GC_transcript.html">GC_transcript()</a></code>.</li>
+<li>
+<code>GC_legend(backgroundColor = )</code> now sets the legend background; it had no effect.</li>
+<li>When a chart is redrawn in Shiny, styles of <code>GC_chart(style = )</code> that are no longer set are removed; e.g. a background colour stayed after it was removed.</li>
+<li>
 <code>GC_annotation(type = "symbol")</code> no longer also draws a curve from x = 0 to x = 100.</li>
 <li>The default gene colours now give 30 different colours. Groups 12 and 22, 13 and 26, 15 and 29, and 20 and 25 had the same colour; groups 22, 25, 26 and 29 now get new colours.</li>
 <li>Legend colours now match the gene colours when some genes have an <code>NA</code> group. Genes with an <code>NA</code> group are now always white, also with <code>colorScheme</code> or <code>customColors</code>.</li>
@@ -89,6 +112,8 @@
 <li>Gene labels from <code><a href="../reference/GC_labels.html">GC_labels()</a></code> and identity labels from <code><a href="../reference/GC_links.html">GC_links()</a></code> no longer share element ids. The overlap check of a gene label used the identity label with the same id, so identity labels were rotated instead of the gene labels.</li>
 <li>
 <code><a href="../reference/GC_genes.html">GC_genes()</a></code> and <code><a href="../reference/GC_transcript.html">GC_transcript()</a></code> no longer drop the colours from <code><a href="../reference/GC_color.html">GC_color()</a></code> and the patterns from <code><a href="../reference/GC_pattern.html">GC_pattern()</a></code> when called after them. Their <code>colorScheme</code> and <code>customColors</code> now also set the legend colours (when no cluster or selection is given), so the legend matches the genes.</li>
+<li>Identity (or similarity) labels from <code><a href="../reference/GC_links.html">GC_links()</a></code> and gene labels from <code><a href="../reference/GC_labels.html">GC_labels()</a></code> no longer overlap. Each gene now has one label with the gene name and, below it, its identity; when labels are rotated to avoid overlap, both are shown on one line (e.g. “eryK 64.1%”).</li>
+<li>With <code>GC_cluster(prevent_gene_overlap = TRUE)</code>, labels of genes on the lower tracks are now drawn below their gene and rotate downwards when they overlap, instead of above the gene, under (and rotated into) the genes of the track above. A label stays above its gene when a gene of the next track is below it and the space above is free.</li>
 <li>
 <code>itemStyle</code> values of 0 are no longer ignored in <code><a href="../reference/GC_labels.html">GC_labels()</a></code>, <code><a href="../reference/GC_genes.html">GC_genes()</a></code> and <code><a href="../reference/GC_transcript.html">GC_transcript()</a></code> (e.g. <code>rotate = 0</code>, <code>y = 0</code> or <code>cornerRadius = 0</code> for one gene); they fell back to the general option.</li>
 <li>
@@ -96,7 +121,7 @@
 <li>
 <code>GC_sequence(markerStyle = list(gap = ))</code> is now a distance in pixels between each break marker and the break, the same for every break. It was a percentage of the marker’s x position, so breaks further right opened wider. Charts that set <code>gap</code> get a narrower gap.</li>
 <li>A percentage <code>GC_title(height = )</code> or <code>GC_legend(height = )</code> now follows the chart height when the chart is resized; it kept the pixel height of the first draw.</li>
-<li>Smaller fixes: legend items fade on hover again (an invalid CSS selector dropped the transition), legend items have unique ids, the 3’ and 5’ transcript labels have their own classes (<code>three-prime-label</code>, <code>five-prime-label</code>), and unused or invalid styles were removed from the footer subtitle and the link layer.</li>
+<li>Smaller fixes: legend items fade on hover again (an invalid CSS selector dropped the transition; it now only animates the opacity, so rotated gene labels no longer swing into place on every draw), legend items have unique ids, the 3’ and 5’ transcript labels have their own classes (<code>three-prime-label</code>, <code>five-prime-label</code>), and unused or invalid styles were removed from the footer subtitle and the link layer.</li>
 <li>The <code><a href="../reference/GC_links.html">GC_links()</a></code> colour bar now shows a gradient for each link colour on the chart: the inverted gradient only when at least one link (in any <code><a href="../reference/GC_links.html">GC_links()</a></code> set) joins opposite strands, and the normal gradient only when at least one link joins the same strand. Charts with only inverted links showed only the normal gradient, and charts with forward and reverse normal links showed an inverted gradient. The link data is no longer modified.</li>
 </ul></div>
 </div>

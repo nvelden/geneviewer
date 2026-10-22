@@ -21,7 +21,7 @@
 .legend .legend-marker,
 .legend .legend-label,
 .label {
-    transition: 0.3s ease-in-out;  /* Smooth transitions */
+    transition: opacity 0.3s ease-in-out;  /* Fade on hover; only opacity, so rotated labels are not animated */
 }
 
 /* Hover styles: Gives a dim effect to the marker and text when hovered */

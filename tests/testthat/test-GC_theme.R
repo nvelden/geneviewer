@@ -141,7 +141,7 @@ test_that("textScale is kept in the theme and sent to the browser", {
 })
 
 test_that("geneviewer palettes are used by name and sent as colours", {
-  expect_equal(geneviewer_palette(), c("okabeIto", "vivid", "vintage", "greys", "blues"))
+  expect_equal(geneviewer_palette(), c("okabeIto", "vivid", "vintage", "infographic", "greys", "blues"))
   expect_equal(geneviewer_theme("vintage")$palette, "vintage")
   vintage <- theme_to_js(geneviewer_theme("vintage"))
   expect_equal(vintage$geneOptions$cornerRadius, 3)

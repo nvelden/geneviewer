@@ -47,7 +47,7 @@
 #'
 #' @param GC_chart The GC chart object to be modified.
 #' @param theme The theme to start from: the name of a built-in theme
-#'   (`"default"`, `"minimal"`, `"classic"`, `"dark"`, `"vintage"` or `"bw"`, see
+#'   (`"default"`, `"minimal"`, `"classic"`, `"dark"`, `"vintage"`, `"infographic"` or `"bw"`, see
 #'   [geneviewer_theme()]) or a list of theme settings. `"bw"` is black and
 #'   white: genes, exons and legend markers are filled with a pattern per
 #'   group. Default is NULL: change
@@ -160,7 +160,7 @@ GC_theme <- function(
 #' start a theme of your own.
 #'
 #' @param name Name of the theme: `"default"`, `"minimal"`, `"classic"`,
-#'   `"dark"`, `"vintage"` or `"bw"`.
+#'   `"dark"`, `"vintage"`, `"infographic"` or `"bw"`.
 #'
 #' @return A list of theme settings, to use as the `theme` of [GC_theme()].
 #'
@@ -190,6 +190,8 @@ geneviewer_theme <- function(name = "default") {
 #' - `"vivid"`: 9 bright colours for dark backgrounds, the palette of the
 #'   `"dark"` theme.
 #' - `"vintage"`: 10 muted colours, the palette of the `"vintage"` theme.
+#' - `"infographic"`: 15 strong colours, the palette of the `"infographic"`
+#'   theme.
 #' - `"greys"`: 6 greys, from dark to light.
 #' - `"blues"`: 7 blues, from dark to light.
 #'
@@ -228,6 +230,9 @@ geneviewer_palettes <- list(
             "#05c091", "#ff8a45", "#8d48e3", "#dd79ff"),
   vintage = c("#d87c7c", "#919e8b", "#d7ab82", "#6e7074", "#61a0a8",
               "#efa18d", "#787464", "#cc7e63", "#724e58", "#4b565b"),
+  infographic = c("#C1232B", "#27727B", "#FCCE10", "#E87C25", "#B5C334",
+                  "#FE8463", "#9BCA63", "#FAD860", "#F3A43B", "#60C0DD",
+                  "#D7504B", "#C6E579", "#F4E001", "#F0805A", "#26C0C0"),
   greys = c("#252525", "#525252", "#737373", "#969696", "#bdbdbd", "#d9d9d9"),
   blues = c("#08306b", "#08519c", "#2171b5", "#4292c6", "#6baed6", "#9ecae1", "#c6dbef")
 )
@@ -291,6 +296,38 @@ builtin_themes <- list(
     links = list(normal_color = "#61a0a8", inverted_color = "#d87c7c",
                  low_color = "#fef8ef", linkStyle = list(fillOpacity = 0.6),
                  colorBarOptions = list(barOptions = list(stroke = "none")))
+  ),
+  # The ECharts infographic theme on the ECharts defaults: only the genes and
+  # links are coloured. The title colour (#464646) for titles, cluster labels and the
+  # legend, the subtitle colour (#6E7079) for the other text and all lines;
+  # sans-serif 12px text, an 18px title, 5px axis ticks and dark tooltips
+  infographic = list(
+    fontFamily = "sans-serif",
+    textColor = "#6E7079",
+    lineColor = "#6E7079",
+    palette = "infographic",
+    title = list(titleFont = list(fontSize = "18px", fill = "#464646"),
+                 subtitleFont = list(fontSize = "12px")),
+    clusterTitle = list(titleFont = list(fill = "#464646")),
+    clusterLabel = list(fill = "#464646"),
+    genes = list(stroke = "none", corner_radius = 3),
+    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3)),
+    labels = list(fontStyle = "normal", fontSize = "12px"),
+    # Coordinates keep 10px: at 12px the numbers of adjacent genes overlap
+    coordinates = list(tickStyle = list(lineLength = 5)),
+    scale = list(textStyle = list(fontSize = "12px"), tickStyle = list(lineLength = 5)),
+    scaleBar = list(labelStyle = list(fontSize = "12px")),
+    legend = list(corner_radius = 3, legendTextOptions = list(fill = "#464646")),
+    # Links in the teal and red of the theme
+    links = list(normal_color = "#27727B", inverted_color = "#C1232B",
+                 linkStyle = list(fillOpacity = 0.6),
+                 colorBarOptions = list(barOptions = list(stroke = "none"),
+                                        labelOptions = list(fontSize = 12),
+                                        titleOptions = list(fontSize = 12))),
+    tooltip = list(backgroundColor = "rgba(50, 50, 50, 0.85)", color = "#ffffff",
+                   border = "none", borderRadius = "4px", fontSize = "14px"),
+    trackMouse = list(backgroundColor = "rgba(50, 50, 50, 0.85)", color = "#ffffff",
+                      border = "none", borderRadius = "4px", fontSize = "14px")
   ),
   bw = list(
     fontFamily = "Arial, Helvetica, sans-serif",

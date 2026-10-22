@@ -21,7 +21,7 @@ GC_theme(
 \item{GC_chart}{The GC chart object to be modified.}
 
 \item{theme}{The theme to start from: the name of a built-in theme
-(\code{"default"}, \code{"minimal"}, \code{"classic"}, \code{"dark"}, \code{"vintage"} or \code{"bw"}, see
+(\code{"default"}, \code{"minimal"}, \code{"classic"}, \code{"dark"}, \code{"vintage"}, \code{"infographic"} or \code{"bw"}, see
 \code{\link[=geneviewer_theme]{geneviewer_theme()}}) or a list of theme settings. \code{"bw"} is black and
 white: genes, exons and legend markers are filled with a pattern per
 group. Default is NULL: change

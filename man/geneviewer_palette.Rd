@@ -25,6 +25,8 @@ in the \code{colorScheme} of \code{\link[=GC_genes]{GC_genes()}}, \code{\link[=G
 \item \code{"vivid"}: 9 bright colours for dark backgrounds, the palette of the
 \code{"dark"} theme.
 \item \code{"vintage"}: 10 muted colours, the palette of the \code{"vintage"} theme.
+\item \code{"infographic"}: 15 strong colours, the palette of the \code{"infographic"}
+theme.
 \item \code{"greys"}: 6 greys, from dark to light.
 \item \code{"blues"}: 7 blues, from dark to light.
 }

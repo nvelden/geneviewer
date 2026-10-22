@@ -8,7 +8,7 @@ geneviewer_theme(name = "default")
 }
 \arguments{
 \item{name}{Name of the theme: \code{"default"}, \code{"minimal"}, \code{"classic"},
-\code{"dark"}, \code{"vintage"} or \code{"bw"}.}
+\code{"dark"}, \code{"vintage"}, \code{"infographic"} or \code{"bw"}.}
 }
 \value{
 A list of theme settings, to use as the \code{theme} of \code{\link[=GC_theme]{GC_theme()}}.

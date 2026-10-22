@@ -177,7 +177,7 @@ GC_chart(
   cluster = "cluster",
   height = "300px" 
   ) %>%
-  GC_title("Adjust margins of GC clusters", align = "left", height = "40px") %>%
+  GC_title("Adjust margins of GC clusters", align = "left") %>%
   GC_cluster(margin = list(left = 25, right = 25)) %>%
   GC_cluster(cluster = 1, style = list(backgroundColor = "green")) %>%
   GC_cluster(cluster = 2, style = list(backgroundColor = "red"))

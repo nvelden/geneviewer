@@ -82,9 +82,7 @@ GC_chart(gff,
          cluster = "Virus",
          height = "400px",
          ) %>%
-  GC_title(
-    "<i>Marseilleviridae</i> viral genomes", 
-    height = "40px") %>%
+  GC_title("<i>Marseilleviridae</i> viral genomes") %>%
   GC_clusterLabel() %>%
   GC_scale(axis_type = "range") %>%
   GC_genes(

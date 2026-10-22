@@ -15,6 +15,7 @@
 - White legend markers (e.g. "No Hit" or a white custom colour) now get a light grey outline, so they stay visible on a white background.
 - A cluster margin set with `GC_grid(margin = )` is now kept by `GC_clusterLabel()` without `width`, whatever the order of the calls; `GC_clusterLabel()` called after `GC_grid()` set the margin to 100px. `GC_clusterLabel(width = )` still sets the margin.
 - Options given as a list (e.g. `labelAdjustmentOptions`, `colorBarOptions = list(labelOptions = )`) now keep the defaults of the options they leave out, at every level.
+- The geneviewer vignette has a new "Themes" section on `GC_theme()`: the built-in themes, the global settings and palettes, `textScale`, options per component and making a theme of your own with `geneviewer_theme()`.
 
 ### Bug fixes:
 - `GC_transcript()` no longer drops the settings of the whole chart made before it: the title, legend, theme and `GC_grid()` margins and direction are kept. Settings per cluster are for the old clusters and are set after `GC_transcript()`.

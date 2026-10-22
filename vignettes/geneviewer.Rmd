@@ -1214,6 +1214,114 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
 
 Like `GC_color()`, place `GC_pattern()` after `GC_genes()` and `GC_transcript()`, as these functions reset the pattern settings.
 
+## Themes {#themes}
+
+> **Note:** `GC_theme()`, `geneviewer_theme()` and `geneviewer_palette()` are only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
+
+The `GC_theme()` function sets the default look of the whole chart at once: fonts, text and line colours, the background, the gene colours and the options of each component. There are 7 built-in themes:
+
+- `"default"`: the default look of geneviewer.
+- `"classic"`: the default theme of ECharts 5.
+- `"dark"`: light text and soft colours on a dark background.
+- `"vintage"`: muted colours on a cream background.
+- `"infographic"`: strong colours.
+- `"publication"`: for journal figures (Arial, 7 pt text, black text and axes, italic gene labels and colour-blind safe colours).
+- `"bw"`: black and white, with a pattern for each group (see [Patterns](#patterns)).
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "150px") %>%
+  GC_labels("name") %>%
+  GC_theme("dark")
+```
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "150px") %>%
+  GC_labels("name") %>%
+  GC_theme("vintage")
+```
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "150px") %>%
+  GC_labels("name") %>%
+  GC_scale() %>%
+  GC_theme("publication")
+```
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "150px") %>%
+  GC_labels("name") %>%
+  GC_theme("bw")
+```
+
+A theme only changes how things look. It does not add components to the chart: a scale still needs `GC_scale()` and labels `GC_labels()`.
+
+### Global settings
+
+Next to `theme`, `GC_theme()` takes settings that apply to all components: `fontFamily`, `textColor`, `lineColor` (the sequence line, axis, coordinates and scale bar), `background`, `palette` (the gene colours) and `pattern`. Use them to change a built-in theme, or call `GC_theme()` without a theme to change the current one.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "150px") %>%
+  GC_labels("name") %>%
+  GC_theme("classic",
+           fontFamily = "Georgia",
+           textColor = "navy",
+           lineColor = "steelblue",
+           palette = c("#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02"))
+```
+
+`palette` takes a vector of colours, the name of a d3 colour scheme (e.g. `"schemeSet2"`) or the name of a geneviewer palette. `geneviewer_palette()` lists these palettes, and `geneviewer_palette("okabeIto")` returns the colours of one. The geneviewer palettes can also be used as the `colorScheme` of `GC_genes()`, `GC_transcript()` and `GC_color()`.
+
+```{r echo=TRUE}
+geneviewer_palette()
+```
+
+### Text size
+
+`textScale` scales all text of the chart at once, e.g. for a slide or a figure that is printed small. The title and the width of the cluster labels grow with the text.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "180px") %>%
+  GC_title("ophA gene cluster") %>%
+  GC_labels("name") %>%
+  GC_theme("classic", textScale = 1.4)
+```
+
+### Component options
+
+Options for a single component are given as a list named after the component, with the arguments of its `GC_` function, e.g. `labels = list(fontSize = "10px")` for `GC_labels()` or `links = list(curve = FALSE)` for `GC_links()`. See `?GC_theme` for all components.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "150px") %>%
+  GC_labels("name") %>%
+  GC_theme("classic",
+           labels = list(fontSize = "10px", fill = "grey"),
+           genes = list(marker = "rbox", stroke = "none"),
+           legend = list(position = "top"))
+```
+
+Options set with the other `GC_` functions always take precedence over the theme, whatever the order of the calls. Below the gene labels stay 14px, although the theme sets them to 10px.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "150px") %>%
+  GC_labels("name", fontSize = "14px") %>%
+  GC_theme("classic", labels = list(fontSize = "10px"))
+```
+
+### A theme of your own
+
+`geneviewer_theme()` returns the settings of a built-in theme as a list. Change it and pass it as the `theme` of `GC_theme()` to reuse your own theme in all your charts.
+
+```{r echo=TRUE, results='asis'}
+my_theme <- utils::modifyList(
+  geneviewer_theme("classic"),
+  list(textColor = "darkgreen", palette = "okabeIto")
+)
+
+GC_chart(ophA_cluster, group = "class", height = "150px") %>%
+  GC_labels("name") %>%
+  GC_theme(my_theme)
+```
+
 ## Legend
 
 The `GC_legend()` function can be used to show / hide and customize the legend. By default the legend is shown at the bottom. The below example shows the `GC_function()` with all its default settings.

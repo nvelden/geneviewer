@@ -1375,3 +1375,31 @@ test_that("GC_color takes colorScheme with a named list of customColors (B53)", 
   )
   expect_identical(unchanged, chart)
 })
+
+test_that("a title of the default height is not cut off (B54)", {
+  skip_on_cran()
+  skip_if_not_installed("chromote")
+  skip_if(is.null(tryCatch(chromote::find_chrome(), error = function(e) NULL)), "Chrome not found")
+
+  genes <- data.frame(start = c(10, 50), end = c(40, 80), group = c("A", "B"))
+  file <- tempfile(fileext = ".html")
+  # An 18px title with descenders (g, y, p)
+  chart <- GC_chart(genes, group = "group", height = "150px") %>%
+    GC_title("Gypsy group") %>%
+    GC_theme("classic")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+
+  session <- chromote::ChromoteSession$new()
+  on.exit(session$close(), add = TRUE)
+  loaded <- session$Page$loadEventFired(wait_ = FALSE)
+  session$Page$navigate(paste0("file://", normalizePath(file)), wait_ = FALSE)
+  session$wait_for(loaded)
+  overflow <- session$Runtime$evaluate("
+    (() => {
+      const svg = document.querySelector('[id^=geneviewer-title-container] svg');
+      const text = svg.querySelector('text');
+      return text.getBoundingClientRect().bottom - svg.getBoundingClientRect().bottom;
+    })()")$result$value
+
+  expect_lte(overflow, 0)
+})

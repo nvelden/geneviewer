@@ -35,7 +35,7 @@ Default is an empty list.}
 \item{show}{Logical. Whether to display the title. Default is TRUE.}
 
 \item{height}{Character. Height for the title (e.g., "50px"). Default is
-NULL: the height of the theme, otherwise 50 pixels with a subtitle and 30
+NULL: the height of the theme, otherwise 50 pixels with a subtitle and 40
 without.}
 
 \item{...}{Additional customization arguments for title and subtitle.}

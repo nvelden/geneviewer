@@ -8,7 +8,7 @@
 #' @param subtitle Character vector. Subtitles to set for the clusters.
 #' @param show Logical. Whether to display the title. Default is TRUE.
 #' @param height Character. Height for the title (e.g., "50px"). Default is
-#'   NULL: the height of the theme, otherwise 50 pixels with a subtitle and 30
+#'   NULL: the height of the theme, otherwise 50 pixels with a subtitle and 40
 #'   without.
 #' @param style A list of CSS styles to be applied to the chart container. Each
 #'   element of the list should be a valid CSS property-value pair. For example,

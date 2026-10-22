@@ -68,7 +68,7 @@ kable(head(alignment))
 
 ### Synteny gene cluster chart
 
-To map the alignment onto the genome, we must first load the cluster information from the .gbk files. For detailed instructions, please refer to the tutorial [Load Gene Cluster data from GenBank Files](https://nvelden.github.io/geneviewer/articles/LoadGenBankFiles.html). We add an extra column called "CDS" to the data which will be used as key to color the genes.
+To map the alignment onto the genome, we must first load the cluster information from the .gbk files. For detailed instructions, please refer to the tutorial [Load Gene Cluster data from GenBank Files](https://nvelden.github.io/geneviewer/articles/LoadGenBankFiles.html).
 
 ```{r eval=FALSE, results='hide'}
 folder_path <- "~/path/to/folder/"
@@ -78,7 +78,6 @@ cds_df <- gbk_features_to_df(
   feature = "CDS",
   keys = c("region", "gene", "protein_id", "note", "product")
   )
-cds_df$type <- "CDS"
 ```
 
 ```{r echo = FALSE, results='hide', message=FALSE, warning=FALSE}
@@ -89,7 +88,6 @@ cds_df <- gbk_features_to_df(
   feature = "CDS",
   keys = c("region", "gene", "protein_id", "note", "product")
   )
-cds_df$type <- "CDS"
 ```
 
 ```{r echo = FALSE, results='asis'}
@@ -97,33 +95,22 @@ kable(head(cds_df))
 ```
 
 
-We can load the cluster data into the `GC_chart()` and the alignment data into the `GC_links()` function. In addition, we change the axis_type to "range", make the genes a little smaller and add cluster labels. For more customization options see [Get started](https://nvelden.github.io/geneviewer/articles/geneviewer.html).
+We can load the cluster data into the `GC_chart()` and the alignment data into the `GC_links()` function. In addition, we change the axis_type to "range", make the genes a little smaller, add cluster labels and use the `"publication"` theme (`GC_theme()` is only available in the development version). For more customization options see [Get started](https://nvelden.github.io/geneviewer/articles/geneviewer.html).
 
 **Important**: The gene cluster data like the alignment data is loaded in the order of the files in the folder. If a custom order was used for the MUMer alignment make sure to sort the "cluster" column in the cluster data in the same way.
 
 ```{r echo = TRUE, results='asis'}
-GC_chart(
-  data = cds_df,
-  group = "cluster",
-  strand = "strand",
-  cluster = "cluster"
-) %>%
-GC_links(
-  data = alignment,
-  measure = "identity", # similarity/none
-) %>%
-GC_scale(axis_type = "range") %>%
-GC_cluster(separate_strands = TRUE) %>%
-GC_genes(
-  group = "type",
-  marker_size = "small"
-) %>%    
-GC_clusterLabel(
-  title = c("pALH1", "pBFQ", "F837_55", "pBFI_4"), 
-  width = 50
+GC_chart(cds_df, strand = "strand", cluster = "cluster") %>%
+  GC_links(data = alignment, measure = "identity") %>%
+  GC_scale(axis_type = "range") %>%
+  GC_cluster(separate_strands = TRUE) %>%
+  GC_genes(marker_size = "small") %>%
+  GC_clusterLabel(
+    title = c("pALH1", "pBFQ", "F837_55", "pBFI_4"),
+    width = "75px",
+    fontSize = "12px"
   ) %>%
-GC_tooltip(
-  formatter = "<b>{protein_id}</b><br>{start} - {end}" 
-) %>%
-GC_legend(FALSE)
+  GC_tooltip(formatter = "<b>{protein_id}</b><br>{start} - {end}") %>%
+  GC_legend(FALSE) %>%
+  GC_theme("publication")
 ```

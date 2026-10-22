@@ -52,8 +52,10 @@ d3 scheme (e.g. "schemeSet2") or a geneviewer palette (e.g. "okabeIto",
 see \code{\link[=geneviewer_palette]{geneviewer_palette()}}). When no \code{selection} is made, the legend uses the same colours. NULL keeps
 the colours set by \code{GC_color()}.}
 
-\item{customColors}{List or NULL, custom colors to apply to the genes. When no
-\code{selection} is made, the legend uses the same colours.}
+\item{customColors}{List or NULL, custom colors to apply to the genes: a
+vector of colours, recycled over the groups, or a named list of colours by
+group. Groups left out of a named list keep the colours of the colour
+scheme. When no \code{selection} is made, the legend uses the same colours.}
 
 \item{styleExons}{List, styles to apply to exons in the chart.}
 

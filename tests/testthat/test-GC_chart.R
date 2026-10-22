@@ -1352,3 +1352,26 @@ test_that("GC_legend() sends corner_radius to the browser as cornerRadius", {
   themed <- GC_theme(chart, legend = list(corner_radius = 3))
   expect_equal(theme_to_js(themed$x$theme)$legendOptions$cornerRadius, 3)
 })
+
+test_that("GC_color takes colorScheme with a named list of customColors (B53)", {
+  genes <- data.frame(
+    start = c(10, 50, 90), end = c(40, 80, 120), group = c("A", "B", "Other")
+  )
+  chart <- GC_chart(genes, group = "group")
+
+  # A named list sets some groups; colorScheme colours the others
+  both <- GC_color(chart, colorScheme = "schemeSet2", customColors = list(Other = "grey"))
+  expect_equal(both$x$legend$legendOptions$colorScheme, "schemeSet2")
+  expect_equal(both$x$legend$legendOptions$customColors, list(Other = "grey"))
+  for (cl in names(both$x$series)) {
+    expect_equal(both$x$series[[cl]]$genes$colorScheme, "schemeSet2")
+    expect_equal(both$x$series[[cl]]$genes$customColors, list(Other = "grey"))
+  }
+
+  # Unnamed customColors replace the scheme: still one or the other
+  expect_warning(
+    unchanged <- GC_color(chart, colorScheme = "schemeSet2", customColors = c("red", "blue")),
+    "Both colorScheme and customColors"
+  )
+  expect_identical(unchanged, chart)
+})

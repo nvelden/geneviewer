@@ -15,7 +15,9 @@ color schemes like "schemeCategory10", "schemeAccent", "schemeTableau10",
 and the geneviewer palettes like "okabeIto" (see \code{\link[=geneviewer_palette]{geneviewer_palette()}}).}
 
 \item{customColors}{Either NULL, a list of color values, or a named list of
-color values.}
+color values by group. Groups left out of a named list keep the colours of
+\code{colorScheme}, the palette of the theme or the default colours, e.g.
+\code{customColors = list(Other = "grey")} only changes the colour of "Other".}
 }
 \value{
 Returns the gene chart object with updated color settings for the genes.
@@ -40,6 +42,10 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "100px") \%>
 
 GC_chart(genes_data, cluster = "cluster", group = "group", height = "100px") \%>\%
   GC_color(customColors = list(A = "yellow", B = "pink", C =  "purple"))
+
+# Set the colour of one group; the others keep the colours of the scheme
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "100px") \%>\%
+  GC_color(colorScheme = "schemeSet2", customColors = list(C = "grey"))
 
 
 }

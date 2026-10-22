@@ -134,8 +134,10 @@ GC_labels <- function(
 #'   d3 scheme (e.g. "schemeSet2") or a geneviewer palette (e.g. "okabeIto",
 #'   see [geneviewer_palette()]). When no `cluster` is selected, the legend uses the same colours. NULL keeps
 #'   the colours set by `GC_color()`.
-#' @param customColors List or NULL, custom colors to apply to the genes. When no
-#'   `cluster` is selected, the legend uses the same colours.
+#' @param customColors List or NULL, custom colors to apply to the genes: a
+#'   vector of colours, recycled over the groups, or a named list of colours by
+#'   group. Groups left out of a named list keep the colours of the colour
+#'   scheme. When no `cluster` is selected, the legend uses the same colours.
 #' @param cluster Numeric or character, the specific cluster to filter genes by.
 #' @param itemStyle List, a list of styles to apply to individual items in the
 #'   chart.
@@ -278,8 +280,10 @@ GC_genes <- function(
 #'  d3 scheme (e.g. "schemeSet2") or a geneviewer palette (e.g. "okabeIto",
 #'  see [geneviewer_palette()]). When no `selection` is made, the legend uses the same colours. NULL keeps
 #'  the colours set by `GC_color()`.
-#'@param customColors List or NULL, custom colors to apply to the genes. When no
-#'  `selection` is made, the legend uses the same colours.
+#'@param customColors List or NULL, custom colors to apply to the genes: a
+#'  vector of colours, recycled over the groups, or a named list of colours by
+#'  group. Groups left out of a named list keep the colours of the colour
+#'  scheme. When no `selection` is made, the legend uses the same colours.
 
 #'@param styleExons List, styles to apply to exons in the chart.
 #'@param styleIntrons List, styles to apply to introns in the chart.
@@ -540,7 +544,9 @@ GC_transcript <- function(GC_chart,
 #' color schemes like "schemeCategory10", "schemeAccent", "schemeTableau10",
 #' and the geneviewer palettes like "okabeIto" (see [geneviewer_palette()]).
 #' @param customColors Either NULL, a list of color values, or a named list of
-#' color values.
+#' color values by group. Groups left out of a named list keep the colours of
+#' `colorScheme`, the palette of the theme or the default colours, e.g.
+#' `customColors = list(Other = "grey")` only changes the colour of "Other".
 #'
 #' @return Returns the gene chart object with updated color settings for the genes.
 #'
@@ -562,6 +568,10 @@ GC_transcript <- function(GC_chart,
 #' GC_chart(genes_data, cluster = "cluster", group = "group", height = "100px") %>%
 #'   GC_color(customColors = list(A = "yellow", B = "pink", C =  "purple"))
 #'
+#' # Set the colour of one group; the others keep the colours of the scheme
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "100px") %>%
+#'   GC_color(colorScheme = "schemeSet2", customColors = list(C = "grey"))
+#'
 #'
 #' @export
 GC_color <- function(
@@ -570,9 +580,9 @@ GC_color <- function(
     customColors = NULL
 ) {
 
-  # Warning if both colorScheme and customColors are selected
-  if (!is.null(colorScheme) && !is.null(customColors)) {
-    warning("Both colorScheme and customColors are selected. Please choose only one.")
+  # colorScheme only colours the groups left out of a named list of customColors
+  if (!is.null(colorScheme) && !is.null(customColors) && is.null(names(customColors))) {
+    warning("Both colorScheme and customColors are selected. Use a named list of customColors to set the colours of some groups, or choose only one.")
     return(GC_chart)
   }
 

@@ -37,8 +37,10 @@ d3 scheme (e.g. "schemeSet2") or a geneviewer palette (e.g. "okabeIto",
 see \code{\link[=geneviewer_palette]{geneviewer_palette()}}). When no \code{cluster} is selected, the legend uses the same colours. NULL keeps
 the colours set by \code{GC_color()}.}
 
-\item{customColors}{List or NULL, custom colors to apply to the genes. When no
-\code{cluster} is selected, the legend uses the same colours.}
+\item{customColors}{List or NULL, custom colors to apply to the genes: a
+vector of colours, recycled over the groups, or a named list of colours by
+group. Groups left out of a named list keep the colours of the colour
+scheme. When no \code{cluster} is selected, the legend uses the same colours.}
 
 \item{cluster}{Numeric or character, the specific cluster to filter genes by.}
 

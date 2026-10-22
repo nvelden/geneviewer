@@ -64,7 +64,7 @@ GC_chart(gene_cluster, group = "class", height = "100px") %>%
 
 For additional examples and the corresponding code to create the plots, please visit the [Examples](https://nvelden.github.io/geneviewer/articles/Examples.html) section.
 
-<img src="man/figures/erythromycin_BlastP.png"/>
+<img src="man/figures/erythromycin_BlastP_infographic.png"/>
 
 <hr>
 

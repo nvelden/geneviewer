@@ -478,6 +478,8 @@ GC_chart(erythromycin_cluster,
 
 ### *Saccharopolyspora erythraea* Erythromycin BlastP
 
+The BlastP results with the `"infographic"` theme. Genes without a BlastP hit have no group and stay white, so the genes get a thin grey outline (`GC_theme()` is only available in the development version).
+
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
@@ -496,7 +498,9 @@ GC_chart(erythromycin_BlastP,
            color_bar = FALSE,
            labelStyle = list(fontSize = "10px")
            ) %>%
-  GC_clusterLabel()
+  GC_clusterLabel() %>%
+  GC_genes(stroke = "#6E7079", strokeWidth = 0.5) %>%
+  GC_theme("infographic")
 ```
 </details>
 
@@ -516,7 +520,9 @@ GC_chart(erythromycin_BlastP,
            color_bar = FALSE,
            labelStyle = list(fontSize = "10px")
            ) %>%
-  GC_clusterLabel()
+  GC_clusterLabel() %>%
+  GC_genes(stroke = "#6E7079", strokeWidth = 0.5) %>%
+  GC_theme("infographic")
 ```
 
 <details>

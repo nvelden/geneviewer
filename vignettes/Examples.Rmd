@@ -441,7 +441,6 @@ GC_chart(erythromycin_cluster,
          height = "170px") %>%
   GC_title(
     title = "Erythromycin A biosynthetic gene cluster from <i>Saccharopolyspora erythraea</i>",
-    height = 40,
     align = "left"
   ) %>%
   GC_genes(marker = "boxarrow", marker_size = "small") %>%
@@ -465,7 +464,6 @@ GC_chart(erythromycin_cluster,
          height = "170px") %>%
   GC_title(
     title = "Erythromycin A biosynthetic gene cluster from <i>Saccharopolyspora erythraea</i>",
-    height = 40,
     align = "left"
   ) %>%
   GC_genes(marker = "boxarrow", marker_size = "small") %>%

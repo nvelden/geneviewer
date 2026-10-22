@@ -54,8 +54,9 @@ HTMLWidgets.widget({
           .attr("id", `geneviewer-title-container-${widgetId}`)
           .classed("geneviewer-container", true);
 
-        // Default height: room for the title and the subtitle, at the text size of the theme
-        var defaultTitleHeight = (titleOptions.title && titleOptions.subtitle ? 50 : 30) * themeTextScale(theme);
+        // Default height: room for the title and the subtitle, with the descenders
+        // of an 18px title, at the text size of the theme
+        var defaultTitleHeight = (titleOptions.title && titleOptions.subtitle ? 50 : 40) * themeTextScale(theme);
         var titleHeightOption = mergeOptions({ height: defaultTitleHeight }, "titleOptions", titleOptions, theme).height;
         titleHeight = computeSize(titleHeightOption, el.clientHeight);
         var titleOpts = { ...titleOptions, width: el.clientWidth, height: titleHeight };

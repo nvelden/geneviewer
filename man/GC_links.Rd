@@ -18,6 +18,8 @@ GC_links(
   normal_color = NULL,
   inverted_color = NULL,
   low_color = NULL,
+  vmin = NULL,
+  vmax = NULL,
   use_group_colors = FALSE,
   color_bar = NULL,
   colorBarOptions = list(),
@@ -58,9 +60,16 @@ NULL: the color of the theme, otherwise "#969696".}
 \item{inverted_color}{Color for inverted links. Default is NULL: the color
 of the theme, otherwise "#d62728".}
 
-\item{low_color}{Color of links with the lowest measure: links run from
-this color (a measure of 0) to \code{normal_color} or \code{inverted_color} (100).
-Default is NULL: the color of the theme, otherwise white.}
+\item{low_color}{Color that links fade to at a low measure: links run from
+nearly this color (10\% of the link color, at \code{vmin}) to \code{normal_color} or
+\code{inverted_color} (at \code{vmax}). Default is NULL: the color of the theme,
+otherwise white.}
+
+\item{vmin, vmax}{Numeric; the measures of the lightest and the full link
+color, also the ends of the color bar. Measures outside are drawn in the
+color of the nearest end. Default is NULL: as set by the theme, otherwise
+0 and 100. Set \code{vmin} to the lowest measure to spread the colors over the
+data, e.g. \code{vmin = floor(min(alignment$identity))}.}
 
 \item{use_group_colors}{Logical; if \code{TRUE}, color links by group.}
 

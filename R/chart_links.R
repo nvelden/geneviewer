@@ -152,9 +152,15 @@ get_links <-
 #'   NULL: the color of the theme, otherwise "#969696".
 #' @param inverted_color Color for inverted links. Default is NULL: the color
 #'   of the theme, otherwise "#d62728".
-#' @param low_color Color of links with the lowest measure: links run from
-#'   this color (a measure of 0) to `normal_color` or `inverted_color` (100).
-#'   Default is NULL: the color of the theme, otherwise white.
+#' @param low_color Color that links fade to at a low measure: links run from
+#'   nearly this color (10% of the link color, at `vmin`) to `normal_color` or
+#'   `inverted_color` (at `vmax`). Default is NULL: the color of the theme,
+#'   otherwise white.
+#' @param vmin,vmax Numeric; the measures of the lightest and the full link
+#'   color, also the ends of the color bar. Measures outside are drawn in the
+#'   color of the nearest end. Default is NULL: as set by the theme, otherwise
+#'   0 and 100. Set `vmin` to the lowest measure to spread the colors over the
+#'   data, e.g. `vmin = floor(min(alignment$identity))`.
 #' @param use_group_colors Logical; if `TRUE`, color links by group.
 #' @param color_bar Logical; if `TRUE`, the color bar is displayed. Default is
 #'   NULL: as set by the theme, otherwise `TRUE`.
@@ -268,6 +274,8 @@ GC_links <- function(
     normal_color = NULL,
     inverted_color = NULL,
     low_color = NULL,
+    vmin = NULL,
+    vmax = NULL,
     use_group_colors = FALSE,
     color_bar = NULL,
     colorBarOptions = list(),
@@ -280,6 +288,18 @@ GC_links <- function(
   # Validate measure
   if (!measure %in% c("identity", "similarity", "none")) {
     stop("Invalid measure specified. Choose 'identity', 'similarity', or 'none'.")
+  }
+
+  # Validate the measures of the link colors
+  for (v in list(vmin, vmax)) {
+    if (!is.null(v) && !(is.numeric(v) && length(v) == 1 && is.finite(v))) {
+      stop("'vmin' and 'vmax' must be single numbers.")
+    }
+  }
+  if (!is.null(vmin) || !is.null(vmax)) {
+    if ((if (is.null(vmin)) 0 else vmin) >= (if (is.null(vmax)) 100 else vmax)) {
+      stop("'vmin' must be smaller than 'vmax'.")
+    }
   }
 
   # Check for required data
@@ -333,6 +353,8 @@ GC_links <- function(
     normalColor = normal_color,
     invertedColor = inverted_color,
     lowColor = low_color,
+    vmin = vmin,
+    vmax = vmax,
     useGroupColors = use_group_colors,
     value1 = value1,
     value2 = value2,

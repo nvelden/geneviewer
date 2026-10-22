@@ -7,9 +7,11 @@
 - Gene colours can be set by the name of a geneviewer palette, besides the d3 colour schemes: `"okabeIto"` (colour-blind safe), `"classic"` (clear colours), `"vivid"` (bright colours for dark backgrounds), `"dark"` (soft colours for dark backgrounds), `"vintage"` (muted colours), `"infographic"` (strong colours), `"greys"` and `"blues"`, in `GC_theme(palette = )` and the `colorScheme` of `GC_genes()`, `GC_transcript()` and `GC_color()`. `geneviewer_palette()` returns their colours.
 - `GC_links(low_color = )` sets the colour of links with the lowest identity (white by default), e.g. the background colour on a dark chart.
 - `GC_genes(corner_radius = )` rounds the corners of the "arrow", "boxarrow" and "box" markers (e.g. `corner_radius = 3` for soft corners; the inner corners of arrows stay sharp) and sets those of "rbox". Exons take `cornerRadius` in `styleExons`, and themes in `genes = list(corner_radius = )`. `GC_legend(corner_radius = )` rounds the corners of the legend markers.
+- `GC_links(vmin = , vmax = )` set the measures of the lightest and the full link colour, and the ends of the colour bar (0 and 100 by default): e.g. `vmin = floor(min(alignment$identity))` spreads the colours over the identities of an alignment, so differences are easier to see. Measures outside are drawn in the colour of the nearest end.
 - `GC_trackMouse()` takes the styles of the coordinate tooltip (e.g. `backgroundColor`, `fontSize`) and `cursor`.
 
 ### Changes:
+- Links now fade to nearly white (10% of the link colour) at the lowest measure instead of white, so they stay visible on the background. The colour bar now runs from `vmin` to `vmax` (0% to 100% by default) instead of from the lowest to the highest measure in the data.
 - The title and labels of the link colour bar are now in sans-serif, like the other text; they used the serif font of the browser.
 - With a theme background, the UTRs of transcripts are filled with the background instead of white.
 - White legend markers (e.g. "No Hit" or a white custom colour) now get a light grey outline, so they stay visible on a white background.

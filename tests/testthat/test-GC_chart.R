@@ -1412,3 +1412,43 @@ test_that("the legend of a chart with a fixed width is not scaled down (B55)", {
 
   expect_equal(scale, 1)
 })
+
+test_that("GC_links() sends vmin and vmax and checks them", {
+  genes <- data.frame(cluster = c("A", "B"), start = c(1, 1), end = c(100, 100))
+  links <- data.frame(cluster1 = "A", start1 = 1, end1 = 100,
+                      cluster2 = "B", start2 = 1, end2 = 100, identity = 90)
+  chart <- GC_chart(genes, cluster = "cluster") %>%
+    GC_links(data = links, vmin = 80, vmax = 99)
+  expect_equal(chart$x$links[[1]]$options$vmin, 80)
+  expect_equal(chart$x$links[[1]]$options$vmax, 99)
+  expect_null(GC_links(GC_chart(genes, cluster = "cluster"), data = links)$x$links[[1]]$options$vmin)
+
+  chart <- GC_chart(genes, cluster = "cluster")
+  expect_error(GC_links(chart, data = links, vmin = 90, vmax = 80), "smaller")
+  expect_error(GC_links(chart, data = links, vmin = 100), "smaller")
+  expect_error(GC_links(chart, data = links, vmin = "a"), "single numbers")
+})
+
+test_that("links fade from nearly white at vmin to the link colour at vmax", {
+  genes <- data.frame(cluster = c("A", "B"), start = c(1, 1), end = c(400, 400))
+  links <- data.frame(cluster1 = "A", start1 = c(1, 101, 201, 301), end1 = c(90, 190, 290, 390),
+                      cluster2 = "B", start2 = c(1, 101, 201, 301), end2 = c(90, 190, 290, 390),
+                      identity = c(40, 60, 80, 100))
+  file <- tempfile(fileext = ".html")
+  chart <- GC_chart(genes, cluster = "cluster", height = "300px") %>%
+    GC_links(data = links, vmin = 60, vmax = 100, normal_color = "#000000")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+
+  session <- chrome_page(file)
+  res <- session$Runtime$evaluate("
+    JSON.stringify({
+      fills: [...document.querySelectorAll('path.GeneLink')].map(p => p.style.fill),
+      labels: [...document.querySelectorAll('.color-bar text')].map(t => t.textContent)
+    })")$result$value
+  res <- jsonlite::fromJSON(res)
+
+  # 10% black on white is rgb(230, 230, 230); 40 is clamped to vmin
+  expect_equal(res$fills, c("rgb(230, 230, 230)", "rgb(230, 230, 230)",
+                            "rgb(115, 115, 115)", "rgb(0, 0, 0)"))
+  expect_true(all(c("60%", "100%") %in% res$labels))
+})

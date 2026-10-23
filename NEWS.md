@@ -28,6 +28,7 @@
 - The "Example charts" article has a new example: the *bla*KPC-2 plasmid pQEB1 and four variants, with links that show inversions and inserted transposons. Its data are in the new datasets `pQEB1_plasmids` (genes) and `pQEB1_alignment` (a nucmer alignment), made by `data-raw/pQEB1_plasmids.R` from the GenBank files.
 
 ### Bug fixes:
+- The line of a cluster now stops at a scale break (`GC_scale(breaks = )` or `scale_breaks = TRUE`) and starts again after it, so the break marks show a real gap; the line ran on between them.
 - A gene made taller or moved with `GC_genes(itemStyle = )` (e.g. `markerHeight`, `arrowheadHeight` or `y`) no longer moves the labels of the other genes in its cluster. The labels and track spacing used the size and position of whichever gene was drawn last.
 - Annotations now stay on their genes with `GC_scale(axis_type = "range")`: the range axis moves the genes of each cluster to start at 1, and now moves the annotations of the cluster (`x`, `x1`, `x2` and `position`) with them, whether they are added before or after `GC_scale()`. They used to be drawn too far to the right.
 - A wrapped cluster label (`GC_clusterLabel()`) keeps its `<b>`, `<i>` and `<u>` styles when the tagged text runs over two lines, e.g. `"pQEB1 <i>E. cloacae ECL-21</i>"`; the tags were shown as text. The lines are now also measured without the tags, so they no longer break too early.

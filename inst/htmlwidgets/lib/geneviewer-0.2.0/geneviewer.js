@@ -2105,12 +2105,34 @@ container.prototype.sequence = function (show = true, options = {}) {
   maxEnd = addScalePadding(minStart, maxEnd, this.padding, "end")
   }
 
-  // Draw baseline with sequenceStyle
-  g.append("line")
+  // Pixel positions of the break markers, each markerStyle.gap px away from the break
+  const breakMarkers = this.breaks.map(gap => ({
+    xStart: this.xScale(gap.start - 0.001) - markerStyle.gap,
+    xEnd: this.xScale(gap.end + 0.001) + markerStyle.gap
+  }));
+
+  // Draw baseline with sequenceStyle, left open between the two markers of a break
+  const [lineLeft, lineRight] = [this.xScale(minStart), this.xScale(maxEnd)].sort((a, b) => a - b);
+  const openings = breakMarkers
+    .map(({ xStart, xEnd }) => [xStart + markerStyle.tiltAmount / 2, xEnd - markerStyle.tiltAmount / 2]
+      .sort((a, b) => a - b))
+    .sort((a, b) => a[0] - b[0]);
+  const segments = [];
+  let segmentStart = lineLeft;
+  for (const [openLeft, openRight] of openings) {
+    if (openLeft > segmentStart) segments.push([segmentStart, Math.min(openLeft, lineRight)]);
+    segmentStart = Math.max(segmentStart, openRight);
+  }
+  if (segmentStart < lineRight) segments.push([segmentStart, lineRight]);
+
+  g.selectAll("line.baseline")
+    .data(segments)
+    .enter()
+    .append("line")
     .attr("class", "baseline")
-    .attr("x1", this.xScale(minStart))
+    .attr("x1", d => d[0])
     .attr("y1", this.yScale(y))
-    .attr("x2", this.xScale(maxEnd))
+    .attr("x2", d => d[1])
     .attr("y2", this.yScale(y))
     .style("stroke", sequenceStyle.stroke)
     .style("stroke-width", sequenceStyle.strokeWidth)
@@ -2119,22 +2141,11 @@ container.prototype.sequence = function (show = true, options = {}) {
       setStyleFromOptions(currentElement, additionalOptionsSequence);
     });
 
-  // Draw break markers with tilted lines, each markerStyle.gap px away from the break
-  for (let gap of this.breaks) {
-    const xStart = this.xScale(gap.start - 0.001) - markerStyle.gap;
-    const xEnd = this.xScale(gap.end + 0.001) + markerStyle.gap;
+  // Draw break markers with tilted lines
+  for (const { xStart, xEnd } of breakMarkers) {
     const yBase = this.yScale(y);
     const yTop = yBase - markerStyle.markerHeight / 2;
     const yBottom = yBase + markerStyle.markerHeight / 2;
-
-    g.append("line")
-      .attr("class", "gap-line")
-      .attr("x1", xStart + (markerStyle.tiltAmount / 2))
-      .attr("y1", yBase)
-      .attr("x2", xEnd - (markerStyle.tiltAmount / 2))
-      .attr("y2", yBase)
-      .attr("stroke", "#0000")
-      .style("stroke-width", sequenceStyle.strokeWidth * 1.1);
 
     // Draw the tilted line before the gap
     g.append("line")

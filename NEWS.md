@@ -10,6 +10,7 @@
 - `GC_links(vmin = , vmax = )` set the measures of the lightest and the full link colour, and the ends of the colour bar (0 and 100 by default): e.g. `vmin = floor(min(alignment$identity))` spreads the colours over the identities of an alignment, so differences are easier to see. Measures outside are drawn in the colour of the nearest end.
 - `GC_legend(align = )` aligns the legend to the left, centre or right, like `GC_title()`: `"left"` (default), `"center"` or `"right"`. Each row of a legend that wraps is aligned on its own, and `x` moves the legend from that position. Themes take it in `legend = list(align = )`.
 - `GC_title()`, `GC_clusterTitle()` and `GC_clusterFooter()` now have a documented `align` argument (`"left"`, `"center"` or `"right"`), which is checked; it was only taken through `...`. The cluster title and footer take one per cluster, e.g. `align = c("left", "right")`.
+- `GC_clusterLabel(align = )` aligns the lines of the cluster labels to the left, centre (default) or right of their margin, e.g. `align = "left"` so the names and the species below them start at the same place. `x` moves the labels from that position.
 - `GC_trackMouse()` takes the styles of the coordinate tooltip (e.g. `backgroundColor`, `fontSize`) and `cursor`.
 
 ### Changes:
@@ -23,6 +24,7 @@
 - The geneviewer vignette has a new "Themes" section on `GC_theme()`: the built-in themes, the global settings and palettes, `textScale`, options per component and making a theme of your own with `geneviewer_theme()`.
 
 ### Bug fixes:
+- A wrapped cluster label (`GC_clusterLabel()`) keeps its `<b>`, `<i>` and `<u>` styles when the tagged text runs over two lines, e.g. `"pQEB1 <i>E. cloacae ECL-21</i>"`; the tags were shown as text. The lines are now also measured without the tags, so they no longer break too early.
 - The legend of a chart with a fixed width (e.g. `GC_chart(width = "900px")`) no longer gets smaller in a wider browser window: it was laid out at the width of the window and then scaled down into the chart, e.g. in a page saved with `htmlwidgets::saveWidget()`.
 - The bottom of letters such as g, y and p in a title without a subtitle is no longer cut off: the default title height is now 40 pixels instead of 30, so `GC_title(height = )` is no longer needed for titles of 16 or 18 pixels.
 - A named list of `customColors` (in `GC_color()`, `GC_genes()` and `GC_transcript()`) that leaves out groups no longer makes those groups white: they keep the colours of `colorScheme`, the theme palette or the default colours, e.g. `GC_color(customColors = list(Other = "grey"))` only changes "Other". `GC_color()` now takes `colorScheme` together with a named list of `customColors`.

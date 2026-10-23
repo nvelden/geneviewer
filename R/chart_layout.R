@@ -806,6 +806,11 @@ GC_scaleBar <- function(
 #' Default is NULL.
 #' @param position Character. Position of the label, either "left" or "right".
 #' Default is NULL: the position of the theme, otherwise "left".
+#' @param align Character vector. Horizontal alignment of the lines of the
+#' label in its margin, "left", "center" or "right", recycled over the
+#' clusters. `x` moves the label from this position, e.g. `x = 5` for some
+#' space at the left edge. Default is NULL: the alignment of the theme,
+#' otherwise "center".
 #' @param wrapLabel Logical. Indicates whether the label should be wrapped.
 #' Default is NULL: as set by the theme, otherwise TRUE.
 #' @param wrapOptions List. Specifies the wrapping options.
@@ -841,6 +846,7 @@ GC_scaleBar <- function(
 #'     x = 0,
 #'     y = 0,
 #'     position = "left",
+#'     align = "left", # center / right
 #'     wrapLabel = TRUE,
 #'     wrapOptions = list(
 #'       dyAdjust = 0,
@@ -864,6 +870,7 @@ GC_clusterLabel <- function(
     width = NULL,
     cluster = NULL,
     position = NULL,
+    align = NULL,
     wrapLabel = NULL,
     wrapOptions = list(),
     ...
@@ -872,6 +879,7 @@ GC_clusterLabel <- function(
   if (!any(show)) {
     return(GC_chart)
   }
+  check_align(align, per_cluster = TRUE)
 
   cluster_column <- GC_chart$x$cluster
 
@@ -896,7 +904,8 @@ GC_clusterLabel <- function(
       width = recycle_at(width, i),
       wrapLabel = wrapLabel,
       wrapOptions = wrapOptions,
-      position = recycle_at(position, i)
+      position = recycle_at(position, i),
+      align = recycle_at(align, i)
     ))
 
     # Add ... arguments to options

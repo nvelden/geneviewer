@@ -11,6 +11,7 @@ GC_clusterLabel(
   width = NULL,
   cluster = NULL,
   position = NULL,
+  align = NULL,
   wrapLabel = NULL,
   wrapOptions = list(),
   ...
@@ -32,6 +33,12 @@ Default is NULL.}
 
 \item{position}{Character. Position of the label, either "left" or "right".
 Default is NULL: the position of the theme, otherwise "left".}
+
+\item{align}{Character vector. Horizontal alignment of the lines of the
+label in its margin, "left", "center" or "right", recycled over the
+clusters. \code{x} moves the label from this position, e.g. \code{x = 5} for some
+space at the left edge. Default is NULL: the alignment of the theme,
+otherwise "center".}
 
 \item{wrapLabel}{Logical. Indicates whether the label should be wrapped.
 Default is NULL: as set by the theme, otherwise TRUE.}
@@ -75,6 +82,7 @@ GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") \%>\
     x = 0,
     y = 0,
     position = "left",
+    align = "left", # center / right
     wrapLabel = TRUE,
     wrapOptions = list(
       dyAdjust = 0,

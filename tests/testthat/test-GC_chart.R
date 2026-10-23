@@ -1490,6 +1490,71 @@ test_that("a cluster footer is aligned like the cluster title, beside a cluster 
   expect_equal(edges$right$footer$right, edges$right$title$right, tolerance = 0.01)
 })
 
+test_that("GC_clusterLabel() sends align and checks it", {
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
+  labelled <- GC_clusterLabel(chart, align = c("left", "right"))
+  expect_equal(unname(sapply(labelled$x$series, function(s) s$clusterLabel$align)), c("left", "right"))
+  expect_null(GC_clusterLabel(chart)$x$series[[1]]$clusterLabel$align)
+  expect_error(GC_clusterLabel(chart, align = "middle"), "align must be")
+})
+
+test_that("GC_clusterLabel(align = ) lines up the lines of a label in its margin", {
+  genes <- data.frame(start = c(10, 50), end = c(40, 80), group = c("A", "B"))
+  # Left and right edges of each line of a wrapped label, and of the margin
+  edges <- lapply(c(left = "left", center = "center", right = "right"), function(align) {
+    file <- tempfile(fileext = ".html")
+    chart <- GC_chart(genes, group = "group", width = "600px", height = "200px") %>%
+      GC_clusterLabel("A long cluster name wrapped", width = "120px", align = align)
+    htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+    session <- chrome_page(file)
+    session$Runtime$evaluate("
+      (() => {
+        const lines = [...document.querySelectorAll('tspan.wrap-line')]
+          .filter(d => d.closest('text').textContent.startsWith('A long'))
+          .map(d => d.getBoundingClientRect());
+        const svg = lines.length && document.querySelector('tspan.wrap-line').ownerSVGElement.getBoundingClientRect();
+        return { left: lines.map(d => d.left - svg.left), right: lines.map(d => d.right - svg.left) };
+      })()", returnByValue = TRUE)$result$value
+  })
+
+  expect_gt(length(edges$left$left), 1)
+  # Left: all lines start at the left edge; right: all end at the margin (120px)
+  expect_equal(unlist(edges$left$left), rep(0, length(edges$left$left)), tolerance = 1e-6)
+  expect_equal(unlist(edges$right$right), rep(120, length(edges$right$right)), tolerance = 0.01)
+  # Centre: the lines are centred in the margin
+  mid <- (unlist(edges$center$left) + unlist(edges$center$right)) / 2
+  expect_equal(mid, rep(60, length(mid)), tolerance = 0.01)
+})
+
+test_that("a wrapped cluster label keeps <i> styles over its lines", {
+  genes <- data.frame(start = c(10, 50), end = c(40, 80), group = c("A", "B"))
+  file <- tempfile(fileext = ".html")
+  chart <- GC_chart(genes, group = "group", width = "600px", height = "200px") %>%
+    GC_clusterLabel("pQEB1_inv3 <i>Enterobacter cloacae ECL-21</i>", width = "120px",
+                    wrapOptions = list(splitOnHyphen = FALSE))
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  label <- session$Runtime$evaluate("
+    (() => {
+      const text = [...document.querySelectorAll('text')]
+        .find(d => d.textContent.startsWith('pQEB1'));
+      const lines = [...text.querySelectorAll('tspan.wrap-line')];
+      return {
+        lines: lines.map(d => d.textContent),
+        italic: [...text.querySelectorAll('tspan.wrap-line tspan')]
+          .map(d => [d.textContent, getComputedStyle(d).fontStyle])
+      };
+    })()", returnByValue = TRUE)$result$value
+
+  lines <- unlist(label$lines)
+  expect_gt(length(lines), 1)
+  expect_false(any(grepl("<|>", lines)))
+  expect_equal(paste(lines, collapse = " "), "pQEB1_inv3 Enterobacter cloacae ECL-21")
+  styles <- setNames(sapply(label$italic, `[[`, 2), trimws(sapply(label$italic, `[[`, 1)))
+  expect_equal(unname(styles["pQEB1_inv3"]), "normal")
+  expect_true(all(styles[c("Enterobacter", "cloacae", "ECL-21")] == "italic"))
+})
+
 test_that("GC_links() sends vmin and vmax and checks them", {
   genes <- data.frame(cluster = c("A", "B"), start = c(1, 1), end = c(100, 100))
   links <- data.frame(cluster1 = "A", start1 = 1, end1 = 100,

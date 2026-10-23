@@ -27,6 +27,9 @@ function sanitizeId(str) {
   return str.replace(/[^a-zA-Z0-9_-]/g, '_');
 }
 
+// Wraps a text element into lines of at most width pixels. <b>, <i> and <u>
+// tags are read before the text is split into words, so each word keeps its
+// style when a tagged part runs over two lines.
 function wrap(text, width, options = {}) {
   // Default options
   const defaultOptions = {
@@ -51,53 +54,71 @@ function wrap(text, width, options = {}) {
       x = text.attr("x"),
       y = text.attr("y");
 
+    // Words as lists of styled pieces: "pQEB1<i>-like</i>" is one word. A word
+    // split at a hyphen is not followed by a space
     var words = [];
-    text
-      .text()
-      .split(/\s+/)
-      .forEach(function (w) {
-        if (splitOnHyphen) {
-          var subWords = w.split("-");
-          for (var i = 0; i < subWords.length - 1; i++)
-            words.push(subWords[i] + "-");
-          words.push(subWords[subWords.length - 1] + " ");
-        } else {
-          words.push(w + " ");
+    var word = [];
+    var endWord = function (space) {
+      if (word.length) words.push({ pieces: word, space: space });
+      word = [];
+    };
+    styledSegments(text.text()).forEach(function (segment) {
+      segment.content.split(/(\s+)/).forEach(function (part) {
+        if (/^\s+$/.test(part)) {
+          endWord(true);
+          return;
         }
+        var pieces = splitOnHyphen ? part.split(/(?<=-)/) : [part];
+        pieces.forEach(function (piece, i) {
+          if (piece) word.push({ ...segment, content: piece });
+          if (i < pieces.length - 1) endWord(false);
+        });
       });
+    });
+    endWord(true);
+
+    // Writes words into a line
+    var setLine = function (line, lineWords) {
+      line.selectAll("*").remove();
+      lineWords.forEach(function (lineWord, i) {
+        lineWord.pieces.forEach(function (piece, j) {
+          var last = j === lineWord.pieces.length - 1 && i < lineWords.length - 1;
+          var space = last && lineWord.space ? " " : "";
+          var tspan = line.append("tspan").text(piece.content + space);
+          if (piece.bold) tspan.style("font-weight", "bold");
+          if (piece.italic) tspan.style("font-style", "italic");
+          if (piece.underline) tspan.style("text-decoration", "underline");
+        });
+      });
+    };
 
     text.text(null); // Empty the text element
 
-    var tspan = text.append("tspan");
-    var line = "";
-    var prevLine = "";
-    var nWordsInLine = 0;
+    var line = text.append("tspan").attr("class", "wrap-line");
+    var lineWords = [];
 
     for (var i = 0; i < words.length; i++) {
-      var word = words[i];
-      prevLine = line;
-      line = line + word;
-      ++nWordsInLine;
-      tspan.text(line.trim());
+      lineWords.push(words[i]);
+      setLine(line, lineWords);
 
-      if (tspan.node().getComputedTextLength() > width && nWordsInLine > 1) {
-        tspan.text(prevLine.trim());
-        prevLine = "";
-        line = word;
-        nWordsInLine = 1;
-        tspan = text.append("tspan").text(word.trim());
+      if (line.node().getComputedTextLength() > width && lineWords.length > 1) {
+        lineWords.pop();
+        setLine(line, lineWords);
+        lineWords = [words[i]];
+        line = text.append("tspan").attr("class", "wrap-line");
+        setLine(line, lineWords);
       }
     }
 
-    var tspans = text.selectAll("tspan");
+    var lines = text.selectAll("tspan.wrap-line");
     var h = lineHeightEms;
 
-    if (tspans.size() > 2)
-      for (var i = 0; i < tspans.size(); i++) h *= lineHeightSquishFactor;
+    if (lines.size() > 2)
+      for (var i = 0; i < lines.size(); i++) h *= lineHeightSquishFactor;
 
-    tspans.each(function (d, i) {
+    lines.each(function (d, i) {
       var dy = i * h + dyAdjust;
-      if (centreVertically) dy -= ((tspans.size() - 1) * h) / 2;
+      if (centreVertically) dy -= ((lines.size() - 1) * h) / 2;
       d3.select(this)
         .attr("y", y)
         .attr("x", x)
@@ -693,41 +714,42 @@ function createDiscontinuousScale(minStart, maxEnd, width, margin, breaks, rever
   return scaleProxy;  // Return the discontinuous scale
 }
 
-function parseAndStyleText(text, parentElement, fontOptions) {
+// Splits a text into parts with their <b>, <i> or <u> style
+function styledSegments(text) {
   const tagRegex = /<([biu])>(.*?)<\/\1>/g;
-
+  const segments = [];
+  const plain = content => ({ content, bold: false, italic: false, underline: false });
   let lastIndex = 0;
+  let match;
 
-  // Helper function to append text with specific styles
-  const appendText = (content, isBold = false, isItalic = false, isUnderline = false) => {
+  while ((match = tagRegex.exec(text)) !== null) {
+    // Text before the tag
+    if (match.index > lastIndex) {
+      segments.push(plain(text.substring(lastIndex, match.index)));
+    }
+    const [, tag, content] = match;
+    segments.push({ content, bold: tag === "b", italic: tag === "i", underline: tag === "u" });
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Any remaining text after the last tag
+  if (lastIndex < text.length) {
+    segments.push(plain(text.substring(lastIndex)));
+  }
+  return segments;
+}
+
+function parseAndStyleText(text, parentElement, fontOptions) {
+  styledSegments(text).forEach(({ content, bold, italic, underline }) => {
     const tspan = parentElement.append("tspan")
-      .style("font-weight", isBold ? "bold" : fontOptions.weight)
-      .style("font-style", isItalic ? "italic" : fontOptions.style)
+      .style("font-weight", bold ? "bold" : fontOptions.weight)
+      .style("font-style", italic ? "italic" : fontOptions.style)
       .text(content);
 
-    if (isUnderline) {
+    if (underline) {
       tspan.style("text-decoration", "underline");
     }
-  };
-
-  // Iterate through the string and apply styles
-  text.replace(tagRegex, function (match, tag, content, offset) {
-    // Append text before the tag
-    if (offset > lastIndex) {
-      appendText(text.substring(lastIndex, offset), false, false, false);
-    }
-
-    // Apply style based on the tag
-    appendText(content, tag === 'b', tag === 'i', tag === 'u');
-
-    lastIndex = offset + match.length;
-    return match; // This return is not used, but is necessary for the replace function
   });
-
-  // Append any remaining text after the last tag
-  if (lastIndex < text.length) {
-    appendText(text.substring(lastIndex), false, false, false);
-  }
 }
 
 function container(svg, margin, width, height) {
@@ -1875,6 +1897,7 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     x: 0,
     y: 0,
     position: 'left',
+    align: 'center',
     width: null, // the margin the label is drawn in, see clusterLabelMargin()
     wrapLabel: true,
     wrapOptions: {},
@@ -1892,6 +1915,7 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     x,
     y,
     position,
+    align,
     wrapLabel,
     wrapOptions,
     fontSize,
@@ -1919,17 +1943,21 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
   const middleY = this.margin.top + adjustedHeight / 2 + y;
   const titleWidth = position === 'left' ? this.margin.left - x : this.margin.right - x;
 
+  // Align the lines of the label to the left, centre or right of the margin
+  const alignShare = { left: 0, right: 1 }[align] ?? 0.5;
+  const textAnchor = { left: "start", right: "end" }[align] ?? "middle";
+
   let xposition;
   if (position === 'left') {
-    xposition = this.margin.left / 2 + x;  // title is in the left margin
+    xposition = this.margin.left * alignShare + x;  // title is in the left margin
   } else {  // 'right'
-    xposition = this.width - this.margin.right / 2 - x;  // title is in the right margin
+    xposition = this.width - this.margin.right * (1 - alignShare) - x;  // title is in the right margin
   }
 
   let clusterTitle = this.svg.append("text")
     .attr("x", xposition)
     .attr("y", middleY)
-    .attr("text-anchor", "middle")  // text is always centered
+    .attr("text-anchor", textAnchor)
     .attr("dominant-baseline", "central")  // Vertically center text
     .style("font-size", fontSize)
     .style("font-style", fontStyle)
@@ -1944,14 +1972,8 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
         parseAndStyleText(title, currentElement, titleFont);
       } else {
         currentElement.text(title);
-        // If wrapLabel is true, wrap the text
+        // If wrapLabel is true, wrap the text; wrap() reads the <b>, <i> and <u> tags
         wrap(currentElement, titleWidth, wrapOptions);
-        currentElement.selectAll("tspan").each(function () {
-          const currentTspan = d3.select(this);
-          const tspanText = currentTspan.text();
-          currentTspan.text('');
-          parseAndStyleText(tspanText, currentTspan, titleFont);
-        });
       }
       setStyleFromOptions(currentElement, additionalOptions);
     });

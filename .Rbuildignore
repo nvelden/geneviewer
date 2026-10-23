@@ -29,4 +29,5 @@
 ^inst/doc/*.R
 ^inst/doc/*.Rmd
 ^dev$
+^data-raw$
 \.DS_Store$

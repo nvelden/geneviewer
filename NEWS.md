@@ -24,6 +24,7 @@
 - A cluster margin set with `GC_grid(margin = )` is now kept by `GC_clusterLabel()` without `width`, whatever the order of the calls; `GC_clusterLabel()` called after `GC_grid()` set the margin to 100px. `GC_clusterLabel(width = )` still sets the margin.
 - Options given as a list (e.g. `labelAdjustmentOptions`, `colorBarOptions = list(labelOptions = )`) now keep the defaults of the options they leave out, at every level.
 - The geneviewer vignette has a new "Themes" section on `GC_theme()`: the built-in themes, the global settings and palettes, `textScale`, options per component and making a theme of your own with `geneviewer_theme()`.
+- The "Example charts" article has a new example: the *bla*KPC-2 plasmid pQEB1 and four variants, with links that show inversions and inserted transposons. Its data are in the new datasets `pQEB1_plasmids` (genes) and `pQEB1_alignment` (a nucmer alignment), made by `data-raw/pQEB1_plasmids.R` from the GenBank files.
 
 ### Bug fixes:
 - A wrapped cluster label (`GC_clusterLabel()`) keeps its `<b>`, `<i>` and `<u>` styles when the tagged text runs over two lines, e.g. `"pQEB1 <i>E. cloacae ECL-21</i>"`; the tags were shown as text. The lines are now also measured without the tags, so they no longer break too early.

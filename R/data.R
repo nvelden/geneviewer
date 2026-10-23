@@ -127,3 +127,50 @@
 #' }
 #' @source Derived from the Ensembl website
 "BRCA1_splice_variants"
+
+#' Genes of the blaKPC-2 plasmid pQEB1 and four of its variants
+#'
+#' The genes of five IncN plasmids of the pQEB1 lineage, which carries the
+#' carbapenemase gene blaKPC-2, from a hospital outbreak of *Enterobacter
+#' cloacae* and *Klebsiella oxytoca*. The variants differ from pQEB1 by
+#' inversions and transposon insertions. Made by `data-raw/pQEB1_plasmids.R`
+#' from the GenBank files, together with [pQEB1_alignment].
+#'
+#' @format A data frame with 401 rows and 10 columns:
+#' \describe{
+#'   \item{cluster}{Name of the plasmid. A character vector.}
+#'   \item{host}{Species and strain the plasmid was found in. A character vector.}
+#'   \item{accession}{GenBank accession of the plasmid. A character vector.}
+#'   \item{locus_tag}{Locus tag of the gene. A character vector.}
+#'   \item{gene}{Gene name, or "" when the gene has none. A character vector.}
+#'   \item{product}{Description of the gene product. A character vector.}
+#'   \item{category}{Function of the gene from its name and product, e.g.
+#'   "Carbapenemase (KPC)", "Mobile element" or "Conjugation". A character vector.}
+#'   \item{start}{Start position of the gene. A numeric vector.}
+#'   \item{end}{End position of the gene. A numeric vector.}
+#'   \item{strand}{Strand of the gene, "forward" or "complement". A character vector.}
+#' }
+#' @source GenBank accessions NZ_PQ162285, NZ_PQ162289, NZ_PQ162291,
+#'   NZ_PQ162292 and NZ_PQ162293.
+#' @references Moran RA, Behruznia M, Holden E, Garvey MI, McNally A. pQEB1: a
+#'   hospital outbreak plasmid lineage carrying blaKPC-2. Microb Genom. 2024;10(9).
+"pQEB1_plasmids"
+
+#' Nucleotide alignment of the pQEB1 plasmids
+#'
+#' The aligned regions between neighbouring plasmids of [pQEB1_plasmids], in the
+#' order pQEB1_inv3_Tn5403, pQEB1, pQEB1_inv1, pQEB1_inv1_inv2 and
+#' pQEB1_inv1_arsTn, from a one-to-one nucleotide alignment with MUMmer
+#' (nucmer, see [mummer_alignment()]). Regions shorter than 500 bp are left
+#' out. Regions with `start2` larger than `end2` are inverted.
+#'
+#' @format A data frame with 14 rows and 9 columns:
+#' \describe{
+#'   \item{cluster1, cluster2}{Names of the two plasmids. Character vectors.}
+#'   \item{start1, end1}{Start and end of the region in `cluster1`. Integer vectors.}
+#'   \item{start2, end2}{Start and end of the region in `cluster2`. Integer vectors.}
+#'   \item{length1, length2}{Length of the region in each plasmid. Integer vectors.}
+#'   \item{identity}{Percentage identity of the region. A numeric vector.}
+#' }
+#' @source Made by `data-raw/pQEB1_plasmids.R`.
+"pQEB1_alignment"

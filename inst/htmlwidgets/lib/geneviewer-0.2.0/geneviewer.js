@@ -2543,11 +2543,13 @@ container.prototype.labels = function (label, show = true, options = {}) {
       dx: "0em",
       dy: "0em"
     },
-      itemStyle: [] // [{"index": 3,"y": 20}]
+      itemStyle: [], // [{"index": 3,"y": 20}]
+      groupStyle: {},
+      group: null
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'labelsOptions', options);
-  const { x, y, start, end, adjustLabels, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor } = combinedOptions;
+  const { x, y, start, end, adjustLabels, labelAdjustmentOptions, groupStyle, group, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -2558,6 +2560,14 @@ container.prototype.labels = function (label, show = true, options = {}) {
 
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
+
+  // The style of each label: that of the group of its gene (groupStyle), with
+  // the style of the label itself (itemStyle, by index) on top
+  const itemStyle = this.data.flatMap((d, i) => {
+    const ofGroup = group ? groupStyle[d[group]] : undefined;
+    const ofItem = combinedOptions.itemStyle.find(s => s.index === i);
+    return ofGroup || ofItem ? [{ ...ofGroup, ...ofItem, index: i }] : [];
+  });
 
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};

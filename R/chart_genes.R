@@ -11,6 +11,11 @@
 #' @param cluster Numeric or character vector or NULL; specifies which clusters should be labeled.
 #'        If NULL, labels will be applied to all clusters. Default is NULL.
 #' @param itemStyle List, a list of styles to apply to individual items in the chart.
+#' @param groupStyle Named list of styles by group, applied to the labels of
+#'   all genes of that group (the `group` of [GC_chart()]), e.g.
+#'   `list(tnsA = list(fill = "white"))`. Takes the same options as
+#'   `itemStyle`; the `itemStyle` of a label takes precedence over the style of
+#'   its group.
 #' @param ... Additional arguments for further customization of the labels.
 #'
 #' @return A `GC chart` object with updated label settings for each specified cluster.
@@ -27,6 +32,10 @@
 #' # Add labels to all clusters
 #' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
 #' GC_labels()
+#'
+#' # Bold labels for the genes of group A
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
+#'   GC_labels(groupStyle = list(A = list(fontWeight = "bold")))
 #'
 #' # Add labels and styling
 #' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
@@ -64,8 +73,11 @@ GC_labels <- function(
     show = TRUE,
     cluster = NULL,
     itemStyle = list(),
+    groupStyle = NULL,
     ...
 ) {
+
+  check_group_style(groupStyle)
 
   if (!any(show)) {
     return(GC_chart)
@@ -98,6 +110,7 @@ GC_labels <- function(
       label = recycle_at(label, i),
       show = recycle_at(show, i),
       itemStyle = itemStyle,
+      groupStyle = groupStyle,
       ...
     ))
 
@@ -110,6 +123,16 @@ GC_labels <- function(
   }
 
   return(GC_chart)
+}
+
+#' Check that groupStyle is a named list of style lists
+#' @noRd
+check_group_style <- function(groupStyle) {
+  if (!is.null(groupStyle) &&
+      (!is.list(groupStyle) || is.null(names(groupStyle)) || any(names(groupStyle) == "") ||
+       !all(vapply(groupStyle, is.list, logical(1))))) {
+    stop("groupStyle must be a named list of style lists, one per group")
+  }
 }
 
 #' Modify Gene Characteristics within a Chart
@@ -210,11 +233,7 @@ GC_genes <- function(
     ...
 ) {
 
-  if (!is.null(groupStyle) &&
-      (!is.list(groupStyle) || is.null(names(groupStyle)) || any(names(groupStyle) == "") ||
-       !all(vapply(groupStyle, is.list, logical(1))))) {
-    stop("groupStyle must be a named list of style lists, one per group")
-  }
+  check_group_style(groupStyle)
 
   if (is.logical(group) && length(group) == 1) {
     show <- group

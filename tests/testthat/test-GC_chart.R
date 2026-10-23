@@ -1736,3 +1736,14 @@ test_that("GC_genes stores and checks groupStyle", {
   expect_error(GC_chart(genes, group = "class") %>% GC_genes(groupStyle = list(y = "box")),
                "named list")
 })
+
+test_that("GC_labels stores groupStyle with the group column", {
+  genes <- data.frame(start = c(1, 50), end = c(40, 90), class = c("x", "y"))
+  chart <- GC_chart(genes, group = "class") %>%
+    GC_labels(groupStyle = list(y = list(fill = "white")))
+  expect_equal(chart$x$series[[1]]$labels$groupStyle, list(y = list(fill = "white")))
+  # the column the groups are in, set by GC_chart()
+  expect_equal(chart$x$series[[1]]$labels$group, "class")
+  expect_error(GC_chart(genes, group = "class") %>% GC_labels(groupStyle = list(y = "white")),
+               "named list")
+})

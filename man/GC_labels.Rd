@@ -10,6 +10,7 @@ GC_labels(
   show = TRUE,
   cluster = NULL,
   itemStyle = list(),
+  groupStyle = NULL,
   ...
 )
 }
@@ -25,6 +26,12 @@ If NULL and \code{GC_chart} has group names, those will be used as labels.}
 If NULL, labels will be applied to all clusters. Default is NULL.}
 
 \item{itemStyle}{List, a list of styles to apply to individual items in the chart.}
+
+\item{groupStyle}{Named list of styles by group, applied to the labels of
+all genes of that group (the \code{group} of \code{\link[=GC_chart]{GC_chart()}}), e.g.
+\code{list(tnsA = list(fill = "white"))}. Takes the same options as
+\code{itemStyle}; the \code{itemStyle} of a label takes precedence over the style of
+its group.}
 
 \item{...}{Additional arguments for further customization of the labels.}
 }
@@ -48,6 +55,10 @@ genes_data <- data.frame(
 # Add labels to all clusters
 GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
 GC_labels()
+
+# Bold labels for the genes of group A
+GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%
+  GC_labels(groupStyle = list(A = list(fontWeight = "bold")))
 
 # Add labels and styling
 GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>\%

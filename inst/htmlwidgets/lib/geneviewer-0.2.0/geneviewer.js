@@ -3012,6 +3012,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
     marker: "arrow",
     markerSize: "medium",
     itemStyle: [],
+    groupStyle: {},
     arrowheadWidth: null,
     arrowheadHeight: null,
     markerHeight: null,
@@ -3019,7 +3020,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
-  const { x, y, stroke, strokeWidth, colorScheme, customColors, pattern, cursor, itemStyle } = combinedOptions;
+  const { x, y, stroke, strokeWidth, colorScheme, customColors, pattern, cursor, groupStyle } = combinedOptions;
 
   // Extract additional options that aren't in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -3035,6 +3036,14 @@ container.prototype.genes = function (group, show = true, options = {}) {
 
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
+
+  // The style of each gene: that of its group (groupStyle), with the style of
+  // the gene itself (itemStyle, by index) on top
+  const itemStyle = this.data.flatMap((d, i) => {
+    const ofGroup = groupStyle[d[group]];
+    const ofItem = combinedOptions.itemStyle.find(s => s.index === i);
+    return ofGroup || ofItem ? [{ ...ofGroup, ...ofItem, index: i }] : [];
+  });
 
   const getAttributesForIndex = (d, i) => getMarkerAttributes(this, d, i, y, combinedOptions, itemStyle);
 

@@ -1724,3 +1724,15 @@ test_that("GC_scale with a range axis moves the line ends with the genes", {
   # without a range axis the line is left alone
   expect_equal((base %>% GC_sequence(end = 1800))$x$series[["1"]]$sequence$end, 1800)
 })
+
+test_that("GC_genes stores and checks groupStyle", {
+  genes <- data.frame(start = c(1, 50), end = c(40, 90), class = c("x", "y"))
+  chart <- GC_chart(genes, group = "class") %>%
+    GC_genes(groupStyle = list(y = list(marker = "box", fill = "red")))
+  expect_equal(chart$x$series[[1]]$genes$groupStyle,
+               list(y = list(marker = "box", fill = "red")))
+  expect_error(GC_chart(genes, group = "class") %>% GC_genes(groupStyle = list("box")),
+               "named list")
+  expect_error(GC_chart(genes, group = "class") %>% GC_genes(groupStyle = list(y = "box")),
+               "named list")
+})

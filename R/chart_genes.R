@@ -141,6 +141,10 @@ GC_labels <- function(
 #' @param cluster Numeric or character, the specific cluster to filter genes by.
 #' @param itemStyle List, a list of styles to apply to individual items in the
 #'   chart.
+#' @param groupStyle Named list of styles by group, applied to every gene of
+#'   that group, e.g. `list(promoter = list(marker = "box", fill = "grey"))`.
+#'   Takes the same options as `itemStyle`; the `itemStyle` of a gene takes
+#'   precedence over the style of its group.
 #' @param ... Additional arguments to be passed to the gene options.
 #'
 #' @return Returns the modified gene chart object.
@@ -186,6 +190,10 @@ GC_labels <- function(
 #'   )
 #'  )
 #'
+#' # Change the appearance of all genes of a group
+#' GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") %>%
+#'   GC_genes(groupStyle = list(C = list(marker = "box", stroke = "red")))
+#'
 #' @export
 GC_genes <- function(
     GC_chart,
@@ -197,9 +205,16 @@ GC_genes <- function(
     customColors = NULL,
     cluster = NULL,
     itemStyle = list(),
+    groupStyle = NULL,
     corner_radius = NULL,
     ...
 ) {
+
+  if (!is.null(groupStyle) &&
+      (!is.list(groupStyle) || is.null(names(groupStyle)) || any(names(groupStyle) == "") ||
+       !all(vapply(groupStyle, is.list, logical(1))))) {
+    stop("groupStyle must be a named list of style lists, one per group")
+  }
 
   if (is.logical(group) && length(group) == 1) {
     show <- group
@@ -233,6 +248,7 @@ GC_genes <- function(
       colorScheme = colorScheme,
       customColors = customColors,
       itemStyle = itemStyle,
+      groupStyle = groupStyle,
       ...
     ))
 

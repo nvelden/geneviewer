@@ -16,6 +16,7 @@
 - `GC_trackMouse()` takes the styles of the coordinate tooltip (e.g. `backgroundColor`, `fontSize`) and `cursor`.
 
 ### Changes:
+- `GC_align()` now shifts the clusters instead of stretching them, so all clusters keep the same scale: genes of the same length are drawn at the same width, also when the clusters differ in length. The alignment is kept when `GC_scale()` is called afterwards, also with `axis_type = "range"`; `GC_scale()` used to undo it.
 - Cluster footers aligned "left" (the default) or "right" now line up with the genes and the cluster title: "left" started at the edge of the chart, in the left margin of the cluster (under a cluster label), and "right" ended one left margin short of the last gene. Footers that are not centred move right by the left margin of the cluster (50 pixels by default); an `x` used to line them up with the genes (e.g. `x = 50`) can be removed. The examples in the vignettes are updated.
 - Links now fade to nearly white (10% of the link colour) at the lowest measure instead of white, so they stay visible on the background. The colour bar now runs from `vmin` to `vmax` (0% to 100% by default) instead of from the lowest to the highest measure in the data.
 - The title and labels of the link colour bar are now in sans-serif, like the other text; they used the serif font of the browser.

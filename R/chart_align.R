@@ -1,6 +1,10 @@
 #' Align gene clusters
 #'
-#' This function aligns clusters based on a specified gene id.
+#' This function aligns clusters based on a specified gene id. The clusters are
+#' shifted so the gene sits at the same place in each of them, and all clusters
+#' keep the same scale: genes of the same length are drawn at the same width.
+#' The alignment is kept when [GC_scale()] is called afterwards, also with
+#' `axis_type = "range"`.
 #'
 #' @param GC_chart A chart object containing genomic data along with clustering
 #' information.
@@ -50,6 +54,22 @@ GC_align <- function(
     return(GC_chart)
   }
 
+  GC_chart$x$align <- list(id_column = id_column, id = id, align = align)
+
+  apply_align(GC_chart)
+}
+
+#' Set the scale of each cluster to the alignment stored by GC_align()
+#'
+#' Kept apart from GC_align() so GC_scale() can align the clusters again after
+#' it has replaced their scale or shifted their genes.
+#' @noRd
+apply_align <- function(GC_chart) {
+  options <- GC_chart$x$align
+  if (is.null(options)) {
+    return(GC_chart)
+  }
+
   # Swap start and stop for reverse genes
   data <- GC_chart$x$data
   cluster_column <- GC_chart$x$cluster
@@ -57,24 +77,20 @@ GC_align <- function(
   # Get reversed clusters
   clusters <- unique(data[[cluster_column]])
   reversed_clusters <- clusters[sapply(clusters, function(cl) {
-    if (!is.null(GC_chart$x$series[[cl]]$scale) && !is.null(GC_chart$x$series[[cl]]$scale$reverse)) {
-      return(GC_chart$x$series[[cl]]$scale$reverse == TRUE)
-    } else {
-      return(FALSE)
-    }
+    isTRUE(GC_chart$x$series[[cl]]$scale$reverse)
   })]
 
   swapped_indices <- data$start > data$end
   data[swapped_indices, c("start", "end")] <- data[swapped_indices, c("end", "start")]
 
-  adjusted_range <- adjust_range(data, cluster_column, id_column, id, align = align, reversed_clusters)
-  update_clusters <- adjusted_range[[cluster_column]]
+  adjusted_range <- adjust_range(data, cluster_column, options$id_column, options$id,
+                                 align = options$align, reversed_clusters)
 
-  for (cluster in update_clusters) {
-    cluster_data <- adjusted_range[adjusted_range[[cluster_column]] == cluster, ]
+  for (i in seq_len(NROW(adjusted_range))) {
+    cluster <- as.character(adjusted_range[[cluster_column]][i])
     # Set scale options for each cluster
-    GC_chart$x$series[[cluster]]$scale$start <- cluster_data$start
-    GC_chart$x$series[[cluster]]$scale$end <- cluster_data$end
+    GC_chart$x$series[[cluster]]$scale$start <- adjusted_range$start[i]
+    GC_chart$x$series[[cluster]]$scale$end <- adjusted_range$end[i]
   }
 
   return(GC_chart)

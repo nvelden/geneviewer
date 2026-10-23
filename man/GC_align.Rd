@@ -21,7 +21,11 @@ information.}
 The modified \code{GC_chart} object with updated genomic coordinates.
 }
 \description{
-This function aligns clusters based on a specified gene id.
+This function aligns clusters based on a specified gene id. The clusters are
+shifted so the gene sits at the same place in each of them, and all clusters
+keep the same scale: genes of the same length are drawn at the same width.
+The alignment is kept when \code{\link[=GC_scale]{GC_scale()}} is called afterwards, also with
+\code{axis_type = "range"}.
 }
 \examples{
 genes_data <- data.frame(

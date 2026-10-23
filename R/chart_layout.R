@@ -697,7 +697,8 @@ GC_scale <- function(GC_chart,
 
   }
 
-  return(GC_chart)
+  # Keep the clusters aligned on the gene chosen with GC_align()
+  apply_align(GC_chart)
 }
 
 #' Update Scale Bar of a GC Chart Cluster

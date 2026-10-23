@@ -1,7 +1,7 @@
 <p align="center">
-  <img src="man/figures/logo.png" class="pkgdown-hide" height="150px" align="right">
-  <h1><strong>geneviewer</strong> - Gene Cluster Visualizations in R</h1>
+  <img src="man/figures/logo.png" class="pkgdown-hide" height="150px">
 </p>
+<h1 align="center"><strong>geneviewer</strong> - Gene Cluster Visualizations in R</h1>
 
 <!-- badges: start -->
 

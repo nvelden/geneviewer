@@ -1413,6 +1413,39 @@ test_that("the legend of a chart with a fixed width is not scaled down (B55)", {
   expect_equal(scale, 1)
 })
 
+test_that("GC_legend() sends align and checks it", {
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
+  expect_equal(GC_legend(chart, align = "center")$x$legend$align, "center")
+  expect_null(GC_legend(chart)$x$legend$align)
+  expect_error(GC_legend(chart, align = "middle"), "align must be")
+  expect_error(GC_legend(chart, align = c("left", "right")), "align must be")
+})
+
+test_that("GC_legend(align = ) aligns the legend rows left, centre or right", {
+  genes <- data.frame(start = c(10, 50, 90), end = c(40, 80, 120), group = c("A", "B", "C"))
+  # Space between the legend items and the left and right edges of the legend
+  margins <- sapply(c("left", "center", "right"), function(align) {
+    file <- tempfile(fileext = ".html")
+    chart <- GC_chart(genes, group = "group", width = "600px", height = "150px") %>%
+      GC_legend(align = align)
+    htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+    session <- chrome_page(file)
+    unlist(session$Runtime$evaluate("
+      (() => {
+        const svg = document.querySelector('[id^=geneviewer-legend-container] svg');
+        const items = svg.querySelectorAll('.legend');
+        const box = svg.getBoundingClientRect();
+        const left = Math.min(...[...items].map(d => d.getBoundingClientRect().left));
+        const right = Math.max(...[...items].map(d => d.getBoundingClientRect().right));
+        return [left - box.left, box.right - right];
+      })()", returnByValue = TRUE)$result$value)
+  })
+
+  expect_lt(margins[1, "left"], margins[2, "left"])
+  expect_lt(margins[2, "right"], margins[1, "right"])
+  expect_equal(margins[1, "center"], margins[2, "center"], tolerance = 0.1)
+})
+
 test_that("GC_links() sends vmin and vmax and checks them", {
   genes <- data.frame(cluster = c("A", "B"), start = c(1, 1), end = c(100, 100))
   links <- data.frame(cluster1 = "A", start1 = 1, end1 = 100,

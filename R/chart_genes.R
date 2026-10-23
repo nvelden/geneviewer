@@ -756,6 +756,10 @@ pattern_to_js <- function(pattern) {
 #' @param order Optional; list, specifies the order of the legend labels.
 #' @param position Character. Position of the legend, either "top" or "bottom".
 #'   Default is NULL: the position of the theme, otherwise "bottom".
+#' @param align Character. Horizontal alignment of the legend items, "left",
+#'   "center" or "right", like the title. Each row of a horizontal legend is
+#'   aligned on its own. `x` moves the legend from this position. Default is
+#'   NULL: the alignment of the theme, otherwise "left".
 #' @param style A list of CSS styles to be applied to the chart container. Each
 #'   element of the list should be a valid CSS property-value pair. For example,
 #'   list(backgroundColor = "white", border = "2px solid black"). Default is an
@@ -782,6 +786,7 @@ pattern_to_js <- function(pattern) {
 #'   GC_legend(
 #'     position = "top", #bottom
 #'     orientation = "horizontal", #vertical
+#'     align = "center", #left / right
 #'     x = 0,
 #'     y = 0,
 #'     adjustHeight = TRUE,
@@ -816,6 +821,7 @@ GC_legend <- function(
     backgroundColor = NULL,
     order = list(),
     position = NULL,
+    align = NULL,
     style = list(),
     legendOptions = list(),
     legendTextOptions = list(),
@@ -840,6 +846,11 @@ GC_legend <- function(
     stop("group column not found in data")
   }
 
+  if (!is.null(align) &&
+      !(is.character(align) && length(align) == 1 && align %in% c("left", "center", "right"))) {
+    stop('align must be "left", "center" or "right"')
+  }
+
   # The legend container takes its background from style
   if (!is.null(backgroundColor) && is.null(style$backgroundColor)) {
     style$backgroundColor <- backgroundColor
@@ -851,6 +862,7 @@ GC_legend <- function(
     show = show,
     order = order,
     position = position,
+    align = align,
     cornerRadius = corner_radius,
     style = style,
     legendOptions = legendOptions,

@@ -8,6 +8,7 @@
 - `GC_links(low_color = )` sets the colour of links with the lowest identity (white by default), e.g. the background colour on a dark chart.
 - `GC_genes(corner_radius = )` rounds the corners of the "arrow", "boxarrow" and "box" markers (e.g. `corner_radius = 3` for soft corners; the inner corners of arrows stay sharp) and sets those of "rbox". Exons take `cornerRadius` in `styleExons`, and themes in `genes = list(corner_radius = )`. `GC_legend(corner_radius = )` rounds the corners of the legend markers.
 - `GC_links(vmin = , vmax = )` set the measures of the lightest and the full link colour, and the ends of the colour bar (0 and 100 by default): e.g. `vmin = floor(min(alignment$identity))` spreads the colours over the identities of an alignment, so differences are easier to see. Measures outside are drawn in the colour of the nearest end.
+- `GC_legend(align = )` aligns the legend to the left, centre or right, like `GC_title()`: `"left"` (default), `"center"` or `"right"`. Each row of a legend that wraps is aligned on its own, and `x` moves the legend from that position. Themes take it in `legend = list(align = )`.
 - `GC_trackMouse()` takes the styles of the coordinate tooltip (e.g. `backgroundColor`, `fontSize`) and `cursor`.
 
 ### Changes:

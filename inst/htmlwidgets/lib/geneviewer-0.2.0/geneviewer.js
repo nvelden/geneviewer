@@ -3246,6 +3246,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     y: 0,
     width: null, // Default width set to null
     orientation: "horizontal",
+    align: "left",
     adjustHeight: true,
     order: [],
     cornerRadius: 0,
@@ -3265,7 +3266,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'legendOptions', options);
-  const { x, y, width, orientation, adjustHeight, order, cornerRadius, legendOptions, legendTextOptions } = combinedOptions;
+  const { x, y, width, orientation, align, adjustHeight, order, cornerRadius, legendOptions, legendTextOptions } = combinedOptions;
 
   const additionalLegendOptions = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
   const additionalLegendTextOptions = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
@@ -3303,6 +3304,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
 
   let currentX = x;
   let currentY = y;
+  // Row and horizontal extent of each item, to align the rows afterwards
+  const itemExtents = [];
 
   var g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
@@ -3361,6 +3364,9 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
           setStyleFromOptions(currentElement, additionalLegendOptions);
         })
 
+      itemExtents.push({ node: nodes[i], row: currentY, start: currentX,
+                         end: currentX + legendSize + legendPadding + textLength });
+
       if (orientation === "horizontal") {
         currentX += textLength + legendSize + 2 * legendPadding;
       } else {
@@ -3412,6 +3418,20 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
       });
 }
     });
+
+  // Align each row (or the whole column of a vertical legend) to the left,
+  // centre or right of the available width
+  const alignShare = { center: 0.5, right: 1 }[align] ?? 0;
+  if (alignShare > 0) {
+    const availableWidth = this.width - this.margin.left - this.margin.right;
+    const rowOf = item => orientation === "horizontal" ? item.row : 0;
+    const rowWidths = d3.rollup(itemExtents,
+      items => d3.max(items, item => item.end) - d3.min(items, item => item.start), rowOf);
+    itemExtents.forEach(item => {
+      const shift = Math.max(0, availableWidth - rowWidths.get(rowOf(item))) * alignShare;
+      d3.select(item.node).attr("transform", `translate(${shift}, 0)`);
+    });
+  }
 
   if (adjustHeight && this.height === 0) {
     var padding = 20;

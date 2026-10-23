@@ -11,6 +11,7 @@ GC_legend(
   backgroundColor = NULL,
   order = list(),
   position = NULL,
+  align = NULL,
   style = list(),
   legendOptions = list(),
   legendTextOptions = list(),
@@ -35,6 +36,11 @@ NULL: as set by the theme, otherwise transparent.}
 
 \item{position}{Character. Position of the legend, either "top" or "bottom".
 Default is NULL: the position of the theme, otherwise "bottom".}
+
+\item{align}{Character. Horizontal alignment of the legend items, "left",
+"center" or "right", like the title. Each row of a horizontal legend is
+aligned on its own. \code{x} moves the legend from this position. Default is
+NULL: the alignment of the theme, otherwise "left".}
 
 \item{style}{A list of CSS styles to be applied to the chart container. Each
 element of the list should be a valid CSS property-value pair. For example,
@@ -73,6 +79,7 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
   GC_legend(
     position = "top", #bottom
     orientation = "horizontal", #vertical
+    align = "center", #left / right
     x = 0,
     y = 0,
     adjustHeight = TRUE,

@@ -1518,12 +1518,13 @@ test_that("GC_clusterLabel(align = ) lines up the lines of a label in its margin
   })
 
   expect_gt(length(edges$left$left), 1)
-  # Left: all lines start at the left edge; right: all end at the margin (120px)
-  expect_equal(unlist(edges$left$left), rep(0, length(edges$left$left)), tolerance = 1e-6)
-  expect_equal(unlist(edges$right$right), rep(120, length(edges$right$right)), tolerance = 0.01)
-  # Centre: the lines are centred in the margin
+  # Left: all lines start at the left edge; right: all end at the margin (120px);
+  # centre: the lines are centred in the margin. The boxes of the letters stick
+  # out a pixel or so past where the text starts, depending on the font
+  expect_lt(max(abs(unlist(edges$left$left) - 0)), 2)
+  expect_lt(max(abs(unlist(edges$right$right) - 120)), 2)
   mid <- (unlist(edges$center$left) + unlist(edges$center$right)) / 2
-  expect_equal(mid, rep(60, length(mid)), tolerance = 0.01)
+  expect_lt(max(abs(mid - 60)), 2)
 })
 
 test_that("a wrapped cluster label keeps <i> styles over its lines", {

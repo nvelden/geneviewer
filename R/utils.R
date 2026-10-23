@@ -509,3 +509,22 @@ keep_chart_settings <- function(GC_chart, old_chart) {
 recycle_at <- function(x, i) {
   x[(i - 1) %% length(x) + 1]
 }
+
+#' Check an align argument
+#'
+#' @param align NULL, or "left", "center" or "right"; one per cluster when
+#'   `per_cluster` is TRUE.
+#' @param per_cluster Logical, whether `align` may have one value per cluster.
+#' @return `align`, invisibly; an error when it is not valid.
+#' @noRd
+check_align <- function(align, per_cluster = FALSE) {
+  if (is.null(align)) {
+    return(invisible(align))
+  }
+  valid <- is.character(align) && length(align) >= 1 &&
+    all(align %in% c("left", "center", "right"))
+  if (!valid || (!per_cluster && length(align) != 1)) {
+    stop('align must be "left", "center" or "right"')
+  }
+  invisible(align)
+}

@@ -16,6 +16,9 @@
 #'   Default is an empty list.
 #' @param titleFont List. Settings for the title font.
 #' @param subtitleFont List. Settings for the subtitle font.
+#' @param align Character. Horizontal alignment of the title and subtitle,
+#'   "left", "center" or "right". `x` moves them from this position. Default is
+#'   NULL: the alignment of the theme, otherwise "center".
 #' @param ... Additional customization arguments for title and subtitle.
 #'
 #' @return Updated GC chart with new title settings.
@@ -87,12 +90,14 @@ GC_title <- function(
     titleFont = list(),
     show = TRUE,
     height = NULL,
+    align = NULL,
     ...
 ) {
 
   if (!is.logical(show) || length(show) != 1) {
     stop("show must be a single TRUE or FALSE")
   }
+  check_align(align)
 
   if (!show || is.null(title) && is.null(subtitle)) {
     return(GC_chart)
@@ -107,6 +112,7 @@ GC_title <- function(
       style = style,
       height = height,
       show = show,
+      align = align,
       ...
     ))
 
@@ -133,6 +139,10 @@ GC_title <- function(
 #' @param cluster Numeric or character vector. Clusters in the GC chart to update.
 #' @param titleFont List. Settings for the title font.
 #' @param subtitleFont List. Settings for the subtitle font.
+#' @param align Character vector. Horizontal alignment of the title and
+#'   subtitle, "left", "center" or "right", recycled over the clusters. `x`
+#'   moves them from this position. Default is NULL: the alignment of the
+#'   theme, otherwise "center".
 #' @param ... Additional customization arguments for title and subtitle.
 #'
 #' @return Updated GC chart with new title settings.
@@ -199,10 +209,12 @@ GC_clusterTitle <- function(
     show = TRUE,
     height = NULL,
     cluster = NULL,
+    align = NULL,
     ...) {
   if (!any(show)) {
     return(GC_chart)
   }
+  check_align(align, per_cluster = TRUE)
 
   # Capture ... arguments
   dots <- list(...)
@@ -219,6 +231,7 @@ GC_clusterTitle <- function(
       titleFont = titleFont,
       show = recycle_at(show, i)
     )
+    options$align <- recycle_at(align, i)
 
     # Add arguments to options
     for (name in names(dots)) {
@@ -915,6 +928,10 @@ GC_clusterLabel <- function(
 #'        If NULL, all clusters will be updated. Default is NULL.
 #' @param subtitleFont List, styling options for the subtitle.
 #' @param titleFont List, styling options for the title.
+#' @param align Character vector. Horizontal alignment of the title and
+#'   subtitle, "left", "center" or "right", recycled over the clusters. `x`
+#'   moves them from this position. Default is NULL: the alignment of the
+#'   theme, otherwise "left".
 #' @param ... Additional arguments for further customization of the footers.
 #'
 #' @return A GC chart object with updated footer settings for each specified cluster.
@@ -971,12 +988,14 @@ GC_clusterFooter <- function(
     cluster = NULL,
     subtitleFont = list(),
     titleFont = list(),
+    align = NULL,
     ...
 ) {
 
   if (!any(show)) {
     return(GC_chart)
   }
+  check_align(align, per_cluster = TRUE)
 
   # Capture ... arguments
   dots <- list(...)
@@ -994,6 +1013,7 @@ GC_clusterFooter <- function(
       subtitleFont = subtitleFont,
       titleFont = titleFont
     )
+    options$align <- recycle_at(align, i)
 
     # Add ... arguments to options
     for(name in names(dots)) {

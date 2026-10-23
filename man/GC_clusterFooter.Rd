@@ -12,6 +12,7 @@ GC_clusterFooter(
   cluster = NULL,
   subtitleFont = list(),
   titleFont = list(),
+  align = NULL,
   ...
 )
 }
@@ -34,6 +35,11 @@ If NULL, all clusters will be updated. Default is NULL.}
 \item{subtitleFont}{List, styling options for the subtitle.}
 
 \item{titleFont}{List, styling options for the title.}
+
+\item{align}{Character vector. Horizontal alignment of the title and
+subtitle, "left", "center" or "right", recycled over the clusters. \code{x}
+moves them from this position. Default is NULL: the alignment of the
+theme, otherwise "left".}
 
 \item{...}{Additional arguments for further customization of the footers.}
 }

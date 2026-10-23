@@ -682,7 +682,6 @@ GC_chart(ophA_clusters,
   GC_labels("name") %>%
   GC_clusterLabel(title = unique(ophA_clusters$cluster)) %>%
   GC_clusterFooter(
-    x = 100,
     title = c("Nr. of Genes: 7", "Nr. of Genes: 10"), 
     subtitle = c("Locus: 2522 - 21,484", "Locus 19,236 - 43,005")
     ) %>%

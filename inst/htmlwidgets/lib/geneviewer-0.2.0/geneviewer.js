@@ -1789,14 +1789,15 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
   let xPos;
   let textAnchor;
 
-  // Determine text align and anchor based on the provided align
+  // Determine text align and anchor based on the provided align; the footer is
+  // drawn in the SVG itself, so the positions include the left margin
   switch (align) {
     case "left":
-      xPos = x;
+      xPos = this.margin.left + x;
       textAnchor = "start";
       break;
     case "right":
-      xPos = this.width - this.margin.left - this.margin.right + x;
+      xPos = this.width - this.margin.right + x;
       textAnchor = "end";
       break;
     default:

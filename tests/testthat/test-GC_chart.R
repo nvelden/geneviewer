@@ -1446,6 +1446,50 @@ test_that("GC_legend(align = ) aligns the legend rows left, centre or right", {
   expect_equal(margins[1, "center"], margins[2, "center"], tolerance = 0.1)
 })
 
+test_that("GC_title(), GC_clusterTitle() and GC_clusterFooter() send align and check it", {
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
+  expect_equal(GC_title(chart, "Title", align = "left")$x$title$align, "left")
+  expect_null(GC_title(chart, "Title")$x$title$align)
+  expect_error(GC_title(chart, "Title", align = c("left", "right")), "align must be")
+
+  # One per cluster, recycled
+  titled <- GC_clusterTitle(chart, title = "Cluster", align = c("left", "right"))
+  expect_equal(unname(sapply(titled$x$series, function(s) s$clusterTitle$align)), c("left", "right"))
+  expect_null(GC_clusterTitle(chart, title = "Cluster")$x$series[[1]]$clusterTitle$align)
+  expect_error(GC_clusterTitle(chart, title = "Cluster", align = "middle"), "align must be")
+
+  footed <- GC_clusterFooter(chart, title = "Footer", align = "right")
+  expect_true(all(sapply(footed$x$series, function(s) s$footer$align) == "right"))
+  expect_null(GC_clusterFooter(chart, title = "Footer")$x$series[[1]]$footer$align)
+  expect_error(GC_clusterFooter(chart, title = "Footer", align = 1), "align must be")
+})
+
+test_that("a cluster footer is aligned like the cluster title, beside a cluster label (B56)", {
+  genes <- data.frame(start = c(10, 50), end = c(40, 80), group = c("A", "B"))
+  # Left and right edges of the cluster title and the footer
+  edges <- lapply(c(left = "left", right = "right"), function(align) {
+    file <- tempfile(fileext = ".html")
+    chart <- GC_chart(genes, group = "group", width = "600px", height = "200px") %>%
+      GC_clusterLabel("Cluster") %>%
+      GC_clusterTitle(title = "Title", align = align) %>%
+      GC_clusterFooter(title = "Footer", align = align)
+    htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+    session <- chrome_page(file)
+    session$Runtime$evaluate("
+      (() => {
+        const box = text => {
+          const node = [...document.querySelectorAll('text')].find(d => d.textContent === text);
+          const rect = node.getBoundingClientRect();
+          return { left: rect.left, right: rect.right };
+        };
+        return { title: box('Title'), footer: box('Footer') };
+      })()", returnByValue = TRUE)$result$value
+  })
+
+  expect_equal(edges$left$footer$left, edges$left$title$left, tolerance = 0.01)
+  expect_equal(edges$right$footer$right, edges$right$title$right, tolerance = 0.01)
+})
+
 test_that("GC_links() sends vmin and vmax and checks them", {
   genes <- data.frame(cluster = c("A", "B"), start = c(1, 1), end = c(100, 100))
   links <- data.frame(cluster1 = "A", start1 = 1, end1 = 100,

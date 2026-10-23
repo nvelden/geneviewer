@@ -102,8 +102,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   GC_clusterFooter(
     title = c("<i>Omphalotus olearius</i>", "<i>Dendrothele bispora</i>"), 
     subtitle = c("Locus: 2,522 - 21,484", "Locus: 19,236 - 43,005"),
-    align = "left",
-    x = 50) %>%
+    align = "left") %>%
   GC_legend(position = "top") %>%
   GC_labels(label = "name") %>%
   GC_scaleBar(y = 20) %>%
@@ -121,8 +120,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   GC_clusterFooter(
     title = c("<i>Omphalotus olearius</i>", "<i>Dendrothele bispora</i>"), 
     subtitle = c("Locus: 2,522 - 21,484", "Locus: 19,236 - 43,005"),
-    align = "left",
-    x = 50) %>%
+    align = "left") %>%
   GC_legend(position = "top") %>%
   GC_labels(label = "name") %>%
   GC_scaleBar(y = 20) %>%
@@ -147,8 +145,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   GC_clusterFooter(
     title = c("<i>Omphalotus olearius</i>", "<i>Dendrothele bispora</i>"), 
     subtitle = c("Locus: 2,522 - 21,484", "Locus: 19,236 - 43,005"),
-    align = "left",
-    x = 50) %>%
+    align = "left") %>%
   GC_legend(position = "top") %>%
   GC_labels(label = "name") %>%
   GC_scaleBar(y = 20) %>%
@@ -167,8 +164,7 @@ GC_chart(lacZ_operon, group = "Gene_symbol", height = "140px") %>%
   GC_clusterFooter(
     title = c("<i>Omphalotus olearius</i>", "<i>Dendrothele bispora</i>"), 
     subtitle = c("Locus: 2,522 - 21,484", "Locus: 19,236 - 43,005"),
-    align = "left",
-    x = 50) %>%
+    align = "left") %>%
   GC_legend(position = "top") %>%
   GC_labels(label = "name") %>%
   GC_scaleBar(y = 20) %>%

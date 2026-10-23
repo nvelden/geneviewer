@@ -13,6 +13,7 @@ GC_clusterTitle(
   show = TRUE,
   height = NULL,
   cluster = NULL,
+  align = NULL,
   ...
 )
 }
@@ -32,6 +33,11 @@ GC_clusterTitle(
 \item{height}{Character. Height for the title (e.g., "40px").}
 
 \item{cluster}{Numeric or character vector. Clusters in the GC chart to update.}
+
+\item{align}{Character vector. Horizontal alignment of the title and
+subtitle, "left", "center" or "right", recycled over the clusters. \code{x}
+moves them from this position. Default is NULL: the alignment of the
+theme, otherwise "center".}
 
 \item{...}{Additional customization arguments for title and subtitle.}
 }

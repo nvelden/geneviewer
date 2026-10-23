@@ -846,10 +846,7 @@ GC_legend <- function(
     stop("group column not found in data")
   }
 
-  if (!is.null(align) &&
-      !(is.character(align) && length(align) == 1 && align %in% c("left", "center", "right"))) {
-    stop('align must be "left", "center" or "right"')
-  }
+  check_align(align)
 
   # The legend container takes its background from style
   if (!is.null(backgroundColor) && is.null(style$backgroundColor)) {

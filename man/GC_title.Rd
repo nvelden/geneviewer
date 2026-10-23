@@ -13,6 +13,7 @@ GC_title(
   titleFont = list(),
   show = TRUE,
   height = NULL,
+  align = NULL,
   ...
 )
 }
@@ -37,6 +38,10 @@ Default is an empty list.}
 \item{height}{Character. Height for the title (e.g., "50px"). Default is
 NULL: the height of the theme, otherwise 50 pixels with a subtitle and 40
 without.}
+
+\item{align}{Character. Horizontal alignment of the title and subtitle,
+"left", "center" or "right". \code{x} moves them from this position. Default is
+NULL: the alignment of the theme, otherwise "center".}
 
 \item{...}{Additional customization arguments for title and subtitle.}
 }

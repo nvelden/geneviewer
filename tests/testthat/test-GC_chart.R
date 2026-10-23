@@ -1713,3 +1713,14 @@ test_that("GC_scale with a range axis moves the annotations with the genes", {
   # without a range axis nothing moves
   expect_equal(annotate(base)$x$series[["1"]]$annotations[[1]]$x, 1450)
 })
+
+test_that("GC_scale with a range axis moves the line ends with the genes", {
+  genes <- data.frame(start = c(1000, 1500), end = c(1400, 1900), cluster = c(1, 1))
+  base <- GC_chart(genes, cluster = "cluster")
+  before <- base %>% GC_sequence(end = 1800) %>% GC_scale(axis_type = "range")
+  after <- base %>% GC_scale(axis_type = "range") %>% GC_sequence(end = 1800)
+  expect_equal(before$x$series[["1"]]$sequence$end, 801)
+  expect_equal(after$x$series[["1"]]$sequence$end, 801)
+  # without a range axis the line is left alone
+  expect_equal((base %>% GC_sequence(end = 1800))$x$series[["1"]]$sequence$end, 1800)
+})

@@ -344,12 +344,32 @@ GC_sequence <- function(
       options[[name]] <- recycle_at(dots[[name]], i)
     }
 
+    # A range axis has moved the genes of the cluster; move the line along
+    options <- shift_sequence(options, GC_chart$x$series[[clusters[i]]]$positionShift)
+
     # Set sequence options for each cluster
     GC_chart$x$series[[clusters[i]]]$sequence <- options
 
   }
 
   return(GC_chart)
+}
+
+#' Move the start and end of the line of a cluster
+#'
+#' Subtracts `shift` from the `start` and `end` of the line, so it stays with
+#' the genes when `GC_scale(axis_type = "range")` has moved them to start at 1.
+#' @noRd
+shift_sequence <- function(options, shift) {
+  if (is.null(options) || is.null(shift) || shift == 0) {
+    return(options)
+  }
+  for (name in intersect(c("start", "end"), names(options))) {
+    if (is.numeric(options[[name]])) {
+      options[[name]] <- options[[name]] - shift
+    }
+  }
+  options
 }
 
 #' Update Grid Display of a GC Chart Cluster
@@ -634,6 +654,8 @@ GC_scale <- function(GC_chart,
       GC_chart$x$series[[clust]]$data <- cluster_data
       # Move the annotations with the genes, now and when added later
       shift <- min_start_end - 1
+      GC_chart$x$series[[clust]]$sequence <- shift_sequence(
+        GC_chart$x$series[[clust]]$sequence, shift)
       if (length(GC_chart$x$series[[clust]]$annotations) > 0) {
         GC_chart$x$series[[clust]]$annotations <- lapply(
           GC_chart$x$series[[clust]]$annotations, shift_annotation, shift = shift)

@@ -1905,7 +1905,16 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     fontStyle: "normal",
     fontWeight: "bold",
     fontFamily: "sans-serif",
-    cursor: "default"
+    cursor: "default",
+    subtitle: null,
+    spacing: null, // Between the last line of the title and the subtitle; null: from the font sizes
+    subtitleFont: {
+      fontSize: "11px",
+      fontStyle: "normal",
+      fontWeight: "normal",
+      fontFamily: "sans-serif",
+      cursor: "default"
+    }
   };
 
   // Merge the options using the generic function
@@ -1923,6 +1932,9 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     fontWeight,
     fontFamily,
     cursor,
+    subtitle,
+    spacing,
+    subtitleFont
   } = combinedOptions;
 
   const additionalwrapOptions = extractAdditionalOptions(wrapOptions, defaultOptions.wrapOptions);
@@ -1978,8 +1990,70 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
       setStyleFromOptions(currentElement, additionalOptions);
     });
 
+  if (subtitle) {
+    const additionalOptionsSubtitleFont = extractAdditionalOptions(subtitleFont, defaultOptions.subtitleFont);
+    const subtitleStyle = {
+      size: subtitleFont.fontSize,
+      style: subtitleFont.fontStyle,
+      weight: subtitleFont.fontWeight,
+      family: subtitleFont.fontFamily,
+      cursor: subtitleFont.cursor
+    };
+
+    const clusterSubtitle = this.svg.append("text")
+      .attr("x", xposition)
+      .attr("y", middleY)
+      .attr("text-anchor", textAnchor)
+      .attr("dominant-baseline", "central")
+      .style("font-size", subtitleFont.fontSize)
+      .style("font-style", subtitleFont.fontStyle)
+      .style("font-weight", subtitleFont.fontWeight)
+      .style("font-family", subtitleFont.fontFamily)
+      .style("cursor", subtitleFont.cursor)
+      .each(function () {
+        const currentElement = d3.select(this);
+
+        if (!wrapLabel) {
+          parseAndStyleText(subtitle, currentElement, subtitleStyle);
+        } else {
+          currentElement.text(subtitle);
+          wrap(currentElement, titleWidth, wrapOptions);
+        }
+        setStyleFromOptions(currentElement, additionalOptionsSubtitleFont);
+      });
+
+    // The subtitle starts spacing below the last line of the title, and the two
+    // are centred together on the middle of the cluster. By default the spacing
+    // is 1.2 times the mean font size of the two
+    const titleLines = labelLineOffsets(clusterTitle);
+    const subtitleLines = labelLineOffsets(clusterSubtitle);
+    const lineSpacing = spacing ?? 1.2 * (titleLines.fontSize + subtitleLines.fontSize) / 2;
+    const titleY = middleY -
+      (titleLines.first + titleLines.last + lineSpacing - subtitleLines.first + subtitleLines.last) / 2;
+    setLabelY(clusterTitle, titleY);
+    setLabelY(clusterSubtitle, titleY + titleLines.last + lineSpacing - subtitleLines.first);
+  }
+
   return this;
 };
+
+// The font size of a label and the offsets in pixels of its first and last
+// line from its y position: the lines of a wrapped label are moved with dy (in em)
+function labelLineOffsets(label) {
+  const fontSize = parseFloat(getComputedStyle(label.node()).fontSize);
+  const lines = label.selectAll("tspan.wrap-line").nodes();
+  if (!lines.length) {
+    return { fontSize, first: 0, last: 0 };
+  }
+  const offset = line => (parseFloat(line.getAttribute("dy")) || 0) * fontSize;
+  return { fontSize, first: offset(lines[0]), last: offset(lines[lines.length - 1]) };
+}
+
+// Moves a label and its wrapped lines to a new y position
+function setLabelY(label, y) {
+  label.attr("y", y);
+  label.selectAll("tspan.wrap-line").attr("y", y);
+}
 
 container.prototype.sequence = function (show = true, options = {}) {
 

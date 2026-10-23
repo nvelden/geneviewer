@@ -14,6 +14,7 @@ GC_clusterTitle(
   height = NULL,
   cluster = NULL,
   align = NULL,
+  spacing = NULL,
   ...
 )
 }
@@ -38,6 +39,10 @@ GC_clusterTitle(
 subtitle, "left", "center" or "right", recycled over the clusters. \code{x}
 moves them from this position. Default is NULL: the alignment of the
 theme, otherwise "center".}
+
+\item{spacing}{Numeric vector. Pixels between the title and the subtitle,
+recycled over the clusters. Default is NULL: as set by the theme,
+otherwise 20.}
 
 \item{...}{Additional customization arguments for title and subtitle.}
 }

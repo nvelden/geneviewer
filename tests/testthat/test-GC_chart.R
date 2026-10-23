@@ -1555,6 +1555,90 @@ test_that("a wrapped cluster label keeps <i> styles over its lines", {
   expect_true(all(styles[c("Enterobacter", "cloacae", "ECL-21")] == "italic"))
 })
 
+test_that("GC_clusterLabel() sends a subtitle, its font and spacing per cluster", {
+  genes <- data.frame(start = c(10, 50, 90), end = c(40, 80, 120), cluster = c(1, 1, 2))
+  chart <- GC_chart(genes, cluster = "cluster")
+
+  labelled <- GC_clusterLabel(chart, subtitle = c("E. cloacae", "K. oxytoca"),
+                              subtitleFont = list(fontStyle = "italic"), spacing = 16)
+  labels <- lapply(labelled$x$series, `[[`, "clusterLabel")
+  expect_equal(unname(sapply(labels, `[[`, "subtitle")), c("E. cloacae", "K. oxytoca"))
+  expect_equal(labels[[2]]$subtitleFont, list(fontStyle = "italic"))
+  expect_equal(labels[[1]]$spacing, 16)
+
+  # Without them nothing is sent, so the theme and the defaults apply
+  label <- GC_clusterLabel(chart)$x$series[[1]]$clusterLabel
+  expect_null(label$subtitle)
+  expect_null(label$subtitleFont)
+  expect_null(label$spacing)
+  expect_equal(unname(sapply(GC_clusterLabel(chart, spacing = c(10, 12))$x$series,
+                             function(s) s$clusterLabel$spacing)), c(10, 12))
+  expect_error(GC_clusterLabel(chart, spacing = "10"), "spacing must be")
+})
+
+test_that("GC_title(), GC_clusterTitle() and GC_clusterFooter() take spacing", {
+  genes <- data.frame(start = c(10, 50), end = c(40, 80), cluster = c(1, 2))
+  chart <- GC_chart(genes, cluster = "cluster")
+  expect_equal(GC_title(chart, "Title", "Subtitle", spacing = 24)$x$title$spacing, 24)
+  expect_equal(GC_clusterTitle(chart, "Title", "Subtitle", spacing = 24)$x$series[[2]]$clusterTitle$spacing, 24)
+  expect_equal(GC_clusterFooter(chart, "Title", "Subtitle", spacing = 24)$x$series[[1]]$footer$spacing, 24)
+  expect_null(GC_clusterFooter(chart, "Title")$x$series[[1]]$footer$spacing)
+  expect_error(GC_title(chart, "Title", spacing = "a"), "spacing must be")
+  expect_error(GC_title(chart, "Title", spacing = c(10, 12)), "spacing must be")
+  expect_error(GC_clusterFooter(chart, "Title", spacing = NA), "spacing must be")
+})
+
+test_that("a cluster label subtitle sits below the title, centred together on the cluster", {
+  genes <- data.frame(start = c(10, 50), end = c(40, 80), group = c("A", "B"))
+  # Middle of each line (from its y and dy) and the bounding boxes of the title
+  # and subtitle
+  label_lines <- function(chart) {
+    file <- tempfile(fileext = ".html")
+    htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+    session <- chrome_page(file)
+    session$Runtime$evaluate("
+      (() => {
+        const texts = [...document.querySelectorAll('text[dominant-baseline=central]')];
+        const middles = t => [...t.querySelectorAll('tspan.wrap-line')].map(l =>
+          parseFloat(l.getAttribute('y')) +
+          parseFloat(l.getAttribute('dy')) * parseFloat(getComputedStyle(t).fontSize));
+        return texts.map(t => ({
+          text: t.textContent, middles: middles(t),
+          top: t.getBoundingClientRect().top, bottom: t.getBoundingClientRect().bottom,
+          fontStyle: getComputedStyle(t).fontStyle, fontWeight: getComputedStyle(t).fontWeight
+        }));
+      })()", returnByValue = TRUE)$result$value
+  }
+  chart <- GC_chart(genes, group = "group", width = "600px", height = "200px")
+
+  # Without a subtitle the label is on the middle of the cluster
+  middle <- label_lines(chart %>% GC_clusterLabel("pQEB1"))[[1]]$middles[[1]]
+
+  # Default spacing: 1.2 times the mean font size of 12px and 11px
+  label <- label_lines(chart %>%
+    GC_clusterLabel("pQEB1", subtitle = "E. cloacae", subtitleFont = list(fontStyle = "italic")))
+  expect_length(label, 2)
+  title <- label[[1]]
+  subtitle <- label[[2]]
+  expect_equal(subtitle$text, "E. cloacae")
+  expect_equal(subtitle$fontStyle, "italic")
+  expect_equal(subtitle$fontWeight, "400")
+  expect_equal(subtitle$middles[[1]] - title$middles[[1]], 1.2 * (12 + 11) / 2, tolerance = 1e-6)
+  expect_equal((title$middles[[1]] + subtitle$middles[[1]]) / 2, middle, tolerance = 1e-6)
+  expect_gt(subtitle$top, title$top)
+
+  # A wrapped title: the subtitle is spacing below its last line
+  label <- label_lines(chart %>%
+    GC_clusterLabel("A long cluster name wrapped", subtitle = "E. cloacae",
+                    width = "100px", spacing = 20))
+  title_middles <- unlist(label[[1]]$middles)
+  subtitle_middle <- label[[2]]$middles[[1]]
+  expect_gt(length(title_middles), 1)
+  expect_equal(subtitle_middle - max(title_middles), 20, tolerance = 1e-6)
+  expect_equal((min(title_middles) + subtitle_middle) / 2, middle, tolerance = 1e-6)
+  expect_gte(label[[2]]$top, label[[1]]$bottom - 1)
+})
+
 test_that("GC_links() sends vmin and vmax and checks them", {
   genes <- data.frame(cluster = c("A", "B"), start = c(1, 1), end = c(100, 100))
   links <- data.frame(cluster1 = "A", start1 = 1, end1 = 100,

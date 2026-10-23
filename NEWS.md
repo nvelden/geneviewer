@@ -11,6 +11,8 @@
 - `GC_legend(align = )` aligns the legend to the left, centre or right, like `GC_title()`: `"left"` (default), `"center"` or `"right"`. Each row of a legend that wraps is aligned on its own, and `x` moves the legend from that position. Themes take it in `legend = list(align = )`.
 - `GC_title()`, `GC_clusterTitle()` and `GC_clusterFooter()` now have a documented `align` argument (`"left"`, `"center"` or `"right"`), which is checked; it was only taken through `...`. The cluster title and footer take one per cluster, e.g. `align = c("left", "right")`.
 - `GC_clusterLabel(align = )` aligns the lines of the cluster labels to the left, centre (default) or right of their margin, e.g. `align = "left"` so the names and the species below them start at the same place. `x` moves the labels from that position.
+- `GC_clusterLabel(subtitle = )` adds a second line below each cluster label, e.g. the species, styled with `subtitleFont` (11px and not bold by default). `spacing` sets the pixels between the last line of the title and the subtitle (by default 1.2 times their mean font size), and the two are centred together on the cluster. Themes colour the subtitle like the other text, and the dark, vintage and publication themes like their other subtitles.
+- `GC_title()`, `GC_clusterTitle()` and `GC_clusterFooter()` now have a documented `spacing` argument for the pixels between the title and the subtitle, which is checked; it was only taken through `...`. The cluster title and footer take one per cluster.
 - `GC_trackMouse()` takes the styles of the coordinate tooltip (e.g. `backgroundColor`, `fontSize`) and `cursor`.
 
 ### Changes:

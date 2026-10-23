@@ -312,6 +312,7 @@ builtin_themes <- list(
     title = list(titleFont = list(fontSize = "18px"),
                  subtitleFont = list(fontSize = "12px", fill = "#aaaaaa")),
     clusterTitle = list(subtitleFont = list(fill = "#aaaaaa")),
+    clusterLabel = list(subtitleFont = list(fill = "#aaaaaa")),
     genes = list(stroke = "none", corner_radius = 3),
     transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
                       styleUTRs = list(cornerRadius = 3)),
@@ -338,6 +339,7 @@ builtin_themes <- list(
     palette = "vintage",
     title = list(subtitleFont = list(fill = "#787464")),
     clusterTitle = list(subtitleFont = list(fill = "#787464")),
+    clusterLabel = list(subtitleFont = list(fill = "#787464")),
     sequence = list(sequenceStyle = list(stroke = "#c9c2b5")),
     genes = list(stroke = "none", corner_radius = 3),
     transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
@@ -399,7 +401,7 @@ builtin_themes <- list(
                  subtitleFont = list(fontSize = "9.33px")),
     clusterTitle = list(titleFont = list(fontSize = "9.33px"), subtitleFont = list(fontSize = "9.33px")),
     clusterFooter = list(titleFont = list(fontSize = "9.33px"), subtitleFont = list(fontSize = "9.33px")),
-    clusterLabel = list(fontSize = "9.33px"),
+    clusterLabel = list(fontSize = "9.33px", subtitleFont = list(fontSize = "9.33px")),
     genes = list(stroke = "black", strokeWidth = 0.75, corner_radius = 3),
     # No keylines on exons and UTRs: on a short exon the outline hides its colour
     transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
@@ -609,7 +611,7 @@ theme_global_options <- function(theme) {
     title = list(titleFont = text, subtitleFont = text),
     clusterTitle = list(titleFont = text, subtitleFont = text),
     clusterFooter = list(titleFont = text, subtitleFont = text),
-    clusterLabel = text,
+    clusterLabel = c(text, list(subtitleFont = text)),
     sequence = list(sequenceStyle = line, markerStyle = line),
     genes = c(colors, pattern),
     # UTRs are open boxes, filled with the background

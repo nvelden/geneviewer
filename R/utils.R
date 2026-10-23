@@ -528,3 +528,21 @@ check_align <- function(align, per_cluster = FALSE) {
   }
   invisible(align)
 }
+
+#' Check a spacing argument
+#'
+#' @param spacing NULL, or a number: pixels between a title and its subtitle;
+#'   one per cluster when `per_cluster` is TRUE.
+#' @param per_cluster Logical, whether `spacing` may have one value per cluster.
+#' @return `spacing`, invisibly; an error when it is not valid.
+#' @noRd
+check_spacing <- function(spacing, per_cluster = FALSE) {
+  if (is.null(spacing)) {
+    return(invisible(spacing))
+  }
+  valid <- is.numeric(spacing) && length(spacing) >= 1 && all(is.finite(spacing))
+  if (!valid || (!per_cluster && length(spacing) != 1)) {
+    stop(if (per_cluster) "spacing must be numbers" else "spacing must be a single number")
+  }
+  invisible(spacing)
+}

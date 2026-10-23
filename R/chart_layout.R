@@ -19,6 +19,8 @@
 #' @param align Character. Horizontal alignment of the title and subtitle,
 #'   "left", "center" or "right". `x` moves them from this position. Default is
 #'   NULL: the alignment of the theme, otherwise "center".
+#' @param spacing Numeric. Pixels between the title and the subtitle. Default
+#'   is NULL: as set by the theme, otherwise 20.
 #' @param ... Additional customization arguments for title and subtitle.
 #'
 #' @return Updated GC chart with new title settings.
@@ -91,6 +93,7 @@ GC_title <- function(
     show = TRUE,
     height = NULL,
     align = NULL,
+    spacing = NULL,
     ...
 ) {
 
@@ -98,6 +101,7 @@ GC_title <- function(
     stop("show must be a single TRUE or FALSE")
   }
   check_align(align)
+  check_spacing(spacing)
 
   if (!show || is.null(title) && is.null(subtitle)) {
     return(GC_chart)
@@ -113,6 +117,7 @@ GC_title <- function(
       height = height,
       show = show,
       align = align,
+      spacing = spacing,
       ...
     ))
 
@@ -143,6 +148,9 @@ GC_title <- function(
 #'   subtitle, "left", "center" or "right", recycled over the clusters. `x`
 #'   moves them from this position. Default is NULL: the alignment of the
 #'   theme, otherwise "center".
+#' @param spacing Numeric vector. Pixels between the title and the subtitle,
+#'   recycled over the clusters. Default is NULL: as set by the theme,
+#'   otherwise 20.
 #' @param ... Additional customization arguments for title and subtitle.
 #'
 #' @return Updated GC chart with new title settings.
@@ -210,11 +218,13 @@ GC_clusterTitle <- function(
     height = NULL,
     cluster = NULL,
     align = NULL,
+    spacing = NULL,
     ...) {
   if (!any(show)) {
     return(GC_chart)
   }
   check_align(align, per_cluster = TRUE)
+  check_spacing(spacing, per_cluster = TRUE)
 
   # Capture ... arguments
   dots <- list(...)
@@ -232,6 +242,7 @@ GC_clusterTitle <- function(
       show = recycle_at(show, i)
     )
     options$align <- recycle_at(align, i)
+    options$spacing <- recycle_at(spacing, i)
 
     # Add arguments to options
     for (name in names(dots)) {
@@ -798,6 +809,8 @@ GC_scaleBar <- function(
 #'
 #' @param GC_chart A GC chart object.
 #' @param title Character vector. The title for the cluster label. Default is NULL.
+#' @param subtitle Character vector. A second line below the title, e.g. the
+#' species, recycled over the clusters. Default is NULL: no subtitle.
 #' @param show Logical. Whether to show the cluster label. Default is TRUE.
 #' @param width Character. The width of the cluster label, which sets the left
 #' or right margin of the cluster. Default is NULL: a margin set with
@@ -815,6 +828,13 @@ GC_scaleBar <- function(
 #' Default is NULL: as set by the theme, otherwise TRUE.
 #' @param wrapOptions List. Specifies the wrapping options.
 #' Default is an empty List.
+#' @param subtitleFont List. Settings for the subtitle font, e.g.
+#' `list(fontStyle = "italic")`. Default is an empty list: 11px, not bold.
+#' @param spacing Numeric vector. Pixels between the middle of the last line of
+#' the title and of the subtitle, recycled over the clusters. The title and
+#' subtitle are centred together on the cluster. Default is NULL: as set by the
+#' theme, otherwise 1.2 times the mean font size of the title and subtitle (14
+#' for the default 12px and 11px).
 #' @param ... Additional customization arguments for the cluster label,
 #' such as 'fontSize', 'fontStyle', 'fontWeight', 'fontFamily', 'cursor', etc.
 #'
@@ -837,6 +857,15 @@ GC_scaleBar <- function(
 #' # Set label for a specific cluster
 #' GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") %>%
 #' GC_clusterLabel(title = "Cluster 1", cluster = 1)
+#'
+#' # Add a subtitle below each label
+#' GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") %>%
+#'   GC_clusterLabel(
+#'     title = c("pQEB1", "pQEB1_inv1"),
+#'     subtitle = c("E. cloacae", "K. oxytoca"),
+#'     subtitleFont = list(fontStyle = "italic"),
+#'     spacing = 14
+#'   )
 #'
 #' # Style labels
 #' GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") %>%
@@ -873,6 +902,9 @@ GC_clusterLabel <- function(
     align = NULL,
     wrapLabel = NULL,
     wrapOptions = list(),
+    subtitle = NULL,
+    subtitleFont = list(),
+    spacing = NULL,
     ...
 ) {
 
@@ -880,6 +912,7 @@ GC_clusterLabel <- function(
     return(GC_chart)
   }
   check_align(align, per_cluster = TRUE)
+  check_spacing(spacing, per_cluster = TRUE)
 
   cluster_column <- GC_chart$x$cluster
 
@@ -905,8 +938,13 @@ GC_clusterLabel <- function(
       wrapLabel = wrapLabel,
       wrapOptions = wrapOptions,
       position = recycle_at(position, i),
-      align = recycle_at(align, i)
+      align = recycle_at(align, i),
+      subtitle = recycle_at(subtitle, i),
+      spacing = recycle_at(spacing, i)
     ))
+    if (length(subtitleFont) > 0) {
+      options$subtitleFont <- subtitleFont
+    }
 
     # Add ... arguments to options
     for(name in names(dots)) {
@@ -941,6 +979,9 @@ GC_clusterLabel <- function(
 #'   subtitle, "left", "center" or "right", recycled over the clusters. `x`
 #'   moves them from this position. Default is NULL: the alignment of the
 #'   theme, otherwise "left".
+#' @param spacing Numeric vector. Pixels between the title and the subtitle,
+#'   recycled over the clusters. Default is NULL: as set by the theme,
+#'   otherwise 12.
 #' @param ... Additional arguments for further customization of the footers.
 #'
 #' @return A GC chart object with updated footer settings for each specified cluster.
@@ -965,7 +1006,6 @@ GC_clusterLabel <- function(
 #'   GC_clusterFooter(
 #'     title = "This is a footer",
 #'     subtitle = "Subtitle for the footer",
-#'     spacing = 15,
 #'     show = TRUE,
 #'     cluster = 1,
 #'     x = 6,
@@ -998,6 +1038,7 @@ GC_clusterFooter <- function(
     subtitleFont = list(),
     titleFont = list(),
     align = NULL,
+    spacing = NULL,
     ...
 ) {
 
@@ -1005,6 +1046,7 @@ GC_clusterFooter <- function(
     return(GC_chart)
   }
   check_align(align, per_cluster = TRUE)
+  check_spacing(spacing, per_cluster = TRUE)
 
   # Capture ... arguments
   dots <- list(...)
@@ -1023,6 +1065,7 @@ GC_clusterFooter <- function(
       titleFont = titleFont
     )
     options$align <- recycle_at(align, i)
+    options$spacing <- recycle_at(spacing, i)
 
     # Add ... arguments to options
     for(name in names(dots)) {

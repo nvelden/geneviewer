@@ -14,6 +14,7 @@ GC_title(
   show = TRUE,
   height = NULL,
   align = NULL,
+  spacing = NULL,
   ...
 )
 }
@@ -42,6 +43,9 @@ without.}
 \item{align}{Character. Horizontal alignment of the title and subtitle,
 "left", "center" or "right". \code{x} moves them from this position. Default is
 NULL: the alignment of the theme, otherwise "center".}
+
+\item{spacing}{Numeric. Pixels between the title and the subtitle. Default
+is NULL: as set by the theme, otherwise 20.}
 
 \item{...}{Additional customization arguments for title and subtitle.}
 }

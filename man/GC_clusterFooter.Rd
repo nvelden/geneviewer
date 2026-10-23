@@ -13,6 +13,7 @@ GC_clusterFooter(
   subtitleFont = list(),
   titleFont = list(),
   align = NULL,
+  spacing = NULL,
   ...
 )
 }
@@ -40,6 +41,10 @@ If NULL, all clusters will be updated. Default is NULL.}
 subtitle, "left", "center" or "right", recycled over the clusters. \code{x}
 moves them from this position. Default is NULL: the alignment of the
 theme, otherwise "left".}
+
+\item{spacing}{Numeric vector. Pixels between the title and the subtitle,
+recycled over the clusters. Default is NULL: as set by the theme,
+otherwise 12.}
 
 \item{...}{Additional arguments for further customization of the footers.}
 }
@@ -70,7 +75,6 @@ GC_chart(genes_data, cluster = "cluster", group = "group") \%>\%
   GC_clusterFooter(
     title = "This is a footer",
     subtitle = "Subtitle for the footer",
-    spacing = 15,
     show = TRUE,
     cluster = 1,
     x = 6,

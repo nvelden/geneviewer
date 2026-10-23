@@ -14,6 +14,9 @@ GC_clusterLabel(
   align = NULL,
   wrapLabel = NULL,
   wrapOptions = list(),
+  subtitle = NULL,
+  subtitleFont = list(),
+  spacing = NULL,
   ...
 )
 }
@@ -46,6 +49,18 @@ Default is NULL: as set by the theme, otherwise TRUE.}
 \item{wrapOptions}{List. Specifies the wrapping options.
 Default is an empty List.}
 
+\item{subtitle}{Character vector. A second line below the title, e.g. the
+species, recycled over the clusters. Default is NULL: no subtitle.}
+
+\item{subtitleFont}{List. Settings for the subtitle font, e.g.
+\code{list(fontStyle = "italic")}. Default is an empty list: 11px, not bold.}
+
+\item{spacing}{Numeric vector. Pixels between the middle of the last line of
+the title and of the subtitle, recycled over the clusters. The title and
+subtitle are centred together on the cluster. Default is NULL: as set by the
+theme, otherwise 1.2 times the mean font size of the title and subtitle (14
+for the default 12px and 11px).}
+
 \item{...}{Additional customization arguments for the cluster label,
 such as 'fontSize', 'fontStyle', 'fontWeight', 'fontFamily', 'cursor', etc.}
 }
@@ -73,6 +88,15 @@ GC_clusterLabel(title = unique(genes_data$cluster))
 # Set label for a specific cluster
 GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") \%>\%
 GC_clusterLabel(title = "Cluster 1", cluster = 1)
+
+# Add a subtitle below each label
+GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") \%>\%
+  GC_clusterLabel(
+    title = c("pQEB1", "pQEB1_inv1"),
+    subtitle = c("E. cloacae", "K. oxytoca"),
+    subtitleFont = list(fontStyle = "italic"),
+    spacing = 14
+  )
 
 # Style labels
 GC_chart(genes_data, cluster ="cluster", group = "group", height = "200px") \%>\%

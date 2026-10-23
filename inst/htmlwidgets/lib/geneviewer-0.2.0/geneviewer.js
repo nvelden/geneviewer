@@ -2953,10 +2953,18 @@ function getMarkerAttributes(container, d, i, y, styles, itemStyles) {
     }
   );
 
-  container.markerHeight = height;
-  container.markerY = currentY;
-  container.geneStrandSpacing = container.separateStrands ? (height / 2 + container.strandSpacing) : 0;
-  container.geneOverlapSpacing = (height + container.overlapSpacing);
+  // The labels and track spacing of the cluster follow its own marker, not
+  // the size or y of a single item set with itemStyle
+  const clusterHeight = getGenePath(styles.marker, geneLength, styles.markerSize, {
+    arrowheadWidth: styles.arrowheadWidth,
+    arrowheadHeight: styles.arrowheadHeight,
+    markerHeight: styles.markerHeight,
+    cornerRadius: styles.cornerRadius
+  }).height;
+  container.markerHeight = clusterHeight;
+  container.markerY = y;
+  container.geneStrandSpacing = container.separateStrands ? (clusterHeight / 2 + container.strandSpacing) : 0;
+  container.geneOverlapSpacing = (clusterHeight + container.overlapSpacing);
 
   // Calculate Y position based on geneTrack
   const currentGeneStrandSpacing = (d.strand === "forward" && container.geneStrandSpacing !== 0)

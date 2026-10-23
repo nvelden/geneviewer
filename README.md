@@ -1,7 +1,6 @@
-<p align="center">
-  <img src="man/figures/logo.png" class="pkgdown-hide" height="150px">
-</p>
-<h1 align="center"><strong>geneviewer</strong> - Gene Cluster Visualizations in R</h1>
+<h1><strong>geneviewer</strong> - Gene Cluster Visualizations in R</h1>
+
+<img src="man/figures/logo.png" class="pkgdown-hide" height="150px" align="right">
 
 <!-- badges: start -->
 
@@ -9,9 +8,9 @@
 
 <!-- badges: end -->
 
-## geneviewer
-
 **geneviewer** is an R package for plotting gene clusters and transcripts. It imports data from GenBank, FASTA, and GFF files, performs BlastP and MUMmer alignments, and displays results on gene arrow maps. The package offers extensive customization options, including legends, labels, annotations, scales, colors, tooltips, and more. To explore all features visit the [package website](https://nvelden.github.io/geneviewer/articles/geneviewer.html).
+
+<br clear="right">
 
 ## Interactive Shiny Dashboard
 

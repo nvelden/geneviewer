@@ -1679,3 +1679,37 @@ test_that("links fade from nearly white at vmin to the link colour at vmax", {
                             "rgb(115, 115, 115)", "rgb(0, 0, 0)"))
   expect_true(all(c("60%", "100%") %in% res$labels))
 })
+
+test_that("GC_scale with a range axis moves the annotations with the genes", {
+  genes <- data.frame(
+    start = c(1000, 1500, 200, 600),
+    end = c(1400, 1900, 500, 900),
+    name = c("a", "b", "c", "d"),
+    cluster = c(1, 1, 2, 2)
+  )
+  annotate <- function(chart) {
+    chart %>%
+      GC_annotation(cluster = 1, type = "text", text = "x", x = 1450) %>%
+      GC_annotation(cluster = 1, type = "textMarker", position = 1450, x1 = 1450) %>%
+      GC_annotation(cluster = 1, type = "rectangle",
+                    position = list(list(c(1100, 60), c(1300, 40))))
+  }
+  check <- function(chart) {
+    a <- chart$x$series[["1"]]$annotations
+    expect_equal(a[[1]]$x, 451)
+    expect_equal(a[[2]]$position, 451)
+    expect_equal(a[[2]]$x1, 451)
+    expect_equal(a[[3]]$position[[1]][[1]], c(101, 60))
+    expect_equal(a[[3]]$position[[1]][[2]], c(301, 40))
+    expect_equal(chart$x$series[["1"]]$data$start, c(1, 501))
+  }
+
+  base <- GC_chart(genes, cluster = "cluster", group = "name")
+  # annotations added before or after the range axis end up in the same place
+  check(base %>% annotate() %>% GC_scale(axis_type = "range"))
+  check(base %>% GC_scale(axis_type = "range") %>% annotate())
+  # a second range axis does not move them again
+  check(base %>% annotate() %>% GC_scale(axis_type = "range") %>% GC_scale(axis_type = "range"))
+  # without a range axis nothing moves
+  expect_equal(annotate(base)$x$series[["1"]]$annotations[[1]]$x, 1450)
+})

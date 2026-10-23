@@ -79,6 +79,9 @@ GC_annotation <- function(
       ...
     ))
 
+    # A range axis has moved the genes of the cluster; move the annotation along
+    options <- shift_annotation(options, GC_chart$x$series[[clusters[i]]]$positionShift)
+
     currentAnnotations <- GC_chart$x$series[[clusters[i]]]$annotations
 
     if(is.null(currentAnnotations) || length(currentAnnotations) == 0){
@@ -90,6 +93,37 @@ GC_annotation <- function(
   }
 
   return(GC_chart)
+}
+
+#' Move the x positions of an annotation
+#'
+#' Subtracts `shift` from the x positions of an annotation (`x`, `x1`, `x2`
+#' and `position`; for a rectangle the first value of each corner), so it stays
+#' on the genes when `GC_scale(axis_type = "range")` has moved them to start at 1.
+#' @noRd
+shift_annotation <- function(options, shift) {
+  if (is.null(shift) || shift == 0) {
+    return(options)
+  }
+  move <- function(x) if (is.numeric(x)) x - shift else x
+  for (name in intersect(c("x", "x1", "x2"), names(options))) {
+    options[[name]] <- if (is.list(options[[name]])) lapply(options[[name]], move) else move(options[[name]])
+  }
+  if (!is.null(options$position)) {
+    if (identical(options$type, "rectangle")) {
+      options$position <- lapply(options$position, function(corners) {
+        lapply(corners, function(point) {
+          point[1] <- point[1] - shift
+          point
+        })
+      })
+    } else if (is.list(options$position)) {
+      options$position <- lapply(options$position, move)
+    } else {
+      options$position <- move(options$position)
+    }
+  }
+  options
 }
 
 #' Track Mouse Movement in a GC_chart

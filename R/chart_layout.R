@@ -632,6 +632,15 @@ GC_scale <- function(GC_chart,
       cluster_data$start <- cluster_data$start - min_start_end + 1
       cluster_data$end <- cluster_data$end - min_start_end + 1
       GC_chart$x$series[[clust]]$data <- cluster_data
+      # Move the annotations with the genes, now and when added later
+      shift <- min_start_end - 1
+      if (length(GC_chart$x$series[[clust]]$annotations) > 0) {
+        GC_chart$x$series[[clust]]$annotations <- lapply(
+          GC_chart$x$series[[clust]]$annotations, shift_annotation, shift = shift)
+      }
+      previous <- GC_chart$x$series[[clust]]$positionShift
+      GC_chart$x$series[[clust]]$positionShift <-
+        if (is.null(previous)) shift else previous + shift
       rows <- match(cluster_data$rowID, GC_chart$x$data$rowID)
       GC_chart$x$data$start[rows] <- cluster_data$start
       GC_chart$x$data$end[rows] <- cluster_data$end

@@ -117,8 +117,9 @@ divide_dimension_value <- function(value, divisor) {
 #' @param threshold_percentage Numeric. A threshold value given as percentage.
 #'   Only non-coding regions that are larger than this threshold (relative to
 #'   the entire genomic region covered) will be returned.
-#' @param padding Numeric. A value given as percentage that will be added to the
-#'   start and subtracted from the end of each non-coding region.
+#' @param padding The room left on either side of each break: a number, as a
+#'   percentage of the region shown (without the non-coding regions left out),
+#'   or a string in base pairs, e.g. "500bp".
 #'
 #' @return A data.frame containing the start and end positions of the
 #'   identified non-coding regions.
@@ -184,9 +185,21 @@ get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
     }
   }
 
-  padding_val <- entire_region_length * padding / 100
+  if (is.character(padding)) {
+    # In base pairs
+    padding_val <- break_padding_bp(padding)
+  } else {
+    # A share of the region shown: the entire region less the regions left out
+    shown_length <- entire_region_length -
+      sum(non_coding_regions$end - non_coding_regions$start + 1)
+    padding_val <- shown_length * padding / 100
+  }
   non_coding_regions$start <- non_coding_regions$start + padding_val
   non_coding_regions$end <- non_coding_regions$end - padding_val
+  # A gap too short for the padding gets no break
+  non_coding_regions <- non_coding_regions[non_coding_regions$start < non_coding_regions$end, ]
+  # Row names would become list names, sent to the chart as an object
+  rownames(non_coding_regions) <- NULL
 
   #convert df to list of lists
   non_coding_regions <-
@@ -195,6 +208,15 @@ get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
   })
 
   return(non_coding_regions)
+}
+
+#' The base pairs of a padding given as a string, e.g. "500bp"
+#' @noRd
+break_padding_bp <- function(padding) {
+  if (!grepl("^\\s*[0-9]*\\.?[0-9]+\\s*bp\\s*$", padding)) {
+    stop("scale_break_padding must be a percentage, e.g. 1, or base pairs, e.g. \"500bp\"")
+  }
+  as.numeric(sub("\\s*bp\\s*$", "", padding))
 }
 
 #' Compute Size

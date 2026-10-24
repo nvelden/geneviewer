@@ -813,7 +813,8 @@ function createContainer(targetElementId, id, themeOptionsKey, options = {}, the
   return newContainer;
 }
 
-function addScalePadding(startValue, endValue, padding, to) {
+// The padding is a share of the range shown: the range less the scale breaks in it
+function addScalePadding(startValue, endValue, padding, to, breaks = []) {
   let paddingValue;
 
   // Check if padding is a percentage string
@@ -830,8 +831,11 @@ function addScalePadding(startValue, endValue, padding, to) {
     return to === 'start' ? startValue : endValue;
   }
 
-  // Calculate the total range
-  const totalRange = Math.abs(endValue - startValue);
+  // Calculate the range shown, without the scale breaks
+  const [low, high] = [Math.min(startValue, endValue), Math.max(startValue, endValue)];
+  const gaps = breaks.reduce((sum, gap) =>
+    sum + Math.max(0, Math.min(gap.end, high) - Math.max(gap.start, low)), 0);
+  const totalRange = high - low - gaps;
 
   // Calculate the actual padding value based on the total range
   paddingValue = totalRange * paddingValue;
@@ -1574,11 +1578,11 @@ container.prototype.scale = function (options = {}) {
               d3.max(this.data, d => Math.max(d.start, d.end));
 
   if(start == null){
-  this.minStart = addScalePadding(this.minStart, this.maxEnd, padding, "start")
+  this.minStart = addScalePadding(this.minStart, this.maxEnd, padding, "start", breaks)
   }
 
   if(end == null){
-  this.maxEnd = addScalePadding(this.minStart, this.maxEnd, padding, "end")
+  this.maxEnd = addScalePadding(this.minStart, this.maxEnd, padding, "end", breaks)
   }
 
   // Create scales
@@ -2098,11 +2102,11 @@ container.prototype.sequence = function (show = true, options = {}) {
   var maxEnd = end ?? d3.max(this.data, d => Math.max(d.start, d.end));
 
   if(start == null){
-  minStart = addScalePadding(minStart, maxEnd, this.padding, "start")
+  minStart = addScalePadding(minStart, maxEnd, this.padding, "start", this.breaks)
   }
 
   if(end == null){
-  maxEnd = addScalePadding(minStart, maxEnd, this.padding, "end")
+  maxEnd = addScalePadding(minStart, maxEnd, this.padding, "end", this.breaks)
   }
 
   // Pixel positions of the break markers, each markerStyle.gap px away from the break

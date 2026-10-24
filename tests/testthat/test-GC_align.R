@@ -65,3 +65,42 @@ test_that("GC_align is kept by GC_scale, also with a range axis", {
   expect_equal(unname(scale_range(after)[, "start"]), c(201, 501) - 500)
   expect_equal(before$x$series[["2"]]$scale$axisType, "range")
 })
+
+test_that("GC_scale takes breaks per cluster, in the positions of the data", {
+  chart <- GC_chart(align_genes, cluster = "cluster", group = "name") %>%
+    GC_scale(axis_type = "range",
+             breaks = data.frame(cluster = 2, start = 1250, end = 1450))
+  # cluster 2 starts at 1000, so on the range axis the break is at 251 - 451
+  expect_equal(chart$x$series[["2"]]$scale$breaks, list(list(start = 251, end = 451)))
+  expect_equal(chart$x$series[["1"]]$scale$breaks, list())
+  # without a cluster column the breaks are for all clusters, as a list is
+  all <- GC_chart(align_genes, cluster = "cluster", group = "name") %>%
+    GC_scale(breaks = data.frame(start = 1250, end = 1450))
+  expect_equal(all$x$series[["1"]]$scale$breaks, list(list(start = 1250, end = 1450)))
+  expect_error(GC_chart(align_genes, cluster = "cluster") %>%
+                 GC_scale(breaks = data.frame(from = 1)), "start and an end")
+})
+
+test_that("GC_align leaves the scale breaks out of the shared range", {
+  breaks <- data.frame(cluster = 2, start = 1250, end = 1450)
+  ranges <- function(chart) scale_range(chart)
+  shown <- function(chart, cl) {
+    sc <- chart$x$series[[cl]]$scale
+    gap <- sum(vapply(sc$breaks, function(b) b$end - b$start, numeric(1)))
+    sc$end - sc$start - gap
+  }
+  for (chart in list(
+    GC_chart(align_genes, cluster = "cluster", group = "name") %>%
+      GC_scale(breaks = breaks) %>% GC_align("name", "x"),
+    GC_chart(align_genes, cluster = "cluster", group = "name") %>%
+      GC_align("name", "x") %>% GC_scale(breaks = breaks)
+  )) {
+    # both clusters show the same number of base pairs
+    expect_equal(shown(chart, "1"), shown(chart, "2"))
+    # left of x: 200 bp in cluster 1, and 500 bp less the 200 bp break in
+    # cluster 2; right of x: 600 bp in cluster 1, 1100 bp in cluster 2
+    expect_equal(shown(chart, "1"), 300 + 1100)
+    expect_equal(unname(ranges(chart)[, "start"]), c(300 - 300, 1500 - 300 - 200))
+    expect_equal(unname(ranges(chart)[, "end"]), c(300 + 1100, 1500 + 1100))
+  }
+})

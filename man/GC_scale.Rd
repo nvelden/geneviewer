@@ -47,8 +47,12 @@ format of '2\%'. Default is NULL: as set by the theme, otherwise 2.}
 \item{hidden}{Logical flag indicating whether the axis is hidden. Default is
 FALSE.}
 
-\item{breaks}{List specifying settings for the scale breaks. Default is an
-empty list ().}
+\item{breaks}{The scale breaks: stretches of the scale that are left out,
+with break marks on the line. Either a list of breaks for all selected
+clusters, e.g. \code{list(list(start = 5486, end = 9336))}, or a data frame with
+\code{start} and \code{end} columns and, for breaks per cluster, a \code{cluster} column.
+Positions are those of the data, also with \code{axis_type = "range"}. Default is
+an empty list ().}
 
 \item{tickValues}{Numeric vector or NULL, custom tick values to be used at
 the top of the cluster. If NULL, the default tick values are used.}
@@ -71,8 +75,10 @@ employed. Default is FALSE.}
 \item{scale_break_threshold}{Numeric value indicating the threshold
 percentage for determining scale breaks. Default is 20.}
 
-\item{scale_break_padding}{Numeric value indicating the padding on either
-side of a scale break. Default is 1.}
+\item{scale_break_padding}{The room left on either side of a scale break: a
+number, as a percentage of the region shown (without its breaks), or a
+string in base pairs, e.g. \code{"500bp"}, for the same room around every break.
+Default is 1.}
 
 \item{ticksCount}{Numeric value indicating the number of ticks on the scale.
 Default is NULL: as set by the theme, otherwise 10.}

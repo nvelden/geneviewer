@@ -355,6 +355,34 @@ GC_sequence <- function(
   return(GC_chart)
 }
 
+#' The scale breaks of one cluster
+#'
+#' Picks the breaks of `cluster` from a data frame of breaks (all its rows when
+#' it has no `cluster` column) or takes a list of breaks as is, and moves them
+#' by `shift`, as the genes when a range axis has moved them to start at 1.
+#' @noRd
+cluster_breaks <- function(breaks, cluster, shift = NULL) {
+  if (is.data.frame(breaks)) {
+    if (!all(c("start", "end") %in% names(breaks))) {
+      stop("A data frame of breaks needs a start and an end column")
+    }
+    if ("cluster" %in% names(breaks)) {
+      breaks <- breaks[as.character(breaks$cluster) == cluster, , drop = FALSE]
+    }
+    breaks <- lapply(seq_len(nrow(breaks)), function(k) {
+      list(start = breaks$start[k], end = breaks$end[k])
+    })
+  }
+  if (is.null(shift) || shift == 0) {
+    return(breaks)
+  }
+  lapply(breaks, function(gap) {
+    gap$start <- gap$start - shift
+    gap$end <- gap$end - shift
+    gap
+  })
+}
+
 #' Move the start and end of the line of a cluster
 #'
 #' Subtracts `shift` from the `start` and `end` of the line, so it stays with
@@ -531,8 +559,12 @@ GC_grid <- function(
 #' format of '2%'. Default is NULL: as set by the theme, otherwise 2.
 #' @param hidden Logical flag indicating whether the axis is hidden. Default is
 #' FALSE.
-#' @param breaks List specifying settings for the scale breaks. Default is an
-#' empty list ().
+#' @param breaks The scale breaks: stretches of the scale that are left out,
+#' with break marks on the line. Either a list of breaks for all selected
+#' clusters, e.g. `list(list(start = 5486, end = 9336))`, or a data frame with
+#' `start` and `end` columns and, for breaks per cluster, a `cluster` column.
+#' Positions are those of the data, also with `axis_type = "range"`. Default is
+#' an empty list ().
 #' @param axis_position Character string indicating the type of the axis ('top' or
 #' bottom'). Default is NULL: as set by the theme, otherwise 'bottom'.
 #' @param axis_type Character string indicating the type of the axis ('position' or
@@ -545,8 +577,10 @@ GC_grid <- function(
 #' employed. Default is FALSE.
 #' @param scale_break_threshold Numeric value indicating the threshold
 #' percentage for determining scale breaks. Default is 20.
-#' @param scale_break_padding Numeric value indicating the padding on either
-#' side of a scale break. Default is 1.
+#' @param scale_break_padding The room left on either side of a scale break: a
+#' number, as a percentage of the region shown (without its breaks), or a
+#' string in base pairs, e.g. `"500bp"`, for the same room around every break.
+#' Default is 1.
 #' @param ticksCount Numeric value indicating the number of ticks on the scale.
 #' Default is NULL: as set by the theme, otherwise 10.
 #' @param ticksFormat Format for tick labels; depends on axis_type, defaulting
@@ -635,6 +669,9 @@ GC_scale <- function(GC_chart,
   # Capture ... arguments
   dots <- list(...)
 
+  # Fail early on a padding that is no percentage or base pairs
+  if (is.character(scale_break_padding)) break_padding_bp(scale_break_padding)
+
   xMin <- NULL
   xMax <- NULL
 
@@ -691,7 +728,8 @@ GC_scale <- function(GC_chart,
                          threshold_percentage = scale_break_threshold,
                          padding = scale_break_padding)
     } else {
-      breaks_data <- breaks
+      breaks_data <- cluster_breaks(breaks, clusters[i],
+                                    GC_chart$x$series[[clusters[i]]]$positionShift)
     }
 
     # Default options

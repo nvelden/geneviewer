@@ -1747,3 +1747,40 @@ test_that("GC_labels stores groupStyle with the group column", {
   expect_error(GC_chart(genes, group = "class") %>% GC_labels(groupStyle = list(y = "white")),
                "named list")
 })
+
+test_that("scale break padding is a share of the region shown", {
+  # the same 2 kb of genes around a gap of 10 kb and of 100 kb
+  short <- get_scale_breaks(data.frame(start = c(1, 11001), end = c(1000, 12000)),
+                            threshold_percentage = 20, padding = 1)
+  long <- get_scale_breaks(data.frame(start = c(1, 101001), end = c(1000, 102000)),
+                           threshold_percentage = 20, padding = 1)
+  # 1% of the 2 kb shown, on both sides of each break
+  expect_equal(short[[1]][["start"]], 1001 + 20)
+  expect_equal(long[[1]][["start"]], 1001 + 20)
+  expect_equal(short[[1]][["end"]], 11000 - 20)
+  expect_equal(long[[1]][["end"]], 101000 - 20)
+})
+
+test_that("scale break padding can be given in base pairs", {
+  short <- get_scale_breaks(data.frame(start = c(1, 11001), end = c(1000, 12000)),
+                            threshold_percentage = 20, padding = "500bp")
+  long <- get_scale_breaks(data.frame(start = c(1, 101001), end = c(1000, 102000)),
+                           threshold_percentage = 20, padding = "500 bp")
+  expect_equal(short[[1]][["start"]], 1001 + 500)
+  expect_equal(long[[1]][["end"]], 101000 - 500)
+  # a gap too short for the padding gets no break
+  expect_length(get_scale_breaks(data.frame(start = c(1, 11001), end = c(1000, 12000)),
+                                 threshold_percentage = 20, padding = "6000bp"), 0)
+  genes <- data.frame(start = c(1, 11001), end = c(1000, 12000))
+  expect_error(GC_chart(genes) %>% GC_scale(scale_breaks = TRUE, scale_break_padding = "500"),
+               "base pairs")
+})
+
+test_that("scale breaks are an unnamed list, sent to the chart as an array", {
+  genes <- data.frame(start = c(1, 11001), end = c(1000, 12000))
+  for (padding in list(1, "500bp")) {
+    breaks <- get_scale_breaks(genes, threshold_percentage = 20, padding = padding)
+    expect_null(names(breaks))
+    expect_match(as.character(jsonlite::toJSON(breaks, auto_unbox = TRUE)), "^\\[")
+  }
+})

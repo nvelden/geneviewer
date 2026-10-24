@@ -40,8 +40,10 @@ get_position_and_offset <- function(align, start, end, cluster_start, reversed) 
 #' the selected gene sits at the same place in every cluster. The clusters are
 #' shifted, not stretched: every range has the same length, the longest stretch
 #' left of the gene plus the longest stretch right of it, so all clusters keep
-#' the same scale. For reversed clusters left and right are swapped, as they are
-#' drawn from their end to their start.
+#' the same scale. Scale breaks are not counted: a cluster with breaks gets a
+#' range that much longer, which the breaks take out again. For reversed
+#' clusters left and right are swapped, as they are drawn from their end to
+#' their start.
 #'
 #' @param data A dataframe containing gene data with at least the cluster, group,
 #'   start and end columns. Start must be smaller than or equal to end.
@@ -52,13 +54,16 @@ get_position_and_offset <- function(align, start, end, cluster_start, reversed) 
 #'   are "left", "right", or "center". Defaults to "left".
 #' @param reversed_clusters A vector of cluster names where the clusters are considered
 #'   to be in the reversed orientation.
+#' @param breaks A list by cluster name of the scale breaks of that cluster,
+#'   each a list with a `start` and an `end`.
 #' @return A dataframe with one row per cluster that contains the gene, with the
 #'   cluster and the new `start` and `end` of its scale, or NULL when the gene is
 #'   not unique within a cluster.
 #' @importFrom dplyr group_by summarise ungroup filter left_join mutate n sym
 #' @importFrom rlang .data
 #' @noRd
-adjust_range <- function(data, cluster, group, gene, align = "left", reversed_clusters = NULL){
+adjust_range <- function(data, cluster, group, gene, align = "left", reversed_clusters = NULL,
+                         breaks = list()){
 
   if (!(cluster %in% base::colnames(data))) {
     warning(paste("Selected gene coud not be aligned. Column", cluster, "does not exist in the data."))
@@ -94,14 +99,23 @@ adjust_range <- function(data, cluster, group, gene, align = "left", reversed_cl
     get_position_and_offset(align, start, end, cluster_start, reversed)$position
   }, genes$start, genes$end, genes$cluster_start, genes$reversed)
 
+  # The length of the scale breaks of each cluster below and above the gene
+  gaps <- function(from, to, cl) {
+    sum(vapply(breaks[[as.character(cl)]], function(gap) {
+      max(0, min(gap$end, to) - max(gap$start, from))
+    }, numeric(1)))
+  }
+  gaps_below <- mapply(gaps, genes$cluster_start, genes$position, genes[[cluster]])
+  gaps_above <- mapply(gaps, genes$position, genes$cluster_end, genes[[cluster]])
+
   # The room each cluster needs left and right of the gene, as it is drawn
-  below <- genes$position - genes$cluster_start
-  above <- genes$cluster_end - genes$position
+  below <- genes$position - genes$cluster_start - gaps_below
+  above <- genes$cluster_end - genes$position - gaps_above
   left <- ifelse(genes$reversed, above, below)
   right <- ifelse(genes$reversed, below, above)
 
-  genes$start <- genes$position - ifelse(genes$reversed, max(right), max(left))
-  genes$end <- genes$position + ifelse(genes$reversed, max(left), max(right))
+  genes$start <- genes$position - ifelse(genes$reversed, max(right), max(left)) - gaps_below
+  genes$end <- genes$position + ifelse(genes$reversed, max(left), max(right)) + gaps_above
 
   genes[, c(cluster, "start", "end")]
 }

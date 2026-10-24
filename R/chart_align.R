@@ -83,8 +83,13 @@ apply_align <- function(GC_chart) {
   swapped_indices <- data$start > data$end
   data[swapped_indices, c("start", "end")] <- data[swapped_indices, c("end", "start")]
 
+  # The scale breaks of each cluster, left out of its range
+  breaks <- lapply(stats::setNames(nm = as.character(clusters)), function(cl) {
+    GC_chart$x$series[[cl]]$scale$breaks
+  })
+
   adjusted_range <- adjust_range(data, cluster_column, options$id_column, options$id,
-                                 align = options$align, reversed_clusters)
+                                 align = options$align, reversed_clusters, breaks)
 
   for (i in seq_len(NROW(adjusted_range))) {
     cluster <- as.character(adjusted_range[[cluster_column]][i])

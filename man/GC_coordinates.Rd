@@ -13,6 +13,8 @@ GC_coordinates(
   tickStyle = list(),
   textStyle = list(),
   cluster = NULL,
+  groupStyle = NULL,
+  style_by = NULL,
   ...
 )
 }
@@ -32,12 +34,23 @@ at the bottom of the cluster. If NULL, the default tick values are used.}
 
 \item{tickStyle}{List, styling options for the ticks.}
 
-\item{textStyle}{List, styling options for the text.
-the coordinate modifications. If NULL, applies to all clusters.}
+\item{textStyle}{List, styling options for the text.}
 
 \item{cluster}{Numeric or character vector or NULL; specifies which clusters
 to generate coordinates for.
 If NULL, labels will be applied to all clusters. Default is NULL.}
+
+\item{groupStyle}{Named list of styles by group, applied to the coordinates
+of all genes of that group (the \code{group} of \code{\link[=GC_chart]{GC_chart()}}, or the column
+given in \code{style_by}). \code{show = FALSE} leaves out their coordinates, styles
+in \code{tick} go to their ticks and the other styles to their text, e.g.
+\code{list(other = list(show = FALSE), tnsA = list(fill = "red"))}. Only for
+the coordinates computed from the genes, not for \code{tickValuesTop} or
+\code{tickValuesBottom}.}
+
+\item{style_by}{Column name or NULL; the column whose values \code{groupStyle} is
+matched against. Default is NULL: the \code{group} of \code{\link[=GC_chart]{GC_chart()}}.
+the coordinate modifications. If NULL, applies to all clusters.}
 
 \item{...}{Additional arguments to be passed to the coordinate options.}
 }

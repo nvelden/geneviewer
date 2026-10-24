@@ -1784,3 +1784,20 @@ test_that("scale breaks are an unnamed list, sent to the chart as an array", {
     expect_match(as.character(jsonlite::toJSON(breaks, auto_unbox = TRUE)), "^\\[")
   }
 })
+
+test_that("GC_labels and GC_genes match groupStyle against style_by", {
+  genes <- data.frame(start = c(1, 50), end = c(40, 90), class = c("x", "y"),
+                      name = c("a", "b"))
+  chart <- GC_chart(genes, group = "class") %>%
+    GC_genes(style_by = "name", groupStyle = list(b = list(marker = "box"))) %>%
+    GC_labels(label = "name", style_by = "name", groupStyle = list(b = list(fill = "white")))
+  expect_equal(chart$x$series[[1]]$genes$styleBy, "name")
+  expect_equal(chart$x$series[[1]]$labels$styleBy, "name")
+  # the colours still follow the group
+  expect_equal(chart$x$series[[1]]$genes$group, "class")
+  expect_null((GC_chart(genes, group = "class") %>% GC_labels("name"))$x$series[[1]]$labels$styleBy)
+  expect_error(GC_chart(genes, group = "class") %>% GC_labels("name", style_by = "nope"),
+               "single column name")
+  expect_error(GC_chart(genes, group = "class") %>% GC_genes(style_by = c("a", "b")),
+               "single column name")
+})

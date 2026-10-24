@@ -1,6 +1,10 @@
 # geneviewer (development version)
 
 ### New features:
+- `GC_legend(groupStyle = )` styles the legend entry of a group: its text, e.g. `list(tnsA = list(fontStyle = "italic"))` for italic gene names, and its marker through `marker`, e.g. `list(A = list(marker = list(stroke = "black")))`.
+- `GC_transcript(groupStyleExons = , groupStyleIntrons = , groupStyleUTRs = )` style all exons, introns or UTRs of a group, with the options of the matching `itemStyle`; `style_by` sets the column they are matched against, e.g. `style_by = "transcript"` to style one transcript.
+- `GC_coordinates(groupStyle = )` styles the coordinates of the genes of a group: `show = FALSE` leaves them out, `tick` styles their ticks and the other options their text, e.g. `list(other = list(show = FALSE))` to show the coordinates of the named genes only. `style_by` sets the column they are matched against.
+- `GC_genes(style_by = )` and `GC_labels(style_by = )` set the column `groupStyle` is matched against, to style genes or labels by another column than the one that sets their colours, e.g. labels by their text: `GC_labels(label = "name", style_by = "name", groupStyle = list(tnsA = list(fill = "white")))`.
 - `GC_scale(scale_break_padding = )` also takes the padding around automatic scale breaks in base pairs, e.g. `"500bp"`, for the same room around every break; a number is still a percentage. A gap too short for the padding gets no break.
 - `GC_scale(breaks = )` also takes a data frame with `start` and `end` columns and, for breaks per cluster, a `cluster` column, e.g. `data.frame(cluster = c("A", "B"), start = c(5000, 8000), end = c(9000, 12000))`, to set different breaks for each cluster in one call.
 - `GC_labels(groupStyle = )` styles the labels of all genes of a group at once, e.g. `groupStyle = list(tnsA = list(fill = "white"))` for white labels on dark genes. The `itemStyle` of a label takes precedence over the style of its group.

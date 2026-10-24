@@ -12,10 +12,13 @@
 #'        If NULL, labels will be applied to all clusters. Default is NULL.
 #' @param itemStyle List, a list of styles to apply to individual items in the chart.
 #' @param groupStyle Named list of styles by group, applied to the labels of
-#'   all genes of that group (the `group` of [GC_chart()]), e.g.
-#'   `list(tnsA = list(fill = "white"))`. Takes the same options as
-#'   `itemStyle`; the `itemStyle` of a label takes precedence over the style of
-#'   its group.
+#'   all genes of that group (the `group` of [GC_chart()], or the column given
+#'   in `style_by`), e.g. `list(tnsA = list(fill = "white"))`. Takes the same
+#'   options as `itemStyle`; the `itemStyle` of a label takes precedence over
+#'   the style of its group.
+#' @param style_by Column name or NULL; the column whose values `groupStyle` is
+#'   matched against, e.g. the label column to style labels by their text.
+#'   Default is NULL: the `group` of [GC_chart()].
 #' @param ... Additional arguments for further customization of the labels.
 #'
 #' @return A `GC chart` object with updated label settings for each specified cluster.
@@ -74,10 +77,12 @@ GC_labels <- function(
     cluster = NULL,
     itemStyle = list(),
     groupStyle = NULL,
+    style_by = NULL,
     ...
 ) {
 
   check_group_style(groupStyle)
+  check_style_by(GC_chart, style_by)
 
   if (!any(show)) {
     return(GC_chart)
@@ -111,6 +116,7 @@ GC_labels <- function(
       show = recycle_at(show, i),
       itemStyle = itemStyle,
       groupStyle = groupStyle,
+      styleBy = style_by,
       ...
     ))
 
@@ -123,6 +129,15 @@ GC_labels <- function(
   }
 
   return(GC_chart)
+}
+
+#' Check that style_by is a single column of the data
+#' @noRd
+check_style_by <- function(GC_chart, style_by) {
+  if (!is.null(style_by) &&
+      (length(style_by) != 1 || !style_by %in% names(GC_chart$x$data))) {
+    stop("style_by must be a single column name of the data")
+  }
 }
 
 #' Check that groupStyle is a named list of style lists
@@ -165,9 +180,13 @@ check_group_style <- function(groupStyle) {
 #' @param itemStyle List, a list of styles to apply to individual items in the
 #'   chart.
 #' @param groupStyle Named list of styles by group, applied to every gene of
-#'   that group, e.g. `list(promoter = list(marker = "box", fill = "grey"))`.
-#'   Takes the same options as `itemStyle`; the `itemStyle` of a gene takes
-#'   precedence over the style of its group.
+#'   that group (of `group`, or of the column given in `style_by`), e.g.
+#'   `list(promoter = list(marker = "box", fill = "grey"))`. Takes the same
+#'   options as `itemStyle`; the `itemStyle` of a gene takes precedence over
+#'   the style of its group.
+#' @param style_by Column name or NULL; the column whose values `groupStyle` is
+#'   matched against, to style genes by another column than the one that sets
+#'   their colours. Default is NULL: `group`.
 #' @param ... Additional arguments to be passed to the gene options.
 #'
 #' @return Returns the modified gene chart object.
@@ -229,11 +248,13 @@ GC_genes <- function(
     cluster = NULL,
     itemStyle = list(),
     groupStyle = NULL,
+    style_by = NULL,
     corner_radius = NULL,
     ...
 ) {
 
   check_group_style(groupStyle)
+  check_style_by(GC_chart, style_by)
 
   if (is.logical(group) && length(group) == 1) {
     show <- group
@@ -268,6 +289,7 @@ GC_genes <- function(
       customColors = customColors,
       itemStyle = itemStyle,
       groupStyle = groupStyle,
+      styleBy = style_by,
       ...
     ))
 
@@ -329,6 +351,13 @@ GC_genes <- function(
 #'  in the chart.
 #'@param itemStyleUTRs List, a list of styles to apply to individual UTRs in the
 #'  chart.
+#'@param groupStyleExons,groupStyleIntrons,groupStyleUTRs Named lists of styles
+#'  by group, applied to all exons, introns or UTRs of that group (of `group`,
+#'  or of the column given in `style_by`), e.g.
+#'  `groupStyleExons = list(tx1 = list(fill = "red"))`. They take the same
+#'  options as the matching `itemStyle`, which takes precedence.
+#'@param style_by Column name or NULL; the column whose values the group styles
+#'  are matched against. Default is NULL: `group`.
 #' @param labelOptions List, options for styling labels such as font size, color,
 #'  and position.
 #'@param ... Additional arguments to be passed to the gene options.
@@ -456,8 +485,17 @@ GC_transcript <- function(GC_chart,
                           itemStyleExons = list(),
                           itemStyleIntrons = list(),
                           itemStyleUTRs = list(),
+                          groupStyleExons = NULL,
+                          groupStyleIntrons = NULL,
+                          groupStyleUTRs = NULL,
+                          style_by = NULL,
                           labelOptions = list(),
                           ...) {
+
+  check_group_style(groupStyleExons)
+  check_group_style(groupStyleIntrons)
+  check_group_style(groupStyleUTRs)
+  check_style_by(GC_chart, style_by)
 
   transcript_called <- GC_chart$x$transcript_called
 
@@ -549,6 +587,10 @@ GC_transcript <- function(GC_chart,
         itemStyleExons = itemStyleExons,
         itemStyleIntrons = itemStyleIntrons,
         itemStyleUTRs = itemStyleUTRs,
+        groupStyleExons = groupStyleExons,
+        groupStyleIntrons = groupStyleIntrons,
+        groupStyleUTRs = groupStyleUTRs,
+        styleBy = style_by,
         labelOptions = labelOptions,
         ...
       )
@@ -803,6 +845,10 @@ pattern_to_js <- function(pattern) {
 #' @param legendTextOptions List, additional text options for the legend.
 #' @param corner_radius Numeric or NULL, radius in pixels of the rounded corners
 #'   of the legend markers, e.g. `3`. Default is NULL: square markers.
+#' @param groupStyle Named list of styles by group, applied to the text of the
+#'   legend entry of that group, e.g. `list(tnsA = list(fontStyle = "italic"))`
+#'   for italic gene names. Styles in `marker` go to its marker, e.g.
+#'   `list(A = list(marker = list(stroke = "black")))`.
 #' @param ... Additional arguments to be passed to the legend configuration.
 #'
 #' @return Returns the modified gene chart object with the legend configured.
@@ -861,8 +907,11 @@ GC_legend <- function(
     legendOptions = list(),
     legendTextOptions = list(),
     corner_radius = NULL,
+    groupStyle = NULL,
     ...
 ) {
+
+  check_group_style(groupStyle)
 
   if (is.logical(group) && length(group) == 1) {
     show <- group
@@ -899,6 +948,7 @@ GC_legend <- function(
     style = style,
     legendOptions = legendOptions,
     legendTextOptions = legendTextOptions,
+    groupStyle = groupStyle,
     ...
   ))
 

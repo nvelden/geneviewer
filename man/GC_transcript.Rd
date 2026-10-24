@@ -20,6 +20,10 @@ GC_transcript(
   itemStyleExons = list(),
   itemStyleIntrons = list(),
   itemStyleUTRs = list(),
+  groupStyleExons = NULL,
+  groupStyleIntrons = NULL,
+  groupStyleUTRs = NULL,
+  style_by = NULL,
   labelOptions = list(),
   ...
 )
@@ -71,6 +75,15 @@ in the chart.}
 
 \item{itemStyleUTRs}{List, a list of styles to apply to individual UTRs in the
 chart.}
+
+\item{groupStyleExons, groupStyleIntrons, groupStyleUTRs}{Named lists of styles
+by group, applied to all exons, introns or UTRs of that group (of \code{group},
+or of the column given in \code{style_by}), e.g.
+\code{groupStyleExons = list(tx1 = list(fill = "red"))}. They take the same
+options as the matching \code{itemStyle}, which takes precedence.}
+
+\item{style_by}{Column name or NULL; the column whose values the group styles
+are matched against. Default is NULL: \code{group}.}
 
 \item{labelOptions}{List, options for styling labels such as font size, color,
 and position.}

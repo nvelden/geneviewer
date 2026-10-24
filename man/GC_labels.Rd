@@ -11,6 +11,7 @@ GC_labels(
   cluster = NULL,
   itemStyle = list(),
   groupStyle = NULL,
+  style_by = NULL,
   ...
 )
 }
@@ -28,10 +29,14 @@ If NULL, labels will be applied to all clusters. Default is NULL.}
 \item{itemStyle}{List, a list of styles to apply to individual items in the chart.}
 
 \item{groupStyle}{Named list of styles by group, applied to the labels of
-all genes of that group (the \code{group} of \code{\link[=GC_chart]{GC_chart()}}), e.g.
-\code{list(tnsA = list(fill = "white"))}. Takes the same options as
-\code{itemStyle}; the \code{itemStyle} of a label takes precedence over the style of
-its group.}
+all genes of that group (the \code{group} of \code{\link[=GC_chart]{GC_chart()}}, or the column given
+in \code{style_by}), e.g. \code{list(tnsA = list(fill = "white"))}. Takes the same
+options as \code{itemStyle}; the \code{itemStyle} of a label takes precedence over
+the style of its group.}
+
+\item{style_by}{Column name or NULL; the column whose values \code{groupStyle} is
+matched against, e.g. the label column to style labels by their text.
+Default is NULL: the \code{group} of \code{\link[=GC_chart]{GC_chart()}}.}
 
 \item{...}{Additional arguments for further customization of the labels.}
 }

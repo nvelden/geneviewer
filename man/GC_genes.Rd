@@ -15,6 +15,7 @@ GC_genes(
   cluster = NULL,
   itemStyle = list(),
   groupStyle = NULL,
+  style_by = NULL,
   corner_radius = NULL,
   ...
 )
@@ -49,9 +50,14 @@ scheme. When no \code{cluster} is selected, the legend uses the same colours.}
 chart.}
 
 \item{groupStyle}{Named list of styles by group, applied to every gene of
-that group, e.g. \code{list(promoter = list(marker = "box", fill = "grey"))}.
-Takes the same options as \code{itemStyle}; the \code{itemStyle} of a gene takes
-precedence over the style of its group.}
+that group (of \code{group}, or of the column given in \code{style_by}), e.g.
+\code{list(promoter = list(marker = "box", fill = "grey"))}. Takes the same
+options as \code{itemStyle}; the \code{itemStyle} of a gene takes precedence over
+the style of its group.}
+
+\item{style_by}{Column name or NULL; the column whose values \code{groupStyle} is
+matched against, to style genes by another column than the one that sets
+their colours. Default is NULL: \code{group}.}
 
 \item{corner_radius}{Numeric or NULL, radius in pixels of the rounded corners
 of 'arrow', 'boxarrow', 'box' and 'rbox' markers, e.g. \code{3} for soft

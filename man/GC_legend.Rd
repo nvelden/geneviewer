@@ -16,6 +16,7 @@ GC_legend(
   legendOptions = list(),
   legendTextOptions = list(),
   corner_radius = NULL,
+  groupStyle = NULL,
   ...
 )
 }
@@ -53,6 +54,11 @@ empty list.}
 
 \item{corner_radius}{Numeric or NULL, radius in pixels of the rounded corners
 of the legend markers, e.g. \code{3}. Default is NULL: square markers.}
+
+\item{groupStyle}{Named list of styles by group, applied to the text of the
+legend entry of that group, e.g. \code{list(tnsA = list(fontStyle = "italic"))}
+for italic gene names. Styles in \code{marker} go to its marker, e.g.
+\code{list(A = list(marker = list(stroke = "black")))}.}
 
 \item{...}{Additional arguments to be passed to the legend configuration.}
 }

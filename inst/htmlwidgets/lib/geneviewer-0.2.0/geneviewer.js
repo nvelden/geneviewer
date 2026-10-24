@@ -334,6 +334,17 @@ function setStyleFromOptions(currentElement, additionalOptions) {
   }
 }
 
+// The style of each item: that of its group (groupStyle, by the value of the
+// item in column), with the style of the item itself (itemStyle, by index) on
+// top. Gives an itemStyle list.
+function withGroupStyles(items, column, groupStyle, itemStyle = []) {
+  return items.flatMap((d, i) => {
+    const ofGroup = column && groupStyle ? groupStyle[d[column]] : undefined;
+    const ofItem = itemStyle.find(s => s.index === i);
+    return ofGroup || ofItem ? [{ ...ofGroup, ...ofItem, index: i }] : [];
+  });
+}
+
 function applyStyleToElement(currentElement, itemStyle, i) {
   const style = itemStyle.find(s => s.index === i);
   if (style) {
@@ -2186,6 +2197,8 @@ container.prototype.coordinates = function (show = true, options = {}) {
     tickValuesBottom: null,
     overlapThreshold: 20,
     ticksFormat: ",.0f",
+    groupStyle: {},
+    styleBy: null,
     tickStyle: {
       stroke: "black",
       strokeWidth: 1,
@@ -2202,7 +2215,15 @@ container.prototype.coordinates = function (show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'coordinatesOptions', options);
-  const { rotate, yPositionTop, yPositionBottom, tickValuesBottom, tickValuesTop, ticksFormat, tickStyle, textStyle } = combinedOptions;
+  const { rotate, yPositionTop, yPositionBottom, tickValuesBottom, tickValuesTop, ticksFormat, tickStyle, textStyle, groupStyle, styleBy } = combinedOptions;
+
+  // The style of the group of the gene of a coordinate: show = false leaves
+  // the coordinates of its genes out, tick styles their tick, the rest their text
+  const styleOf = t => (styleBy && t?.gene ? groupStyle[t.gene[styleBy]] : undefined) ?? {};
+  const textStyleOf = t => {
+    const { show, tick, ...text } = styleOf(t);
+    return text;
+  };
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultOptions.tickStyle);
@@ -2223,8 +2244,8 @@ container.prototype.coordinates = function (show = true, options = {}) {
 
     let allTickValues = this.data.reduce((acc, d) => {
       // Define tickValueStart and tickValueStop
-      let tickValueStart = { value: d.start, rowID: d.rowID };
-      let tickValueStop = { value: d.end, rowID: d.rowID };
+      let tickValueStart = { value: d.start, rowID: d.rowID, gene: d };
+      let tickValueStop = { value: d.end, rowID: d.rowID, gene: d };
       // Add strand property if it exists
       tickValueStart.strand = d.strand;
       tickValueStop.strand = d.strand;
@@ -2240,6 +2261,10 @@ container.prototype.coordinates = function (show = true, options = {}) {
 
       return acc;
     }, []);
+
+    // Leave out the coordinates of the groups hidden with show = false, before
+    // the duplicates, so a position another gene shares is kept
+    allTickValues = allTickValues.filter(t => styleOf(t).show !== false);
 
     // Remove duplicates based on the 'value' property
     allTickValues = allTickValues.filter((obj, index, self) =>
@@ -2317,9 +2342,10 @@ container.prototype.coordinates = function (show = true, options = {}) {
             .style("font-size", textStyle.fontSize)
             .style("font-family", textStyle.fontFamily)
             .style("cursor", textStyle.cursor)
-            .each(function() {
+            .each(function(d) {
                 const currentElement = d3.select(this);
                 setStyleFromOptions(currentElement, additionalOptionsTextStyle);
+                setStyleFromOptions(currentElement, textStyleOf(d));
             });
 
   xAxisTop.selectAll(".tick line")
@@ -2329,6 +2355,7 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .each(function () {
       const currentElement = d3.select(this);
       setStyleFromOptions(currentElement, additionalOptionsTickStyle);
+      setStyleFromOptions(currentElement, styleOf(d3.select(this.parentNode).datum()).tick ?? {});
     });
 
   // Create and configure the bottom axis
@@ -2360,9 +2387,10 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .style("font-size", textStyle.fontSize)
     .style("font-family", textStyle.fontFamily)
     .style("cursor", textStyle.cursor)
-    .each(function() {
+    .each(function(d) {
       const currentElement = d3.select(this);
-            setStyleFromOptions(currentElement, additionalOptionsTextStyle);
+      setStyleFromOptions(currentElement, additionalOptionsTextStyle);
+      setStyleFromOptions(currentElement, textStyleOf(d));
     });
 
   xAxisBottom.selectAll(".tick line")
@@ -2372,6 +2400,7 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .each(function () {
       const currentElement = d3.select(this);
       setStyleFromOptions(currentElement, additionalOptionsTickStyle);
+      setStyleFromOptions(currentElement, styleOf(d3.select(this.parentNode).datum()).tick ?? {});
     });
 
   return this;
@@ -2549,11 +2578,12 @@ container.prototype.labels = function (label, show = true, options = {}) {
     },
       itemStyle: [], // [{"index": 3,"y": 20}]
       groupStyle: {},
+      styleBy: null,
       group: null
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'labelsOptions', options);
-  const { x, y, start, end, adjustLabels, labelAdjustmentOptions, groupStyle, group, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor } = combinedOptions;
+  const { x, y, start, end, adjustLabels, labelAdjustmentOptions, groupStyle, styleBy, group, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -2565,13 +2595,10 @@ container.prototype.labels = function (label, show = true, options = {}) {
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
 
-  // The style of each label: that of the group of its gene (groupStyle), with
-  // the style of the label itself (itemStyle, by index) on top
-  const itemStyle = this.data.flatMap((d, i) => {
-    const ofGroup = group ? groupStyle[d[group]] : undefined;
-    const ofItem = combinedOptions.itemStyle.find(s => s.index === i);
-    return ofGroup || ofItem ? [{ ...ofGroup, ...ofItem, index: i }] : [];
-  });
+  // The style of each label: that of the group of its gene (groupStyle, by the
+  // column in styleBy or else group), with the style of the label itself
+  // (itemStyle, by index) on top
+  const itemStyle = withGroupStyles(this.data, styleBy ?? group, groupStyle, combinedOptions.itemStyle);
 
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
@@ -3027,6 +3054,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
     markerSize: "medium",
     itemStyle: [],
     groupStyle: {},
+    styleBy: null,
     arrowheadWidth: null,
     arrowheadHeight: null,
     markerHeight: null,
@@ -3034,7 +3062,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
-  const { x, y, stroke, strokeWidth, colorScheme, customColors, pattern, cursor, groupStyle } = combinedOptions;
+  const { x, y, stroke, strokeWidth, colorScheme, customColors, pattern, cursor, groupStyle, styleBy } = combinedOptions;
 
   // Extract additional options that aren't in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -3051,13 +3079,10 @@ container.prototype.genes = function (group, show = true, options = {}) {
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
 
-  // The style of each gene: that of its group (groupStyle), with the style of
-  // the gene itself (itemStyle, by index) on top
-  const itemStyle = this.data.flatMap((d, i) => {
-    const ofGroup = groupStyle[d[group]];
-    const ofItem = combinedOptions.itemStyle.find(s => s.index === i);
-    return ofGroup || ofItem ? [{ ...ofGroup, ...ofItem, index: i }] : [];
-  });
+  // The style of each gene: that of its group (groupStyle, by the column in
+  // styleBy or else group), with the style of the gene itself (itemStyle, by
+  // index) on top
+  const itemStyle = withGroupStyles(this.data, styleBy ?? group, groupStyle, combinedOptions.itemStyle);
 
   const getAttributesForIndex = (d, i) => getMarkerAttributes(this, d, i, y, combinedOptions, itemStyle);
 
@@ -3171,11 +3196,16 @@ container.prototype.transcript = function (group, show = true, options = {}) {
     },
     itemStyleExons: [],
     itemStyleIntrons: [],
-    itemStyleUTRs: []
+    itemStyleUTRs: [],
+    groupStyleExons: {},
+    groupStyleIntrons: {},
+    groupStyleUTRs: {},
+    styleBy: null
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'transcriptOptions', options);
-  const { x, y, colorScheme, customColors, pattern, styleExons, styleIntrons, styleUTRs, itemStyleExons, itemStyleIntrons, itemStyleUTRs, labelOptions } = combinedOptions;
+  const { x, y, colorScheme, customColors, pattern, styleExons, styleIntrons, styleUTRs, labelOptions } = combinedOptions;
+  const styleColumn = combinedOptions.styleBy ?? group;
 
   // Extract additional options that aren't in defaultOptions
   const additionalOptionsExons = extractAdditionalOptions(combinedOptions.styleExons, defaultOptions.styleExons);
@@ -3199,6 +3229,8 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   if (styleExons.show) {
     // Add exons
     const exons = this.data.filter(transcript => /exon/i.test(transcript.type));
+    const itemStyleExons = withGroupStyles(exons, styleColumn, combinedOptions.groupStyleExons,
+                                           combinedOptions.itemStyleExons);
 
     g.selectAll(".exon")
       .data(exons)
@@ -3240,6 +3272,8 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   if (styleIntrons.show) {
     // Add introns
     const introns = this.data.filter(transcript => /intron/i.test(transcript.type));
+    const itemStyleIntrons = withGroupStyles(introns, styleColumn, combinedOptions.groupStyleIntrons,
+                                             combinedOptions.itemStyleIntrons);
 
     g.selectAll(".intron")
       .data(introns)
@@ -3282,6 +3316,8 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   if (styleUTRs.show) {
     // Add UTRs
     const utrs = this.data.filter(transcript => /utr/i.test(transcript.type));
+    const itemStyleUTRs = withGroupStyles(utrs, styleColumn, combinedOptions.groupStyleUTRs,
+                                          combinedOptions.itemStyleUTRs);
 
     g.selectAll(".utr")
       .data(utrs)
@@ -3389,6 +3425,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     adjustHeight: true,
     order: [],
     cornerRadius: 0,
+    groupStyle: {},
     legendOptions: {
       cursor: "pointer",
       colorScheme: null,
@@ -3405,7 +3442,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'legendOptions', options);
-  const { x, y, width, orientation, align, adjustHeight, order, cornerRadius, legendOptions, legendTextOptions } = combinedOptions;
+  const { x, y, width, orientation, align, adjustHeight, order, cornerRadius, legendOptions, legendTextOptions, groupStyle } = combinedOptions;
 
   const additionalLegendOptions = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
   const additionalLegendTextOptions = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
@@ -3456,6 +3493,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     .attr("class", "legend")
     .each((d, i, nodes) => {
       const legendGroup = d3.select(nodes[i]);
+      // The style of this group: for its text, and in marker for its marker
+      const { marker: markerStyle = {}, ...textStyle } = groupStyle[d] ?? {};
 
       const textLabel = legendGroup
         .append("text")
@@ -3470,6 +3509,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
         .each(function () {
           const currentElement = d3.select(this);
           setStyleFromOptions(currentElement, additionalLegendTextOptions);
+          // Before the text is measured below, so the items do not overlap
+          setStyleFromOptions(currentElement, textStyle);
         });
 
       const textLength = textLabel.node().getComputedTextLength();
@@ -3501,6 +3542,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
         .each(function () {
           const currentElement = d3.select(this);
           setStyleFromOptions(currentElement, additionalLegendOptions);
+          setStyleFromOptions(currentElement, markerStyle);
         })
 
       itemExtents.push({ node: nodes[i], row: currentY, start: currentX,

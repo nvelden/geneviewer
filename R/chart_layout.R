@@ -1170,6 +1170,15 @@ GC_clusterFooter <- function(
 #'        If NULL, labels will be applied to all clusters. Default is NULL.
 #' @param tickStyle List, styling options for the ticks.
 #' @param textStyle List, styling options for the text.
+#' @param groupStyle Named list of styles by group, applied to the coordinates
+#'   of all genes of that group (the `group` of [GC_chart()], or the column
+#'   given in `style_by`). `show = FALSE` leaves out their coordinates, styles
+#'   in `tick` go to their ticks and the other styles to their text, e.g.
+#'   `list(other = list(show = FALSE), tnsA = list(fill = "red"))`. Only for
+#'   the coordinates computed from the genes, not for `tickValuesTop` or
+#'   `tickValuesBottom`.
+#' @param style_by Column name or NULL; the column whose values `groupStyle` is
+#'   matched against. Default is NULL: the `group` of [GC_chart()].
 #'   the coordinate modifications. If NULL, applies to all clusters.
 #' @param ... Additional arguments to be passed to the coordinate options.
 #'
@@ -1223,8 +1232,18 @@ GC_coordinates <- function(
     tickStyle = list(),
     textStyle = list(),
     cluster = NULL,
+    groupStyle = NULL,
+    style_by = NULL,
     ...
 ) {
+
+  check_group_style(groupStyle)
+  check_style_by(GC_chart, style_by)
+  # the column groupStyle is matched against
+  if (is.null(style_by)) style_by <- GC_chart$x$group
+  if (!is.null(groupStyle) && is.null(style_by)) {
+    stop("groupStyle needs a group in GC_chart() or a style_by column")
+  }
 
   if (!any(show)) {
     return(GC_chart)
@@ -1245,6 +1264,10 @@ GC_coordinates <- function(
       tickStyle = tickStyle,
       textStyle = textStyle
     )
+    if (!is.null(groupStyle)) {
+      options$groupStyle <- groupStyle
+      options$styleBy <- style_by
+    }
 
     # Add ... arguments to options
     for(name in names(dots)) {

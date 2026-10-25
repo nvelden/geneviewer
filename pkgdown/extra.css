@@ -15,3 +15,29 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 20px; /* Space above headers */
   margin-bottom: 10px; /* Space below headers */
 }
+
+/* Wider articles, so the charts get more room: the main column is no longer
+   capped at 50rem and the "On this page" sidebar gets a smaller share. Text
+   keeps a readable line length; charts and code use the full column. */
+.row > main {
+  max-width: none;
+}
+
+@media (min-width: 768px) {
+  .row > main {
+    flex: 0 0 auto;
+    width: 80%;
+  }
+  .row > aside {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+main p,
+main li,
+main h1,
+main h2,
+main h3 {
+  max-width: 50rem;
+}

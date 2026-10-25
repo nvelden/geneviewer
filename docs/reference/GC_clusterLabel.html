@@ -37,6 +37,7 @@ width, position, and other additional customization options."><meta property="og
     <a class="dropdown-item" href="../articles/LoadGFF.html">Loading Gene Clusters From Generic Feature Format (GFF) Files</a>
     <a class="dropdown-item" href="../articles/LoadGenBankFiles.html">Loading Gene Clusters From Genbank Files</a>
     <a class="dropdown-item" href="../articles/MUMMER.html">Genome alignment using MUMmer</a>
+    <a class="dropdown-item" href="../articles/Tn7_CRISPR.html">Reproducing a published figure: Tn7-like transposons</a>
     <a class="dropdown-item" href="../articles/Transcripts.html">Visualizing gene Transcripts</a>
   </div>
 </li>
@@ -79,8 +80,12 @@ width, position, and other additional customization options.</p>
 <span>  width <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  position <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  align <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  wrapLabel <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  wrapOptions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  subtitle <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  subtitleFont <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  spacing <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -115,6 +120,14 @@ Default is NULL.</p></dd>
 Default is NULL: the position of the theme, otherwise "left".</p></dd>
 
 
+<dt>align</dt>
+<dd><p>Character vector. Horizontal alignment of the lines of the
+label in its margin, "left", "center" or "right", recycled over the
+clusters. <code>x</code> moves the label from this position, e.g. <code>x = 5</code> for some
+space at the left edge. Default is NULL: the alignment of the theme,
+otherwise "center".</p></dd>
+
+
 <dt>wrapLabel</dt>
 <dd><p>Logical. Indicates whether the label should be wrapped.
 Default is NULL: as set by the theme, otherwise TRUE.</p></dd>
@@ -123,6 +136,24 @@ Default is NULL: as set by the theme, otherwise TRUE.</p></dd>
 <dt>wrapOptions</dt>
 <dd><p>List. Specifies the wrapping options.
 Default is an empty List.</p></dd>
+
+
+<dt>subtitle</dt>
+<dd><p>Character vector. A second line below the title, e.g. the
+species, recycled over the clusters. Default is NULL: no subtitle.</p></dd>
+
+
+<dt>subtitleFont</dt>
+<dd><p>List. Settings for the subtitle font, e.g.
+<code>list(fontStyle = "italic")</code>. Default is an empty list: 11px, not bold.</p></dd>
+
+
+<dt>spacing</dt>
+<dd><p>Numeric vector. Pixels between the middle of the last line of
+the title and of the subtitle, recycled over the clusters. The title and
+subtitle are centred together on the cluster. Default is NULL: as set by the
+theme, otherwise 1.2 times the mean font size of the title and subtitle (14
+for the default 12px and 11px).</p></dd>
 
 
 <dt>...</dt>
@@ -157,6 +188,16 @@ such as 'fontSize', 'fontStyle', 'fontWeight', 'fontFamily', 'cursor', etc.</p><
 <span class="r-in"><span><span class="fu">GC_clusterLabel</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Cluster 1"</span>, cluster <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <div id="htmlwidget-5b1b2f4ad92281566982" style="width:100%;height:200px;" class="geneviewer html-widget"></div>
 <script type="application/json" data-for="htmlwidget-5b1b2f4ad92281566982">{"x":{"params":{"start":"start","end":"end","cluster":"cluster","group":"group","width":"100%","height":"200px","save_button":true},"data":{"start":[10,90,130,170,210],"end":[40,120,160,200,240],"name":["Gene 1","Gene 3","Gene 4","Gene 5","Gene 6"],"group":["A","B","B","A","C"],"cluster":["1","1","2","2","2"],"rowID":[1,2,3,4,5],"strand":["forward","forward","forward","forward","forward"]},"group":"group","cluster":"cluster","graphContainer":{"direction":"column"},"style":[],"title":{"style":{"width":"100%"}},"legend":{"group":"group","show":true,"width":"100%","style":{"width":"100%","backgroundColor":null}},"saveButton":true,"series":{"1":{"clusterName":"1","data":{"start":[10,90],"end":[40,120],"name":["Gene 1","Gene 3"],"group":["A","B"],"cluster":["1","1"],"rowID":[1,2],"strand":["forward","forward"]},"cluster":[],"container":{"height":100,"width":"100%","style":{"width":"100%","backgroundColor":null}},"genes":{"group":"group","show":true},"sequence":{"show":true},"scale":{"xMin":10,"xMax":120},"transcript":{"group":"group","show":false},"labels":{"group":"group","show":true},"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":{"title":"Cluster 1","show":true,"wrapOptions":[]},"clusterTitle":[],"annotations":[],"trackMouse":{"show":false},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start}<br><b>End:<\/b> {end}"}},"2":{"clusterName":"2","data":{"start":[130,170,210],"end":[160,200,240],"name":["Gene 4","Gene 5","Gene 6"],"group":["B","A","C"],"cluster":["2","2","2"],"rowID":[3,4,5],"strand":["forward","forward","forward"]},"cluster":[],"container":{"height":100,"width":"100%","style":{"width":"100%","backgroundColor":null}},"genes":{"group":"group","show":true},"sequence":{"show":true},"scale":{"xMin":130,"xMax":240},"transcript":{"group":"group","show":false},"labels":{"group":"group","show":true},"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":[],"clusterTitle":[],"annotations":[],"trackMouse":{"show":false},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start}<br><b>End:<\/b> {end}"}}}},"evals":[],"jsHooks":[]}</script><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Add a subtitle below each label</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="GC_chart.html">GC_chart</a></span><span class="op">(</span><span class="va">genes_data</span>, cluster <span class="op">=</span><span class="st">"cluster"</span>, group <span class="op">=</span> <span class="st">"group"</span>, height <span class="op">=</span> <span class="st">"200px"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span></span>
+<span class="r-in"><span>  <span class="fu">GC_clusterLabel</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pQEB1"</span>, <span class="st">"pQEB1_inv1"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"E. cloacae"</span>, <span class="st">"K. oxytoca"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    subtitleFont <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fontStyle <span class="op">=</span> <span class="st">"italic"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    spacing <span class="op">=</span> <span class="fl">14</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<div id="htmlwidget-25c3e940e6859592f801" style="width:100%;height:200px;" class="geneviewer html-widget"></div>
+<script type="application/json" data-for="htmlwidget-25c3e940e6859592f801">{"x":{"params":{"start":"start","end":"end","cluster":"cluster","group":"group","width":"100%","height":"200px","save_button":true},"data":{"start":[10,90,130,170,210],"end":[40,120,160,200,240],"name":["Gene 1","Gene 3","Gene 4","Gene 5","Gene 6"],"group":["A","B","B","A","C"],"cluster":["1","1","2","2","2"],"rowID":[1,2,3,4,5],"strand":["forward","forward","forward","forward","forward"]},"group":"group","cluster":"cluster","graphContainer":{"direction":"column"},"style":[],"title":{"style":{"width":"100%"}},"legend":{"group":"group","show":true,"width":"100%","style":{"width":"100%","backgroundColor":null}},"saveButton":true,"series":{"1":{"clusterName":"1","data":{"start":[10,90],"end":[40,120],"name":["Gene 1","Gene 3"],"group":["A","B"],"cluster":["1","1"],"rowID":[1,2],"strand":["forward","forward"]},"cluster":[],"container":{"height":100,"width":"100%","style":{"width":"100%","backgroundColor":null}},"genes":{"group":"group","show":true},"sequence":{"show":true},"scale":{"xMin":10,"xMax":120},"transcript":{"group":"group","show":false},"labels":{"group":"group","show":true},"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":{"title":"pQEB1","show":true,"wrapOptions":[],"subtitle":"E. cloacae","spacing":14,"subtitleFont":{"fontStyle":"italic"}},"clusterTitle":[],"annotations":[],"trackMouse":{"show":false},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start}<br><b>End:<\/b> {end}"}},"2":{"clusterName":"2","data":{"start":[130,170,210],"end":[160,200,240],"name":["Gene 4","Gene 5","Gene 6"],"group":["B","A","C"],"cluster":["2","2","2"],"rowID":[3,4,5],"strand":["forward","forward","forward"]},"cluster":[],"container":{"height":100,"width":"100%","style":{"width":"100%","backgroundColor":null}},"genes":{"group":"group","show":true},"sequence":{"show":true},"scale":{"xMin":130,"xMax":240},"transcript":{"group":"group","show":false},"labels":{"group":"group","show":true},"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":{"title":"pQEB1_inv1","show":true,"wrapOptions":[],"subtitle":"K. oxytoca","spacing":14,"subtitleFont":{"fontStyle":"italic"}},"clusterTitle":[],"annotations":[],"trackMouse":{"show":false},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start}<br><b>End:<\/b> {end}"}}}},"evals":[],"jsHooks":[]}</script><span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Style labels</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="GC_chart.html">GC_chart</a></span><span class="op">(</span><span class="va">genes_data</span>, cluster <span class="op">=</span><span class="st">"cluster"</span>, group <span class="op">=</span> <span class="st">"group"</span>, height <span class="op">=</span> <span class="st">"200px"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu">GC_clusterLabel</span><span class="op">(</span></span></span>
@@ -165,6 +206,7 @@ such as 'fontSize', 'fontStyle', 'fontWeight', 'fontFamily', 'cursor', etc.</p><
 <span class="r-in"><span>    x <span class="op">=</span> <span class="fl">0</span>,</span></span>
 <span class="r-in"><span>    y <span class="op">=</span> <span class="fl">0</span>,</span></span>
 <span class="r-in"><span>    position <span class="op">=</span> <span class="st">"left"</span>,</span></span>
+<span class="r-in"><span>    align <span class="op">=</span> <span class="st">"left"</span>, <span class="co"># center / right</span></span></span>
 <span class="r-in"><span>    wrapLabel <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>    wrapOptions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>      dyAdjust <span class="op">=</span> <span class="fl">0</span>,</span></span>
@@ -179,8 +221,8 @@ such as 'fontSize', 'fontStyle', 'fontWeight', 'fontFamily', 'cursor', etc.</p><
 <span class="r-in"><span>    fontFamily <span class="op">=</span> <span class="st">"sans-serif"</span>,</span></span>
 <span class="r-in"><span>    cursor <span class="op">=</span> <span class="st">"default"</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
-<div id="htmlwidget-25c3e940e6859592f801" style="width:100%;height:200px;" class="geneviewer html-widget"></div>
-<script type="application/json" data-for="htmlwidget-25c3e940e6859592f801">{"x":{"params":{"start":"start","end":"end","cluster":"cluster","group":"group","width":"100%","height":"200px","save_button":true},"data":{"start":[10,90,130,170,210],"end":[40,120,160,200,240],"name":["Gene 1","Gene 3","Gene 4","Gene 5","Gene 6"],"group":["A","B","B","A","C"],"cluster":["1","1","2","2","2"],"rowID":[1,2,3,4,5],"strand":["forward","forward","forward","forward","forward"]},"group":"group","cluster":"cluster","graphContainer":{"direction":"column"},"style":[],"title":{"style":{"width":"100%"}},"legend":{"group":"group","show":true,"width":"100%","style":{"width":"100%","backgroundColor":null}},"saveButton":true,"series":{"1":{"clusterName":"1","data":{"start":[10,90],"end":[40,120],"name":["Gene 1","Gene 3"],"group":["A","B"],"cluster":["1","1"],"rowID":[1,2],"strand":["forward","forward"]},"cluster":[],"container":{"height":100,"width":"100%","style":{"width":"100%","backgroundColor":null}},"genes":{"group":"group","show":true},"sequence":{"show":true},"scale":{"xMin":10,"xMax":120},"transcript":{"group":"group","show":false},"labels":{"group":"group","show":true},"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":{"title":"Cluster 1","show":true,"width":"100px","wrapLabel":true,"wrapOptions":{"dyAdjust":0,"lineHeightEms":1.05,"lineHeightSquishFactor":1,"splitOnHyphen":true,"centreVertically":true},"position":"left","x":0,"y":0,"fontSize":"12px","fontStyle":"normal","fontWeight":"bold","fontFamily":"sans-serif","cursor":"default"},"clusterTitle":[],"annotations":[],"trackMouse":{"show":false},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start}<br><b>End:<\/b> {end}"}},"2":{"clusterName":"2","data":{"start":[130,170,210],"end":[160,200,240],"name":["Gene 4","Gene 5","Gene 6"],"group":["B","A","C"],"cluster":["2","2","2"],"rowID":[3,4,5],"strand":["forward","forward","forward"]},"cluster":[],"container":{"height":100,"width":"100%","style":{"width":"100%","backgroundColor":null}},"genes":{"group":"group","show":true},"sequence":{"show":true},"scale":{"xMin":130,"xMax":240},"transcript":{"group":"group","show":false},"labels":{"group":"group","show":true},"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":{"title":"Cluster 2","show":true,"width":"100px","wrapLabel":true,"wrapOptions":{"dyAdjust":0,"lineHeightEms":1.05,"lineHeightSquishFactor":1,"splitOnHyphen":true,"centreVertically":true},"position":"left","x":0,"y":0,"fontSize":"12px","fontStyle":"normal","fontWeight":"bold","fontFamily":"sans-serif","cursor":"default"},"clusterTitle":[],"annotations":[],"trackMouse":{"show":false},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start}<br><b>End:<\/b> {end}"}}}},"evals":[],"jsHooks":[]}</script><span class="r-in"><span></span></span>
+<div id="htmlwidget-3f27c09be0c60bb52829" style="width:100%;height:200px;" class="geneviewer html-widget"></div>
+<script type="application/json" data-for="htmlwidget-3f27c09be0c60bb52829">{"x":{"params":{"start":"start","end":"end","cluster":"cluster","group":"group","width":"100%","height":"200px","save_button":true},"data":{"start":[10,90,130,170,210],"end":[40,120,160,200,240],"name":["Gene 1","Gene 3","Gene 4","Gene 5","Gene 6"],"group":["A","B","B","A","C"],"cluster":["1","1","2","2","2"],"rowID":[1,2,3,4,5],"strand":["forward","forward","forward","forward","forward"]},"group":"group","cluster":"cluster","graphContainer":{"direction":"column"},"style":[],"title":{"style":{"width":"100%"}},"legend":{"group":"group","show":true,"width":"100%","style":{"width":"100%","backgroundColor":null}},"saveButton":true,"series":{"1":{"clusterName":"1","data":{"start":[10,90],"end":[40,120],"name":["Gene 1","Gene 3"],"group":["A","B"],"cluster":["1","1"],"rowID":[1,2],"strand":["forward","forward"]},"cluster":[],"container":{"height":100,"width":"100%","style":{"width":"100%","backgroundColor":null}},"genes":{"group":"group","show":true},"sequence":{"show":true},"scale":{"xMin":10,"xMax":120},"transcript":{"group":"group","show":false},"labels":{"group":"group","show":true},"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":{"title":"Cluster 1","show":true,"width":"100px","wrapLabel":true,"wrapOptions":{"dyAdjust":0,"lineHeightEms":1.05,"lineHeightSquishFactor":1,"splitOnHyphen":true,"centreVertically":true},"position":"left","align":"left","x":0,"y":0,"fontSize":"12px","fontStyle":"normal","fontWeight":"bold","fontFamily":"sans-serif","cursor":"default"},"clusterTitle":[],"annotations":[],"trackMouse":{"show":false},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start}<br><b>End:<\/b> {end}"}},"2":{"clusterName":"2","data":{"start":[130,170,210],"end":[160,200,240],"name":["Gene 4","Gene 5","Gene 6"],"group":["B","A","C"],"cluster":["2","2","2"],"rowID":[3,4,5],"strand":["forward","forward","forward"]},"cluster":[],"container":{"height":100,"width":"100%","style":{"width":"100%","backgroundColor":null}},"genes":{"group":"group","show":true},"sequence":{"show":true},"scale":{"xMin":130,"xMax":240},"transcript":{"group":"group","show":false},"labels":{"group":"group","show":true},"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":{"title":"Cluster 2","show":true,"width":"100px","wrapLabel":true,"wrapOptions":{"dyAdjust":0,"lineHeightEms":1.05,"lineHeightSquishFactor":1,"splitOnHyphen":true,"centreVertically":true},"position":"left","align":"left","x":0,"y":0,"fontSize":"12px","fontStyle":"normal","fontWeight":"bold","fontFamily":"sans-serif","cursor":"default"},"clusterTitle":[],"annotations":[],"trackMouse":{"show":false},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start}<br><b>End:<\/b> {end}"}}}},"evals":[],"jsHooks":[]}</script><span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

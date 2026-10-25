@@ -28,6 +28,9 @@
     <loc>https://nvelden.github.io/geneviewer/articles/MUMMER.html</loc>
   </url>
   <url>
+    <loc>https://nvelden.github.io/geneviewer/articles/Tn7_CRISPR.html</loc>
+  </url>
+  <url>
     <loc>https://nvelden.github.io/geneviewer/articles/Transcripts.html</loc>
   </url>
   <url>
@@ -160,6 +163,12 @@
     <loc>https://nvelden.github.io/geneviewer/reference/ophA_clusters.html</loc>
   </url>
   <url>
+    <loc>https://nvelden.github.io/geneviewer/reference/pQEB1_alignment.html</loc>
+  </url>
+  <url>
+    <loc>https://nvelden.github.io/geneviewer/reference/pQEB1_plasmids.html</loc>
+  </url>
+  <url>
     <loc>https://nvelden.github.io/geneviewer/reference/protein_blast.html</loc>
   </url>
   <url>
@@ -176,5 +185,8 @@
   </url>
   <url>
     <loc>https://nvelden.github.io/geneviewer/reference/reexports.html</loc>
+  </url>
+  <url>
+    <loc>https://nvelden.github.io/geneviewer/reference/tn7_crispr_elements.html</loc>
   </url>
 </urlset>

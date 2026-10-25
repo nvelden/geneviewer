@@ -39,6 +39,7 @@ customizations through various options."><meta property="og:image" content="http
     <a class="dropdown-item" href="../articles/LoadGFF.html">Loading Gene Clusters From Generic Feature Format (GFF) Files</a>
     <a class="dropdown-item" href="../articles/LoadGenBankFiles.html">Loading Gene Clusters From Genbank Files</a>
     <a class="dropdown-item" href="../articles/MUMMER.html">Genome alignment using MUMmer</a>
+    <a class="dropdown-item" href="../articles/Tn7_CRISPR.html">Reproducing a published figure: Tn7-like transposons</a>
     <a class="dropdown-item" href="../articles/Transcripts.html">Visualizing gene Transcripts</a>
   </div>
 </li>
@@ -82,10 +83,12 @@ customizations through various options.</p>
 <span>  backgroundColor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  position <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  align <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  style <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  legendOptions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  legendTextOptions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  corner_radius <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  groupStyle <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -121,6 +124,13 @@ NULL: as set by the theme, otherwise transparent.</p></dd>
 Default is NULL: the position of the theme, otherwise "bottom".</p></dd>
 
 
+<dt>align</dt>
+<dd><p>Character. Horizontal alignment of the legend items, "left",
+"center" or "right", like the title. Each row of a horizontal legend is
+aligned on its own. <code>x</code> moves the legend from this position. Default is
+NULL: the alignment of the theme, otherwise "left".</p></dd>
+
+
 <dt>style</dt>
 <dd><p>A list of CSS styles to be applied to the chart container. Each
 element of the list should be a valid CSS property-value pair. For example,
@@ -139,6 +149,13 @@ empty list.</p></dd>
 <dt>corner_radius</dt>
 <dd><p>Numeric or NULL, radius in pixels of the rounded corners
 of the legend markers, e.g. <code>3</code>. Default is NULL: square markers.</p></dd>
+
+
+<dt>groupStyle</dt>
+<dd><p>Named list of styles by group, applied to the text of the
+legend entry of that group, e.g. <code>list(tnsA = list(fontStyle = "italic"))</code>
+for italic gene names. Styles in <code>marker</code> go to its marker, e.g.
+<code>list(A = list(marker = list(stroke = "black")))</code>.</p></dd>
 
 
 <dt>...</dt>
@@ -167,6 +184,7 @@ of the legend markers, e.g. <code>3</code>. Default is NULL: square markers.</p>
 <span class="r-in"><span>  <span class="fu">GC_legend</span><span class="op">(</span></span></span>
 <span class="r-in"><span>    position <span class="op">=</span> <span class="st">"top"</span>, <span class="co">#bottom</span></span></span>
 <span class="r-in"><span>    orientation <span class="op">=</span> <span class="st">"horizontal"</span>, <span class="co">#vertical</span></span></span>
+<span class="r-in"><span>    align <span class="op">=</span> <span class="st">"center"</span>, <span class="co">#left / right</span></span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="fl">0</span>,</span></span>
 <span class="r-in"><span>    y <span class="op">=</span> <span class="fl">0</span>,</span></span>
 <span class="r-in"><span>    adjustHeight <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
@@ -192,8 +210,8 @@ of the legend markers, e.g. <code>3</code>. Default is NULL: square markers.</p>
 <span class="r-in"><span>      <span class="co"># Additional styles</span></span></span>
 <span class="r-in"><span>    <span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
-<div id="htmlwidget-b25b670b028f478bf741" style="width:100%;height:200px;" class="geneviewer html-widget"></div>
-<script type="application/json" data-for="htmlwidget-b25b670b028f478bf741">{"x":{"params":{"start":"start","end":"end","cluster":"cluster","group":"group","width":"100%","height":"200px","save_button":true},"data":{"start":[10,90,130,170,210],"end":[40,120,160,200,240],"name":["Gene 1","Gene 3","Gene 4","Gene 5","Gene 6"],"group":["A","B","B","A","C"],"cluster":["A","A","A","B","B"],"rowID":[1,2,3,4,5],"strand":["forward","forward","forward","forward","forward"]},"group":"group","cluster":"cluster","graphContainer":{"direction":"column"},"style":[],"title":{"style":{"width":"100%"}},"legend":{"group":"group","show":true,"width":"100%","style":{"width":"100%","backgroundColor":"#0000"},"position":"top","legendOptions":{"cursor":"pointer","colorScheme":null,"customColors":null},"legendTextOptions":{"cursor":"pointer","textAnchor":"start","dy":".35em","fontSize":"12px","fontFamily":"sans-serif","fill":"black"},"orientation":"horizontal","x":0,"y":0,"adjustHeight":true},"saveButton":true,"series":{"A":{"clusterName":"A","data":{"start":[10,90,130],"end":[40,120,160],"name":["Gene 1","Gene 3","Gene 4"],"group":["A","B","B"],"cluster":["A","A","A"],"rowID":[1,2,3],"strand":["forward","forward","forward"]},"cluster":[],"container":{"height":100,"width":"100%","style":{"width":"100%","backgroundColor":null}},"genes":{"group":"group","show":true},"sequence":{"show":true},"scale":{"xMin":10,"xMax":160},"transcript":{"group":"group","show":false},"labels":{"group":"group","show":true},"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":[],"clusterTitle":[],"annotations":[],"trackMouse":{"show":false},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start}<br><b>End:<\/b> {end}"}},"B":{"clusterName":"B","data":{"start":[170,210],"end":[200,240],"name":["Gene 5","Gene 6"],"group":["A","C"],"cluster":["B","B"],"rowID":[4,5],"strand":["forward","forward"]},"cluster":[],"container":{"height":100,"width":"100%","style":{"width":"100%","backgroundColor":null}},"genes":{"group":"group","show":true},"sequence":{"show":true},"scale":{"xMin":170,"xMax":240},"transcript":{"group":"group","show":false},"labels":{"group":"group","show":true},"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":[],"clusterTitle":[],"annotations":[],"trackMouse":{"show":false},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start}<br><b>End:<\/b> {end}"}}}},"evals":[],"jsHooks":[]}</script><span class="r-in"><span></span></span>
+<div id="htmlwidget-da403bf8187c892ade73" style="width:100%;height:200px;" class="geneviewer html-widget"></div>
+<script type="application/json" data-for="htmlwidget-da403bf8187c892ade73">{"x":{"params":{"start":"start","end":"end","cluster":"cluster","group":"group","width":"100%","height":"200px","save_button":true},"data":{"start":[10,90,130,170,210],"end":[40,120,160,200,240],"name":["Gene 1","Gene 3","Gene 4","Gene 5","Gene 6"],"group":["A","B","B","A","C"],"cluster":["A","A","A","B","B"],"rowID":[1,2,3,4,5],"strand":["forward","forward","forward","forward","forward"]},"group":"group","cluster":"cluster","graphContainer":{"direction":"column"},"style":[],"title":{"style":{"width":"100%"}},"legend":{"group":"group","show":true,"width":"100%","style":{"width":"100%","backgroundColor":"#0000"},"position":"top","align":"center","legendOptions":{"cursor":"pointer","colorScheme":null,"customColors":null},"legendTextOptions":{"cursor":"pointer","textAnchor":"start","dy":".35em","fontSize":"12px","fontFamily":"sans-serif","fill":"black"},"orientation":"horizontal","x":0,"y":0,"adjustHeight":true},"saveButton":true,"series":{"A":{"clusterName":"A","data":{"start":[10,90,130],"end":[40,120,160],"name":["Gene 1","Gene 3","Gene 4"],"group":["A","B","B"],"cluster":["A","A","A"],"rowID":[1,2,3],"strand":["forward","forward","forward"]},"cluster":[],"container":{"height":100,"width":"100%","style":{"width":"100%","backgroundColor":null}},"genes":{"group":"group","show":true},"sequence":{"show":true},"scale":{"xMin":10,"xMax":160},"transcript":{"group":"group","show":false},"labels":{"group":"group","show":true},"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":[],"clusterTitle":[],"annotations":[],"trackMouse":{"show":false},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start}<br><b>End:<\/b> {end}"}},"B":{"clusterName":"B","data":{"start":[170,210],"end":[200,240],"name":["Gene 5","Gene 6"],"group":["A","C"],"cluster":["B","B"],"rowID":[4,5],"strand":["forward","forward"]},"cluster":[],"container":{"height":100,"width":"100%","style":{"width":"100%","backgroundColor":null}},"genes":{"group":"group","show":true},"sequence":{"show":true},"scale":{"xMin":170,"xMax":240},"transcript":{"group":"group","show":false},"labels":{"group":"group","show":true},"coordinates":{"show":false},"scaleBar":[],"footer":[],"clusterLabel":[],"clusterTitle":[],"annotations":[],"trackMouse":{"show":false},"tooltip":{"show":true,"formatter":"<b>Start:<\/b> {start}<br><b>End:<\/b> {end}"}}}},"evals":[],"jsHooks":[]}</script><span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

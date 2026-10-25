@@ -27,6 +27,9 @@ function sanitizeId(str) {
   return str.replace(/[^a-zA-Z0-9_-]/g, '_');
 }
 
+// Wraps a text element into lines of at most width pixels. <b>, <i> and <u>
+// tags are read before the text is split into words, so each word keeps its
+// style when a tagged part runs over two lines.
 function wrap(text, width, options = {}) {
   // Default options
   const defaultOptions = {
@@ -51,53 +54,71 @@ function wrap(text, width, options = {}) {
       x = text.attr("x"),
       y = text.attr("y");
 
+    // Words as lists of styled pieces: "pQEB1<i>-like</i>" is one word. A word
+    // split at a hyphen is not followed by a space
     var words = [];
-    text
-      .text()
-      .split(/\s+/)
-      .forEach(function (w) {
-        if (splitOnHyphen) {
-          var subWords = w.split("-");
-          for (var i = 0; i < subWords.length - 1; i++)
-            words.push(subWords[i] + "-");
-          words.push(subWords[subWords.length - 1] + " ");
-        } else {
-          words.push(w + " ");
+    var word = [];
+    var endWord = function (space) {
+      if (word.length) words.push({ pieces: word, space: space });
+      word = [];
+    };
+    styledSegments(text.text()).forEach(function (segment) {
+      segment.content.split(/(\s+)/).forEach(function (part) {
+        if (/^\s+$/.test(part)) {
+          endWord(true);
+          return;
         }
+        var pieces = splitOnHyphen ? part.split(/(?<=-)/) : [part];
+        pieces.forEach(function (piece, i) {
+          if (piece) word.push({ ...segment, content: piece });
+          if (i < pieces.length - 1) endWord(false);
+        });
       });
+    });
+    endWord(true);
+
+    // Writes words into a line
+    var setLine = function (line, lineWords) {
+      line.selectAll("*").remove();
+      lineWords.forEach(function (lineWord, i) {
+        lineWord.pieces.forEach(function (piece, j) {
+          var last = j === lineWord.pieces.length - 1 && i < lineWords.length - 1;
+          var space = last && lineWord.space ? " " : "";
+          var tspan = line.append("tspan").text(piece.content + space);
+          if (piece.bold) tspan.style("font-weight", "bold");
+          if (piece.italic) tspan.style("font-style", "italic");
+          if (piece.underline) tspan.style("text-decoration", "underline");
+        });
+      });
+    };
 
     text.text(null); // Empty the text element
 
-    var tspan = text.append("tspan");
-    var line = "";
-    var prevLine = "";
-    var nWordsInLine = 0;
+    var line = text.append("tspan").attr("class", "wrap-line");
+    var lineWords = [];
 
     for (var i = 0; i < words.length; i++) {
-      var word = words[i];
-      prevLine = line;
-      line = line + word;
-      ++nWordsInLine;
-      tspan.text(line.trim());
+      lineWords.push(words[i]);
+      setLine(line, lineWords);
 
-      if (tspan.node().getComputedTextLength() > width && nWordsInLine > 1) {
-        tspan.text(prevLine.trim());
-        prevLine = "";
-        line = word;
-        nWordsInLine = 1;
-        tspan = text.append("tspan").text(word.trim());
+      if (line.node().getComputedTextLength() > width && lineWords.length > 1) {
+        lineWords.pop();
+        setLine(line, lineWords);
+        lineWords = [words[i]];
+        line = text.append("tspan").attr("class", "wrap-line");
+        setLine(line, lineWords);
       }
     }
 
-    var tspans = text.selectAll("tspan");
+    var lines = text.selectAll("tspan.wrap-line");
     var h = lineHeightEms;
 
-    if (tspans.size() > 2)
-      for (var i = 0; i < tspans.size(); i++) h *= lineHeightSquishFactor;
+    if (lines.size() > 2)
+      for (var i = 0; i < lines.size(); i++) h *= lineHeightSquishFactor;
 
-    tspans.each(function (d, i) {
+    lines.each(function (d, i) {
       var dy = i * h + dyAdjust;
-      if (centreVertically) dy -= ((tspans.size() - 1) * h) / 2;
+      if (centreVertically) dy -= ((lines.size() - 1) * h) / 2;
       d3.select(this)
         .attr("y", y)
         .attr("x", x)
@@ -311,6 +332,17 @@ function setStyleFromOptions(currentElement, additionalOptions) {
   for (const [key, value] of Object.entries(additionalOptions)) {
     currentElement.style(camelToKebab(key), value);
   }
+}
+
+// The style of each item: that of its group (groupStyle, by the value of the
+// item in column), with the style of the item itself (itemStyle, by index) on
+// top. Gives an itemStyle list.
+function withGroupStyles(items, column, groupStyle, itemStyle = []) {
+  return items.flatMap((d, i) => {
+    const ofGroup = column && groupStyle ? groupStyle[d[column]] : undefined;
+    const ofItem = itemStyle.find(s => s.index === i);
+    return ofGroup || ofItem ? [{ ...ofGroup, ...ofItem, index: i }] : [];
+  });
 }
 
 function applyStyleToElement(currentElement, itemStyle, i) {
@@ -693,41 +725,42 @@ function createDiscontinuousScale(minStart, maxEnd, width, margin, breaks, rever
   return scaleProxy;  // Return the discontinuous scale
 }
 
-function parseAndStyleText(text, parentElement, fontOptions) {
+// Splits a text into parts with their <b>, <i> or <u> style
+function styledSegments(text) {
   const tagRegex = /<([biu])>(.*?)<\/\1>/g;
-
+  const segments = [];
+  const plain = content => ({ content, bold: false, italic: false, underline: false });
   let lastIndex = 0;
+  let match;
 
-  // Helper function to append text with specific styles
-  const appendText = (content, isBold = false, isItalic = false, isUnderline = false) => {
+  while ((match = tagRegex.exec(text)) !== null) {
+    // Text before the tag
+    if (match.index > lastIndex) {
+      segments.push(plain(text.substring(lastIndex, match.index)));
+    }
+    const [, tag, content] = match;
+    segments.push({ content, bold: tag === "b", italic: tag === "i", underline: tag === "u" });
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Any remaining text after the last tag
+  if (lastIndex < text.length) {
+    segments.push(plain(text.substring(lastIndex)));
+  }
+  return segments;
+}
+
+function parseAndStyleText(text, parentElement, fontOptions) {
+  styledSegments(text).forEach(({ content, bold, italic, underline }) => {
     const tspan = parentElement.append("tspan")
-      .style("font-weight", isBold ? "bold" : fontOptions.weight)
-      .style("font-style", isItalic ? "italic" : fontOptions.style)
+      .style("font-weight", bold ? "bold" : fontOptions.weight)
+      .style("font-style", italic ? "italic" : fontOptions.style)
       .text(content);
 
-    if (isUnderline) {
+    if (underline) {
       tspan.style("text-decoration", "underline");
     }
-  };
-
-  // Iterate through the string and apply styles
-  text.replace(tagRegex, function (match, tag, content, offset) {
-    // Append text before the tag
-    if (offset > lastIndex) {
-      appendText(text.substring(lastIndex, offset), false, false, false);
-    }
-
-    // Apply style based on the tag
-    appendText(content, tag === 'b', tag === 'i', tag === 'u');
-
-    lastIndex = offset + match.length;
-    return match; // This return is not used, but is necessary for the replace function
   });
-
-  // Append any remaining text after the last tag
-  if (lastIndex < text.length) {
-    appendText(text.substring(lastIndex), false, false, false);
-  }
 }
 
 function container(svg, margin, width, height) {
@@ -791,7 +824,8 @@ function createContainer(targetElementId, id, themeOptionsKey, options = {}, the
   return newContainer;
 }
 
-function addScalePadding(startValue, endValue, padding, to) {
+// The padding is a share of the range shown: the range less the scale breaks in it
+function addScalePadding(startValue, endValue, padding, to, breaks = []) {
   let paddingValue;
 
   // Check if padding is a percentage string
@@ -808,8 +842,11 @@ function addScalePadding(startValue, endValue, padding, to) {
     return to === 'start' ? startValue : endValue;
   }
 
-  // Calculate the total range
-  const totalRange = Math.abs(endValue - startValue);
+  // Calculate the range shown, without the scale breaks
+  const [low, high] = [Math.min(startValue, endValue), Math.max(startValue, endValue)];
+  const gaps = breaks.reduce((sum, gap) =>
+    sum + Math.max(0, Math.min(gap.end, high) - Math.max(gap.start, low)), 0);
+  const totalRange = high - low - gaps;
 
   // Calculate the actual padding value based on the total range
   paddingValue = totalRange * paddingValue;
@@ -1552,11 +1589,11 @@ container.prototype.scale = function (options = {}) {
               d3.max(this.data, d => Math.max(d.start, d.end));
 
   if(start == null){
-  this.minStart = addScalePadding(this.minStart, this.maxEnd, padding, "start")
+  this.minStart = addScalePadding(this.minStart, this.maxEnd, padding, "start", breaks)
   }
 
   if(end == null){
-  this.maxEnd = addScalePadding(this.minStart, this.maxEnd, padding, "end")
+  this.maxEnd = addScalePadding(this.minStart, this.maxEnd, padding, "end", breaks)
   }
 
   // Create scales
@@ -1789,14 +1826,15 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
   let xPos;
   let textAnchor;
 
-  // Determine text align and anchor based on the provided align
+  // Determine text align and anchor based on the provided align; the footer is
+  // drawn in the SVG itself, so the positions include the left margin
   switch (align) {
     case "left":
-      xPos = x;
+      xPos = this.margin.left + x;
       textAnchor = "start";
       break;
     case "right":
-      xPos = this.width - this.margin.left - this.margin.right + x;
+      xPos = this.width - this.margin.right + x;
       textAnchor = "end";
       break;
     default:
@@ -1874,6 +1912,7 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     x: 0,
     y: 0,
     position: 'left',
+    align: 'center',
     width: null, // the margin the label is drawn in, see clusterLabelMargin()
     wrapLabel: true,
     wrapOptions: {},
@@ -1881,7 +1920,16 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     fontStyle: "normal",
     fontWeight: "bold",
     fontFamily: "sans-serif",
-    cursor: "default"
+    cursor: "default",
+    subtitle: null,
+    spacing: null, // Between the last line of the title and the subtitle; null: from the font sizes
+    subtitleFont: {
+      fontSize: "11px",
+      fontStyle: "normal",
+      fontWeight: "normal",
+      fontFamily: "sans-serif",
+      cursor: "default"
+    }
   };
 
   // Merge the options using the generic function
@@ -1891,6 +1939,7 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     x,
     y,
     position,
+    align,
     wrapLabel,
     wrapOptions,
     fontSize,
@@ -1898,6 +1947,9 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     fontWeight,
     fontFamily,
     cursor,
+    subtitle,
+    spacing,
+    subtitleFont
   } = combinedOptions;
 
   const additionalwrapOptions = extractAdditionalOptions(wrapOptions, defaultOptions.wrapOptions);
@@ -1918,17 +1970,21 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
   const middleY = this.margin.top + adjustedHeight / 2 + y;
   const titleWidth = position === 'left' ? this.margin.left - x : this.margin.right - x;
 
+  // Align the lines of the label to the left, centre or right of the margin
+  const alignShare = { left: 0, right: 1 }[align] ?? 0.5;
+  const textAnchor = { left: "start", right: "end" }[align] ?? "middle";
+
   let xposition;
   if (position === 'left') {
-    xposition = this.margin.left / 2 + x;  // title is in the left margin
+    xposition = this.margin.left * alignShare + x;  // title is in the left margin
   } else {  // 'right'
-    xposition = this.width - this.margin.right / 2 - x;  // title is in the right margin
+    xposition = this.width - this.margin.right * (1 - alignShare) - x;  // title is in the right margin
   }
 
   let clusterTitle = this.svg.append("text")
     .attr("x", xposition)
     .attr("y", middleY)
-    .attr("text-anchor", "middle")  // text is always centered
+    .attr("text-anchor", textAnchor)
     .attr("dominant-baseline", "central")  // Vertically center text
     .style("font-size", fontSize)
     .style("font-style", fontStyle)
@@ -1943,20 +1999,76 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
         parseAndStyleText(title, currentElement, titleFont);
       } else {
         currentElement.text(title);
-        // If wrapLabel is true, wrap the text
+        // If wrapLabel is true, wrap the text; wrap() reads the <b>, <i> and <u> tags
         wrap(currentElement, titleWidth, wrapOptions);
-        currentElement.selectAll("tspan").each(function () {
-          const currentTspan = d3.select(this);
-          const tspanText = currentTspan.text();
-          currentTspan.text('');
-          parseAndStyleText(tspanText, currentTspan, titleFont);
-        });
       }
       setStyleFromOptions(currentElement, additionalOptions);
     });
 
+  if (subtitle) {
+    const additionalOptionsSubtitleFont = extractAdditionalOptions(subtitleFont, defaultOptions.subtitleFont);
+    const subtitleStyle = {
+      size: subtitleFont.fontSize,
+      style: subtitleFont.fontStyle,
+      weight: subtitleFont.fontWeight,
+      family: subtitleFont.fontFamily,
+      cursor: subtitleFont.cursor
+    };
+
+    const clusterSubtitle = this.svg.append("text")
+      .attr("x", xposition)
+      .attr("y", middleY)
+      .attr("text-anchor", textAnchor)
+      .attr("dominant-baseline", "central")
+      .style("font-size", subtitleFont.fontSize)
+      .style("font-style", subtitleFont.fontStyle)
+      .style("font-weight", subtitleFont.fontWeight)
+      .style("font-family", subtitleFont.fontFamily)
+      .style("cursor", subtitleFont.cursor)
+      .each(function () {
+        const currentElement = d3.select(this);
+
+        if (!wrapLabel) {
+          parseAndStyleText(subtitle, currentElement, subtitleStyle);
+        } else {
+          currentElement.text(subtitle);
+          wrap(currentElement, titleWidth, wrapOptions);
+        }
+        setStyleFromOptions(currentElement, additionalOptionsSubtitleFont);
+      });
+
+    // The subtitle starts spacing below the last line of the title, and the two
+    // are centred together on the middle of the cluster. By default the spacing
+    // is 1.2 times the mean font size of the two
+    const titleLines = labelLineOffsets(clusterTitle);
+    const subtitleLines = labelLineOffsets(clusterSubtitle);
+    const lineSpacing = spacing ?? 1.2 * (titleLines.fontSize + subtitleLines.fontSize) / 2;
+    const titleY = middleY -
+      (titleLines.first + titleLines.last + lineSpacing - subtitleLines.first + subtitleLines.last) / 2;
+    setLabelY(clusterTitle, titleY);
+    setLabelY(clusterSubtitle, titleY + titleLines.last + lineSpacing - subtitleLines.first);
+  }
+
   return this;
 };
+
+// The font size of a label and the offsets in pixels of its first and last
+// line from its y position: the lines of a wrapped label are moved with dy (in em)
+function labelLineOffsets(label) {
+  const fontSize = parseFloat(getComputedStyle(label.node()).fontSize);
+  const lines = label.selectAll("tspan.wrap-line").nodes();
+  if (!lines.length) {
+    return { fontSize, first: 0, last: 0 };
+  }
+  const offset = line => (parseFloat(line.getAttribute("dy")) || 0) * fontSize;
+  return { fontSize, first: offset(lines[0]), last: offset(lines[lines.length - 1]) };
+}
+
+// Moves a label and its wrapped lines to a new y position
+function setLabelY(label, y) {
+  label.attr("y", y);
+  label.selectAll("tspan.wrap-line").attr("y", y);
+}
 
 container.prototype.sequence = function (show = true, options = {}) {
 
@@ -2001,19 +2113,41 @@ container.prototype.sequence = function (show = true, options = {}) {
   var maxEnd = end ?? d3.max(this.data, d => Math.max(d.start, d.end));
 
   if(start == null){
-  minStart = addScalePadding(minStart, maxEnd, this.padding, "start")
+  minStart = addScalePadding(minStart, maxEnd, this.padding, "start", this.breaks)
   }
 
   if(end == null){
-  maxEnd = addScalePadding(minStart, maxEnd, this.padding, "end")
+  maxEnd = addScalePadding(minStart, maxEnd, this.padding, "end", this.breaks)
   }
 
-  // Draw baseline with sequenceStyle
-  g.append("line")
+  // Pixel positions of the break markers, each markerStyle.gap px away from the break
+  const breakMarkers = this.breaks.map(gap => ({
+    xStart: this.xScale(gap.start - 0.001) - markerStyle.gap,
+    xEnd: this.xScale(gap.end + 0.001) + markerStyle.gap
+  }));
+
+  // Draw baseline with sequenceStyle, left open between the two markers of a break
+  const [lineLeft, lineRight] = [this.xScale(minStart), this.xScale(maxEnd)].sort((a, b) => a - b);
+  const openings = breakMarkers
+    .map(({ xStart, xEnd }) => [xStart + markerStyle.tiltAmount / 2, xEnd - markerStyle.tiltAmount / 2]
+      .sort((a, b) => a - b))
+    .sort((a, b) => a[0] - b[0]);
+  const segments = [];
+  let segmentStart = lineLeft;
+  for (const [openLeft, openRight] of openings) {
+    if (openLeft > segmentStart) segments.push([segmentStart, Math.min(openLeft, lineRight)]);
+    segmentStart = Math.max(segmentStart, openRight);
+  }
+  if (segmentStart < lineRight) segments.push([segmentStart, lineRight]);
+
+  g.selectAll("line.baseline")
+    .data(segments)
+    .enter()
+    .append("line")
     .attr("class", "baseline")
-    .attr("x1", this.xScale(minStart))
+    .attr("x1", d => d[0])
     .attr("y1", this.yScale(y))
-    .attr("x2", this.xScale(maxEnd))
+    .attr("x2", d => d[1])
     .attr("y2", this.yScale(y))
     .style("stroke", sequenceStyle.stroke)
     .style("stroke-width", sequenceStyle.strokeWidth)
@@ -2022,22 +2156,11 @@ container.prototype.sequence = function (show = true, options = {}) {
       setStyleFromOptions(currentElement, additionalOptionsSequence);
     });
 
-  // Draw break markers with tilted lines, each markerStyle.gap px away from the break
-  for (let gap of this.breaks) {
-    const xStart = this.xScale(gap.start - 0.001) - markerStyle.gap;
-    const xEnd = this.xScale(gap.end + 0.001) + markerStyle.gap;
+  // Draw break markers with tilted lines
+  for (const { xStart, xEnd } of breakMarkers) {
     const yBase = this.yScale(y);
     const yTop = yBase - markerStyle.markerHeight / 2;
     const yBottom = yBase + markerStyle.markerHeight / 2;
-
-    g.append("line")
-      .attr("class", "gap-line")
-      .attr("x1", xStart + (markerStyle.tiltAmount / 2))
-      .attr("y1", yBase)
-      .attr("x2", xEnd - (markerStyle.tiltAmount / 2))
-      .attr("y2", yBase)
-      .attr("stroke", "#0000")
-      .style("stroke-width", sequenceStyle.strokeWidth * 1.1);
 
     // Draw the tilted line before the gap
     g.append("line")
@@ -2074,6 +2197,8 @@ container.prototype.coordinates = function (show = true, options = {}) {
     tickValuesBottom: null,
     overlapThreshold: 20,
     ticksFormat: ",.0f",
+    groupStyle: {},
+    styleBy: null,
     tickStyle: {
       stroke: "black",
       strokeWidth: 1,
@@ -2090,7 +2215,15 @@ container.prototype.coordinates = function (show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'coordinatesOptions', options);
-  const { rotate, yPositionTop, yPositionBottom, tickValuesBottom, tickValuesTop, ticksFormat, tickStyle, textStyle } = combinedOptions;
+  const { rotate, yPositionTop, yPositionBottom, tickValuesBottom, tickValuesTop, ticksFormat, tickStyle, textStyle, groupStyle, styleBy } = combinedOptions;
+
+  // The style of the group of the gene of a coordinate: show = false leaves
+  // the coordinates of its genes out, tick styles their tick, the rest their text
+  const styleOf = t => (styleBy && t?.gene ? groupStyle[t.gene[styleBy]] : undefined) ?? {};
+  const textStyleOf = t => {
+    const { show, tick, ...text } = styleOf(t);
+    return text;
+  };
 
   // Extract additional options that are not in defaultOptions
   const additionalOptionsTickStyle = extractAdditionalOptions(tickStyle, defaultOptions.tickStyle);
@@ -2111,8 +2244,8 @@ container.prototype.coordinates = function (show = true, options = {}) {
 
     let allTickValues = this.data.reduce((acc, d) => {
       // Define tickValueStart and tickValueStop
-      let tickValueStart = { value: d.start, rowID: d.rowID };
-      let tickValueStop = { value: d.end, rowID: d.rowID };
+      let tickValueStart = { value: d.start, rowID: d.rowID, gene: d };
+      let tickValueStop = { value: d.end, rowID: d.rowID, gene: d };
       // Add strand property if it exists
       tickValueStart.strand = d.strand;
       tickValueStop.strand = d.strand;
@@ -2128,6 +2261,10 @@ container.prototype.coordinates = function (show = true, options = {}) {
 
       return acc;
     }, []);
+
+    // Leave out the coordinates of the groups hidden with show = false, before
+    // the duplicates, so a position another gene shares is kept
+    allTickValues = allTickValues.filter(t => styleOf(t).show !== false);
 
     // Remove duplicates based on the 'value' property
     allTickValues = allTickValues.filter((obj, index, self) =>
@@ -2205,9 +2342,10 @@ container.prototype.coordinates = function (show = true, options = {}) {
             .style("font-size", textStyle.fontSize)
             .style("font-family", textStyle.fontFamily)
             .style("cursor", textStyle.cursor)
-            .each(function() {
+            .each(function(d) {
                 const currentElement = d3.select(this);
                 setStyleFromOptions(currentElement, additionalOptionsTextStyle);
+                setStyleFromOptions(currentElement, textStyleOf(d));
             });
 
   xAxisTop.selectAll(".tick line")
@@ -2217,6 +2355,7 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .each(function () {
       const currentElement = d3.select(this);
       setStyleFromOptions(currentElement, additionalOptionsTickStyle);
+      setStyleFromOptions(currentElement, styleOf(d3.select(this.parentNode).datum()).tick ?? {});
     });
 
   // Create and configure the bottom axis
@@ -2248,9 +2387,10 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .style("font-size", textStyle.fontSize)
     .style("font-family", textStyle.fontFamily)
     .style("cursor", textStyle.cursor)
-    .each(function() {
+    .each(function(d) {
       const currentElement = d3.select(this);
-            setStyleFromOptions(currentElement, additionalOptionsTextStyle);
+      setStyleFromOptions(currentElement, additionalOptionsTextStyle);
+      setStyleFromOptions(currentElement, textStyleOf(d));
     });
 
   xAxisBottom.selectAll(".tick line")
@@ -2260,6 +2400,7 @@ container.prototype.coordinates = function (show = true, options = {}) {
     .each(function () {
       const currentElement = d3.select(this);
       setStyleFromOptions(currentElement, additionalOptionsTickStyle);
+      setStyleFromOptions(currentElement, styleOf(d3.select(this.parentNode).datum()).tick ?? {});
     });
 
   return this;
@@ -2435,11 +2576,14 @@ container.prototype.labels = function (label, show = true, options = {}) {
       dx: "0em",
       dy: "0em"
     },
-      itemStyle: [] // [{"index": 3,"y": 20}]
+      itemStyle: [], // [{"index": 3,"y": 20}]
+      groupStyle: {},
+      styleBy: null,
+      group: null
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'labelsOptions', options);
-  const { x, y, start, end, adjustLabels, labelAdjustmentOptions, itemStyle, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor } = combinedOptions;
+  const { x, y, start, end, adjustLabels, labelAdjustmentOptions, groupStyle, styleBy, group, dx, dy, anchor, rotate, fontSize, fontStyle, fontFamily, textAnchor, cursor } = combinedOptions;
 
   // Extract additional options that are not in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -2450,6 +2594,11 @@ container.prototype.labels = function (label, show = true, options = {}) {
 
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
+
+  // The style of each label: that of the group of its gene (groupStyle, by the
+  // column in styleBy or else group), with the style of the label itself
+  // (itemStyle, by index) on top
+  const itemStyle = withGroupStyles(this.data, styleBy ?? group, groupStyle, combinedOptions.itemStyle);
 
   const getAttributesForIndex = (d, i) => {
     const style = itemStyle.find(s => s.index === i) || {};
@@ -2856,10 +3005,18 @@ function getMarkerAttributes(container, d, i, y, styles, itemStyles) {
     }
   );
 
-  container.markerHeight = height;
-  container.markerY = currentY;
-  container.geneStrandSpacing = container.separateStrands ? (height / 2 + container.strandSpacing) : 0;
-  container.geneOverlapSpacing = (height + container.overlapSpacing);
+  // The labels and track spacing of the cluster follow its own marker, not
+  // the size or y of a single item set with itemStyle
+  const clusterHeight = getGenePath(styles.marker, geneLength, styles.markerSize, {
+    arrowheadWidth: styles.arrowheadWidth,
+    arrowheadHeight: styles.arrowheadHeight,
+    markerHeight: styles.markerHeight,
+    cornerRadius: styles.cornerRadius
+  }).height;
+  container.markerHeight = clusterHeight;
+  container.markerY = y;
+  container.geneStrandSpacing = container.separateStrands ? (clusterHeight / 2 + container.strandSpacing) : 0;
+  container.geneOverlapSpacing = (clusterHeight + container.overlapSpacing);
 
   // Calculate Y position based on geneTrack
   const currentGeneStrandSpacing = (d.strand === "forward" && container.geneStrandSpacing !== 0)
@@ -2896,6 +3053,8 @@ container.prototype.genes = function (group, show = true, options = {}) {
     marker: "arrow",
     markerSize: "medium",
     itemStyle: [],
+    groupStyle: {},
+    styleBy: null,
     arrowheadWidth: null,
     arrowheadHeight: null,
     markerHeight: null,
@@ -2903,7 +3062,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'geneOptions', options);
-  const { x, y, stroke, strokeWidth, colorScheme, customColors, pattern, cursor, itemStyle } = combinedOptions;
+  const { x, y, stroke, strokeWidth, colorScheme, customColors, pattern, cursor, groupStyle, styleBy } = combinedOptions;
 
   // Extract additional options that aren't in defaultOptions
   const additionalOptions = extractAdditionalOptions(combinedOptions, defaultOptions);
@@ -2919,6 +3078,11 @@ container.prototype.genes = function (group, show = true, options = {}) {
 
   // Sort the data first by the minimum value of start and end.
   this.data.sort((a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end));
+
+  // The style of each gene: that of its group (groupStyle, by the column in
+  // styleBy or else group), with the style of the gene itself (itemStyle, by
+  // index) on top
+  const itemStyle = withGroupStyles(this.data, styleBy ?? group, groupStyle, combinedOptions.itemStyle);
 
   const getAttributesForIndex = (d, i) => getMarkerAttributes(this, d, i, y, combinedOptions, itemStyle);
 
@@ -3032,11 +3196,16 @@ container.prototype.transcript = function (group, show = true, options = {}) {
     },
     itemStyleExons: [],
     itemStyleIntrons: [],
-    itemStyleUTRs: []
+    itemStyleUTRs: [],
+    groupStyleExons: {},
+    groupStyleIntrons: {},
+    groupStyleUTRs: {},
+    styleBy: null
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'transcriptOptions', options);
-  const { x, y, colorScheme, customColors, pattern, styleExons, styleIntrons, styleUTRs, itemStyleExons, itemStyleIntrons, itemStyleUTRs, labelOptions } = combinedOptions;
+  const { x, y, colorScheme, customColors, pattern, styleExons, styleIntrons, styleUTRs, labelOptions } = combinedOptions;
+  const styleColumn = combinedOptions.styleBy ?? group;
 
   // Extract additional options that aren't in defaultOptions
   const additionalOptionsExons = extractAdditionalOptions(combinedOptions.styleExons, defaultOptions.styleExons);
@@ -3060,6 +3229,8 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   if (styleExons.show) {
     // Add exons
     const exons = this.data.filter(transcript => /exon/i.test(transcript.type));
+    const itemStyleExons = withGroupStyles(exons, styleColumn, combinedOptions.groupStyleExons,
+                                           combinedOptions.itemStyleExons);
 
     g.selectAll(".exon")
       .data(exons)
@@ -3101,6 +3272,8 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   if (styleIntrons.show) {
     // Add introns
     const introns = this.data.filter(transcript => /intron/i.test(transcript.type));
+    const itemStyleIntrons = withGroupStyles(introns, styleColumn, combinedOptions.groupStyleIntrons,
+                                             combinedOptions.itemStyleIntrons);
 
     g.selectAll(".intron")
       .data(introns)
@@ -3143,6 +3316,8 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   if (styleUTRs.show) {
     // Add UTRs
     const utrs = this.data.filter(transcript => /utr/i.test(transcript.type));
+    const itemStyleUTRs = withGroupStyles(utrs, styleColumn, combinedOptions.groupStyleUTRs,
+                                          combinedOptions.itemStyleUTRs);
 
     g.selectAll(".utr")
       .data(utrs)
@@ -3246,9 +3421,11 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     y: 0,
     width: null, // Default width set to null
     orientation: "horizontal",
+    align: "left",
     adjustHeight: true,
     order: [],
     cornerRadius: 0,
+    groupStyle: {},
     legendOptions: {
       cursor: "pointer",
       colorScheme: null,
@@ -3265,7 +3442,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'legendOptions', options);
-  const { x, y, width, orientation, adjustHeight, order, cornerRadius, legendOptions, legendTextOptions } = combinedOptions;
+  const { x, y, width, orientation, align, adjustHeight, order, cornerRadius, legendOptions, legendTextOptions, groupStyle } = combinedOptions;
 
   const additionalLegendOptions = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
   const additionalLegendTextOptions = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
@@ -3303,6 +3480,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
 
   let currentX = x;
   let currentY = y;
+  // Row and horizontal extent of each item, to align the rows afterwards
+  const itemExtents = [];
 
   var g = this.svg.append("g")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
@@ -3314,6 +3493,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     .attr("class", "legend")
     .each((d, i, nodes) => {
       const legendGroup = d3.select(nodes[i]);
+      // The style of this group: for its text, and in marker for its marker
+      const { marker: markerStyle = {}, ...textStyle } = groupStyle[d] ?? {};
 
       const textLabel = legendGroup
         .append("text")
@@ -3328,6 +3509,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
         .each(function () {
           const currentElement = d3.select(this);
           setStyleFromOptions(currentElement, additionalLegendTextOptions);
+          // Before the text is measured below, so the items do not overlap
+          setStyleFromOptions(currentElement, textStyle);
         });
 
       const textLength = textLabel.node().getComputedTextLength();
@@ -3359,7 +3542,11 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
         .each(function () {
           const currentElement = d3.select(this);
           setStyleFromOptions(currentElement, additionalLegendOptions);
+          setStyleFromOptions(currentElement, markerStyle);
         })
+
+      itemExtents.push({ node: nodes[i], row: currentY, start: currentX,
+                         end: currentX + legendSize + legendPadding + textLength });
 
       if (orientation === "horizontal") {
         currentX += textLength + legendSize + 2 * legendPadding;
@@ -3412,6 +3599,20 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
       });
 }
     });
+
+  // Align each row (or the whole column of a vertical legend) to the left,
+  // centre or right of the available width
+  const alignShare = { center: 0.5, right: 1 }[align] ?? 0;
+  if (alignShare > 0) {
+    const availableWidth = this.width - this.margin.left - this.margin.right;
+    const rowOf = item => orientation === "horizontal" ? item.row : 0;
+    const rowWidths = d3.rollup(itemExtents,
+      items => d3.max(items, item => item.end) - d3.min(items, item => item.start), rowOf);
+    itemExtents.forEach(item => {
+      const shift = Math.max(0, availableWidth - rowWidths.get(rowOf(item))) * alignShare;
+      d3.select(item.node).attr("transform", `translate(${shift}, 0)`);
+    });
+  }
 
   if (adjustHeight && this.height === 0) {
     var padding = 20;

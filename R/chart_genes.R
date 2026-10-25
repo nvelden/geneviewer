@@ -690,7 +690,8 @@ GC_color <- function(
 #' @param GC_chart The gene chart object to be modified.
 #' @param patterns NULL, a vector of pattern names or a named list of pattern
 #'   names by group. NULL gives each group a pattern in a fixed order. A vector
-#'   is recycled over the groups. Available patterns: "none", "solid",
+#'   is recycled over the groups. Groups left out of a named list get no
+#'   pattern ("none"). Available patterns: "none", "solid",
 #'   "horizontal", "vertical", "diagonal", "antidiagonal", "grid",
 #'   "crosshatch", "dots", "zigzag", "checkerboard", "rings", "bricks",
 #'   "plus", "wideStripes" and "inverseDots" (background-coloured dots on a

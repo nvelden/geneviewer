@@ -40,6 +40,7 @@
 - New tutorial "Reproducing a published figure: Tn7-like transposons", which rebuilds Fig. 3 of Peters et al. (2017) step by step: scale breaks, lining up on a gene, group styles for genes, labels and the legend, and saving as SVG. The "Example charts" article shows the finished chart, which also replaces an example chart in the README. Its data are in the new dataset `tn7_crispr_elements`, made by `data-raw/tn7_crispr_elements.R` from the GenBank records.
 
 ### Bug fixes:
+- When `GC_links()` is called more than once, the link labels of each call now use the options of that call (`label`, `measure`, `labelStyle`, `value1`, `value2`, ...); all link sets used those of the first call. A gene in more than one link set gets one label.
 - The `start` and `end` of the line of a cluster (`GC_sequence()`) now stay with the genes with `GC_scale(axis_type = "range")`, like the annotations, whether they are set before or after `GC_scale()`; they were taken as positions on the shifted axis.
 - The line of a cluster now stops at a scale break (`GC_scale(breaks = )` or `scale_breaks = TRUE`) and starts again after it, so the break marks show a real gap; the line ran on between them.
 - A gene made taller or moved with `GC_genes(itemStyle = )` (e.g. `markerHeight`, `arrowheadHeight` or `y`) no longer moves the labels of the other genes in its cluster. The labels and track spacing used the size and position of whichever gene was drawn last.

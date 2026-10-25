@@ -1801,3 +1801,30 @@ test_that("GC_labels and GC_genes match groupStyle against style_by", {
   expect_error(GC_chart(genes, group = "class") %>% GC_genes(style_by = c("a", "b")),
                "single column name")
 })
+
+test_that("each GC_links() call labels its links with its own options (B47)", {
+  genes <- data.frame(cluster = rep(c("A", "B"), each = 2), start = c(1, 201, 1, 201),
+                      end = c(150, 350, 150, 350), name = rep(c("a", "b"), 2),
+                      identity = c(NA, NA, 90, 70))
+  labels <- function(chart) {
+    file <- tempfile(fileext = ".html")
+    htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+    session <- chrome_page(file)
+    res <- session$Runtime$evaluate("
+      JSON.stringify([...document.querySelectorAll('.link-text')].map(t =>
+        ({ text: t.textContent, fill: t.style.fill, id: t.id })))")$result$value
+    jsonlite::fromJSON(res)
+  }
+  base <- GC_chart(genes, cluster = "cluster", group = "name", height = "300px")
+
+  res <- labels(base %>%
+    GC_links("name", value1 = "a", value2 = "a", labelStyle = list(fill = "red")) %>%
+    GC_links("name", value1 = "b", value2 = "b", labelStyle = list(fill = "blue")))
+  expect_equal(res$text, c("90%", "70%"))
+  expect_equal(res$fill, c("red", "blue"))
+  expect_false(anyDuplicated(res$id) > 0)
+
+  # a gene in two link sets gets one label
+  res <- labels(base %>% GC_links("name") %>% GC_links("name"))
+  expect_equal(res$text, c("90%", "70%"))
+})

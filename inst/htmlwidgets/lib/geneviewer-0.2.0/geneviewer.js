@@ -3734,8 +3734,12 @@ container.prototype.links = function (links, clusterKey, options = {}) {
 
   if(label){
     const labelAdjuster = createLabelAdjuster(this, ".link-text");
+    // Labels drawn by earlier link sets: a gene gets one label
+    const labelled = this.svg.selectAll(".link-text").nodes();
+    const labelledRows = new Set(labelled.map(node => node.getAttribute("rowID")));
 
     const labelData = this.data.filter(d =>
+      !labelledRows.has(`${d["rowID"]}`) &&
       d[measure] != null &&
       d.BlastP != "No Hit" &&
       (d.BlastP === undefined || (d.BlastP != d.protein_id && d.BlastP)) &&
@@ -3749,7 +3753,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     .data(labelData)
     .enter()
     .append("text")
-    .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-link-label-${i}`)
+    .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-link-label-${labelled.length + i}`)
     .attr("rowID", (d, i) => `${d["rowID"]}`)
     .attr("class", "link-text")
     .attr("x", (d, i) => this.xScale((d.start + d.end) / 2))

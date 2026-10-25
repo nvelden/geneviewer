@@ -110,14 +110,11 @@ HTMLWidgets.widget({
       // Add Clusters
       var clusters = Object.keys(series);
 
-      // Add Links
-      if(links && links.length > 0){
-      var graphLinks = links.reduce((acc, entry) => {
-         const convertedData = HTMLWidgets.dataframeToD3(entry.data);
-        acc = acc.concat(convertedData);
-        return acc;
-      }, []);
-      }
+      // Add Links: each set from GC_links() keeps its own options
+      var linkSets = (Array.isArray(links) ? links : []).map(entry => ({
+        data: HTMLWidgets.dataframeToD3(entry.data),
+        options: entry.options ?? {}
+      }));
 
       clusters.forEach(function (clusterKey) {
 
@@ -158,14 +155,7 @@ HTMLWidgets.widget({
           };
         }
 
-        var clusterLinks = getClusterLinks(graphLinks, clusterKey);
-        var linksOptions = {};
-
-        if (Array.isArray(links) && links.length > 0 && links[0].options) {
-        linksOptions = links[0].options;
-        }
-
-        createContainer(`#geneviewer-graph-container-${widgetId}`, "svg-container", 'containerOptions',  clonedContainerOptions, theme)
+        var chart = createContainer(`#geneviewer-graph-container-${widgetId}`, "svg-container", 'containerOptions',  clonedContainerOptions, theme)
           .cluster(clusterOptions)
           .title(clusterTitleOptions?.title, clusterTitleOptions?.subtitle, clusterTitleOptions?.show ?? false, clusterTitleOptions, "clusterTitleOptions")
           .footer(footerOptions?.title, footerOptions?.subtitle, footerOptions?.show ?? false, footerOptions)
@@ -174,8 +164,13 @@ HTMLWidgets.widget({
           .scale(scaleOptions)
           .sequence(sequenceOptions?.show ?? false, sequenceOptions)
           .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)
-          .transcript(transcriptOptions?.group, transcriptOptions?.show ?? false, transcriptOptions)
-          .links(clusterLinks, clusterKey,  linksOptions)
+          .transcript(transcriptOptions?.group, transcriptOptions?.show ?? false, transcriptOptions);
+
+        linkSets.forEach(linkSet => {
+          chart.links(getClusterLinks(linkSet.data, clusterKey), clusterKey, linkSet.options);
+        });
+
+        chart
           .coordinates(coordinateOptions?.show ?? false, coordinateOptions)
           .labels(labelOptions?.label, labelOptions?.show ?? false, labelOptions)
           .scaleBar(scaleBarOptions?.show ?? false, scaleBarOptions)

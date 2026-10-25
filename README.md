@@ -87,7 +87,7 @@ For additional examples and the corresponding code to create the plots, please v
 
 <hr>
 
-<img src="man/figures/ophA_gene_links_2x.png" width="776"/>
+<img src="man/figures/tn7_crispr_transposons_2x.png" width="776"/>
 
 <hr>
 

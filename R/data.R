@@ -174,3 +174,72 @@
 #' }
 #' @source Made by `data-raw/pQEB1_plasmids.R`.
 "pQEB1_alignment"
+
+#' Genes of Tn7 and of Tn7-like transposons carrying a CRISPR-Cas system
+#'
+#' The genes of Tn7, of Tn6022 and of fourteen Tn7-like transposons that have
+#' picked up a minimal CRISPR-Cas system, which has lost the genes needed to acquire
+#' spacers and to cut the target and is thought to guide the transposon to its
+#' insertion site instead. Each element is drawn from its right end, next to
+#' the gene it inserted beside, so that `tnsA` is at the left. The elements,
+#' the genomes they sit in and the insertion sites are those of Table S1 and
+#' Fig. 3 of the reference below, and the rows are named after the TnsA tree
+#' node that figure labels them with. Each region starts at the insertion
+#' site and ends at the left end of the element or after the cas genes, as in
+#' that figure. Only the first part of each element is
+#' covered, up to the end of the cas genes; the longer elements carry further
+#' cargo beyond it. Made by `data-raw/tn7_crispr_elements.R`.
+#'
+#' Tn7 itself carries `tnsE` and no cas genes. It is taken from the chromosome
+#' of *Acinetobacter baumannii* UC20804, where it sits at its insertion site
+#' `attTn7`, next to `glmS`; this Tn7 is 99.9% identical over its whole length
+#' to the Tn7 of GenBank DQ176450. Tn6022 is
+#' the other element without cas genes; it sits inside `yifB` (`comM`), which
+#' the annotation splits in two, and only the fragment at its right end is kept
+#' here. Its ends are the window between those two fragments and are not
+#' verified to the base. In element
+#' #2757 `tnsA` is fused to `tnsB`: the annotated gene is longer than the `tnsB`
+#' of Tn7 by about the size of a TnsA, and that extra length at its start is
+#' given as a separate row, with gene name "tnsA (fused)" and label "tnsA". The
+#' boundary between the two is an estimate.
+#'
+#' Besides the genes, each element has a row for its right end (gene `R`,
+#' category "right end") and its left end (gene `L`, category "left end").
+#' Both are single positions, with `start` equal to `end`. The left end of most
+#' elements lies far beyond the last gene covered here (up to about 100 kb), at
+#' its true position. Genes that run on past the left end are cut off there.
+#'
+#' @format A data frame with 307 rows and 13 columns:
+#' \describe{
+#'   \item{cluster}{Name of the element, as in Fig. 3 of the reference. A character vector.}
+#'   \item{strain}{Species and strain the element was found in. A character vector.}
+#'   \item{strain_short}{The strain with its genus abbreviated, e.g. "V. cholerae
+#'   VC35", for short labels. A character vector.}
+#'   \item{accession}{Accession of the sequence the region comes from. A character vector.}
+#'   \item{site}{Gene the element has inserted next to, e.g. "glmS", "yciA" or
+#'   "SRP-RNA". A character vector.}
+#'   \item{locus_tag}{Locus tag of the gene. A character vector.}
+#'   \item{gene}{Gene name, or "" when the gene has none; "R" or "L" for the
+#'   right or left end of the element, and "CRISPR" for a CRISPR array. A
+#'   character vector.}
+#'   \item{label}{The name Fig. 3 of the reference writes on the gene, or ""
+#'   when it names none: the transposition and cas genes, the insertion sites in
+#'   short (e.g. "glmS" for "attTn7 (glmS)") and the resistance genes and
+#'   integrase of Tn7. A character vector.}
+#'   \item{product}{Description of the gene product. A character vector.}
+#'   \item{category}{Role of the gene, e.g. "tnsA", "tniQ / tnsD", "cas8f /
+#'   cas5f", "CRISPR array", "insertion site", "right end" or "left end". A
+#'   character vector.}
+#'   \item{start}{Start position of the gene in the region. A numeric vector.}
+#'   \item{end}{End position of the gene in the region. A numeric vector.}
+#'   \item{strand}{Strand of the gene, "forward" or "complement". A character vector.}
+#' }
+#' @source GenBank accession CP076807, RefSeq accession NZ_KB849325 and the
+#'   RefSeq genomes of Table S1 of the
+#'   reference, read with [read_gbk()]. The CRISPR arrays that RefSeq does not
+#'   annotate were found from the repeat consensus of the type I-F arrays these
+#'   elements carry.
+#' @references Peters JE, Makarova KS, Shmakov S, Koonin EV. Recruitment of
+#'   CRISPR-Cas systems by Tn7-like transposons. Proc Natl Acad Sci USA.
+#'   2017;114(35):E7358-E7366.
+"tn7_crispr_elements"

@@ -673,3 +673,204 @@ GC_chart(pQEB1_plasmids, cluster = "cluster", group = "category",
             legendTextOptions = list(fontSize = "14px")) %>%
   GC_theme("publication")
 ```
+
+### Tn7-like transposons carrying a CRISPR-Cas system
+
+Redrawn from Figure 3 of Peters et al. (2017). The [tutorial](Tn7_CRISPR.html) builds this chart step by step.
+
+<details>
+<summary>Click to see the code</summary>
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+# The element ends are single positions in the data. They are drawn as tall
+# bars, the way the inverted repeats at the ends of a transposon are often
+# drawn: 100 bp wide, from the end into the element, so they stay clear of the
+# gene next to them.
+genes <- tn7_crispr_elements %>%
+  dplyr::mutate(end = ifelse(gene == "R", end + 100, end),
+                start = ifelse(gene == "L", start - 100, start))
+
+elements <- dplyr::distinct(genes, cluster, strain_short)
+
+colors <- list(
+  "insertion site" = "#F3C79B",
+  "tnsA" = "#D62728",
+  "tnsB" = "#AEB6F0",
+  "tnsC" = "#D7F2F2",
+  "tniQ / tnsD" = "#2CA02C",
+  "tnsE" = "#C7E02C",
+  "cas8f / cas5f" = "#8C1515",
+  "cas7f" = "#F2A5C4",
+  "cas6f" = "#7B3FD4",
+  "cas5" = "#B5651D",
+  "cas, other" = "#C9A0DC",
+  "CRISPR array" = "#555555",
+  "right end" = "#9FD4DE",
+  "left end" = "#F28E2B",
+  "other" = "#E8E8E8"
+)
+
+# In the legend the gene names are italic, the other entries upright
+gene_names <- c("tnsA", "tnsB", "tnsC", "tniQ / tnsD", "tnsE", "cas8f / cas5f",
+                "cas7f", "cas6f", "cas5")
+legend_styles <- lapply(stats::setNames(nm = gene_names),
+                        function(x) list(fontStyle = "italic"))
+
+# The labels by their text: white on the dark genes, and above the SRP RNA
+# genes, which are too short for it, ending clear of the right end beside them
+white <- list(fill = "white")
+label_styles <- list(
+  tnsA = white, cas8f = white, cas6f = white, cas5 = white,
+  "SRP-RNA" = list(y = 55, dy = "0px", textAnchor = "end", x = -4)
+)
+
+# By gene: the ends (R and L) are tall bars, the CRISPR arrays and the fused
+# tnsA boxes the height of the genes
+end_bar <- list(marker = "box", markerHeight = 38, arrowheadHeight = 38)
+gene_box <- list(marker = "box", markerHeight = 20, arrowheadHeight = 20)
+shapes <- list(
+  R = end_bar,
+  L = end_bar,
+  CRISPR = c(gene_box, stroke = "black", strokeWidth = 1),
+  "tnsA (fused)" = gene_box
+)
+
+chart <- GC_chart(genes, cluster = "cluster", group = "category",
+                  strand = "strand", height = "900px") %>%
+  # tall arrows, with the labels inside them
+  GC_genes(marker_size = "small", markerHeight = 20,
+           style_by = "gene", groupStyle = shapes) %>%
+  GC_labels(label = "label", fontSize = "9px", y = 50, dy = "14.5px",
+            adjustLabels = FALSE, style_by = "label", groupStyle = label_styles) %>%
+  # most elements run on far beyond the genes shown, up to ~100 kb: scale breaks
+  # (//) leave out such long stretches, as in the published figure
+  GC_scale(axis_type = "range", hidden = TRUE, scale_breaks = TRUE,
+           scale_break_padding = "500bp") %>%
+  # line the elements up on their right end, as in the published figure
+  GC_align("gene", "R", align = "left") %>%
+  GC_clusterLabel(
+    title = elements$cluster,
+    subtitle = elements$strain_short,
+    width = "190px",
+    fontSize = "12px",
+    subtitleFont = list(fontSize = "10px", fontStyle = "italic"),
+    align = "right",
+    x = -10
+  ) %>%
+  GC_title(
+    "Tn7-like transposons that carry a minimal CRISPR-Cas system",
+    subtitle = paste("Redrawn from Fig. 3 of Peters et al. (2017),",
+                     "Proc Natl Acad Sci USA 114:E7358-E7366"),
+    height = "70px",
+    titleFont = list(fontSize = "19px", fontWeight = "bold"),
+    subtitleFont = list(fontSize = "14px", fontStyle = "italic")
+  ) %>%
+  GC_tooltip(formatter = "<b>{gene}</b> {product}<br>{start} - {end}") %>%
+  GC_color(customColors = colors) %>%
+  # the two ends share a pattern and are told apart by their colour
+  GC_pattern(patterns = list("right end" = "diagonal", "left end" = "diagonal"),
+             background = NULL, size = 4) %>%
+  GC_legend(position = "bottom", align = "center", order = names(colors),
+            legendTextOptions = list(fontSize = "12px"),
+            groupStyle = legend_styles) %>%
+  GC_theme("publication")
+
+chart
+```
+</details>
+
+```{r echo = FALSE, results='asis'}
+# The element ends are single positions in the data. They are drawn as tall
+# bars, the way the inverted repeats at the ends of a transposon are often
+# drawn: 100 bp wide, from the end into the element, so they stay clear of the
+# gene next to them.
+genes <- tn7_crispr_elements %>%
+  dplyr::mutate(end = ifelse(gene == "R", end + 100, end),
+                start = ifelse(gene == "L", start - 100, start))
+
+elements <- dplyr::distinct(genes, cluster, strain_short)
+
+colors <- list(
+  "insertion site" = "#F3C79B",
+  "tnsA" = "#D62728",
+  "tnsB" = "#AEB6F0",
+  "tnsC" = "#D7F2F2",
+  "tniQ / tnsD" = "#2CA02C",
+  "tnsE" = "#C7E02C",
+  "cas8f / cas5f" = "#8C1515",
+  "cas7f" = "#F2A5C4",
+  "cas6f" = "#7B3FD4",
+  "cas5" = "#B5651D",
+  "cas, other" = "#C9A0DC",
+  "CRISPR array" = "#555555",
+  "right end" = "#9FD4DE",
+  "left end" = "#F28E2B",
+  "other" = "#E8E8E8"
+)
+
+# In the legend the gene names are italic, the other entries upright
+gene_names <- c("tnsA", "tnsB", "tnsC", "tniQ / tnsD", "tnsE", "cas8f / cas5f",
+                "cas7f", "cas6f", "cas5")
+legend_styles <- lapply(stats::setNames(nm = gene_names),
+                        function(x) list(fontStyle = "italic"))
+
+# The labels by their text: white on the dark genes, and above the SRP RNA
+# genes, which are too short for it, ending clear of the right end beside them
+white <- list(fill = "white")
+label_styles <- list(
+  tnsA = white, cas8f = white, cas6f = white, cas5 = white,
+  "SRP-RNA" = list(y = 55, dy = "0px", textAnchor = "end", x = -4)
+)
+
+# By gene: the ends (R and L) are tall bars, the CRISPR arrays and the fused
+# tnsA boxes the height of the genes
+end_bar <- list(marker = "box", markerHeight = 38, arrowheadHeight = 38)
+gene_box <- list(marker = "box", markerHeight = 20, arrowheadHeight = 20)
+shapes <- list(
+  R = end_bar,
+  L = end_bar,
+  CRISPR = c(gene_box, stroke = "black", strokeWidth = 1),
+  "tnsA (fused)" = gene_box
+)
+
+chart <- GC_chart(genes, cluster = "cluster", group = "category",
+                  strand = "strand", height = "900px") %>%
+  # tall arrows, with the labels inside them
+  GC_genes(marker_size = "small", markerHeight = 20,
+           style_by = "gene", groupStyle = shapes) %>%
+  GC_labels(label = "label", fontSize = "9px", y = 50, dy = "14.5px",
+            adjustLabels = FALSE, style_by = "label", groupStyle = label_styles) %>%
+  # most elements run on far beyond the genes shown, up to ~100 kb: scale breaks
+  # (//) leave out such long stretches, as in the published figure
+  GC_scale(axis_type = "range", hidden = TRUE, scale_breaks = TRUE,
+           scale_break_padding = "500bp") %>%
+  # line the elements up on their right end, as in the published figure
+  GC_align("gene", "R", align = "left") %>%
+  GC_clusterLabel(
+    title = elements$cluster,
+    subtitle = elements$strain_short,
+    width = "190px",
+    fontSize = "12px",
+    subtitleFont = list(fontSize = "10px", fontStyle = "italic"),
+    align = "right",
+    x = -10
+  ) %>%
+  GC_title(
+    "Tn7-like transposons that carry a minimal CRISPR-Cas system",
+    subtitle = paste("Redrawn from Fig. 3 of Peters et al. (2017),",
+                     "Proc Natl Acad Sci USA 114:E7358-E7366"),
+    height = "70px",
+    titleFont = list(fontSize = "19px", fontWeight = "bold"),
+    subtitleFont = list(fontSize = "14px", fontStyle = "italic")
+  ) %>%
+  GC_tooltip(formatter = "<b>{gene}</b> {product}<br>{start} - {end}") %>%
+  GC_color(customColors = colors) %>%
+  # the two ends share a pattern and are told apart by their colour
+  GC_pattern(patterns = list("right end" = "diagonal", "left end" = "diagonal"),
+             background = NULL, size = 4) %>%
+  GC_legend(position = "bottom", align = "center", order = names(colors),
+            legendTextOptions = list(fontSize = "12px"),
+            groupStyle = legend_styles) %>%
+  GC_theme("publication")
+
+chart
+```

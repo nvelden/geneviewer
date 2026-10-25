@@ -1,0 +1,205 @@
+---
+title: "Reproducing a published figure: Tn7-like transposons"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Reproducing a published figure: Tn7-like transposons}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+library(knitr)
+library(geneviewer)
+library(dplyr)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+### Intro
+
+This tutorial shows how to rebuild a figure from a paper with **`geneviewer`**. As an example we redraw Figure 3 of Peters JE, Makarova KS, Shmakov S, Koonin EV (2017). Recruitment of CRISPR-Cas systems by Tn7-like transposons. *Proc Natl Acad Sci USA* 114(35):E7358-E7366, [doi:10.1073/pnas.1709035114](https://doi.org/10.1073/pnas.1709035114). The figure compares Tn7, Tn6022 and fourteen Tn7-like transposons that carry a minimal CRISPR-Cas system. Each element is drawn from its right end, next to the gene it inserted beside, and the elements are lined up on that end.
+
+Open [Figure 3](https://pmc.ncbi.nlm.nih.gov/articles/PMC5584455/figure/fig03/) next to this tutorial: at each step we point out which part of the published figure we recreate.
+
+Step by step we will line the elements up, leave out long stretches of DNA with scale breaks, draw the ends of the elements as bars, write the gene names inside the genes and finish the chart for a publication. Unlike the published figure, the genes are drawn to scale. Several of the options used here (`groupStyle`, `style_by` and a `scale_break_padding` in base pairs) are only available in the development version of `geneviewer`.
+
+### Materials
+
+The data comes with `geneviewer` as the `tn7_crispr_elements` data set. It holds the genes of the sixteen elements of the figure, read from their GenBank records with `read_gbk()`, together with the positions of the ends of each element. The GenBank files of the sixteen regions, downloaded from [GenBank](https://www.ncbi.nlm.nih.gov/genbank/) (the accessions are in the `accession` column), and the data set as a .csv file can be downloaded from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Reproducing%20a%20published%20figure) repository. The script that made the data set from the GenBank files, `data-raw/tn7_crispr_elements.R`, is in the [geneviewer repository](https://github.com/nvelden/geneviewer).
+
+```{r echo = FALSE, results='asis'}
+kable(head(tn7_crispr_elements[, c("cluster", "strain", "gene", "label", "product",
+                                   "category", "start", "end", "strand")], 8))
+```
+
+Each element is a cluster. The `category` column holds the role of each gene and sets its colour: the transposition genes (`tnsA` to `tnsE`), the *cas* genes, the CRISPR arrays, the insertion site and "other" genes. The `label` column holds the names the published figure writes on the genes. Besides the genes, each element has a row for its right end (gene `R`, category "right end") and its left end (gene `L`, category "left end"), each a single position.
+
+### A first chart
+
+**In [Figure 3](https://pmc.ncbi.nlm.nih.gov/articles/PMC5584455/figure/fig03/):** each row is one element, and the genes are coloured by their role: red *tnsA*, blue *tnsB*, light blue *tnsC*, green *tniQ*, dark red, pink and purple for the *cas* genes, and grey for the other genes. The figure has no legend; the caption explains the colours, and we will add a legend to our chart.
+
+The ends of the elements are single positions, so they would have no width in the chart. We give each end a width of 100 bp, from the end into the element, so it stays clear of the gene next to it.
+
+```{r echo = TRUE}
+genes <- tn7_crispr_elements %>%
+  mutate(end = ifelse(gene == "R", end + 100, end),
+         start = ifelse(gene == "L", start - 100, start))
+```
+
+We load the genes into `GC_chart()`, colour them by category with `GC_color()` and set the order of the legend. With `axis_type = "range"` every element starts at 1, so the scale shows lengths rather than positions on the genome; we hide it, as the published figure has none.
+
+```{r echo = TRUE, results='asis'}
+colors <- list(
+  "insertion site" = "#F3C79B",
+  "tnsA" = "#D62728",
+  "tnsB" = "#AEB6F0",
+  "tnsC" = "#D7F2F2",
+  "tniQ / tnsD" = "#2CA02C",
+  "tnsE" = "#C7E02C",
+  "cas8f / cas5f" = "#8C1515",
+  "cas7f" = "#F2A5C4",
+  "cas6f" = "#7B3FD4",
+  "cas5" = "#B5651D",
+  "cas, other" = "#C9A0DC",
+  "CRISPR array" = "#555555",
+  "right end" = "#9FD4DE",
+  "left end" = "#F28E2B",
+  "other" = "#E8E8E8"
+)
+
+chart <- GC_chart(genes, cluster = "cluster", group = "category",
+                  strand = "strand", height = "900px") %>%
+  GC_color(customColors = colors) %>%
+  GC_scale(axis_type = "range", hidden = TRUE) %>%
+  GC_legend(position = "bottom", align = "center", order = names(colors))
+
+chart
+```
+
+Most elements run on far beyond the genes shown: the left end of element #438 lies over 100 kb further on. All elements share one scale, so these long stretches squeeze the genes of every row together.
+
+### Leaving out long stretches
+
+**In [Figure 3](https://pmc.ncbi.nlm.nih.gov/articles/PMC5584455/figure/fig03/):** the long elements end with `//` on the line just before their left end. The figure leaves out tens of kilobases of cargo there, so every element fits on one row.
+
+Scale breaks leave out a stretch of DNA and mark the gap with `//` on the line. With `scale_breaks = TRUE`, `GC_scale()` puts a break in every gap that is longer than `scale_break_threshold` percent (20% by default) of a row. `scale_break_padding` sets how much of the gap is kept on either side of the break: as a percentage, or as here in base pairs, so every break gets the same room.
+
+```{r echo = TRUE, results='asis'}
+chart <- chart %>%
+  GC_scale(axis_type = "range", hidden = TRUE, scale_breaks = TRUE,
+           scale_break_padding = "500bp")
+
+chart
+```
+
+### Lining up the elements
+
+**In [Figure 3](https://pmc.ncbi.nlm.nih.gov/articles/PMC5584455/figure/fig03/):** the light blue box marked "R" is in the same column in every row, with *tnsA* right after it. The gene the element inserted beside is to its left.
+
+In the published figure the elements are lined up on their right end. `GC_align()` does this: it shifts each row so that the gene we choose, here the right end `R`, sits at the same place in every row. All rows keep the same scale, and the scale breaks are left out when the rows are lined up.
+
+```{r echo = TRUE, results='asis'}
+chart <- chart %>%
+  GC_align(id_column = "gene", id = "R", align = "left")
+
+chart
+```
+
+### Drawing the ends and the CRISPR arrays
+
+**In [Figure 3](https://pmc.ncbi.nlm.nih.gov/articles/PMC5584455/figure/fig03/):** the ends of each element are small light blue boxes with "R" and "L" in them, and the CRISPR arrays are black stripes next to *cas6*. The figure is not to scale; in our to-scale chart the 100 bp ends are too narrow for a letter, so we tell them apart by colour and the legend instead.
+
+So far every gene is drawn as an arrow, the ends of the elements too. With the `groupStyle` option of `GC_genes()` we can change the shape of all genes of a group at once. By default the groups are those that set the colours (the `category` column), but `style_by` lets us use another column: here the `gene` column, where the ends are `R` and `L`, the CRISPR arrays `CRISPR` and the fused *tnsA* of element #2757 `tnsA (fused)`. We draw the ends as tall bars, and the CRISPR arrays and the fused *tnsA* as boxes the height of the genes. The two ends also get a diagonal pattern with `GC_pattern()`, on top of their colours (`background = NULL`); groups left out of the list get no pattern.
+
+```{r echo = TRUE, results='asis'}
+end_bar <- list(marker = "box", markerHeight = 38, arrowheadHeight = 38)
+gene_box <- list(marker = "box", markerHeight = 20, arrowheadHeight = 20)
+shapes <- list(
+  R = end_bar,
+  L = end_bar,
+  CRISPR = c(gene_box, stroke = "black", strokeWidth = 1),
+  "tnsA (fused)" = gene_box
+)
+
+chart <- chart %>%
+  GC_genes(marker_size = "small", markerHeight = 20,
+           style_by = "gene", groupStyle = shapes) %>%
+  GC_pattern(patterns = list("right end" = "diagonal", "left end" = "diagonal"),
+             background = NULL, size = 4)
+
+chart
+```
+
+### Labels inside the genes
+
+**In [Figure 3](https://pmc.ncbi.nlm.nih.gov/articles/PMC5584455/figure/fig03/):** the gene names are written inside the arrows, including the name of the insertion site in the first gene, e.g. *glmS* or SRP-RNA. Only the transposition genes, the *cas* genes, the insertion sites and a few cargo genes of Tn7 are named; the other genes have no name.
+
+The published figure writes the gene names inside the genes. We take the names from the `label` column and move them from above the genes into their middle with `y` and `dy`. `adjustLabels = FALSE` keeps them straight, rather than rotating labels that overlap.
+
+Labels can be styled by group too. With `style_by = "label"` the groups are the label texts themselves, so we can make the names on the dark genes white and move the label of the SRP RNA genes, which are too short for it, above the gene and to the left of the right end beside it.
+
+```{r echo = TRUE, results='asis'}
+white <- list(fill = "white")
+label_styles <- list(
+  tnsA = white, cas8f = white, cas6f = white, cas5 = white,
+  "SRP-RNA" = list(y = 55, dy = "0px", textAnchor = "end", x = -4)
+)
+
+chart <- chart %>%
+  GC_labels(label = "label", fontSize = "9px", y = 50, dy = "14.5px",
+            adjustLabels = FALSE, style_by = "label", groupStyle = label_styles)
+
+chart
+```
+
+### Finishing the chart
+
+**In [Figure 3](https://pmc.ncbi.nlm.nih.gov/articles/PMC5584455/figure/fig03/):** each row is named on the left with its node in the TnsA tree (#2, #141 and so on). We add the host of each element below its name, and a title that cites the figure.
+
+To name the rows we take the name of each element and its host. The `strain_short` column holds the host with its genus abbreviated, e.g. *V. cholerae* VC35, so the labels stay short.
+
+```{r echo = TRUE}
+elements <- distinct(genes, cluster, strain_short)
+```
+
+To finish the chart we name each row with its element and host using `GC_clusterLabel()`, add a title that cites the published figure, show the product of each gene in the tooltip and apply the `"publication"` theme. In the legend, `groupStyle` sets the gene names in italics, while the other entries stay upright.
+
+```{r echo = TRUE, results='asis'}
+gene_names <- c("tnsA", "tnsB", "tnsC", "tniQ / tnsD", "tnsE", "cas8f / cas5f",
+                "cas7f", "cas6f", "cas5")
+legend_styles <- lapply(setNames(nm = gene_names),
+                        function(x) list(fontStyle = "italic"))
+
+chart <- chart %>%
+  GC_clusterLabel(
+    title = elements$cluster,
+    subtitle = elements$strain_short,
+    width = "190px",
+    fontSize = "12px",
+    subtitleFont = list(fontSize = "10px", fontStyle = "italic"),
+    align = "right",
+    x = -10
+  ) %>%
+  GC_title(
+    "Tn7-like transposons that carry a minimal CRISPR-Cas system",
+    subtitle = paste("Redrawn from Fig. 3 of Peters et al. (2017),",
+                     "Proc Natl Acad Sci USA 114:E7358-E7366"),
+    height = "70px",
+    titleFont = list(fontSize = "19px", fontWeight = "bold"),
+    subtitleFont = list(fontSize = "14px", fontStyle = "italic")
+  ) %>%
+  GC_tooltip(formatter = "<b>{gene}</b> {product}<br>{start} - {end}") %>%
+  GC_legend(legendTextOptions = list(fontSize = "12px"),
+            groupStyle = legend_styles) %>%
+  GC_theme("publication")
+
+chart
+```
+
+### Saving the chart
+
+To save the chart for a publication, hover over the download icon at the top right of the chart and choose "Save as SVG". The SVG holds the whole chart, with all rows, the title and the legend, as one vector file, so it stays sharp at any size. It can also be opened in a vector editor such as Inkscape, Adobe Illustrator or Affinity Designer to finish the figure by hand, for example to move a label, add an arrow or combine it with other panels. Choose "Save as PNG" for a picture to use in slides or on the web.
+
+To change the look of the chart further, for example other colours, fonts or marker shapes, see [Get started](https://nvelden.github.io/geneviewer/articles/geneviewer.html) or the documentation of each function, e.g. `?GC_genes`.

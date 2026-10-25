@@ -37,6 +37,7 @@
 - Options given as a list (e.g. `labelAdjustmentOptions`, `colorBarOptions = list(labelOptions = )`) now keep the defaults of the options they leave out, at every level.
 - The geneviewer vignette has a new "Themes" section on `GC_theme()`: the built-in themes, the global settings and palettes, `textScale`, options per component and making a theme of your own with `geneviewer_theme()`.
 - The "Example charts" article has a new example: the *bla*KPC-2 plasmid pQEB1 and four variants, with links that show inversions and inserted transposons. Its data are in the new datasets `pQEB1_plasmids` (genes) and `pQEB1_alignment` (a nucmer alignment), made by `data-raw/pQEB1_plasmids.R` from the GenBank files.
+- New tutorial "Reproducing a published figure: Tn7-like transposons", which rebuilds Fig. 3 of Peters et al. (2017) step by step: scale breaks, lining up on a gene, group styles for genes, labels and the legend, and saving as SVG. The "Example charts" article shows the finished chart, which also replaces an example chart in the README. Its data are in the new dataset `tn7_crispr_elements`, made by `data-raw/tn7_crispr_elements.R` from the GenBank records.
 
 ### Bug fixes:
 - The `start` and `end` of the line of a cluster (`GC_sequence()`) now stay with the genes with `GC_scale(axis_type = "range")`, like the annotations, whether they are set before or after `GC_scale()`; they were taken as positions on the shifted axis.

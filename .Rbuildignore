@@ -22,6 +22,7 @@
 ^vignettes/MUMMER\.Rmd$
 ^vignettes/LoadGFF\.Rmd$
 ^vignettes/Transcripts\.Rmd$
+^vignettes/Tn7_CRISPR\.Rmd$
 ^revdep$
 ^cran-comments\.md$
 ^docs$

@@ -1,3 +1,7 @@
+(function () {
+// Shared by all chart instances, including ones removed and recreated.
+var renderSequence = 0;
+
 HTMLWidgets.widget({
   name: 'geneviewer',
   type: 'output',
@@ -282,6 +286,18 @@ HTMLWidgets.widget({
         draw(width, height);
         addLinks();
         wireEvents();
+        if (events.rendered === true) {
+          var detail = {
+            id: events.renderId ?? (el.id + "-render-" + (++renderSequence)),
+            chartId: el.id,
+            width: el.clientWidth,
+            height: el.clientHeight
+          };
+          if (HTMLWidgets.shinyMode) {
+            Shiny.setInputValue(el.id + "_rendered", detail, { priority: "event" });
+          }
+          el.dispatchEvent(new CustomEvent("geneviewer:rendered", { bubbles: true, detail: detail }));
+        }
       },
       resize: function (width, height) {
         draw(width, height);
@@ -290,3 +306,4 @@ HTMLWidgets.widget({
     };
   }
 });
+})();

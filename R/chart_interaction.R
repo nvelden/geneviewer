@@ -176,12 +176,12 @@ GC_trackMouse <- function(
   return(GC_chart)
 }
 
-#' Report Clicks on a GC_chart to Shiny
+#' Report Chart Clicks and Completed Updates
 #'
 #' Makes a chart report clicks to Shiny, so an app can react to the part of the
 #' chart that was clicked: show the details of a gene, open the settings of the
 #' clicked part, and so on. Charts are not clickable unless this is set, and
-#' outside Shiny it has no effect.
+#' click reporting has no effect outside Shiny.
 #'
 #' Each click sets `input$<outputId>_click`, e.g. `input$chart_click` for
 #' `GC_chartOutput("chart")`, to a list with:
@@ -202,10 +202,31 @@ GC_trackMouse <- function(
 #' cluster with `data-cluster`, also without this function, so they can be
 #' selected with CSS or JavaScript.
 #'
+#' With `rendered = TRUE`, each successful update also sets
+#' `input$<outputId>_rendered` to a list containing `id` (the supplied
+#' `render_id`, or a generated ID), `chartId` (the chart's DOM element ID),
+#' `width` and `height` (the widget size in pixels). When `render_id` is `NULL`,
+#' a new ID is generated in the browser for each successful update, unique
+#' across charts on the page. `chartId` stays the same when that chart updates;
+#' generated render IDs change. Explicit IDs, including `0` and `""`, are kept.
+#' It fires after the chart, legend, links and click handlers have been built,
+#' once per data update, including repeated identifiers, but not on resize or
+#' a failed draw. It does not wait for browser paint or external image loading.
+#'
+#' The widget also dispatches a bubbling `geneviewer:rendered` browser event
+#' with the same fields in `event.detail`, including outside Shiny. A loading
+#' indicator can listen to it without inspecting the widget payload. Use a
+#' different `render_id` for each load and ignore events for older loads.
+#'
 #' @param GC_chart A GC chart object.
 #' @param click Logical, whether to report clicks to Shiny.
 #' @param highlight Logical, whether to outline the part of the chart under the
 #'   mouse, to show what a click selects.
+#' @param rendered Logical, whether to report successful chart updates.
+#' @param render_id Optional single character string or finite number returned
+#'   with the rendered event, to identify the update. The default, `NULL`,
+#'   generates a unique ID for each update in the browser. It is not a DOM
+#'   element ID; the event's `chartId` identifies the chart itself.
 #'
 #' @return The GC chart object with the event settings.
 #'
@@ -235,14 +256,25 @@ GC_trackMouse <- function(
 #' }
 #'
 #' @export
-GC_events <- function(GC_chart, click = TRUE, highlight = FALSE) {
-  for (arg in list(click = click, highlight = highlight)) {
+GC_events <- function(GC_chart, click = TRUE, highlight = FALSE,
+                      rendered = FALSE, render_id = NULL) {
+  for (arg in list(click = click, highlight = highlight, rendered = rendered)) {
     if (!is.logical(arg) || length(arg) != 1 || is.na(arg)) {
-      stop("'click' and 'highlight' must be TRUE or FALSE.")
+      stop("'click', 'highlight' and 'rendered' must be TRUE or FALSE.")
     }
+  }
+  if (!is.null(render_id) &&
+      (length(render_id) != 1 || is.na(render_id) ||
+       !(is.character(render_id) || (is.numeric(render_id) && !is.complex(render_id) &&
+                                     is.finite(render_id))))) {
+    stop("'render_id' must be NULL, a single character string or a finite number.")
   }
 
   GC_chart$x$events <- list(click = click, highlight = highlight)
+  if (rendered) {
+    GC_chart$x$events$rendered <- TRUE
+    GC_chart$x$events$renderId <- render_id
+  }
   GC_chart
 }
 

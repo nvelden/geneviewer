@@ -2,9 +2,15 @@
 % Please edit documentation in R/chart_interaction.R
 \name{GC_events}
 \alias{GC_events}
-\title{Report Clicks on a GC_chart to Shiny}
+\title{Report Chart Clicks and Completed Updates}
 \usage{
-GC_events(GC_chart, click = TRUE, highlight = FALSE)
+GC_events(
+  GC_chart,
+  click = TRUE,
+  highlight = FALSE,
+  rendered = FALSE,
+  render_id = NULL
+)
 }
 \arguments{
 \item{GC_chart}{A GC chart object.}
@@ -13,6 +19,13 @@ GC_events(GC_chart, click = TRUE, highlight = FALSE)
 
 \item{highlight}{Logical, whether to outline the part of the chart under the
 mouse, to show what a click selects.}
+
+\item{rendered}{Logical, whether to report successful chart updates.}
+
+\item{render_id}{Optional single character string or finite number returned
+with the rendered event, to identify the update. The default, \code{NULL},
+generates a unique ID for each update in the browser. It is not a DOM
+element ID; the event's \code{chartId} identifies the chart itself.}
 }
 \value{
 The GC chart object with the event settings.
@@ -21,7 +34,7 @@ The GC chart object with the event settings.
 Makes a chart report clicks to Shiny, so an app can react to the part of the
 chart that was clicked: show the details of a gene, open the settings of the
 clicked part, and so on. Charts are not clickable unless this is set, and
-outside Shiny it has no effect.
+click reporting has no effect outside Shiny.
 }
 \details{
 Each click sets \verb{input$<outputId>_click}, e.g. \code{input$chart_click} for
@@ -42,6 +55,22 @@ and the group for the legend.}
 Every part of the chart is marked with a \code{data-component} attribute and each
 cluster with \code{data-cluster}, also without this function, so they can be
 selected with CSS or JavaScript.
+
+With \code{rendered = TRUE}, each successful update also sets
+\verb{input$<outputId>_rendered} to a list containing \code{id} (the supplied
+\code{render_id}, or a generated ID), \code{chartId} (the chart's DOM element ID),
+\code{width} and \code{height} (the widget size in pixels). When \code{render_id} is \code{NULL},
+a new ID is generated in the browser for each successful update, unique
+across charts on the page. \code{chartId} stays the same when that chart updates;
+generated render IDs change. Explicit IDs, including \code{0} and \code{""}, are kept.
+It fires after the chart, legend, links and click handlers have been built,
+once per data update, including repeated identifiers, but not on resize or
+a failed draw. It does not wait for browser paint or external image loading.
+
+The widget also dispatches a bubbling \code{geneviewer:rendered} browser event
+with the same fields in \code{event.detail}, including outside Shiny. A loading
+indicator can listen to it without inspecting the widget payload. Use a
+different \code{render_id} for each load and ignore events for older loads.
 }
 \examples{
 genes_data <- data.frame(

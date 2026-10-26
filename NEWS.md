@@ -1,6 +1,7 @@
 # geneviewer (development version)
 
 ### New features:
+- `GC_events(rendered = TRUE, render_id = )` reports successful chart updates through Shiny's `input$<outputId>_rendered` and a bubbling `geneviewer:rendered` browser event. The event carries the update identifier, chart DOM ID (`chartId`) and widget dimensions. An omitted `render_id` generates a unique ID per update across charts on the page. It fires after drawing and click setup, and does not fire on resize or failed draws.
 - `GC_events()` makes a chart report clicks to Shiny: `input$<outputId>_click` gives the part of the chart that was clicked (`"genes"`, `"labels"`, `"scale"`, `"clusterTitle"`, ...), its cluster, and the row of the clicked gene or link or the legend group, e.g. to show the details of a gene. `highlight = TRUE` outlines the part under the mouse. Charts are not clickable unless it is set. Every part of the chart is now marked with a `data-component` attribute and each cluster with `data-cluster`, for CSS and JavaScript.
 - `GC_legend(groupStyle = )` styles the legend entry of a group: its text, e.g. `list(tnsA = list(fontStyle = "italic"))` for italic gene names, and its marker through `marker`, e.g. `list(A = list(marker = list(stroke = "black")))`.
 - `GC_transcript(groupStyleExons = , groupStyleIntrons = , groupStyleUTRs = )` style all exons, introns or UTRs of a group, with the options of the matching `itemStyle`; `style_by` sets the column they are matched against, e.g. `style_by = "transcript"` to style one transcript.

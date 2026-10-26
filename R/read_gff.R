@@ -34,56 +34,19 @@
 #' @export
 read_gff <- function(path, fields = NULL){
 
-  if(dir.exists(path)){
-    # It's a directory
-    files <- list.files(path, pattern = "\\.gff3?$", full.names = TRUE)
+  data <- read_tables(path, "\\.gff3?$", "gff", function(file) process_gff(file, fields))
 
-    # Check if there are any .gff files in the directory
-    if (length(files) == 0) {
-      stop("No .gff files found in the specified directory.")
+  if(!is.null(fields)){
+    invalid_fields <- setdiff(fields, names(data))
+    if (length(invalid_fields) > 0) {
+      stop(paste("Invalid field(s):", paste(invalid_fields, collapse = ", ")))
     }
-
-    # Initialize an empty list to store data frames from each file
-    data_list <- list()
-
-    # Process each .gff file in the directory
-    for (file in files) {
-      data <- process_gff(file, fields)
-      filename <- sub("\\.gff3?$", "", basename(file))
-      data$filename <- filename
-      data_list[[filename]] <- data
-    }
-
-    # Combine data frames from all files into one
-    combined_data <- do.call(dplyr::bind_rows, data_list)
-
-    if(!is.null(fields)){
-      invalid_fields <- setdiff(fields, names(combined_data))
-      if (length(invalid_fields) > 0) {
-       stop(paste("Invalid field(s):", paste(invalid_fields, collapse = ", ")))
-      }
-      combined_data <- combined_data %>% dplyr::select(dplyr::all_of(c(fields, "filename")))
-    }
-
-    return(combined_data)
-
-  } else if(file.exists(path)){
-
-    data <- process_gff(path, fields)
-
-    if(!is.null(fields)){
-      invalid_fields <- setdiff(fields, names(data))
-      if (length(invalid_fields) > 0) {
-        stop(paste("Invalid field(s):", paste(invalid_fields, collapse = ", ")))
-      }
-      data <- data %>% dplyr::select(dplyr::all_of(fields))
-    }
-
-    return(data)
-
-  } else {
-    stop("The specified path does not exist.")
+    # Files of a directory keep the column with their name
+    columns <- if (dir.exists(path)) c(fields, "filename") else fields
+    data <- data %>% dplyr::select(dplyr::all_of(columns))
   }
+
+  return(data)
 }
 
 #' @noRd

@@ -28,7 +28,6 @@ get_links <-
     # Check if group column exists in the data
     if (!(group %in% names(data))) {
       stop(paste("Column", group, "not found in chart data."))
-      return(NULL)
     }
 
     # Remove rows with NA in the specified group column
@@ -38,23 +37,19 @@ get_links <-
     # Check if all values in value1 and value2 are present in the group column
     if (!is.null(value1) && !all(value1 %in% data[[group]])) {
       stop("Some values in 'value1' are not present in the group column.")
-      return(NULL)
     }
     if (!is.null(value2) && !all(value2 %in% data[[group]])) {
       stop("Some values in 'value2' are not present in the group column.")
-      return(NULL)
     }
 
     if (!is.null(cluster) && length(cluster) < 2) {
       stop("At least two clusters need to be provided.")
-      return(NULL)
     }
     clusters <- getUpdatedClusters(GC_chart, cluster)
 
     cluster_column <- GC_chart$x$cluster
     if (is.null(cluster_column)) {
       stop("Please define cluster in the GC_chart function.")
-      return(NULL)
     }
 
     # Rename cluster column
@@ -123,7 +118,6 @@ get_links <-
 
     if (is.null(all_merged_links) || nrow(all_merged_links) == 0) {
       stop("No links found with the specified parameters.")
-      return(NULL)
     }
 
     return(all_merged_links)
@@ -350,7 +344,7 @@ GC_links <- function(
   links_data <- links_data[order(links_data$start2), ]
 
   # Construct the links options with the new measure-related parameters
-  links_options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+  links_options <- compact(list(
     group = group,
     curve = curve,
     measure = measure,
@@ -372,28 +366,17 @@ GC_links <- function(
     ...
   ))
 
-  # Integrate the new links into the GC_chart object
+  # Integrate the new links into the GC_chart object; link ids are numbered
+  # by set: "0-1", "0-2", ... for the first set
   currentLinks <- GC_chart$x$links
+  links_data$linkID <- paste0(length(currentLinks), "-", seq_len(nrow(links_data)))
 
-  if (is.null(currentLinks) || length(currentLinks) == 0) {
-    links_data$linkID <- paste0("0-", seq_len(nrow(links_data)))
+  links <- list(
+    data = links_data,
+    options = links_options
+  )
 
-    links <- list(
-      data = links_data,
-      options = links_options
-    )
-
-    GC_chart$x$links <- list(links)
-  } else {
-    links_data$linkID <- paste0(length(currentLinks), "-", seq_len(nrow(links_data)))
-
-    links <- list(
-      data = links_data,
-      options = links_options
-    )
-
-    GC_chart$x$links <- c(currentLinks, list(links))
-  }
+  GC_chart$x$links <- c(currentLinks, list(links))
 
   return(GC_chart)
 }

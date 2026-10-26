@@ -48,12 +48,7 @@ read_gbk <- function(path, sections = NULL, features = NULL, origin = TRUE) {
 
   if (dir.exists(path)) {
     # It's a directory
-    files <- list.files(path, pattern = "\\.gbk$|\\.gb$", full.names = TRUE)
-
-    # Check if there are any .gbk files in the directory
-    if (length(files) == 0) {
-      stop("No .gbk files found in the specified directory.")
-    }
+    files <- dir_files(path, "\\.gbk$|\\.gb$", "gbk")
 
     # Process each .gbk file in the directory
     basename <- sapply(files, function(x) sub("\\.gbk$|\\.gb$", "", basename(x)))
@@ -382,3 +377,16 @@ process_gbk <- function(file, sections = NULL, features = NULL, origin = TRUE, b
 }
 
 
+
+#' Read the CDS of GenBank files for GC_chart() and protein_blast()
+#'
+#' @param data Character, a GenBank file or a directory of GenBank files.
+#' @param start,end Character, the start and end columns.
+#' @return A data frame of the CDS with a start and end, by
+#'   `gbk_features_to_df()`.
+#' @noRd
+read_gbk_cds <- function(data, start, end) {
+  gbk <- geneviewer::read_gbk(data)
+  data <- geneviewer::gbk_features_to_df(gbk, feature = "CDS", keys = c("protein_id", "region", "translation"))
+  data[!is.na(data[[start]]) & !is.na(data[[end]]), ]
+}

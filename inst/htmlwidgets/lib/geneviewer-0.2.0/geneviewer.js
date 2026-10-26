@@ -1,17 +1,3 @@
-function DivContainer(div) {
-  this.div = div;
-}
-
-function createDivContainer(targetElement) {
-  var baseIdDiv = "div-container";
-
-  var div = d3.select(targetElement)
-    .attr("id", getUniqueId(baseIdDiv))
-    .classed("div-content", true);
-
-  return new DivContainer(div);
-}
-
 // Utils
 
 function getUniqueId(baseId) {
@@ -127,34 +113,6 @@ function wrap(text, width, options = {}) {
   });
 }
 
-function adjustViewBox(svg, options = {}) {
-  const defaultOptions = {
-    padding: {
-      left: 10,
-      right: 10,
-      top: 10,
-      bottom: 10
-    }
-  };
-
-  const { padding } = { ...defaultOptions, ...options };
-
-  // Get Container Dimensions
-  var width = svg.node().getBoundingClientRect().width;
-  var height = svg.node().getBoundingClientRect().height;
-
-  // Adjust viewBox
-  var bbox = svg.node().getBBox();
-  svg.attr("viewBox", [
-    bbox.x - padding.left,
-    bbox.y - padding.top,
-    bbox.width + padding.left + padding.right,
-    bbox.height + padding.top + padding.bottom,
-  ]);
-
-  return svg;
-};
-
 function computeSize(inputSize, containerSize) {
 
   // If inputSize is undefined or null, return 0
@@ -186,58 +144,6 @@ function computeSize(inputSize, containerSize) {
   }
 
   return Math.floor(resultSize);
-}
-
-function adjustGeneLabels(container, labelSelector, options = {}) {
-  // Default options
-  const defaultOptions = {
-    rotation: 65, // Rotation angle (in degrees)
-    dx: "-0.8em", // Horizontal adjustment
-    dy: "0.15em", // Vertical adjustment
-  };
-
-  // Merge default options with the provided options
-  const { rotation, dx, dy } = { ...defaultOptions, ...options };
-
-  // Select all the labels based on the provided selector
-  var labels = container.svg.selectAll(".label").nodes();
-
-  // Iterate over each label
-  for (var i = 0; i < labels.length - 1; i++) {
-    var label1 = labels[i].getBoundingClientRect();
-
-    // Compare it with all the labels that come after it
-    for (var j = i + 1; j < labels.length; j++) {
-      var label2 = labels[j].getBoundingClientRect();
-
-      // If the labels overlap
-      if (!(label1.right < label2.left ||
-        label1.left > label2.right ||
-        label1.bottom < label2.top ||
-        label1.top > label2.bottom)) {
-
-        // Get the current x and y attributes of the labels
-        var x1 = parseFloat(d3.select(labels[i]).attr('x'));
-        var y1 = parseFloat(d3.select(labels[i]).attr('y'));
-        var x2 = parseFloat(d3.select(labels[j]).attr('x'));
-        var y2 = parseFloat(d3.select(labels[j]).attr('y'));
-
-        // Rotate both labels
-        d3.select(labels[i])
-          .style("text-anchor", "end")
-          .attr("dx", dx)
-          .attr("dy", dy)
-          .attr("transform", `rotate(${rotation}, ${x1}, ${y1})`);
-
-        d3.select(labels[j])
-          .style("text-anchor", "end")
-          .attr("dx", dx)
-          .attr("dy", dy)
-          .attr("transform", `rotate(${rotation}, ${x2}, ${y2})`);
-      }
-    }
-  }
-  return container;
 }
 
 // Rotates labels that overlap another label of labelSelector in the
@@ -354,16 +260,6 @@ function applyStyleToElement(currentElement, itemStyle, i) {
       }
     }
   }
-}
-
-function removeNullKeys(obj) {
-  const cleanObj = { ...obj };
-  for (let key in cleanObj) {
-    if (cleanObj[key] === null) {
-      delete cleanObj[key];
-    }
-  }
-  return cleanObj;
 }
 
 // True for an opaque white colour ("#FFF", "white", "rgb(255, 255, 255)"),
@@ -1500,13 +1396,6 @@ container.prototype.cluster = function (options = {}) {
   return this;
 };
 
-// Sets the theme ({ geneOptions: {...}, ... }) used by the components drawn
-// after it. createContainer() already sets the chart theme.
-container.prototype.theme = function (themeOptions) {
-  this.themeOptions = themeOptions ?? {};
-  return this;
-};
-
 container.prototype.geneData = function (data, clusterData) {
 
   // Needed to set color
@@ -1703,6 +1592,45 @@ container.prototype.scale = function (options = {}) {
 };
 
 // themeOptionsKey: "titleOptions" for the chart title, "clusterTitleOptions" for a cluster
+// The x position and text anchor of a title or footer aligned "left", "right"
+// or "center" between the left and right margins, moved by x. inSvg: drawn in
+// the SVG itself, so the position includes the left margin; otherwise drawn
+// in a group translated by the left margin.
+function titleAlignment(container, align, x, inSvg = false) {
+  const { width, margin } = container;
+  switch (align) {
+    case "left":
+      return { xPos: inSvg ? margin.left + x : x, textAnchor: "start" };
+    case "right":
+      return {
+        xPos: (inSvg ? width - margin.right : width - margin.left - margin.right) + x,
+        textAnchor: "end"
+      };
+    default: {
+      const effectiveWidth = width - margin.left - margin.right;
+      return {
+        xPos: (inSvg ? margin.left + (effectiveWidth / 2) : (effectiveWidth / 2)) + x,
+        textAnchor: "middle"
+      };
+    }
+  }
+}
+
+// Styles a title or subtitle text: the font options of defaultFont as styles,
+// in their order, then the text with its <b>, <i> and <u> tags and the font
+// options not in defaultFont
+function styleFontText(selection, text, font, defaultFont) {
+  for (const key of Object.keys(defaultFont)) {
+    selection.style(camelToKebab(key), font[key]);
+  }
+  const additionalOptions = extractAdditionalOptions(font, defaultFont);
+  selection.each(function () {
+    const currentElement = d3.select(this);
+    parseAndStyleText(text, currentElement, font);
+    setStyleFromOptions(currentElement, additionalOptions);
+  });
+}
+
 container.prototype.title = function (title, subtitle, show = true, options = {}, themeOptionsKey = "titleOptions") {
 
   // Return early if neither title nor subtitle is provided
@@ -1743,28 +1671,8 @@ container.prototype.title = function (title, subtitle, show = true, options = {}
   const combinedOptions = mergeOptions.call(this, defaultOptions, themeOptionsKey, options);
   const { x, y, titleFont, subtitleFont, align, spacing } = combinedOptions;
 
-  // Extract additional options that are not in defaultOptions
-  const additionalOptionsTitleFont = extractAdditionalOptions(titleFont, defaultOptions.titleFont);
-  const additionalOptionsSubtitleFont = extractAdditionalOptions(subtitleFont, defaultOptions.subtitleFont);
-
-  let xPos;
-  let textAnchor;
-
   // Determine text align and anchor based on the provided align
-  switch (align) {
-    case "left":
-      xPos = x;
-      textAnchor = "start";
-      break;
-    case "right":
-      xPos = this.width - this.margin.left - this.margin.right + x;
-      textAnchor = "end";
-      break;
-    default:
-    const effectiveWidth = this.width - this.margin.left - this.margin.right;
-    xPos = (effectiveWidth / 2) + x;
-    textAnchor = "middle";
-  }
+  const { xPos, textAnchor } = titleAlignment(this, align, x);
 
   var g = this.svg.append("g")
     .attr("data-component", themeOptionsKey === "clusterTitleOptions" ? "clusterTitle" : "title")
@@ -1776,17 +1684,7 @@ container.prototype.title = function (title, subtitle, show = true, options = {}
       .attr("x", xPos)
       .attr("y", y + (this.margin.top / 2))
       .attr("text-anchor", textAnchor)
-      .style("font-size", titleFont.fontSize)
-      .style("font-style", titleFont.fontStyle)
-      .style("font-weight", titleFont.fontWeight)
-      .style("text-decoration", titleFont.textDecoration)
-      .style("font-family", titleFont.fontFamily)
-      .style("cursor", titleFont.cursor)
-      .each(function () {
-        const currentElement = d3.select(this);
-        parseAndStyleText(title, currentElement, titleFont);
-        setStyleFromOptions(currentElement, additionalOptionsTitleFont);
-      });
+      .call(styleFontText, title, titleFont, defaultOptions.titleFont);
   }
 
   if (subtitle) {
@@ -1795,17 +1693,7 @@ container.prototype.title = function (title, subtitle, show = true, options = {}
       .attr("x", xPos)
       .attr("y", y + (this.margin.top / 2) + spacing)
       .attr("text-anchor", textAnchor)
-      .style("font-size", subtitleFont.fontSize)
-      .style("font-style", subtitleFont.fontStyle)
-      .style("font-weight", subtitleFont.fontWeight)
-      .style("text-decoration", subtitleFont.textDecoration)
-      .style("font-family", subtitleFont.fontFamily)
-      .style("cursor", subtitleFont.cursor)
-      .each(function () {
-        const currentElement = d3.select(this);
-        parseAndStyleText(subtitle, currentElement, subtitleFont);
-        setStyleFromOptions(currentElement, additionalOptionsSubtitleFont);
-      });
+      .call(styleFontText, subtitle, subtitleFont, defaultOptions.subtitleFont);
   }
 
   return this;
@@ -1847,30 +1735,9 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'footerOptions', options);
   const { x, y, titleFont, subtitleFont, align, spacing } = combinedOptions;
 
-  // Extract additional options that are not in defaultOptions
-  const additionalOptionsTitleFont = extractAdditionalOptions(titleFont, defaultOptions.titleFont);
-  const additionalOptionsSubtitleFont = extractAdditionalOptions(subtitleFont, defaultOptions.subtitleFont);
-
-  let xPos;
-  let textAnchor;
-
   // Determine text align and anchor based on the provided align; the footer is
   // drawn in the SVG itself, so the positions include the left margin
-  switch (align) {
-    case "left":
-      xPos = this.margin.left + x;
-      textAnchor = "start";
-      break;
-    case "right":
-      xPos = this.width - this.margin.right + x;
-      textAnchor = "end";
-      break;
-    default:
-    const effectiveWidth = this.width - this.margin.left - this.margin.right;
-    xPos = this.margin.left + (effectiveWidth / 2) + x;
-    textAnchor = "middle";
-  }
-
+  const { xPos, textAnchor } = titleAlignment(this, align, x, true);
 
   // Calculate y align for title and subtitle based on the SVG height and bottom margin
   const titleYPos = this.height - this.margin.bottom + y - 20;
@@ -1882,17 +1749,7 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
       .attr("x", xPos)
       .attr("y", titleYPos)
       .attr("text-anchor", textAnchor)
-      .style("font-size", titleFont.fontSize)
-      .style("font-weight", titleFont.fontWeight)
-      .style("font-style", titleFont.fontStyle)
-      .style("font-family", titleFont.fontFamily)
-      .style("cursor", titleFont.cursor)
-      .each(function () {
-        const currentElement = d3.select(this);
-        parseAndStyleText(title, currentElement, titleFont);
-        setStyleFromOptions(currentElement, additionalOptionsTitleFont);
-      });
-
+      .call(styleFontText, title, titleFont, defaultOptions.titleFont);
   }
 
   // Add subtitle to the SVG if provided
@@ -1902,16 +1759,7 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
       .attr("x", xPos)
       .attr("y", subtitleYPos)
       .attr("text-anchor", textAnchor)
-      .style("font-size", subtitleFont.fontSize)
-      .style("font-weight", subtitleFont.fontWeight)
-      .style("font-style", subtitleFont.fontStyle)
-      .style("font-family", subtitleFont.fontFamily)
-      .style("cursor", subtitleFont.cursor)
-      .each(function () {
-        const currentElement = d3.select(this);
-        parseAndStyleText(subtitle, currentElement, subtitleFont);
-        setStyleFromOptions(currentElement, additionalOptionsSubtitleFont);
-      });
+      .call(styleFontText, subtitle, subtitleFont, defaultOptions.subtitleFont);
   }
 
   return this;
@@ -3024,6 +2872,25 @@ function getGenePath(marker, length, markerSize, options = {}) {
 // Path and position of the gene (or exon, intron, UTR) marker of d, the i-th
 // item. styles holds the marker options and itemStyles the per-item overrides.
 // Also sets the marker height and spacing on the container, used by labels.
+// Sets the data of the gene row as attributes of the gene, exon, intron or UTR
+function setRowAttributes(selection) {
+  selection
+    .attr("rowID", (d, i) => `${d["rowID"]}`)
+    .attr("start", (d, i) => `${d["start"]}`)
+    .attr("end", (d, i) => `${d["end"]}`)
+    .attr("strand", (d, i) => `${d["strand"]}`)
+    .attr("cluster", (d, i) => `${d["cluster"]}`);
+}
+
+// Turns a gene, exon or UTR marker to the direction of the gene (reversed on a
+// reversed scale) at its position
+function markerTransform(reverse, d, { xPos, yPos, height }) {
+  const rotation = reverse
+    ? (d.direction === 'forward' ? 180 : 0)
+    : (d.direction === 'forward' ? 0 : 180);
+  return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (height / 2)})`;
+}
+
 function getMarkerAttributes(container, d, i, y, styles, itemStyles) {
   const style = itemStyles.find(s => s.index === i) || {};
   const geneLength = Math.abs(container.xScale(d.end) - container.xScale(d.start));
@@ -3130,21 +2997,11 @@ container.prototype.genes = function (group, show = true, options = {}) {
     .attr("d", (d, i) => {
       return getAttributesForIndex(d, i).path;
     })
-    .attr("transform", (d, i) => {
-      const { xPos, yPos, arrowheadHeight, height } = getAttributesForIndex(d, i);
-      const rotation = this.reverse
-    ? (d.direction === 'forward' ? 180 : 0)
-    : (d.direction === 'forward' ? 0 : 180);
-      return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (height / 2 )})`;
-    })
+    .attr("transform", (d, i) => markerTransform(this.reverse, d, getAttributesForIndex(d, i)))
     .attr("fill", (d) => patternScale.fill(d[group]))
     .attr("class", "gene")
     .attr("id", (d, i) => `${sanitizeId(d.cluster)}-gene-${i}`)
-    .attr("rowID", (d, i) => `${d["rowID"]}`)
-    .attr("start", (d, i) => `${d["start"]}`)
-    .attr("end", (d, i) => `${d["end"]}`)
-    .attr("strand", (d, i) => `${d["strand"]}`)
-    .attr("cluster", (d, i) => `${d["cluster"]}`)
+    .call(setRowAttributes)
     .style("stroke-width", strokeWidth)
     .style("stroke", stroke)
     .style("cursor", cursor)
@@ -3264,134 +3121,67 @@ container.prototype.transcript = function (group, show = true, options = {}) {
 
   const getAttributesForIndex = (d, i, styles, itemStyles) => getMarkerAttributes(this, d, i, y, styles, itemStyles);
 
-  if (styleExons.show) {
-    // Add exons
-    const exons = this.data.filter(transcript => /exon/i.test(transcript.type));
-    const itemStyleExons = withGroupStyles(exons, styleColumn, combinedOptions.groupStyleExons,
-                                           combinedOptions.itemStyleExons);
+  // Draws the transcript rows of type ("exon", "intron" or "utr") with their
+  // styles; fill and stroke are values or functions of the row
+  const drawParts = (type, styles, groupStyle, itemStyle, additionalOptions, transform, fill, stroke) => {
+    const parts = this.data.filter(transcript => new RegExp(type, "i").test(transcript.type));
+    const itemStyles = withGroupStyles(parts, styleColumn, groupStyle, itemStyle);
 
-    g.selectAll(".exon")
-      .data(exons)
+    g.selectAll(`.${type}`)
+      .data(parts)
       .enter()
       .append("path")
       .attr("d", (d, i) => {
-        return getAttributesForIndex(d, i, styleExons, itemStyleExons).path;
+        return getAttributesForIndex(d, i, styles, itemStyles).path;
       })
-      .attr("transform", (d, i) => {
-        const { xPos, yPos, height } = getAttributesForIndex(d, i, styleExons, itemStyleExons);
-        const rotation = this.reverse
-          ? (d.direction === 'forward' ? 180 : 0)
-          : (d.direction === 'forward' ? 0 : 180);
-        return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (height / 2)})`;
-      })
-      .attr("fill", (d) => patternScale.fill(d[group]))
-      .attr("class", "exon")
-      .attr("id", (d, i) => `${sanitizeId(d.cluster)}-exon-${i}`)
-      .attr("rowID", (d, i) => `${d["rowID"]}`)
-      .attr("start", (d, i) => `${d["start"]}`)
-      .attr("end", (d, i) => `${d["end"]}`)
-      .attr("strand", (d, i) => `${d["strand"]}`)
-      .attr("cluster", (d, i) => `${d["cluster"]}`)
-      .style("stroke-width", styleExons.strokeWidth)
-      .style("stroke", styleExons.stroke)
-      .style("cursor", styleExons.cursor)
+      .attr("transform", (d, i) => transform(d, getAttributesForIndex(d, i, styles, itemStyles)))
+      .attr("fill", fill)
+      .attr("class", type)
+      .attr("id", (d, i) => `${sanitizeId(d.cluster)}-${type}-${i}`)
+      .call(setRowAttributes)
+      .style("stroke-width", styles.strokeWidth)
+      .style("stroke", stroke)
+      .style("cursor", styles.cursor)
       .each(function (d, i) {
         const currentElement = d3.select(this);
         // Set additional options as attributes
-        setStyleFromOptions(currentElement, additionalOptionsExons);
+        setStyleFromOptions(currentElement, additionalOptions);
         // Override with itemStyle based on the index
-        applyStyleToElement(currentElement, itemStyleExons, i);
+        applyStyleToElement(currentElement, itemStyles, i);
       });
 
-    // Update the reference
-    this.exons = g.selectAll(".exon");
+    return g.selectAll(`.${type}`);
+  };
+
+  const boxTransform = (d, attributes) => markerTransform(this.reverse, d, attributes);
+  const geneStroke = (d) => patternScale.stroke(d[group]);
+
+  if (styleExons.show) {
+    // Add exons
+    this.exons = drawParts("exon", styleExons, combinedOptions.groupStyleExons,
+                           combinedOptions.itemStyleExons, additionalOptionsExons, boxTransform,
+                           (d) => patternScale.fill(d[group]), styleExons.stroke);
   }
 
   if (styleIntrons.show) {
-    // Add introns
-    const introns = this.data.filter(transcript => /intron/i.test(transcript.type));
-    const itemStyleIntrons = withGroupStyles(introns, styleColumn, combinedOptions.groupStyleIntrons,
-                                             combinedOptions.itemStyleIntrons);
-
-    g.selectAll(".intron")
-      .data(introns)
-      .enter()
-      .append("path")
-      .attr("d", (d, i) => {
-        return getAttributesForIndex(d, i, styleIntrons, itemStyleIntrons).path;
-      })
-      .attr("transform", (d, i) => {
-        const { xPos, yPos, height } = getAttributesForIndex(d, i, styleIntrons, itemStyleIntrons);
-        const yOffset = d.direction === 'forward' ? -height : +height;
-        const rotation = this.reverse
-          ? (d.direction === 'reverse' ? 180 : 0)
-          : (d.direction === 'forward' ? 0 : 180);
-        return `rotate(${rotation}, ${xPos}, ${yPos + yOffset}) translate(${xPos}, ${yPos + yOffset})`;
-      })
-      .attr("fill", styleIntrons.fill)
-      .attr("class", "intron")
-      .attr("id", (d, i) => `${sanitizeId(d.cluster)}-intron-${i}`)
-      .attr("rowID", (d, i) => `${d["rowID"]}`)
-      .attr("start", (d, i) => `${d["start"]}`)
-      .attr("end", (d, i) => `${d["end"]}`)
-      .attr("strand", (d, i) => `${d["strand"]}`)
-      .attr("cluster", (d, i) => `${d["cluster"]}`)
-      .style("stroke-width", styleIntrons.strokeWidth)
-      .style("stroke", (d) => patternScale.stroke(d[group]))
-      .style("cursor", styleIntrons.cursor)
-      .each(function (d, i) {
-        const currentElement = d3.select(this);
-        // Set additional options as attributes
-        setStyleFromOptions(currentElement, additionalOptionsIntrons);
-        // Override with itemStyle based on the index
-        applyStyleToElement(currentElement, itemStyleIntrons, i);
-      });
-
-    // Update the reference
-    this.introns = g.selectAll(".intron");
+    // Add introns, as a line above or below the transcript
+    const intronTransform = (d, { xPos, yPos, height }) => {
+      const yOffset = d.direction === 'forward' ? -height : +height;
+      const rotation = this.reverse
+        ? (d.direction === 'reverse' ? 180 : 0)
+        : (d.direction === 'forward' ? 0 : 180);
+      return `rotate(${rotation}, ${xPos}, ${yPos + yOffset}) translate(${xPos}, ${yPos + yOffset})`;
+    };
+    this.introns = drawParts("intron", styleIntrons, combinedOptions.groupStyleIntrons,
+                             combinedOptions.itemStyleIntrons, additionalOptionsIntrons, intronTransform,
+                             styleIntrons.fill, geneStroke);
   }
 
   if (styleUTRs.show) {
     // Add UTRs
-    const utrs = this.data.filter(transcript => /utr/i.test(transcript.type));
-    const itemStyleUTRs = withGroupStyles(utrs, styleColumn, combinedOptions.groupStyleUTRs,
-                                          combinedOptions.itemStyleUTRs);
-
-    g.selectAll(".utr")
-      .data(utrs)
-      .enter()
-      .append("path")
-      .attr("d", (d, i) => {
-        return getAttributesForIndex(d, i, styleUTRs, itemStyleUTRs).path;
-      })
-      .attr("transform", (d, i) => {
-        const { xPos, yPos, height } = getAttributesForIndex(d, i, styleUTRs, itemStyleUTRs);
-        const rotation = this.reverse
-          ? (d.direction === 'forward' ? 180 : 0)
-          : (d.direction === 'forward' ? 0 : 180);
-        return `rotate(${rotation}, ${xPos}, ${yPos}) translate(${xPos}, ${yPos - (height / 2)})`;
-      })
-      .attr("fill", styleUTRs.fill)
-      .attr("class", "utr")
-      .attr("id", (d, i) => `${sanitizeId(d.cluster)}-utr-${i}`)
-      .attr("rowID", (d, i) => `${d["rowID"]}`)
-      .attr("start", (d, i) => `${d["start"]}`)
-      .attr("end", (d, i) => `${d["end"]}`)
-      .attr("strand", (d, i) => `${d["strand"]}`)
-      .attr("cluster", (d, i) => `${d["cluster"]}`)
-      .style("stroke-width", styleUTRs.strokeWidth)
-      .style("stroke", (d) => patternScale.stroke(d[group]))
-      .style("cursor", styleUTRs.cursor)
-      .each(function (d, i) {
-        const currentElement = d3.select(this);
-        // Set additional options as attributes
-        setStyleFromOptions(currentElement, additionalOptionsUTRs);
-        // Override with itemStyle based on the index
-        applyStyleToElement(currentElement, itemStyleUTRs, i);
-      });
-
-    // Update the reference
-    this.utrs = g.selectAll(".utr");
+    this.utrs = drawParts("utr", styleUTRs, combinedOptions.groupStyleUTRs,
+                          combinedOptions.itemStyleUTRs, additionalOptionsUTRs, boxTransform,
+                          styleUTRs.fill, geneStroke);
 
     if (labelOptions.show) {
 

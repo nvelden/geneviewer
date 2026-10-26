@@ -42,11 +42,6 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
     stop('Biostrings package is not installed. Please install it using BiocManager::install("Biostrings").')
   }
 
-  # Check if dplyr package is installed
-  if (!requireNamespace("dplyr", quietly = TRUE)) {
-    stop('dplyr package is not installed. Please install it using install.packages("dplyr").')
-  }
-
   # Initialize an empty list to store data frames from each file
   all_dfs <- list()
 
@@ -78,7 +73,6 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
       fasta_headers <- row.names(sequence_data)
 
       # Find matches
-      # matches <- gregexpr("\\[.*?\\]", fasta_headers, perl = TRUE)
 
       # Key-value pairs: "[key=value]" (the value can contain spaces and
       # brackets; it ends at the "]" before the next "[key=" or the end), or

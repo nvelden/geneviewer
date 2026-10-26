@@ -264,7 +264,28 @@ echarts_tooltip <- list(backgroundColor = "#ffffff", color = "#6d6e73",
                         border = "1px solid #b7b9be", borderRadius = "4px",
                         fontSize = "12px", fontFamily = "sans-serif", padding = "8px",
                         boxShadow = "1px 2px 10px rgba(0, 0, 0, 0.2)")
+infographic_tooltip <- list(backgroundColor = "rgba(50, 50, 50, 0.85)", color = "#ffffff",
+                            border = "none", borderRadius = "4px", fontSize = "12px")
+publication_tooltip <- list(backgroundColor = "white", color = "black",
+                            border = "1px solid black", borderRadius = "0",
+                            boxShadow = "none", fontSize = "9.33px", padding = "8px")
 
+# Flat, rounded genes and exons without keylines
+flat_genes <- list(stroke = "none", corner_radius = 3)
+flat_transcript <- list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
+                        styleUTRs = list(cornerRadius = 3))
+
+# 12px gene labels and axis text with 5px ticks, as in ECharts
+echarts_axes <- list(
+  labels = list(fontStyle = "normal", fontSize = "12px"),
+  # Coordinates keep 10px: at 12px the numbers of adjacent genes overlap
+  coordinates = list(tickStyle = list(lineLength = 5)),
+  scale = list(textStyle = list(fontSize = "12px"), tickStyle = list(lineLength = 5)),
+  scaleBar = list(labelStyle = list(fontSize = "12px"))
+)
+echarts_color_bar <- list(barOptions = list(stroke = "none"),
+                          labelOptions = list(fontSize = 12),
+                          titleOptions = list(fontSize = 12))
 
 builtin_themes <- list(
   default = list(),
@@ -272,63 +293,57 @@ builtin_themes <- list(
   # title colour (#464646) for titles, cluster labels and the legend, the
   # subtitle colour (#6E7079) for the other text and all lines; sans-serif
   # 12px text, an 18px title, 5px axis ticks and the ECharts tooltip
-  classic = list(
-    fontFamily = "sans-serif",
-    textColor = "#6E7079",
-    lineColor = "#6E7079",
-    palette = "classic",
-    title = list(titleFont = list(fontSize = "18px", fill = "#464646"),
-                 subtitleFont = list(fontSize = "12px")),
-    clusterTitle = list(titleFont = list(fill = "#464646")),
-    clusterLabel = list(fill = "#464646"),
-    genes = list(stroke = "none", corner_radius = 3),
-    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
-                      styleUTRs = list(cornerRadius = 3)),
-    labels = list(fontStyle = "normal", fontSize = "12px"),
-    # Coordinates keep 10px: at 12px the numbers of adjacent genes overlap
-    coordinates = list(tickStyle = list(lineLength = 5)),
-    scale = list(textStyle = list(fontSize = "12px"), tickStyle = list(lineLength = 5)),
-    scaleBar = list(labelStyle = list(fontSize = "12px")),
-    legend = list(corner_radius = 3, legendTextOptions = list(fill = "#464646")),
-    # Links in the blue and red of the palette
-    links = list(normal_color = "#5470c6", inverted_color = "#ee6666",
-                 linkStyle = list(fillOpacity = 0.6),
-                 colorBarOptions = list(barOptions = list(stroke = "none"),
-                                        labelOptions = list(fontSize = 12),
-                                        titleOptions = list(fontSize = 12))),
-    tooltip = echarts_tooltip,
-    trackMouse = echarts_tooltip
+  classic = c(
+    list(
+      fontFamily = "sans-serif",
+      textColor = "#6E7079",
+      lineColor = "#6E7079",
+      palette = "classic",
+      title = list(titleFont = list(fontSize = "18px", fill = "#464646"),
+                   subtitleFont = list(fontSize = "12px")),
+      clusterTitle = list(titleFont = list(fill = "#464646")),
+      clusterLabel = list(fill = "#464646"),
+      genes = flat_genes,
+      transcript = flat_transcript
+    ),
+    echarts_axes,
+    list(
+      legend = list(corner_radius = 3, legendTextOptions = list(fill = "#464646")),
+      # Links in the blue and red of the palette
+      links = list(normal_color = "#5470c6", inverted_color = "#ee6666",
+                   linkStyle = list(fillOpacity = 0.6),
+                   colorBarOptions = echarts_color_bar),
+      tooltip = echarts_tooltip,
+      trackMouse = echarts_tooltip
+    )
   ),
   # The ECharts dark theme (ECharts 4) on the ECharts defaults: #eee for all
   # text and lines but the subtitle (#aaa), sans-serif 12px text, an 18px
   # title, 5px axis ticks, links in the colours of the theme fading into the
   # background, and the light ECharts tooltip
-  dark = list(
-    fontFamily = "sans-serif",
-    background = "#333333",
-    textColor = "#eeeeee",
-    lineColor = "#eeeeee",
-    palette = "dark",
-    title = list(titleFont = list(fontSize = "18px"),
-                 subtitleFont = list(fontSize = "12px", fill = "#aaaaaa")),
-    clusterTitle = list(subtitleFont = list(fill = "#aaaaaa")),
-    clusterLabel = list(subtitleFont = list(fill = "#aaaaaa")),
-    genes = list(stroke = "none", corner_radius = 3),
-    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
-                      styleUTRs = list(cornerRadius = 3)),
-    labels = list(fontStyle = "normal", fontSize = "12px"),
-    # Coordinates keep 10px: at 12px the numbers of adjacent genes overlap
-    coordinates = list(tickStyle = list(lineLength = 5)),
-    scale = list(textStyle = list(fontSize = "12px"), tickStyle = list(lineLength = 5)),
-    scaleBar = list(labelStyle = list(fontSize = "12px")),
-    legend = list(corner_radius = 3),
-    links = list(normal_color = "#759aa0", inverted_color = "#dd6b66",
-                 low_color = "#333333", linkStyle = list(fillOpacity = 0.6),
-                 colorBarOptions = list(barOptions = list(stroke = "none"),
-                                        labelOptions = list(fontSize = 12),
-                                        titleOptions = list(fontSize = 12))),
-    tooltip = echarts_tooltip,
-    trackMouse = echarts_tooltip
+  dark = c(
+    list(
+      fontFamily = "sans-serif",
+      background = "#333333",
+      textColor = "#eeeeee",
+      lineColor = "#eeeeee",
+      palette = "dark",
+      title = list(titleFont = list(fontSize = "18px"),
+                   subtitleFont = list(fontSize = "12px", fill = "#aaaaaa")),
+      clusterTitle = list(subtitleFont = list(fill = "#aaaaaa")),
+      clusterLabel = list(subtitleFont = list(fill = "#aaaaaa")),
+      genes = flat_genes,
+      transcript = flat_transcript
+    ),
+    echarts_axes,
+    list(
+      legend = list(corner_radius = 3),
+      links = list(normal_color = "#759aa0", inverted_color = "#dd6b66",
+                   low_color = "#333333", linkStyle = list(fillOpacity = 0.6),
+                   colorBarOptions = echarts_color_bar),
+      tooltip = echarts_tooltip,
+      trackMouse = echarts_tooltip
+    )
   ),
   # The colours and flat style of the ECharts vintage theme: its palette and
   # background, with the text and axis colours of the ECharts defaults
@@ -341,9 +356,8 @@ builtin_themes <- list(
     clusterTitle = list(subtitleFont = list(fill = "#787464")),
     clusterLabel = list(subtitleFont = list(fill = "#787464")),
     sequence = list(sequenceStyle = list(stroke = "#c9c2b5")),
-    genes = list(stroke = "none", corner_radius = 3),
-    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
-                      styleUTRs = list(cornerRadius = 3)),
+    genes = flat_genes,
+    transcript = flat_transcript,
     labels = list(fontStyle = "normal", fontSize = "11px"),
     legend = list(corner_radius = 3),
     links = list(normal_color = "#61a0a8", inverted_color = "#d87c7c",
@@ -356,34 +370,29 @@ builtin_themes <- list(
   # links are coloured. The title colour (#464646) for titles, cluster labels and the
   # legend, the subtitle colour (#6E7079) for the other text and all lines;
   # sans-serif 12px text, an 18px title, 5px axis ticks and dark tooltips
-  infographic = list(
-    fontFamily = "sans-serif",
-    textColor = "#6E7079",
-    lineColor = "#6E7079",
-    palette = "infographic",
-    title = list(titleFont = list(fontSize = "18px", fill = "#464646"),
-                 subtitleFont = list(fontSize = "12px")),
-    clusterTitle = list(titleFont = list(fill = "#464646")),
-    clusterLabel = list(fill = "#464646"),
-    genes = list(stroke = "none", corner_radius = 3),
-    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
-                      styleUTRs = list(cornerRadius = 3)),
-    labels = list(fontStyle = "normal", fontSize = "12px"),
-    # Coordinates keep 10px: at 12px the numbers of adjacent genes overlap
-    coordinates = list(tickStyle = list(lineLength = 5)),
-    scale = list(textStyle = list(fontSize = "12px"), tickStyle = list(lineLength = 5)),
-    scaleBar = list(labelStyle = list(fontSize = "12px")),
-    legend = list(corner_radius = 3, legendTextOptions = list(fill = "#464646")),
-    # Links in the teal and red of the theme
-    links = list(normal_color = "#27727B", inverted_color = "#C1232B",
-                 linkStyle = list(fillOpacity = 0.6),
-                 colorBarOptions = list(barOptions = list(stroke = "none"),
-                                        labelOptions = list(fontSize = 12),
-                                        titleOptions = list(fontSize = 12))),
-    tooltip = list(backgroundColor = "rgba(50, 50, 50, 0.85)", color = "#ffffff",
-                   border = "none", borderRadius = "4px", fontSize = "12px"),
-    trackMouse = list(backgroundColor = "rgba(50, 50, 50, 0.85)", color = "#ffffff",
-                      border = "none", borderRadius = "4px", fontSize = "12px")
+  infographic = c(
+    list(
+      fontFamily = "sans-serif",
+      textColor = "#6E7079",
+      lineColor = "#6E7079",
+      palette = "infographic",
+      title = list(titleFont = list(fontSize = "18px", fill = "#464646"),
+                   subtitleFont = list(fontSize = "12px")),
+      clusterTitle = list(titleFont = list(fill = "#464646")),
+      clusterLabel = list(fill = "#464646"),
+      genes = flat_genes,
+      transcript = flat_transcript
+    ),
+    echarts_axes,
+    list(
+      legend = list(corner_radius = 3, legendTextOptions = list(fill = "#464646")),
+      # Links in the teal and red of the theme
+      links = list(normal_color = "#27727B", inverted_color = "#C1232B",
+                   linkStyle = list(fillOpacity = 0.6),
+                   colorBarOptions = echarts_color_bar),
+      tooltip = infographic_tooltip,
+      trackMouse = infographic_tooltip
+    )
   ),
   # Figures for journals, after common journal figure guidelines, in the style
   # of the other themes: Arial or Helvetica, text of 7 pt (9.33px; at most 7
@@ -423,42 +432,38 @@ builtin_themes <- list(
     annotations = list(text = list(style = list(fontSize = "9.33px")),
                        textMarker = list(textStyle = list(fontSize = "9.33px")),
                        arc = list(textStyle = list(fontSize = "9.33px"))),
-    tooltip = list(backgroundColor = "white", color = "black",
-                   border = "1px solid black", borderRadius = "0",
-                   boxShadow = "none", fontSize = "9.33px", padding = "8px"),
-    trackMouse = list(backgroundColor = "white", color = "black",
-                      border = "1px solid black", borderRadius = "0",
-                      boxShadow = "none", fontSize = "9.33px", padding = "8px")
+    tooltip = publication_tooltip,
+    trackMouse = publication_tooltip
   ),
   # Black and white, in the style of the other themes: black for titles,
   # cluster labels and the legend, grey (#555555) for the other text and all
   # lines; sans-serif 12px text, an 18px title, 5px axis ticks, rounded genes
   # and legend markers with a black outline around the patterns, grey links
   # and the ECharts tooltip
-  bw = list(
-    fontFamily = "sans-serif",
-    textColor = "#555555",
-    lineColor = "#555555",
-    pattern = list(color = "black", background = "white", size = 6, strokeWidth = 1),
-    title = list(titleFont = list(fontSize = "18px", fill = "black"),
-                 subtitleFont = list(fontSize = "12px")),
-    clusterTitle = list(titleFont = list(fill = "black")),
-    clusterLabel = list(fill = "black"),
-    genes = list(stroke = "black", strokeWidth = 0.75, corner_radius = 3),
-    transcript = list(styleExons = list(stroke = "black", strokeWidth = 0.75, cornerRadius = 3),
-                      styleUTRs = list(cornerRadius = 3)),
-    labels = list(fontStyle = "normal", fontSize = "12px"),
-    # Coordinates keep 10px: at 12px the numbers of adjacent genes overlap
-    coordinates = list(tickStyle = list(lineLength = 5)),
-    scale = list(textStyle = list(fontSize = "12px"), tickStyle = list(lineLength = 5)),
-    scaleBar = list(labelStyle = list(fontSize = "12px")),
-    legend = list(corner_radius = 3, legendTextOptions = list(fill = "black")),
-    links = list(normal_color = "#bdbdbd", inverted_color = "#525252",
-                 colorBarOptions = list(barOptions = list(stroke = "#555555"),
-                                        labelOptions = list(fontSize = 12),
-                                        titleOptions = list(fontSize = 12))),
-    tooltip = echarts_tooltip,
-    trackMouse = echarts_tooltip
+  bw = c(
+    list(
+      fontFamily = "sans-serif",
+      textColor = "#555555",
+      lineColor = "#555555",
+      pattern = list(color = "black", background = "white", size = 6, strokeWidth = 1),
+      title = list(titleFont = list(fontSize = "18px", fill = "black"),
+                   subtitleFont = list(fontSize = "12px")),
+      clusterTitle = list(titleFont = list(fill = "black")),
+      clusterLabel = list(fill = "black"),
+      genes = list(stroke = "black", strokeWidth = 0.75, corner_radius = 3),
+      transcript = list(styleExons = list(stroke = "black", strokeWidth = 0.75, cornerRadius = 3),
+                        styleUTRs = list(cornerRadius = 3))
+    ),
+    echarts_axes,
+    list(
+      legend = list(corner_radius = 3, legendTextOptions = list(fill = "black")),
+      links = list(normal_color = "#bdbdbd", inverted_color = "#525252",
+                   colorBarOptions = list(barOptions = list(stroke = "#555555"),
+                                          labelOptions = list(fontSize = 12),
+                                          titleOptions = list(fontSize = 12))),
+      tooltip = echarts_tooltip,
+      trackMouse = echarts_tooltip
+    )
   )
 )
 

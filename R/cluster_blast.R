@@ -242,11 +242,8 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
 
   # Load from .gbk files
   if (is.character(data)) {
-    gbk <- geneviewer::read_gbk(data) # Adjust based on actual function call
-    data <- geneviewer::gbk_features_to_df(gbk, feature = "CDS", keys = c("protein_id", "region", "translation"))
-    data <- data[!is.na(data[[start]]) & !is.na(data[[end]]), ]
+    data <- read_gbk_cds(data, start, end)
     cluster <- "cluster"
-    strand <- "strand"
   }
 
   # ensure that data is a data frame
@@ -254,33 +251,27 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
 
   if (!(id %in% names(data))) {
     stop("Please use the id variable to specificy the column name containing unique protein identifiers.")
-    return(NULL)
   }
 
   if (!(start %in% names(data))) {
     stop("Please use the start variable to specificy the column name specifying the start positions.")
-    return(NULL)
   }
 
   if (!(end %in% names(data))) {
     stop("Please use the end variable to specificy the column name specifying the end positions.")
-    return(NULL)
   }
 
 
   if (!(cluster %in% names(data))) {
     stop("Please use the cluster variable to specificy the column name specifying the cluster names.")
-    return(NULL)
   }
 
   if (!(query %in% data[[cluster]])) {
     stop("Query not found in cluster columnm.")
-    return(NULL)
   }
 
   if (!('sequence' %in% names(data)) && !('translation' %in% names(data))) {
     stop("No 'sequence' or 'translation' column found in data.")
-    return(NULL)
   }
 
   if ('sequence' %in% names(data) && !('translation' %in% names(data))) {
@@ -298,9 +289,7 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
   data$end <- data_tmp[[end]]
 
   # Convert cluster to character
-  if(!is.null(cluster)){
-    data[[cluster]] <- as.character(data[[cluster]])
-  }
+  data[[cluster]] <- as.character(data[[cluster]])
 
   clusters <- unique(data[[cluster]])
 
@@ -323,12 +312,17 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
                                               subject = protein_combinations_alignment$translation2,
                                               scoreOnly = FALSE)
 
+  # The aligned sequences of an alignment, with gaps
+  aligned_sequences <- function(alignment) {
+    list(
+      pattern = as.character(pwalign::pattern(alignment)),
+      subject = as.character(pwalign::subject(alignment))
+    )
+  }
+
   # Decide on parallel or sequential processing based on the number of rows
   if (parallel && nrow(protein_combinations_alignment) > 1000) {
 
-    if (!requireNamespace("parallel", quietly = TRUE)) {
-      stop('parallel package is not installed. Please install it.')
-    }
     # Set up a cluster with at least one worker; always stop it when done
     no_cores <- max(1, parallel::detectCores() - 1, na.rm = TRUE)
     # Use at most 2 workers when R CMD check limits the number of cores
@@ -344,20 +338,10 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
     parallel::clusterEvalQ(cl, library(pwalign))
 
     # Use parLapply for parallel execution
-    alignment_list <- parallel::parLapply(cl, alignments, function(alignment) {
-      list(
-        pattern = as.character(pwalign::pattern(alignment)),
-        subject = as.character(pwalign::subject(alignment))
-      )
-    })
+    alignment_list <- parallel::parLapply(cl, alignments, aligned_sequences)
   } else {
     # Sequential processing
-    alignment_list <- lapply(alignments, function(alignment) {
-      list(
-        pattern = as.character(pwalign::pattern(alignment)),
-        subject = as.character(pwalign::subject(alignment))
-      )
-    })
+    alignment_list <- lapply(alignments, aligned_sequences)
   }
 
   patterns <- sapply(alignment_list, function(x) x$pattern)

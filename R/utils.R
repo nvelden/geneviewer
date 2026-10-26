@@ -1,34 +1,3 @@
-#' Extract Data from Symbol or Return Vector
-#'
-#' This function evaluates the provided expression. If the expression is a
-#' symbol, it treats the symbol as a column name and extracts the corresponding
-#' column from the provided data frame. If the expression is a call that
-#' evaluates to a vector (e.g., `as.character(df$column)`), it returns the
-#' evaluated vector.
-#'
-#' @param data A data frame from which a column might be extracted.
-#' @param x An expression that could be a symbol representing a column name or a
-#'   call that evaluates to a vector.
-#'
-#' @return A vector extracted from the data frame based on the column name
-#'   represented by the symbol, or a vector if the expression evaluates to one.
-#'
-#' @examples
-#' df <- data.frame(a = 1:5, b = 6:10)
-#' select_column_or_return(df, a)
-#' select_column_or_return(df, as.character(df$class))
-#'
-#' @noRd
-select_column_or_return <- function(data, x) {
-  x_nm <- deparse(substitute(x))
-  if(x_nm %in% names(data)) return(data[x_nm])
-  if(is.symbol(substitute(x)) & !exists(x_nm)) {
-    stop("x must be a symbol representing a column, or a vector.")
-  }
-  if(is.vector(x)) return(x)
-  stop("x must be a symbol representing a column, or a vector.")
-}
-
 #' Get clusters to update from geneviewer Object
 #'
 #' This function retrieves the clusters to be updated from a geneviewer object
@@ -64,45 +33,6 @@ getUpdatedClusters <- function(geneviewer, cluster) {
   }
 
   return(cluster)
-}
-
-#' Divide Dimension Value
-#'
-#' This function takes a dimension value (which can be in the format '100px',
-#' '100%', or 100) and divides it by a given divisor. The result is returned in
-#' the same format as the input.
-#'
-#' @param value A character or numeric value representing the dimension. It can
-#'   be in the format '100px', '100%', or 100.
-#' @param divisor A numeric value by which the dimension value will be divided.
-#'
-#' @return A character or numeric value representing the divided dimension.
-#'
-#' @examples
-#' divide_dimension_value('100px', 2)  # Returns "50px"
-#' divide_dimension_value('100%', 2)  # Returns '50%'
-#' divide_dimension_value(100, 2)     # Returns 50
-#'
-#' @noRd
-divide_dimension_value <- function(value, divisor) {
-  # Check if value is a character
-  if (is.character(value)) {
-    # Extract the numeric part and the unit (e.g., "px" or "%")
-    matches <- regmatches(value, regexec("([0-9.]+)([a-zA-Z%]*)", value))[[1]]
-    number <- as.numeric(matches[2])
-    unit <- matches[3]
-
-    # Divide the numeric part by the divisor
-    result <- number / divisor
-
-    # Return the result with the original unit
-    return(paste0(result, unit))
-  } else if (is.numeric(value)) {
-    # If the value is numeric, simply divide by the divisor
-    return(value / divisor)
-  } else {
-    stop("Unsupported value format")
-  }
 }
 
 #' Identify Non-Coding Regions Between Genes
@@ -567,4 +497,102 @@ check_spacing <- function(spacing, per_cluster = FALSE) {
     stop(if (per_cluster) "spacing must be numbers" else "spacing must be a single number")
   }
   invisible(spacing)
+}
+
+
+#' Files of a directory to read
+#'
+#' @param path Character, the directory.
+#' @param pattern Regular expression the file names match.
+#' @param type Character, the file type named in the error, e.g. "bed".
+#' @param call The call named in the error: of the reader called by the user.
+#' @return The paths of the files; an error when there are none.
+#' @noRd
+dir_files <- function(path, pattern, type, call = sys.call(-1)) {
+  files <- list.files(path, pattern = pattern, full.names = TRUE)
+  if (length(files) == 0) {
+    stop(simpleError(paste0("No .", type, " files found in the specified directory."), call))
+  }
+  files
+}
+
+#' Read a file, or all files of a directory into one data frame
+#'
+#' @param path Character, a file or a directory.
+#' @param pattern Regular expression of the file extension, removed from the
+#'   file names for the `filename` column.
+#' @param type Character, the file type named in the error, e.g. "bed".
+#' @param read_file Function reading one file into a data frame.
+#' @param call The call named in errors: of the reader called by the user.
+#' @return The data frame of the file, or of all files of the directory with
+#'   the name of each file in a `filename` column.
+#' @noRd
+read_tables <- function(path, pattern, type, read_file, call = sys.call(-1)) {
+  if (dir.exists(path)) {
+    data_list <- list()
+    for (file in dir_files(path, pattern, type, call)) {
+      data <- read_file(file)
+      filename <- sub(pattern, "", basename(file))
+      data$filename <- filename
+      data_list[[filename]] <- data
+    }
+    # Combine data frames from all files into one
+    do.call(dplyr::bind_rows, data_list)
+  } else if (file.exists(path)) {
+    read_file(path)
+  } else {
+    stop(simpleError("The specified path does not exist.", call))
+  }
+}
+
+#' Options without the NULL and empty values
+#'
+#' @param options A named list.
+#' @return `options` without the elements that are NULL or of length 0.
+#' @noRd
+compact <- function(options) {
+  Filter(function(x) !is.null(x) && length(x) > 0, options)
+}
+
+#' Merge new options into the old ones
+#'
+#' @param old List or NULL, the options set before.
+#' @param new List, the new options.
+#' @return `new` when there are no old options, otherwise the old options
+#'   updated with `new` by `utils::modifyList()`.
+#' @noRd
+merge_options <- function(old, new) {
+  if (is.null(old)) new else utils::modifyList(old, new)
+}
+
+#' Add the ... arguments to the options of the i-th selected cluster
+#'
+#' @param options List, the options of the cluster.
+#' @param dots List, the ... arguments; vectors are recycled over the clusters.
+#' @param i Integer, the index of the cluster.
+#' @return `options` with the ... arguments for cluster `i`.
+#' @noRd
+recycle_dots <- function(options, dots, i) {
+  for (name in names(dots)) {
+    options[[name]] <- recycle_at(dots[[name]], i)
+  }
+  options
+}
+
+#' Set the options of a component for the selected clusters
+#'
+#' @param GC_chart The gene chart object.
+#' @param cluster The clusters to update, as for `getUpdatedClusters()`.
+#' @param slot Character, the component, e.g. "labels".
+#' @param options_for Function of the index of the cluster and its series,
+#'   returning the options of the component for that cluster.
+#' @return The gene chart object.
+#' @noRd
+set_cluster_options <- function(GC_chart, cluster, slot, options_for) {
+  clusters <- getUpdatedClusters(GC_chart, cluster)
+  for (i in seq_along(clusters)) {
+    series <- GC_chart$x$series[[clusters[i]]]
+    GC_chart$x$series[[clusters[i]]][[slot]] <- options_for(i, series)
+  }
+  GC_chart
 }

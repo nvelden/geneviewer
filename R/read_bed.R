@@ -35,41 +35,7 @@
 #' @importFrom dplyr bind_rows
 #' @export
 read_bed <- function(path){
-
-  if(dir.exists(path)){
-    # It's a directory
-    files <- list.files(path, pattern = "\\.bed[0-9]*$", full.names = TRUE)
-
-    # Check if there are any .bed files in the directory
-    if (length(files) == 0) {
-      stop("No .bed files found in the specified directory.")
-    }
-
-    # Initialize an empty list to store data frames from each file
-    data_list <- list()
-
-    # Process each .bed file in the directory
-    for (file in files) {
-      data <- process_bed(file)
-      filename <- sub("\\.bed[0-9]*$", "", basename(file))
-      data$filename <- filename
-      data_list[[filename]] <- data
-    }
-
-    # Combine data frames from all files into one
-    combined_data <- do.call(dplyr::bind_rows, data_list)
-
-    return(combined_data)
-
-  } else if(file.exists(path)){
-
-    data <- process_bed(path)
-
-    return(data)
-
-  } else {
-    stop("The specified path does not exist.")
-  }
+  read_tables(path, "\\.bed[0-9]*$", "bed", process_bed)
 }
 
 #' @noRd

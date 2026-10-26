@@ -111,7 +111,7 @@ GC_labels <- function(
   for(i in seq_along(clusters)){
 
     # Default options
-    options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+    options <- compact(list(
       label = recycle_at(label, i),
       show = recycle_at(show, i),
       itemStyle = itemStyle,
@@ -121,11 +121,8 @@ GC_labels <- function(
     ))
 
     # Merge new options with existing options
-    if (is.null(GC_chart$x$series[[clusters[i]]]$labels)) {
-      GC_chart$x$series[[clusters[i]]]$labels <- options
-    } else {
-      GC_chart$x$series[[clusters[i]]]$labels <- modifyList(GC_chart$x$series[[clusters[i]]]$labels, options)
-    }
+    GC_chart$x$series[[clusters[i]]]$labels <-
+      merge_options(GC_chart$x$series[[clusters[i]]]$labels, options)
   }
 
   return(GC_chart)
@@ -261,10 +258,6 @@ GC_genes <- function(
     group <- NULL
   }
 
-  # if (is.null(group) && is.null(GC_chart$x$group) && is.null(marker)){
-  #   stop("Please define a group")
-  # }
-
   if (is.null(group) && !is.null(GC_chart$x$group)){
     group <- GC_chart$x$group
   }
@@ -279,7 +272,7 @@ GC_genes <- function(
   for(i in seq_along(clusters)){
 
     # Default options
-    options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+    options <- compact(list(
       group = recycle_at(group, i),
       marker = recycle_at(marker, i),
       cornerRadius = corner_radius,
@@ -301,11 +294,6 @@ GC_genes <- function(
   # The legend shows all clusters, so it only follows colours set for all of them
   if (is.null(cluster)) {
     GC_chart <- set_legend_colors(GC_chart, colorScheme, customColors)
-  }
-
-  # Check if prevent_gene_overlap is called last
-  if (!is.null(GC_chart$x$prevent_gene_overlap_called) && GC_chart$x$prevent_gene_overlap_called) {
-    warning("Preventing gene overlap must be called after setting genes, labels or coordinates for proper effect.")
   }
 
   return(GC_chart)
@@ -573,28 +561,24 @@ GC_transcript <- function(GC_chart,
 
   for (i in seq_along(clusters)) {
     # Default options
-    options <- Filter(
-      function(x)
-        ! is.null(x) && length(x) > 0,
-      list(
-        group = recycle_at(group, i),
-        show = recycle_at(show, i),
-        colorScheme = colorScheme,
-        customColors = customColors,
-        styleExons = styleExons,
-        styleIntrons = styleIntrons,
-        styleUTRs = styleUTRs,
-        itemStyleExons = itemStyleExons,
-        itemStyleIntrons = itemStyleIntrons,
-        itemStyleUTRs = itemStyleUTRs,
-        groupStyleExons = groupStyleExons,
-        groupStyleIntrons = groupStyleIntrons,
-        groupStyleUTRs = groupStyleUTRs,
-        styleBy = style_by,
-        labelOptions = labelOptions,
-        ...
-      )
-    )
+    options <- compact(list(
+      group = recycle_at(group, i),
+      show = recycle_at(show, i),
+      colorScheme = colorScheme,
+      customColors = customColors,
+      styleExons = styleExons,
+      styleIntrons = styleIntrons,
+      styleUTRs = styleUTRs,
+      itemStyleExons = itemStyleExons,
+      itemStyleIntrons = itemStyleIntrons,
+      itemStyleUTRs = itemStyleUTRs,
+      groupStyleExons = groupStyleExons,
+      groupStyleIntrons = groupStyleIntrons,
+      groupStyleUTRs = groupStyleUTRs,
+      styleBy = style_by,
+      labelOptions = labelOptions,
+      ...
+    ))
 
     GC_chart$x$series[[clusters[i]]]$transcript <-
       keep_color_options(options, GC_chart$x$series[[clusters[i]]]$transcript)
@@ -939,7 +923,7 @@ GC_legend <- function(
   }
 
   # Capture arguments and filter out NULL or empty values
-  options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+  options <- compact(list(
     group = group,
     show = show,
     order = order,
@@ -954,11 +938,7 @@ GC_legend <- function(
   ))
 
   # Merge new options with existing options
-  if (is.null(GC_chart$x$legend)) {
-    GC_chart$x$legend <- options
-  } else {
-    GC_chart$x$legend <- modifyList(GC_chart$x$legend, options)
-  }
+  GC_chart$x$legend <- merge_options(GC_chart$x$legend, options)
 
   return(GC_chart)
 }

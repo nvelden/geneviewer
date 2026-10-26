@@ -108,7 +108,7 @@ GC_title <- function(
   }
 
   # Capture arguments and filter out NULL or empty values
-  options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+  options <- compact(list(
       title = title,
       subtitle = subtitle,
       subtitleFont = subtitleFont,
@@ -122,11 +122,7 @@ GC_title <- function(
     ))
 
   # Merge new options with existing options
-  if (is.null(GC_chart$x$title)) {
-    GC_chart$x$title <- options
-  } else {
-    GC_chart$x$title <- modifyList(GC_chart$x$title, options)
-  }
+  GC_chart$x$title <- merge_options(GC_chart$x$title, options)
 
   return(GC_chart)
 }
@@ -245,9 +241,7 @@ GC_clusterTitle <- function(
     options$spacing <- recycle_at(spacing, i)
 
     # Add arguments to options
-    for (name in names(dots)) {
-      options[[name]] <- recycle_at(dots[[name]], i)
-    }
+    options <- recycle_dots(options, dots, i)
 
     # Set height for each cluster
     GC_chart$x$series[[clusters[i]]]$grid$margin$top <- recycle_at(height, i)
@@ -326,11 +320,8 @@ GC_sequence <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-
-  for(i in seq_along(clusters)){
-
+  # Set sequence options for each cluster
+  set_cluster_options(GC_chart, cluster, "sequence", function(i, series) {
     # Default options
     options <- list(
       show = recycle_at(show, i),
@@ -340,19 +331,11 @@ GC_sequence <- function(
     )
 
     # Add ... arguments to options
-    for(name in names(dots)) {
-      options[[name]] <- recycle_at(dots[[name]], i)
-    }
+    options <- recycle_dots(options, dots, i)
 
     # A range axis has moved the genes of the cluster; move the line along
-    options <- shift_sequence(options, GC_chart$x$series[[clusters[i]]]$positionShift)
-
-    # Set sequence options for each cluster
-    GC_chart$x$series[[clusters[i]]]$sequence <- options
-
-  }
-
-  return(GC_chart)
+    shift_sequence(options, series$positionShift)
+  })
 }
 
 #' The scale breaks of one cluster
@@ -482,8 +465,8 @@ GC_grid <- function(
     margin[["bottom"]] <- NULL
 
     # Update left and right margins
-    GC_chart$x$legend$margin <- if (is.null(GC_chart$x$legend$margin)) margin else utils::modifyList(GC_chart$x$legend$margin, margin)
-    GC_chart$x$title$margin <- if (is.null(GC_chart$x$title$margin)) margin else utils::modifyList(GC_chart$x$title$margin, margin)
+    GC_chart$x$legend$margin <- merge_options(GC_chart$x$legend$margin, margin)
+    GC_chart$x$title$margin <- merge_options(GC_chart$x$title$margin, margin)
 
     # Update top and bottom margins
     if(paddingTop > 0){
@@ -516,8 +499,8 @@ GC_grid <- function(
 
     # Update left and right margins if provided
     if (!is.null(margin)) {
-        default_margin <- GC_chart$x$series[[cluster_name]]$container$margin
-        GC_chart$x$series[[cluster_name]]$container$margin <- if (is.null(default_margin)) margin else utils::modifyList(default_margin, margin)
+        GC_chart$x$series[[cluster_name]]$container$margin <-
+          merge_options(GC_chart$x$series[[cluster_name]]$container$margin, margin)
     }
 
     # Update width if provided
@@ -757,9 +740,7 @@ GC_scale <- function(GC_chart,
     )
 
     # Add additional options
-    for (name in names(dots)) {
-      options[[name]] <- recycle_at(dots[[name]], i)
-    }
+    options <- recycle_dots(options, dots, i)
 
     # Set scale options for each cluster
     GC_chart$x$series[[clusters[i]]]$scale <- options
@@ -845,11 +826,8 @@ GC_scaleBar <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-
-  for(i in seq_along(clusters)){
-
+  # Set scaleBar options for each cluster
+  set_cluster_options(GC_chart, cluster, "scaleBar", function(i, series) {
     # Default options
     options <- list(
       show = recycle_at(show, i),
@@ -859,16 +837,8 @@ GC_scaleBar <- function(
     )
 
     # Add ... arguments to options
-    for(name in names(dots)) {
-      options[[name]] <- recycle_at(dots[[name]], i)
-    }
-
-    # Set scaleBar options for each cluster
-    GC_chart$x$series[[clusters[i]]]$scaleBar <- options
-
-  }
-
-  return(GC_chart)
+    recycle_dots(options, dots, i)
+  })
 }
 
 #' Set or Update Cluster Labels for a GC Chart
@@ -1017,9 +987,7 @@ GC_clusterLabel <- function(
     }
 
     # Add ... arguments to options
-    for(name in names(dots)) {
-      options[[name]] <- recycle_at(dots[[name]], i)
-    }
+    options <- recycle_dots(options, dots, i)
 
     # Set clusterLabel options for each cluster
     GC_chart$x$series[[clusters[i]]]$clusterLabel <- options
@@ -1121,11 +1089,8 @@ GC_clusterFooter <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-
-  for(i in seq_along(clusters)){
-
+  # Set footer options for each cluster
+  set_cluster_options(GC_chart, cluster, "footer", function(i, series) {
     # Default options
     options <- list(
       title = recycle_at(title, i),
@@ -1138,15 +1103,8 @@ GC_clusterFooter <- function(
     options$spacing <- recycle_at(spacing, i)
 
     # Add ... arguments to options
-    for(name in names(dots)) {
-      options[[name]] <- recycle_at(dots[[name]], i)
-    }
-
-    # Set footer options for each cluster
-    GC_chart$x$series[[clusters[i]]]$footer <- options
-  }
-
-  return(GC_chart)
+    recycle_dots(options, dots, i)
+  })
 }
 
 
@@ -1252,11 +1210,8 @@ GC_coordinates <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-
-  for(i in seq_along(clusters)){
-
+  # Set coordinates options for each cluster
+  set_cluster_options(GC_chart, cluster, "coordinates", function(i, series) {
     # Default options
     options <- list(
       show = recycle_at(show, i),
@@ -1270,25 +1225,13 @@ GC_coordinates <- function(
     }
 
     # Add ... arguments to options
-    for(name in names(dots)) {
-      options[[name]] <- recycle_at(dots[[name]], i)
-    }
-
-    # Set coordinates options for each cluster
-    GC_chart$x$series[[clusters[i]]]$coordinates <- options
+    options <- recycle_dots(options, dots, i)
 
     # Add tickvalues for each cluster
-    GC_chart$x$series[[clusters[i]]]$coordinates$tickValuesTop <- tickValuesTop
-    GC_chart$x$series[[clusters[i]]]$coordinates$tickValuesBottom <- tickValuesBottom
-
-  }
-
-  # Check if prevent_gene_overlap is called last
-  if (!is.null(GC_chart$x$prevent_gene_overlap_called) && GC_chart$x$prevent_gene_overlap_called) {
-    warning("Separating strands must be called after setting genes, labels or coordinates for proper effect.")
-  }
-
-  return(GC_chart)
+    options$tickValuesTop <- tickValuesTop
+    options$tickValuesBottom <- tickValuesBottom
+    options
+  })
 }
 
 
@@ -1360,40 +1303,26 @@ GC_cluster <- function(
   }
 
   # Update style options
-  if (is.null(GC_chart$x$series[[clusters[i]]]$container$style)) {
-    GC_chart$x$series[[clusters[i]]]$container$style <- style
-  } else {
-    GC_chart$x$series[[clusters[i]]]$container$style <-
-      modifyList(GC_chart$x$series[[clusters[i]]]$container$style, style)
-  }
+  GC_chart$x$series[[clusters[i]]]$container$style <-
+    merge_options(GC_chart$x$series[[clusters[i]]]$container$style, style)
 
   # Update cluster options
-  clusterOptions <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+  clusterOptions <- compact(list(
     separateStrands = separate_strands,
     strandSpacing = strand_spacing,
     preventGeneOverlap = prevent_gene_overlap,
     overlapSpacing = overlap_spacing,
     ...
   ))
-
-  if (is.null(GC_chart$x$series[[clusters[i]]]$cluster)) {
-    GC_chart$x$series[[clusters[i]]]$cluster <- clusterOptions
-  } else {
-    GC_chart$x$series[[clusters[i]]]$cluster <-
-      modifyList(GC_chart$x$series[[clusters[i]]]$cluster, clusterOptions)
-  }
+  GC_chart$x$series[[clusters[i]]]$cluster <-
+    merge_options(GC_chart$x$series[[clusters[i]]]$cluster, clusterOptions)
 
   # Update container options
-  containerOptions <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+  containerOptions <- compact(list(
     ...
   ))
-
-  if (is.null(GC_chart$x$series[[clusters[i]]]$container)) {
-    GC_chart$x$series[[clusters[i]]]$container <- containerOptions
-  } else {
-    GC_chart$x$series[[clusters[i]]]$container <-
-      modifyList(GC_chart$x$series[[clusters[i]]]$container, containerOptions)
-  }
+  GC_chart$x$series[[clusters[i]]]$container <-
+    merge_options(GC_chart$x$series[[clusters[i]]]$container, containerOptions)
 
   }
 

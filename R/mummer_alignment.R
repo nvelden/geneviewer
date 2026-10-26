@@ -282,49 +282,19 @@ mummer <- function(reference, query, maptype = "many-to-many", seqtype = "protei
   }
 }
 
+#' Read a show-coords table of NUCmer or PROmer
+#'
+#' @param path Path to the .coords file.
+#' @param reference,query Names of the clusters aligned.
+#' @param col_names Column names of the table.
+#' @return A data frame of the alignments, with the cluster names.
 #' @noRd
-parse_nucmer <- function(path, reference, query){
-
-  col_names <- c("start1", "end1", "start2", "end2", "length1", "length2", "identity", "tag1", "tag2")
+parse_coords <- function(path, reference, query, col_names){
 
   if(file.exists(path)){
 
     lines <- readLines(path)
 
-    # Check if lines is empty
-    if(length(lines) == 0){
-      # Return an empty data frame with the specified column names
-      data <- data.frame(matrix(ncol = length(col_names), nrow = 0))
-      colnames(data) <- col_names
-    } else {
-      # Proceed with reading the table if lines is not empty
-      data <- read.table(
-        text = lines,
-        header = FALSE,
-        sep = "\t",
-        fill = TRUE,
-        col.names = col_names
-      )
-
-      data$cluster1 <- reference
-      data$cluster2 <- query
-    }
-
-    } else {
-      stop("The specified path does not exist.")
-    }
-  return(data)
-}
-
-#' @noRd
-parse_procmer <- function(path, reference, query){
-
-  col_names <- c("start1", "end1", "start2", "end2", "length1", "length2", "identity",
-                 "similarity", "stop", "frame1", "frame2", "tag1", "tag2")
-
-  if(file.exists(path)){
-
-    lines <- readLines(path)
     # Check if lines is empty
     if(length(lines) == 0){
       # Return an empty data frame with the specified column names
@@ -348,6 +318,19 @@ parse_procmer <- function(path, reference, query){
     stop("The specified path does not exist.")
   }
   return(data)
+}
+
+#' @noRd
+parse_nucmer <- function(path, reference, query){
+  parse_coords(path, reference, query,
+               c("start1", "end1", "start2", "end2", "length1", "length2", "identity", "tag1", "tag2"))
+}
+
+#' @noRd
+parse_procmer <- function(path, reference, query){
+  parse_coords(path, reference, query,
+               c("start1", "end1", "start2", "end2", "length1", "length2", "identity",
+                 "similarity", "stop", "frame1", "frame2", "tag1", "tag2"))
 }
 
 #' Convert GenBank to FASTA Format

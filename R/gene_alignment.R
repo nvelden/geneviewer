@@ -1,23 +1,19 @@
-#' Calculate Position and Offset within a Cluster
+#' Calculate the Position of a Gene to Align On
 #'
-#' This function determines the position and offset of a gene within a cluster based on
-#' the specified alignment (left, right, or center). It also accounts for the orientation
-#' of the cluster (normal or reversed) and adjusts the position accordingly. The offset
-#' is calculated as the difference between the gene's position and the cluster's start point.
+#' This function determines the position of a gene to align the clusters on,
+#' based on the specified alignment (left, right, or center). It also accounts
+#' for the orientation of the cluster (normal or reversed).
 #'
 #' @param align A string indicating the align of the gene to consider for position calculation.
 #'   Valid values are "left", "right", or "center". The function will default to "left"
 #'   if an invalid align is provided.
 #' @param start The start coordinate of the gene.
 #' @param end The end coordinate of the gene.
-#' @param cluster_start The start coordinate of the cluster.
 #' @param reversed A logical value indicating whether the cluster is in a reversed orientation.
 #'
-#' @return A list containing two elements: `position`, which is the calculated position of the
-#'   gene within the cluster, and `offset`, which is the difference between the gene's position
-#'   and the cluster's start point.
+#' @return The position of the gene to align on.
 #' @noRd
-get_position_and_offset <- function(align, start, end, cluster_start, reversed) {
+get_align_position <- function(align, start, end, reversed) {
   if ((align == "left" && !reversed) || (align == "right" && reversed)) {
     position <- start
   } else if ((align == "right" && !reversed) || (align == "left" && reversed)) {
@@ -29,9 +25,7 @@ get_position_and_offset <- function(align, start, end, cluster_start, reversed) 
     position <- start
   }
 
-  offset <- position - cluster_start
-
-  list(position = position, offset = offset)
+  position
 }
 
 #' Calculate the Aligned Range of Each Cluster
@@ -95,9 +89,9 @@ adjust_range <- function(data, cluster, group, gene, align = "left", reversed_cl
 
   genes <- dplyr::left_join(genes, cluster_min_max, by = cluster)
   genes$reversed <- genes[[cluster]] %in% reversed_clusters
-  genes$position <- mapply(function(start, end, cluster_start, reversed) {
-    get_position_and_offset(align, start, end, cluster_start, reversed)$position
-  }, genes$start, genes$end, genes$cluster_start, genes$reversed)
+  genes$position <- mapply(function(start, end, reversed) {
+    get_align_position(align, start, end, reversed)
+  }, genes$start, genes$end, genes$reversed)
 
   # The length of the scale breaks of each cluster below and above the gene
   gaps <- function(from, to, cl) {

@@ -64,9 +64,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
 
   # Load from .gbk files
   if (is.character(data)) {
-    gbk <- geneviewer::read_gbk(data) # Adjust based on actual function call
-    data <- geneviewer::gbk_features_to_df(gbk, feature = "CDS", keys = c("protein_id", "region", "translation"))
-    data <- data[!is.na(data[[start]]) & !is.na(data[[end]]), ]
+    data <- read_gbk_cds(data, start, end)
     cluster <- "cluster"
     strand <- "strand"
   }
@@ -118,7 +116,6 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
   data <- add_strand(data, strand)
 
   x$data <- data
-  x$links <- NULL
   x$group <- group
   x$cluster <- cluster
   x$graphContainer$direction <- "column"
@@ -185,11 +182,10 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
       formatter <-
         "<b>Start:</b> {start}<br><b>End:</b> {end}"
     }
-    x$series[[clust]]$tooltip <-
-      formatter <- list(
-        show = TRUE,
-        formatter = formatter
-      )
+    x$series[[clust]]$tooltip <- list(
+      show = TRUE,
+      formatter = formatter
+    )
   }
 
   # Determine dependencies

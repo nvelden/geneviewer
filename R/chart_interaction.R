@@ -74,7 +74,7 @@ GC_annotation <- function(
   for(i in seq_along(clusters)){
 
     # Capture arguments and filter out NULL or empty values
-    options <- Filter(function(x) !is.null(x) && length(x) > 0, list(
+    options <- compact(list(
       type = type,
       ...
     ))
@@ -322,11 +322,8 @@ GC_tooltip <- function(
   # Capture ... arguments
   dots <- list(...)
 
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-
-  for(i in seq_along(clusters)){
-
+  # Set tooltip options for each cluster
+  set_cluster_options(GC_chart, cluster, "tooltip", function(i, series) {
     # Default options
     options <- list(
       formatter = formatter,
@@ -334,13 +331,6 @@ GC_tooltip <- function(
     )
 
     # Add arguments to options
-    for(name in names(dots)) {
-      options[[name]] <- recycle_at(dots[[name]], i)
-    }
-
-    # Set title options for each cluster
-    GC_chart$x$series[[clusters[i]]]$tooltip <- options
-
-  }
-  return(GC_chart)
+    recycle_dots(options, dots, i)
+  })
 }

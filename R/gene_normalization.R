@@ -1,3 +1,36 @@
+#' Order genes from left to right
+#'
+#' Adds the columns used to move genes: their original order, whether they are
+#' reverse, and their left and right ends.
+#'
+#' @param data A data frame with `start` and `end` columns.
+#' @return `data` with the columns `original_order`, `is_reverse`,
+#'   `actual_start` and `actual_end`, sorted by `actual_start`.
+#' @noRd
+order_genes <- function(data) {
+  data$original_order <- seq_len(nrow(data))
+
+  data %>%
+    dplyr::mutate(
+      is_reverse = .data$end < .data$start,
+      actual_start = pmin(.data$start, .data$end),
+      actual_end = pmax(.data$start, .data$end)
+    ) %>%
+    dplyr::arrange(.data$actual_start)
+}
+
+#' Put genes back in their original order
+#'
+#' @param data A data frame from `order_genes()`.
+#' @param columns Character, the columns used to move the genes, removed.
+#' @return `data` in its original order without `columns`.
+#' @noRd
+restore_gene_order <- function(data, columns) {
+  data %>%
+    dplyr::arrange(.data$original_order) %>%
+    dplyr::select(-dplyr::all_of(columns))
+}
+
 #' Adjust Gene Coordinates with Custom Gap Scaling
 #'
 #' This function adjusts the start and end positions of genes in a data frame
@@ -26,15 +59,7 @@ custom_gaps <- function(data, group, gene_name, factor = 2) {
     return(data)
   }
 
-  data$original_order <- seq_len(nrow(data))
-
-  data <- data %>%
-    dplyr::mutate(
-      is_reverse = .data$end < .data$start,
-      actual_start = pmin(.data$start, .data$end),
-      actual_end = pmax(.data$start, .data$end),
-    ) %>%
-    dplyr::arrange(.data$actual_start)
+  data <- order_genes(data)
 
   # Genes after which the gap should be changed (the last gene has no gap)
   gene_index <- which(data[[group]] == gene_name)
@@ -68,10 +93,8 @@ custom_gaps <- function(data, group, gene_name, factor = 2) {
                            .data$new_end)
     )
 
-  data <- data %>%
-    dplyr::arrange(.data$original_order) %>%
-    dplyr::select(-dplyr::all_of(c("actual_start", "actual_end", "original_order",
-                                   "new_start", "new_end", "is_reverse")))
+  data <- restore_gene_order(data, c("actual_start", "actual_end", "original_order",
+                                     "new_start", "new_end", "is_reverse"))
 
   return(data)
 }
@@ -106,17 +129,9 @@ normalize_gc_positions <- function(data, gap = NULL, preserve_gene_length = TRUE
     return(data)
   }
 
-  data$original_order <- seq_len(nrow(data))
-
-  data <- data %>%
-    dplyr::mutate(
-      is_reverse = .data$end < .data$start,
-      actual_start = pmin(.data$start, .data$end),
-      actual_end = pmax(.data$start, .data$end),
-      original_start = .data$start,
-      original_end = .data$end
-    ) %>%
-    dplyr::arrange(.data$actual_start)
+  data <- order_genes(data)
+  data$original_start <- data$start
+  data$original_end <- data$end
 
   total_length <- max(data$actual_end) - min(data$actual_start)
   num_genes <- nrow(data)
@@ -130,11 +145,6 @@ normalize_gc_positions <- function(data, gap = NULL, preserve_gene_length = TRUE
   }
 
   adjusted_total_length <- total_length - total_gap
-
-  # if (adjusted_total_length <= 0) {
-  #  warning("The specified gap is too large, resulting in zero or negative gene lengths. Please reduce the gap.")
-  #  return(data)
-  # }
 
   mean_gene_length <- adjusted_total_length / num_genes
   data <- data %>%
@@ -157,11 +167,9 @@ normalize_gc_positions <- function(data, gap = NULL, preserve_gene_length = TRUE
                            round(.data$new_end))
     )
 
-  data <- data %>%
-    dplyr::arrange(.data$original_order) %>%
-    dplyr::select(-dplyr::all_of(c(
-      "new_start", "new_end", "actual_start", "actual_end",
-      "original_order", "is_reverse", "gene_length")))
+  data <- restore_gene_order(data, c(
+    "new_start", "new_end", "actual_start", "actual_end",
+    "original_order", "is_reverse", "gene_length"))
 
   data$gene_gap <- NULL
 

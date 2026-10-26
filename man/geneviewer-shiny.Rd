@@ -35,6 +35,14 @@ GC_chart widget that can be placed in the UI.
 Output and render functions for using geneviewer within Shiny applications and
 interactive Rmd documents.
 }
+\details{
+In Shiny, a fixed pixel width set by \code{\link[=GC_chart]{GC_chart()}} (or \code{\link[=GC_grid]{GC_grid()}})
+takes precedence over the output width. Put the output in a container with
+\code{overflow-x: auto} to scroll a chart wider than the available space.
+Responsive charts keep the width set by \code{GC_chartOutput()}, including when
+switching back from a fixed width. Standalone widgets keep their usual
+htmlwidgets sizing. Height behavior is unchanged.
+}
 \examples{
 if (interactive()) {
   library(shiny)

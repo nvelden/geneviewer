@@ -14,6 +14,12 @@
 #' @param env The environment in which to evaluate expr.
 #' @param quoted Is expr a quoted expression (with quote())? This is useful if
 #'   you want to save an expression in a variable.
+#' @details In Shiny, a fixed pixel width set by [GC_chart()] (or [GC_grid()])
+#'   takes precedence over the output width. Put the output in a container with
+#'   `overflow-x: auto` to scroll a chart wider than the available space.
+#'   Responsive charts keep the width set by `GC_chartOutput()`, including when
+#'   switching back from a fixed width. Standalone widgets keep their usual
+#'   htmlwidgets sizing. Height behavior is unchanged.
 #' @return GC_chart widget that can be placed in the UI.
 #' @name geneviewer-shiny
 #'

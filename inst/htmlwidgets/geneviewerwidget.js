@@ -13,7 +13,15 @@ HTMLWidgets.widget({
       legendOptions,
       theme,
       saveButton,
+      size = {},
       events = {};
+
+    // Keep the output's original width for responsive charts, including an
+    // explicit GC_chartOutput(width = ...). Restore it after a fixed chart.
+    var outputWidth = el.style.width;
+    var outputFlex = el.style.flex;
+    var sizedWidth = false;
+    var sizedFlex = false;
 
     // Unique per chart on the page; used in container and save button ids
     var widgetId = el.id.replace(/[^A-Za-z0-9_-]/g, '_');
@@ -56,6 +64,34 @@ HTMLWidgets.widget({
       // Remove the chart styles of an earlier render (e.g. in Shiny) first, so
       // the base styles below are kept when a removed style overrode one of them
       appliedStyleKeys.forEach(function (key) { el.style[key] = ""; });
+
+      if (HTMLWidgets.shinyMode) {
+        // htmlwidgets does not apply a rendered widget's width to a Shiny
+        // output. Apply pixel widths before measuring the title and legend.
+        // Leave standalone and percentage sizing to the htmlwidgets host.
+        var fixedWidth = typeof size.width === "number" ? size.width + "px" : size.width;
+        var fixed = typeof fixedWidth === "string" && /^\d+(\.\d+)?px$/.test(fixedWidth);
+        if (fixed) {
+          el.style.width = fixedWidth;
+          sizedWidth = true;
+        } else if (sizedWidth) {
+          el.style.width = outputWidth;
+          sizedWidth = false;
+        }
+        // fillRow() uses a zero flex basis, which otherwise ignores width.
+        // Only change horizontal flex sizing; vertical height filling stays
+        // with the host. Restore the original flex rule for responsive charts.
+        var parentStyle = el.parentElement && getComputedStyle(el.parentElement);
+        var inRow = parentStyle && /^(inline-)?flex$/.test(parentStyle.display) &&
+          /^row/.test(parentStyle.flexDirection);
+        if (fixed && inRow) {
+          el.style.flex = "0 0 auto";
+          sizedFlex = true;
+        } else if (sizedFlex) {
+          el.style.flex = outputFlex;
+          sizedFlex = false;
+        }
+      }
 
       el.style["height"] = "100%"
       el.style["position"] = "relative"
@@ -242,6 +278,7 @@ HTMLWidgets.widget({
         legendOptions = input.legend;
         theme = input.theme ?? {};
         events = input.events ?? {};
+        size = input.size ?? {};
         draw(width, height);
         addLinks();
         wireEvents();

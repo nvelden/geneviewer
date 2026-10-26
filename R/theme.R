@@ -644,6 +644,9 @@ drop_empty <- function(x) {
 # preRenderHook of GC_chart(): the theme is kept as set with GC_theme() and sent
 # to the browser in its form there when the chart is drawn
 render_theme <- function(widget) {
+  # The widget width can change after GC_chart(), e.g. through GC_grid().
+  # Shiny's output element otherwise keeps only GC_chartOutput()'s width.
+  widget$x$size <- list(width = widget$width)
   widget$x$theme <- theme_to_js(widget$x$theme)
   widget$x <- resolve_palette_names(widget$x)
   widget

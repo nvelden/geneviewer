@@ -176,6 +176,76 @@ GC_trackMouse <- function(
   return(GC_chart)
 }
 
+#' Report Clicks on a GC_chart to Shiny
+#'
+#' Makes a chart report clicks to Shiny, so an app can react to the part of the
+#' chart that was clicked: show the details of a gene, open the settings of the
+#' clicked part, and so on. Charts are not clickable unless this is set, and
+#' outside Shiny it has no effect.
+#'
+#' Each click sets `input$<outputId>_click`, e.g. `input$chart_click` for
+#' `GC_chartOutput("chart")`, to a list with:
+#' \describe{
+#'   \item{component}{The part of the chart that was clicked: `"genes"`,
+#'     `"transcript"`, `"labels"`, `"coordinates"`, `"links"`, `"legend"`,
+#'     `"scale"`, `"scaleBar"`, `"sequence"`, `"title"` (the chart title),
+#'     `"clusterTitle"`, `"clusterFooter"`, `"clusterLabel"` or
+#'     `"annotations"`.}
+#'   \item{cluster}{The cluster that was clicked, or `NULL` for the chart title,
+#'     the legend and links between clusters.}
+#'   \item{data}{The data of the clicked element, or `NULL`: the row of the
+#'     gene for genes, transcripts and labels, the row of the link for links,
+#'     and the group for the legend.}
+#' }
+#'
+#' Every part of the chart is marked with a `data-component` attribute and each
+#' cluster with `data-cluster`, also without this function, so they can be
+#' selected with CSS or JavaScript.
+#'
+#' @param GC_chart A GC chart object.
+#' @param click Logical, whether to report clicks to Shiny.
+#' @param highlight Logical, whether to outline the part of the chart under the
+#'   mouse, to show what a click selects.
+#'
+#' @return The GC chart object with the event settings.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 50, 90, 130),
+#'   end = c(40, 80, 120, 160),
+#'   name = c("Gene 1", "Gene 2", "Gene 3", "Gene 4"),
+#'   group = c("A", "A", "B", "C")
+#' )
+#'
+#' if (interactive()) {
+#'   library(shiny)
+#'   ui <- fluidPage(
+#'     GC_chartOutput("chart", height = "200px"),
+#'     verbatimTextOutput("clicked")
+#'   )
+#'   server <- function(input, output, session) {
+#'     output$chart <- renderGC_chart(
+#'       GC_chart(genes_data, group = "group") %>%
+#'         GC_labels("name") %>%
+#'         GC_events(highlight = TRUE)
+#'     )
+#'     output$clicked <- renderPrint(str(input$chart_click))
+#'   }
+#'   shinyApp(ui, server)
+#' }
+#'
+#' @export
+GC_events <- function(GC_chart, click = TRUE, highlight = FALSE) {
+  for (arg in list(click = click, highlight = highlight)) {
+    if (!is.logical(arg) || length(arg) != 1 || is.na(arg)) {
+      stop("'click' and 'highlight' must be TRUE or FALSE.")
+    }
+  }
+
+  GC_chart$x$events <- list(click = click, highlight = highlight)
+  GC_chart
+}
+
 
 #' Set Tooltip for a Gene Chart
 #'

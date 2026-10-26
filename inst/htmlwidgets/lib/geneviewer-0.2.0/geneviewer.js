@@ -1200,6 +1200,8 @@ function makeLinks(graphContainer, links, themeOptions = {}) {
                 const linkColor = useGroupColors ? coordinate[0].groupColor : colorScale(identity)
 
             lineSvg.append("path")
+                .attr("data-component", "links")
+                .datum(linkData[index])
                 .attr("d", createLinkerPath(coordinate[0], coordinate[1], curve))
                 .style("fill", linkColor)
                 .style("stroke", linkStyle.stroke)
@@ -1347,6 +1349,7 @@ function makeColorBar(graphContainer, links, themeOptions = {}) {
         .attr("width", graphRect.width)
         .attr("height", graphRect.height)
         .classed("color-bar", true)
+        .attr("data-component", "links")
         .style("position", "absolute");
 
     // Append a group element to the SVG and transform based on margins
@@ -1611,6 +1614,7 @@ container.prototype.scale = function (options = {}) {
     // Create and configure the X-axis
     const adjustedYOffset = this.yScale ? this.yScale(y) : y;
     const axisGroup = this.svg.append("g")
+    .attr("data-component", "scale")
       .attr("transform", `translate(${this.margin.left},${this.margin.top + adjustedYOffset})`);
 
     const linearScale = d3.scaleLinear()
@@ -1740,6 +1744,7 @@ container.prototype.title = function (title, subtitle, show = true, options = {}
   }
 
   var g = this.svg.append("g")
+    .attr("data-component", themeOptionsKey === "clusterTitleOptions" ? "clusterTitle" : "title")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   if (title) {
@@ -1850,6 +1855,7 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
 
   if (title) {
     this.svg.append("text")
+      .attr("data-component", "clusterFooter")
       .attr("x", xPos)
       .attr("y", titleYPos)
       .attr("text-anchor", textAnchor)
@@ -1869,6 +1875,7 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
   // Add subtitle to the SVG if provided
   if (subtitle) {
     this.svg.append("text")
+      .attr("data-component", "clusterFooter")
       .attr("x", xPos)
       .attr("y", subtitleYPos)
       .attr("text-anchor", textAnchor)
@@ -1982,6 +1989,7 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
   }
 
   let clusterTitle = this.svg.append("text")
+      .attr("data-component", "clusterLabel")
     .attr("x", xposition)
     .attr("y", middleY)
     .attr("text-anchor", textAnchor)
@@ -2016,6 +2024,7 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     };
 
     const clusterSubtitle = this.svg.append("text")
+      .attr("data-component", "clusterLabel")
       .attr("x", xposition)
       .attr("y", middleY)
       .attr("text-anchor", textAnchor)
@@ -2107,6 +2116,7 @@ container.prototype.sequence = function (show = true, options = {}) {
   const additionalOptionsSequence = extractAdditionalOptions(sequenceStyle, defaultOptions.sequenceStyle);
 
   var g = this.svg.append("g")
+    .attr("data-component", "sequence")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
   var minStart = start ?? d3.min(this.data, d => Math.min(d.start, d.end));
@@ -2231,6 +2241,7 @@ container.prototype.coordinates = function (show = true, options = {}) {
 
 
   const g = this.svg.append("g")
+    .attr("data-component", "coordinates")
     .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
   // Convert provided tickValues to the required format
@@ -2448,6 +2459,7 @@ container.prototype.scaleBar = function (show = true, options = {}) {
 
   // Create the group with the x offset applied
   const g = this.svg.append("g")
+    .attr("data-component", "scaleBar")
     .attr("transform", `translate(${this.width - this.margin.right - scaleBarLength - parseInt(labelStyle.fontSize) - 5 + x}, ${this.height - this.margin.bottom})`);
 
   // Create the scale bar line
@@ -2590,6 +2602,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
 
   // Create the group
   const g = this.svg.append("g")
+    .attr("data-component", "labels")
     .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
   // Sort the data first by the minimum value of start and end.
@@ -3074,6 +3087,7 @@ container.prototype.genes = function (group, show = true, options = {}) {
   const patternScale = getPatternScale(this.svg, pattern, uniqueGroups, colorScale, "gene");
 
   var g = this.svg.append("g")
+    .attr("data-component", "genes")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   // Sort the data first by the minimum value of start and end.
@@ -3219,6 +3233,7 @@ container.prototype.transcript = function (group, show = true, options = {}) {
   const patternScale = getPatternScale(this.svg, pattern, uniqueGroups, colorScale, "exon");
 
   const g = this.svg.append("g")
+    .attr("data-component", "transcript")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   // Sort the data first by the minimum value of start and end.
@@ -3484,6 +3499,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   const itemExtents = [];
 
   var g = this.svg.append("g")
+    .attr("data-component", "legend")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   g.selectAll(".legend")
@@ -3663,6 +3679,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
   const additionalOptionsLabelStyle = extractAdditionalOptions(labelStyle, defaultOptions.labelStyle);
 
   var group = this.svg.append("g")
+    .attr("data-component", "links")
       .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   const hasReverseStrand = this.data.some(item => item.strand === "reverse");
@@ -3844,6 +3861,7 @@ container.prototype.addAnnotations = function (annotations) {
   }
 
   var g = this.svg.append("g")
+      .attr("data-component", "annotations")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
   annotations.forEach(annotation => {
     this.createAnnotation(g, annotation);
@@ -3916,6 +3934,7 @@ container.prototype.createTextAnnotation = function (group, options) {
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
 
   var group = this.svg.append("g")
+      .attr("data-component", "annotations")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   // Iterate over each element in the arrays
@@ -3968,6 +3987,7 @@ container.prototype.createLineAnnotation = function (group, options) {
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
 
     var group = this.svg.append("g")
+      .attr("data-component", "annotations")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   // Iterate over each set of line coordinates
@@ -4024,6 +4044,7 @@ container.prototype.createArrowAnnotation = function (group, options) {
   const additionalOptionsArrow = extractAdditionalOptions(arrowStyle, defaultOptions.arrowStyle);
 
   var group = this.svg.append("g")
+      .attr("data-component", "annotations")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   // Iterate over each element in the arrays
@@ -4209,6 +4230,7 @@ container.prototype.createSymbolAnnotation = function(group, options) {
   if (!Array.isArray(size)) size = [size];
 
   var group = this.svg.append("g")
+      .attr("data-component", "annotations")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   // Extract additional options that are not in defaultOptions
@@ -4283,6 +4305,7 @@ container.prototype.createRectangleAnnotation = function(group, options) {
   const additionalOptionsStyle = extractAdditionalOptions(style, defaultOptions.style);
 
   var group = this.svg.append("g")
+      .attr("data-component", "annotations")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   // Iterate over each element in the position and rotation arrays
@@ -4349,6 +4372,7 @@ container.prototype.createPromoterAnnotation = function(group, options) {
   const customPath = "M 8 -17.5 L 13 -14 l -5 3.5 M 13 -14 H 0 v 14";
 
   var group = this.svg.append("g")
+      .attr("data-component", "annotations")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   // Iterate over each element in the arrays
@@ -4413,6 +4437,7 @@ container.prototype.createTerminatorAnnotation = function(group, options) {
   const mirroredPath = "M 8 17.5 L 13 14 l -5 -3.5 M 13 14 L 0 14 v -14";
 
   var group = this.svg.append("g")
+      .attr("data-component", "annotations")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
   // Iterate over each element in the arrays
@@ -4479,6 +4504,7 @@ container.prototype.createCurveAnnotation = function (group, options) {
     let { x1, y1, x2, y2, midY, stroke, strokeWidth, lineStyle, text, labelX, labelY, textStyle } = combinedOptions;
 
     var group = this.svg.append("g")
+      .attr("data-component", "annotations")
         .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
     // Iterate over each set of points

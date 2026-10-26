@@ -12,13 +12,41 @@ HTMLWidgets.widget({
       titleOptions,
       legendOptions,
       theme,
-      saveButton;
+      saveButton,
+      events = {};
 
     // Unique per chart on the page; used in container and save button ids
     var widgetId = el.id.replace(/[^A-Za-z0-9_-]/g, '_');
 
     // Chart styles set on el by the last draw
     var appliedStyleKeys = [];
+
+    // Click events for Shiny (GC_events()): the part of the chart clicked (its
+    // data-component), its cluster, and the data of the gene, label or link
+    var clickData = ["genes", "transcript", "labels", "links", "legend"];
+    var onClick = function (event) {
+      var part = event.target.closest && event.target.closest("[data-component]");
+      if (!part || !el.contains(part)) return;
+      var component = part.getAttribute("data-component");
+      // The data bound to the clicked element: a gene or link row, or a group
+      var datum = null;
+      for (var node = event.target; clickData.includes(component) && node && node !== part.parentNode; node = node.parentNode) {
+        if (node.__data__ !== undefined) { datum = node.__data__; break; }
+      }
+      var cluster = part.closest("[data-cluster]");
+      Shiny.setInputValue(el.id + "_click", {
+        component: component,
+        cluster: cluster ? cluster.getAttribute("data-cluster") : null,
+        data: datum
+      }, { priority: "event" });
+    };
+
+    var wireEvents = function () {
+      var click = HTMLWidgets.shinyMode && events.click === true;
+      el.removeEventListener("click", onClick);
+      if (click) el.addEventListener("click", onClick);
+      el.classList.toggle("geneviewer-highlight", click && events.highlight === true);
+    };
 
     var draw = function (width, height) {
 
@@ -166,6 +194,8 @@ HTMLWidgets.widget({
           .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)
           .transcript(transcriptOptions?.group, transcriptOptions?.show ?? false, transcriptOptions);
 
+        chart.svg.attr("data-cluster", clusterKey);
+
         linkSets.forEach(linkSet => {
           chart.links(getClusterLinks(linkSet.data, clusterKey), clusterKey, linkSet.options);
         });
@@ -211,8 +241,10 @@ HTMLWidgets.widget({
         titleOptions = input.title;
         legendOptions = input.legend;
         theme = input.theme ?? {};
+        events = input.events ?? {};
         draw(width, height);
         addLinks();
+        wireEvents();
       },
       resize: function (width, height) {
         draw(width, height);

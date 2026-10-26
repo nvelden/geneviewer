@@ -1828,3 +1828,96 @@ test_that("each GC_links() call labels its links with its own options (B47)", {
   res <- labels(base %>% GC_links("name") %>% GC_links("name"))
   expect_equal(res$text, c("90%", "70%"))
 })
+
+test_that("GC_events sets the click events and checks its arguments", {
+  genes <- data.frame(start = c(1, 50), end = c(40, 90))
+  expect_null(GC_chart(genes)$x$events)
+  expect_equal(GC_events(GC_chart(genes))$x$events, list(click = TRUE, highlight = FALSE))
+  expect_equal(GC_events(GC_chart(genes), highlight = TRUE)$x$events$highlight, TRUE)
+  expect_error(GC_events(GC_chart(genes), click = "yes"), "TRUE or FALSE")
+  expect_error(GC_events(GC_chart(genes), highlight = NA), "TRUE or FALSE")
+})
+
+# A chart with every component, for the data-component and click tests
+events_chart <- function(events = FALSE) {
+  genes <- data.frame(
+    cluster = rep(c("A", "B"), each = 2), start = c(1, 201, 1, 201),
+    end = c(150, 350, 150, 350), name = rep(c("a", "b"), 2),
+    identity = c(NA, NA, 90, 70)
+  )
+  chart <- GC_chart(genes, cluster = "cluster", group = "name", height = "500px") %>%
+    GC_title("Chart title") %>%
+    GC_clusterTitle(title = c("Title A", "Title B")) %>%
+    GC_clusterFooter(title = c("Footer A", "Footer B")) %>%
+    GC_clusterLabel() %>%
+    GC_labels("name") %>%
+    GC_coordinates() %>%
+    GC_scale(hidden = FALSE) %>%
+    GC_scaleBar() %>%
+    GC_annotation(cluster = "A", type = "text", text = "note", x = 100, y = 80) %>%
+    GC_links("name")
+  if (events) chart <- GC_events(chart, highlight = TRUE)
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  file
+}
+
+test_that("every part of the chart is marked with data-component", {
+  session <- chrome_page(events_chart())
+  res <- jsonlite::fromJSON(session$Runtime$evaluate("
+    JSON.stringify({
+      components: [...new Set([...document.querySelectorAll('[data-component]')]
+        .map(e => e.getAttribute('data-component')))].sort(),
+      clusters: [...document.querySelectorAll('[data-cluster]')].map(e => e.getAttribute('data-cluster')),
+      highlight: document.querySelector('.geneviewer').classList.contains('geneviewer-highlight')
+    })")$result$value)
+
+  expect_setequal(res$components, c(
+    "annotations", "clusterFooter", "clusterLabel", "clusterTitle", "coordinates",
+    "genes", "labels", "legend", "links", "scale", "scaleBar", "sequence", "title"
+  ))
+  expect_equal(res$clusters, c("A", "B"))
+  # without GC_events() nothing is highlighted
+  expect_false(res$highlight)
+})
+
+test_that("GC_events reports the clicked part, cluster and data to Shiny", {
+  session <- chrome_page(events_chart(events = TRUE))
+  # Render the chart again as in Shiny, with setInputValue recorded
+  res <- jsonlite::fromJSON(session$Runtime$evaluate("
+    (() => {
+      window.clicks = [];
+      window.Shiny = { setInputValue: (name, value, opts) => clicks.push({ name, value, opts }) };
+      HTMLWidgets.shinyMode = true;
+      const el = document.querySelector('.geneviewer');
+      const x = JSON.parse(document.querySelector('script[data-for=\"' + el.id + '\"]').textContent).x;
+      HTMLWidgets.find('#' + el.id).renderValue(x);
+      const click = (selector) => document.querySelector(selector)
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      click('[data-cluster=\"B\"] .gene');
+      click('[data-cluster=\"A\"] text.label');
+      click('.legend');
+      click('[data-cluster=\"A\"] [data-component=\"scale\"] text');
+      click('path.GeneLink');
+      return JSON.stringify({
+        id: el.id,
+        highlight: el.classList.contains('geneviewer-highlight'),
+        clicks: clicks.map(c => ({ name: c.name, priority: c.opts.priority,
+          component: c.value.component, cluster: c.value.cluster,
+          data: c.value.data === null ? null : JSON.stringify(c.value.data) }))
+      });
+    })()")$result$value)
+
+  clicks <- res$clicks
+  expect_equal(clicks$name, rep(paste0(res$id, "_click"), 5))
+  expect_true(all(clicks$priority == "event"))
+  expect_equal(clicks$component, c("genes", "labels", "legend", "scale", "links"))
+  expect_equal(clicks$cluster, c("B", "A", NA, "A", NA))
+  expect_equal(jsonlite::fromJSON(clicks$data[1])$name, "a")
+  expect_equal(jsonlite::fromJSON(clicks$data[2])$name, "a")
+  expect_equal(jsonlite::fromJSON(clicks$data[3]), "a")
+  # the scale reports no data (d3 binds tick values to its ticks)
+  expect_true(is.na(clicks$data[4]))
+  expect_equal(jsonlite::fromJSON(clicks$data[5])$cluster1, "A")
+  expect_true(res$highlight)
+})

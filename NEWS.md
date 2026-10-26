@@ -1,6 +1,7 @@
 # geneviewer (development version)
 
 ### New features:
+- `GC_events()` makes a chart report clicks to Shiny: `input$<outputId>_click` gives the part of the chart that was clicked (`"genes"`, `"labels"`, `"scale"`, `"clusterTitle"`, ...), its cluster, and the row of the clicked gene or link or the legend group, e.g. to show the details of a gene. `highlight = TRUE` outlines the part under the mouse. Charts are not clickable unless it is set. Every part of the chart is now marked with a `data-component` attribute and each cluster with `data-cluster`, for CSS and JavaScript.
 - `GC_legend(groupStyle = )` styles the legend entry of a group: its text, e.g. `list(tnsA = list(fontStyle = "italic"))` for italic gene names, and its marker through `marker`, e.g. `list(A = list(marker = list(stroke = "black")))`.
 - `GC_transcript(groupStyleExons = , groupStyleIntrons = , groupStyleUTRs = )` style all exons, introns or UTRs of a group, with the options of the matching `itemStyle`; `style_by` sets the column they are matched against, e.g. `style_by = "transcript"` to style one transcript.
 - `GC_coordinates(groupStyle = )` styles the coordinates of the genes of a group: `show = FALSE` leaves them out, `tick` styles their ticks and the other options their text, e.g. `list(other = list(show = FALSE))` to show the coordinates of the named genes only. `style_by` sets the column they are matched against.

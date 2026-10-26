@@ -52,3 +52,12 @@
   border-style: solid;
   border-color: var(--tooltip-bg, white) transparent transparent transparent;
 }
+
+/* GC_events(highlight = TRUE): show which part of the chart a click selects */
+.geneviewer-highlight [data-component] {
+  cursor: pointer;
+}
+
+.geneviewer-highlight [data-component]:hover {
+  filter: drop-shadow(0 0 1.5px rgba(37, 99, 235, 0.95)) drop-shadow(0 0 3px rgba(37, 99, 235, 0.45));
+}

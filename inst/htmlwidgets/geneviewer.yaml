@@ -1,6 +1,6 @@
 dependencies:
   - name: geneviewerwidget
-    version: 0.2.0
+    version: 0.2.0.1
     src: htmlwidgets
     script: geneviewerwidget.js
   - name: geneviewer

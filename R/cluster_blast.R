@@ -204,22 +204,25 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #'   additional columns for BLAST results (identity, similarity).
 #'
 #' @examples
-#' \dontrun{
-#' path_to_folder <- "path/to/gbk/folder/"
-#' data_updated <- protein_blast(
-#'                          path_to_folder,
-#'                          id = "protein_id",
-#'                          query = "cluster A",
-#'                          identity = 30
-#'                          )
-#'}
+#' \donttest{
+#' if (requireNamespace("Biostrings", quietly = TRUE) &&
+#'     requireNamespace("pwalign", quietly = TRUE)) {
+#'   genes <- data.frame(
+#'     protein_id = c("A1", "A2", "B1", "B2"),
+#'     cluster = c("A", "A", "B", "B"),
+#'     start = c(1, 200, 1, 200),
+#'     end = c(150, 350, 150, 350),
+#'     translation = c("MKTAYIAKQRQISFVKSHFSRQ", "MSDNELLKRLGEAVLAHPTTG",
+#'                     "MKTAYIAKQRQISFVKSHFSRQ", "MLPGGRTSWVQEHCDKAYNIF")
+#'   )
+#'   protein_blast(genes, query = "A", identity = 30, parallel = FALSE)
+#' }
+#' }
 #'
-#' @importFrom dplyr bind_rows group_by slice_max ungroup left_join summarize
-#'   cur_data arrange desc
+#' @importFrom dplyr bind_rows group_by slice_max ungroup left_join summarize arrange desc
 #' @importFrom stats setNames ave
 #' @importFrom rlang .data
-#' @importFrom parallel detectCores makeCluster clusterExport clusterEvalQ
-#'   parLapply stopCluster
+#' @importFrom parallel detectCores makeCluster clusterExport clusterEvalQ parLapply stopCluster
 #' @note This function relies on the Biostrings and pwalign package for sequence
 #' alignment and the dplyr package for data manipulation. Ensure these packages
 #' are installed and loaded into your R session.

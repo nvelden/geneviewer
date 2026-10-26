@@ -73,8 +73,8 @@ genes_data <- data.frame(
 GC_chart(genes_data, group = "group", cluster = "cluster", height = "200px") \%>\%
 GC_labels("name")
 
-# Load from folder containing .gbk files
-# file_path <- "~/path/to/folder/"
-# GC_chart(file_path) \%>\%
+# Load from a GenBank file (or a folder of .gbk files)
+gbk_file <- system.file("extdata", "BGC0000001.gbk", package = "geneviewer")
+GC_chart(gbk_file, height = "200px")
 
 }

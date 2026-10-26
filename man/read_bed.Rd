@@ -29,11 +29,17 @@ single BED file from a specified path. It adds a 'filename' column with the
 name of the file, and combines the data frames from all files into one.
 }
 \examples{
-\dontrun{
-# Read BED files from a directory
-bed_data <- read_bed("path/to/directory")
+bed_file <- tempfile(fileext = ".bed")
+writeLines(c(
+  "chr1\t100\t500\tgeneA\t0\t+",
+  "chr1\t700\t1200\tgeneB\t0\t-"
+), bed_file)
 
 # Read a single BED file
-bed_data <- read_bed("path/to/file.bed")
-}
+bed_data <- read_bed(bed_file)
+
+# Read all BED files in a directory
+bed_data <- read_bed(dirname(bed_file))
+
+unlink(bed_file)
 }

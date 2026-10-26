@@ -25,3 +25,14 @@ calculated introns.
 Overlapping, nested, and adjacent exon/UTR intervals are treated as a
 continuous covered region; only positive gaps become introns.
 }
+\examples{
+exons <- data.frame(
+  transcript = "tx1",
+  type = "exon",
+  start = c(100, 400, 900),
+  end = c(250, 600, 1100),
+  strand = "forward"
+)
+get_introns(exons)
+
+}

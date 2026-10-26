@@ -16,19 +16,19 @@
 #'   frames from all files into one.
 #'
 #' @examples
-#' \dontrun{
-#' # Read GFF files from a directory
-#' gff_data <- read_gff("path/to/directory")
+#' gff_file <- system.file("extdata", "HQ113105.1.gff3", package = "geneviewer")
 #'
 #' # Read a single GFF file
-#' gff_data <- read_gff("path/to/file.gff")
+#' gff_data <- read_gff(gff_file)
 #'
-#' # Read specific fields from GFF files
+#' # Read GFF files from a directory
+#' gff_data <- read_gff(dirname(gff_file))
+#'
+#' # Read specific fields
 #' gff_data <- read_gff(
-#' "path/to/directory",
-#' fields = c("seqid", "start", "end", "attributes")
+#'   gff_file,
+#'   fields = c("seqid", "type", "start", "end", "strand", "Name")
 #' )
-#' }
 #' @importFrom dplyr bind_rows
 #' @importFrom utils read.table
 #' @export

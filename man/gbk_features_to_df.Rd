@@ -38,8 +38,9 @@ and converts selected features into a data frame. It supports processing
 multiple gene clusters.
 }
 \examples{
-\dontrun{
-gbk <- read_gbk("path/to/genbank_file.gbk")
+\donttest{
+gbk_file <- system.file("extdata", "BGC0000001.gbk", package = "geneviewer")
+gbk <- read_gbk(gbk_file)
 df <- gbk_features_to_df(gbk)
 
 # To extract only specific keys within the "CDS" feature

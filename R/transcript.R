@@ -17,6 +17,16 @@
 #'   by transcript and start position. Each row includes the `start`, `end`,
 #'   `type` (exon, UTR or intron), `transcript`, and `strand` for each segment.
 #'
+#' @examples
+#' exons <- data.frame(
+#'   transcript = "tx1",
+#'   type = "exon",
+#'   start = c(100, 400, 900),
+#'   end = c(250, 600, 1100),
+#'   strand = "forward"
+#' )
+#' get_introns(exons)
+#'
 #' @importFrom dplyr mutate filter group_by arrange lead select bind_rows
 #' @importFrom rlang .data
 #' @export

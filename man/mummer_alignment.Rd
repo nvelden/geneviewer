@@ -55,6 +55,9 @@ necessary files are present.
 }
 \examples{
 \dontrun{
+# Requires the external MUMmer programs (nucmer or promer, delta-filter and
+# show-coords) on the PATH.
+
 # Basic alignment with default options
 mummer_alignment(
   path = "/path/to/sequences",

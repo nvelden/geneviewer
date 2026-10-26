@@ -18,6 +18,7 @@ Description: Provides tools for plotting gene clusters and transcripts by
   gene arrow maps. Extensive customization options are available, including 
   legends, labels, annotations, scales, colors, tooltips, and more.
 License: MIT + file LICENSE
+SystemRequirements: MUMmer (optional, used by mummer_alignment())
 Encoding: UTF-8
 LazyData: true
 Language: en-US
@@ -30,9 +31,13 @@ Imports:
     htmlwidgets,
     fontawesome,
     magrittr,
-    dplyr,
+    dplyr (>= 1.0.0),
     rlang,
-    grDevices
+    grDevices,
+    parallel,
+    stats,
+    tools,
+    utils
 Suggests: 
     knitr,
     rmarkdown,

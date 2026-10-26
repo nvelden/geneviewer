@@ -35,14 +35,13 @@ pairs.
 The Biostrings package is required to run this function.
 }
 \examples{
-\dontrun{
-# Read sequences from a single FASTA file
-sequences_df <- read_fasta("path/to/single_file.fasta")
+if (requireNamespace("Biostrings", quietly = TRUE)) {
+  fasta_file <- system.file("extdata", "BGC0000108.fasta", package = "geneviewer")
 
-# Read all sequences from a directory of FASTA files
-sequences_df <- read_fasta("path/to/directory/", file_extension = "fa")
+  # Read sequences from a single FASTA file
+  sequences_df <- read_fasta(fasta_file)
 
-# Read sequences and include the protein sequences in the output
-sequences_df <- read_fasta("path/to/directory/", sequence = TRUE)
+  # Read all FASTA files in a directory, without the sequences
+  sequences_df <- read_fasta(dirname(fasta_file), sequence = FALSE)
 }
 }

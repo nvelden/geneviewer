@@ -1,52 +1,27 @@
-29.09.2025
-
 ## Submission comments
 
-* Fixed issue with setting tooltip and legend to FALSE.
-* Fixed rendering issue where links were displayed behind the graph.
-* Fixed strand direction parsing in GenBank (.gbk) files.
-* Fixed passing of additional CSS styles to chart components.
-* Added GitHub Actions workflow to build Wasm assets for Shinylive compatibility.
+This is an update from 0.1.11 to 0.2.0. It adds new chart features (themes,
+patterns, SVG export, click events for Shiny, styling by group) and fixes a
+number of bugs in the file readers and charts. See NEWS.md for details.
+
+* The bundled D3 (ISC) and FileSaver.js (MIT) libraries now ship with their
+  upstream license files; their authors are listed as `ctb`/`cph` in
+  Authors@R and the details are in inst/COPYRIGHTS.
+* tidyr is no longer a dependency.
+* `mummer_alignment()` uses the external MUMmer programs, now declared in
+  SystemRequirements. Its examples stay in `\dontrun{}` because they need
+  MUMmer installed; all other examples now run on data bundled with the package.
 
 ## Test environments
-* macOS (macos-latest), R devel (via GitHub Actions)
-* Windows (windows-latest), R devel (via GitHub Actions)
-* Ubuntu (ubuntu-latest), R devel (via GitHub Actions)
-* Local R installation, R 4.4.0 on macOS Sequoia
+
+* Local macOS 15 (arm64), R 4.4.0
+* win-builder, R-devel
+* win-builder, R-release (R 4.6.1)
 
 ## R CMD check results
-There were no ERRORs, WARNINGs, or NOTEs.
 
-02.01.2024
+0 errors | 0 warnings | 0 notes
 
-## Submission comments
+## Reverse dependencies
 
-* Added appropriate references to the `Description` field for methods utilized in the package.
-* Revised the `Title` field to remove the redundant "in R" at the end.
-* Updated `read_gbk` and `genbank_to_fasta` to utilize package data and replaced `\dontrun{}` with `\donttest{}`.
-* Updated `mummer_alignment` to issue a warning instead of printing a message and adjusted the function to write output to `tempdir()` by default.
-
-## Test environments
-* macOS (macos-latest), R devel (via GitHub Actions)
-* Windows (windows-latest), R devel (via GitHub Actions)
-* Ubuntu (ubuntu-latest), R devel (via GitHub Actions)
-* Local R installation, R 4.4.0 on macOS Ventura
-
-## R CMD check results
-There were no ERRORs, WARNINGs, or NOTEs.
-
-19.12.2024
-
-## Submission comments
-
-* Added the `Authors@R` field in the DESCRIPTION file to comply with CRAN requirements.
-* Revised the `Description` field in the DESCRIPTION file to avoid starting with the package name or phrases like 'This package'.
-
-## Test environments
-* macOS (macos-latest), R devel (via GitHub Actions)
-* Windows (windows-latest), R devel (via GitHub Actions)
-* Ubuntu (ubuntu-latest), R devel (via GitHub Actions)
-* Local R installation, R 4.4.0 on macOS Ventura
-
-## R CMD check results
-There were no ERRORs, WARNINGs, or NOTEs.
+There are no reverse dependencies.

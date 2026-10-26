@@ -1,4 +1,4 @@
-# geneviewer (development version)
+# geneviewer 0.2.0
 
 ### New features:
 - `GC_events(rendered = TRUE, render_id = )` reports successful chart updates through Shiny's `input$<outputId>_rendered` and a bubbling `geneviewer:rendered` browser event. The event carries the update identifier, chart DOM ID (`chartId`) and widget dimensions. An omitted `render_id` generates a unique ID per update across charts on the page. It fires after drawing and click setup, and does not fire on resize or failed draws.
@@ -25,7 +25,11 @@
 - `GC_title()`, `GC_clusterTitle()` and `GC_clusterFooter()` now have a documented `spacing` argument for the pixels between the title and the subtitle, which is checked; it was only taken through `...`. The cluster title and footer take one per cluster.
 - `GC_trackMouse()` takes the styles of the coordinate tooltip (e.g. `backgroundColor`, `fontSize`) and `cursor`.
 
+### Enhancements:
+- `read_fasta()` is about 4-5 times faster on large FASTA files.
+
 ### Changes:
+- MUMmer is now listed under `SystemRequirements`, and the examples of `read_fasta()`, `read_gff()`, `read_bed()`, `gbk_features_to_df()` and `protein_blast()` run on example data.
 - FASTA and GFF readers now spread metadata with an internal helper instead of tidyr. Removing the tidyr dependency also avoids its stringr, stringi and purrr dependencies when they are not required by other packages, reducing Shinylive startup downloads.
 - The padding around automatic scale breaks (`GC_scale(scale_breaks = TRUE, scale_break_padding = )`) is now a share of the region shown, without the breaks, so all breaks get the same room around them; long breaks used to get much more padding than short ones.
 - With `GC_scale(axis_type = "range")`, scale breaks are given in the positions of the data, like the annotations and the line, and move with the genes; they were taken as positions on the shifted axis.
@@ -43,6 +47,7 @@
 - New tutorial "Reproducing a published figure: Tn7-like transposons", which rebuilds Fig. 3 of Peters et al. (2017) step by step: scale breaks, lining up on a gene, group styles for genes, labels and the legend, and saving as SVG. The "Example charts" article shows the finished chart, which also replaces an example chart in the README. Its data are in the new dataset `tn7_crispr_elements`, made by `data-raw/tn7_crispr_elements.R` from the GenBank records.
 
 ### Bug fixes:
+- `mummer_alignment()` now finds MUMmer on Windows; it looked for it with a Unix-only shell command and always reported it as not installed.
 - `mummer_alignment()` now runs in a unique working subdirectory, preserving existing input and output files and cleaning up its own files on success or failure. With `remove_files = FALSE`, files are retained in that subdirectory of `output_dir`.
 - Bundled D3 and FileSaver.js now include their upstream license notices and copyright attribution.
 - FASTA tests now skip when the optional Biostrings package is unavailable.
@@ -86,13 +91,6 @@
 - A percentage `GC_title(height = )` or `GC_legend(height = )` now follows the chart height when the chart is resized; it kept the pixel height of the first draw.
 - Smaller fixes: legend items fade on hover again (an invalid CSS selector dropped the transition; it now only animates the opacity, so rotated gene labels no longer swing into place on every draw), legend items have unique ids, the 3' and 5' transcript labels have their own classes (`three-prime-label`, `five-prime-label`), and unused or invalid styles were removed from the footer subtitle and the link layer.
 - The `GC_links()` colour bar now shows a gradient for each link colour on the chart: the inverted gradient only when at least one link (in any `GC_links()` set) joins opposite strands, and the normal gradient only when at least one link joins the same strand. Charts with only inverted links showed only the normal gradient, and charts with forward and reverse normal links showed an inverted gradient. The link data is no longer modified.
-
-# geneviewer 0.2.0
-
-### Enhancements:
-- `read_fasta()` is about 4-5 times faster on large FASTA files.
-
-### Bug fixes:
 - `GC_chart()` no longer errors when `height` is a percentage (e.g. `height = "100%"`).
 - `GC_cluster(prevent_gene_overlap = TRUE, cluster = ...)` now stacks overlapping genes in the selected clusters instead of the first ones.
 - `read_gbk()` no longer creates fake features from wrapped qualifier lines that start with a feature name (e.g. a `/note` line starting with "gene") or from feature keys that start with another key (e.g. `CDS_motif` read as `CDS`).

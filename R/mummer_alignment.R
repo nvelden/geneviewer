@@ -30,6 +30,9 @@
 #'
 #' @examples
 #' \dontrun{
+#' # Requires the external MUMmer programs (nucmer or promer, delta-filter and
+#' # show-coords) on the PATH.
+#'
 #' # Basic alignment with default options
 #' mummer_alignment(
 #'   path = "/path/to/sequences",
@@ -202,7 +205,7 @@ mummer <- function(reference, query, maptype = "many-to-many", seqtype = "protei
   command_type <- ifelse(seqtype == "protein", "promer", "nucmer")
 
   # Check if MUMmer (either nucmer or promer) is installed
-  if (system(paste("command -v", command_type), ignore.stdout = TRUE, ignore.stderr = TRUE) != 0) {
+  if (!nzchar(Sys.which(command_type))) {
     stop(paste(command_type, "is not installed or not in the PATH."))
   }
 

@@ -970,6 +970,33 @@ function chartToSVG(el, exclude = null) {
   return '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(root);
 }
 
+// Rasterize the same SVG as vector export. The browser resolves modern CSS
+// colors itself, without html2canvas parsing the surrounding app styles.
+function chartToPNG(el, exclude = null) {
+  const svg = new Blob([chartToSVG(el, exclude)], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(svg);
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const fail = error => { URL.revokeObjectURL(url); reject(error); };
+    image.onerror = () => fail(new Error("Could not render the chart SVG as PNG."));
+    image.onload = () => {
+      try {
+        const scale = window.devicePixelRatio || 1;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.ceil(image.naturalWidth * scale);
+        canvas.height = Math.ceil(image.naturalHeight * scale);
+        canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(blob => {
+          URL.revokeObjectURL(url);
+          if (blob) resolve(blob);
+          else reject(new Error("Could not encode the chart as PNG."));
+        }, "image/png");
+      } catch (error) { fail(error); }
+    };
+    image.src = url;
+  });
+}
+
 function createSaveIcon(widgetId, el, show = true) {
 
   if (show) {
@@ -1021,11 +1048,7 @@ function createSaveIcon(widgetId, el, show = true) {
       {
         label: "Save as PNG",
         save: function () {
-          html2canvas(el, { backgroundColor: null }).then(canvas => {
-            canvas.toBlob(function (blob) {
-              saveAs(blob, "graph.png");
-            });
-          });
+          return chartToPNG(el, saveMenu.node()).then(blob => saveAs(blob, "graph.png"));
         }
       }
     ];

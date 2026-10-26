@@ -118,10 +118,9 @@ process_gff <- function(path, fields = NULL){
     df_attributes <- dplyr::bind_rows(list_attributes, .id = "id")
 
     if (nrow(df_attributes) > 0) {
-      df_attributes <- widen_attributes(df_attributes)
-      # Rows without attributes have no id; match back by row number
-      df_attributes <- df_attributes[match(seq_len(nrow(data)), as.integer(df_attributes$id)), ] %>%
-        select(-"id")
+      metadata <- widen_attributes(df_attributes)
+      # Bookkeeping IDs are separate from user attributes (which may include id).
+      df_attributes <- metadata$data[match(seq_len(nrow(data)), as.integer(metadata$id)), ]
       data <- cbind(data %>% dplyr::select(-attributes), df_attributes)
     } else {
       data <- data %>% dplyr::select(-attributes)

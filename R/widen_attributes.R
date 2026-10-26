@@ -4,6 +4,8 @@
 #' first-seen order of records and keys, missing values and non-syntactic names.
 #' Repeated keys within a record retain all values in list columns, with NULL
 #' for absent keys, as in the previous pivot_wider() implementation.
+#' Return record IDs separately from the metadata so any key, including id,
+#' remains available to the file format.
 #' @noRd
 widen_attributes <- function(data) {
   ids <- unique(data$id)
@@ -29,6 +31,6 @@ widen_attributes <- function(data) {
   keys[is.na(keys)] <- "NA"
   # dplyr is already required; retain the tibble returned by the old readers
   # and reject empty or duplicate column names instead of silently renaming.
-  dplyr::as_tibble(c(list(id = ids), stats::setNames(columns, keys)),
-                   .name_repair = "check_unique")
+  list(id = ids, data = dplyr::as_tibble(stats::setNames(columns, keys),
+                                       .name_repair = "check_unique"))
 }

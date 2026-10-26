@@ -21,8 +21,9 @@
 #'   view all filtering options, run `delta-filter --help` in the terminal.
 #' @param remove_files Logical indicating whether to remove intermediate files
 #'   generated during the process, defaults to TRUE.
-#' @param output_dir Optional directory for output files; defaults to
-#'  \code{tempdir()}
+#' @param output_dir Parent directory for a unique working subdirectory;
+#'   defaults to \code{tempdir()}. With \code{remove_files = FALSE}, copied
+#'   inputs and alignment files are retained in that subdirectory.
 #'
 #' @return A data frame combining all alignment results, or NULL if errors occur
 #'   during processing.
@@ -81,13 +82,6 @@ mummer_alignment <- function(
 
   all_files <- list.files(path, full.names = TRUE, pattern = "\\.gbk$|\\.gb$|\\.fasta$")
 
-  # Move all files to the output dir if specified
-  if(output_dir != path){
-    sapply(all_files, function(x) file.copy(x, output_dir, overwrite = TRUE))
-    path <- output_dir
-    all_files <- list.files(path, full.names = TRUE, pattern = "\\.gbk$|\\.gb$|\\.fasta$")
-  }
-
   if (length(all_files) == 0) {
     stop("No files found in the specified directory. Check the path or file types.")
   }
@@ -103,6 +97,23 @@ mummer_alignment <- function(
   if (any(grepl(" ", cluster))) {
     stop("MUMmer requires file names without spaces: ", paste(cluster[grepl(" ", cluster)], collapse = ", "))
   }
+
+  # Every call owns its working directory, including when inputs and outputs
+  # share a directory. Never overwrite or clean up pre-existing user files.
+  work_dir <- tempfile("geneviewer-mummer-", tmpdir = output_dir)
+  if (!dir.create(work_dir)) {
+    stop("Could not create the MUMmer working directory.")
+  }
+  if (remove_files) {
+    on.exit(unlink(work_dir, recursive = TRUE), add = TRUE)
+  }
+  input_names <- sub("\\.gbk$|\\.gb$|\\.fasta$", "", basename(all_files))
+  all_files <- all_files[input_names %in% cluster]
+  if (!all(file.copy(all_files, work_dir))) {
+    stop("Could not copy sequence files to the MUMmer working directory.")
+  }
+  all_files <- file.path(work_dir, basename(all_files))
+  path <- work_dir
 
   # Check if FASTA files and matching cluster names (exact file names)
   fasta_files <- all_files[basename(all_files) %in% paste0(cluster, ".fasta")]
@@ -137,10 +148,6 @@ mummer_alignment <- function(
 
   links <- lapply(cluster_pairs, function(pair) {
 
-    # Files written by mummer() for this pair
-    output_prefix <- file.path(path, sprintf("%s_%s_%s", pair[1], pair[2], seqtype))
-    output_files <- paste0(output_prefix, c(".delta", sprintf("_%s.delta", gsub("-", "_", maptype)), sprintf("_%s.coords", gsub("-", "_", maptype))))
-
     reference_seq <- fasta_files[basename(fasta_files) == paste0(pair[1], ".fasta")]
     query_seq <- fasta_files[basename(fasta_files) == paste0(pair[2], ".fasta")]
 
@@ -169,16 +176,9 @@ mummer_alignment <- function(
         coords <- parse_procmer(coords_file, pair[1], pair[2])
       }
 
-      if (remove_files) {
-        file.remove(output_files[file.exists(output_files)])
-      }
-
       return(coords)
 
     }, error = function(e) {
-      if (remove_files) {
-        file.remove(output_files[file.exists(output_files)])
-      }
       warning(sprintf("Error in aligning %s vs %s: %s", pair[1], pair[2], e$message))
       return(NULL)
     })
@@ -186,19 +186,6 @@ mummer_alignment <- function(
 
   links <- Filter(Negate(is.null), links)
   links <- do.call(rbind, links)
-
-  if (remove_files) {
-    if (output_dir == tempdir()) {
-
-      files_to_remove <- all_files
-      files_to_remove <- files_to_remove[file.exists(files_to_remove)]
-      file.remove(files_to_remove)
-    } else if (!is.null(gbk_files) && length(gbk_files) > 0) {
-      fasta_files_to_remove <- sub("\\.gbk$|\\.gb$", ".fasta", gbk_files)
-      fasta_files_to_remove <- fasta_files_to_remove[file.exists(fasta_files_to_remove)]
-      file.remove(fasta_files_to_remove)
-    }
-  }
 
   return(links)
 }

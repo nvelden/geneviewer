@@ -1,0 +1,18 @@
+geneviewer includes the following third-party JavaScript libraries. These
+components retain their upstream licenses; geneviewer's own code is MIT licensed.
+
+D3 7.8.5
+  Copyright 2010-2023 Mike Bostock
+  License: ISC
+  Source: https://github.com/d3/d3/tree/v7.8.5
+  Upstream license: https://github.com/d3/d3/blob/v7.8.5/LICENSE
+  Bundled file: htmlwidgets/lib/D3-7.8.5/d3.min.js
+  Full license: htmlwidgets/lib/D3-7.8.5/LICENSE
+
+FileSaver.js 2.0.4
+  Copyright 2016 Eli Grey
+  License: MIT
+  Source: https://github.com/eligrey/FileSaver.js/tree/v2.0.4
+  Upstream license: https://github.com/eligrey/FileSaver.js/blob/v2.0.4/LICENSE.md
+  Bundled file: htmlwidgets/lib/FileSaver-2.0.4/FileSaver.min.js
+  Full license: htmlwidgets/lib/FileSaver-2.0.4/LICENSE

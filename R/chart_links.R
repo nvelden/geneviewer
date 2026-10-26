@@ -316,6 +316,12 @@ GC_links <- function(
     links_data <- get_links(GC_chart, group, value1 = value1, value2 = value2, cluster = cluster)
   }
 
+  # A valid alignment can have no hits. Keep existing links and avoid sending
+  # an empty link set to the renderer or its color bar.
+  if (nrow(links_data) == 0) {
+    return(GC_chart)
+  }
+
   # Rename relevant columns
   if ("identity2" %in% names(links_data)) {
     names(links_data)[names(links_data) == "identity2"] <- "identity"
@@ -370,7 +376,7 @@ GC_links <- function(
   currentLinks <- GC_chart$x$links
 
   if (is.null(currentLinks) || length(currentLinks) == 0) {
-    links_data$linkID <- paste0("0-", (1:nrow(links_data)))
+    links_data$linkID <- paste0("0-", seq_len(nrow(links_data)))
 
     links <- list(
       data = links_data,
@@ -379,7 +385,7 @@ GC_links <- function(
 
     GC_chart$x$links <- list(links)
   } else {
-    links_data$linkID <- paste0(length(currentLinks), "-", (1:nrow(links_data)))
+    links_data$linkID <- paste0(length(currentLinks), "-", seq_len(nrow(links_data)))
 
     links <- list(
       data = links_data,

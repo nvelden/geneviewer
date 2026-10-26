@@ -2,10 +2,14 @@ Package: geneviewer
 Type: Package
 Title: Gene Cluster Visualizations
 Version: 0.2.0
-Authors@R: person(given = "Niels",
+Authors@R: c(person(given = "Niels",
                   family = "van der Velden",
                   role = c("aut", "cre"),
-                  email = "n.s.j.vandervelden@gmail.com")
+                  email = "n.s.j.vandervelden@gmail.com"),
+             person("Mike", "Bostock", role = c("ctb", "cph"),
+                    comment = "Bundled D3 library"),
+             person("Eli", "Grey", role = c("ctb", "cph"),
+                    comment = "Bundled FileSaver.js library"))
 Maintainer: Niels van der Velden <n.s.j.vandervelden@gmail.com>
 Description: Provides tools for plotting gene clusters and transcripts by 
   importing data from GenBank, FASTA, and GFF files. It performs BLASTP and 
@@ -40,6 +44,6 @@ Suggests:
     chromote,
     htmltools,
     jsonlite,
-    testthat (>= 3.0.0)
+    testthat (>= 3.2.0)
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.1

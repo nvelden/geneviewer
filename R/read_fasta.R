@@ -123,8 +123,7 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
         value = trimws(substring(pairs, equals + 1)),
         stringsAsFactors = FALSE
       )
-      df <- widen_attributes(df_long) %>%
-        dplyr::select(-"id") # Remove the id column if not needed
+      df <- widen_attributes(df_long)$data
 
       # Replace 'NA' with actual NA where applicable
       df[df == "NA"] <- NA

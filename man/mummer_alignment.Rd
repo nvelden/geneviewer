@@ -39,8 +39,9 @@ view all filtering options, run \code{delta-filter --help} in the terminal.}
 \item{remove_files}{Logical indicating whether to remove intermediate files
 generated during the process, defaults to TRUE.}
 
-\item{output_dir}{Optional directory for output files; defaults to
-\code{tempdir()}}
+\item{output_dir}{Parent directory for a unique working subdirectory;
+defaults to \code{tempdir()}. With \code{remove_files = FALSE}, copied
+inputs and alignment files are retained in that subdirectory.}
 }
 \value{
 A data frame combining all alignment results, or NULL if errors occur

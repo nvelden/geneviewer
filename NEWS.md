@@ -43,6 +43,13 @@
 - New tutorial "Reproducing a published figure: Tn7-like transposons", which rebuilds Fig. 3 of Peters et al. (2017) step by step: scale breaks, lining up on a gene, group styles for genes, labels and the legend, and saving as SVG. The "Example charts" article shows the finished chart, which also replaces an example chart in the README. Its data are in the new dataset `tn7_crispr_elements`, made by `data-raw/tn7_crispr_elements.R` from the GenBank records.
 
 ### Bug fixes:
+- `mummer_alignment()` now runs in a unique working subdirectory, preserving existing input and output files and cleaning up its own files on success or failure. With `remove_files = FALSE`, files are retained in that subdirectory of `output_dir`.
+- Bundled D3 and FileSaver.js now include their upstream license notices and copyright attribution.
+- FASTA tests now skip when the optional Biostrings package is unavailable.
+- `read_bed()` no longer drops records when feature names contain "track", and preserves records across multiple track declarations.
+- `get_introns()` only adds positive gaps between covered regions, including when exons and UTRs overlap, nest or are adjacent.
+- `GC_links()` leaves the chart unchanged when supplied an empty alignment.
+- GFF and FASTA metadata named `id` no longer collides with internal record identifiers.
 - PNG export now rasterizes the same SVG snapshot as SVG export, so it works inside apps whose surrounding styles use modern CSS colors such as `oklch()`. Backgrounds, patterns and the device pixel ratio are retained without parsing the app's stylesheets. The unused html2canvas dependency is no longer bundled.
 - In Shiny, fixed pixel chart widths now size the whole widget before drawing, so the title, clusters and legend share the requested width instead of shrinking the clusters into the output container. Switching back to a responsive chart restores the original output width; standalone and height sizing are unchanged.
 - When `GC_links()` is called more than once, the link labels of each call now use the options of that call (`label`, `measure`, `labelStyle`, `value1`, `value2`, ...); all link sets used those of the first call. A gene in more than one link set gets one label.

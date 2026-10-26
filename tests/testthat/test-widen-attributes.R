@@ -4,8 +4,9 @@ test_that("reader metadata retains record and key order and missing fields", {
     key = c("gene name", "Note", "Note", "gene name", "odd-name"),
     value = c("abc", NA, "", "xyz", "NA")
   )
-  expect_identical(widen_attributes(metadata), dplyr::as_tibble(list(
-    id = c("2", "1", "3"),
+  result <- widen_attributes(metadata)
+  expect_identical(result$id, c("2", "1", "3"))
+  expect_identical(result$data, dplyr::as_tibble(list(
     `gene name` = c("abc", NA, "xyz"),
     Note = c("", NA, NA),
     `odd-name` = c(NA, "NA", NA)
@@ -19,8 +20,8 @@ test_that("repeated metadata keys retain all values in list columns", {
     value = c("first", "abc", "second", "first", NA)
   )
   expect_warning(result <- widen_attributes(metadata), "output will contain list-cols")
-  expect_identical(result, dplyr::as_tibble(list(
-    id = c("2", "1", "3"),
+  expect_identical(result$id, c("2", "1", "3"))
+  expect_identical(result$data, dplyr::as_tibble(list(
     Note = list(c("first", "second", "first"), NULL, NULL),
     gene = list(NULL, "abc", NA_character_)
   )))
@@ -28,18 +29,45 @@ test_that("repeated metadata keys retain all values in list columns", {
 
 test_that("empty metadata and missing keys retain their previous shape", {
   metadata <- data.frame(id = character(), key = character(), value = character())
-  expect_identical(widen_attributes(metadata), dplyr::as_tibble(list(id = character())))
+  expect_identical(widen_attributes(metadata), list(id = character(), data = dplyr::as_tibble(list())))
   metadata <- data.frame(id = "1", key = NA_character_, value = "x")
-  expect_identical(widen_attributes(metadata), dplyr::as_tibble(list(id = "1", `NA` = "x")))
+  expect_identical(widen_attributes(metadata), list(id = "1", data = dplyr::as_tibble(list(`NA` = "x"))))
 })
 
-test_that("metadata rejects column name collisions and empty names", {
+test_that("metadata id keys are separate from bookkeeping IDs", {
   metadata <- data.frame(id = "1", key = "id", value = "x")
-  expect_error(widen_attributes(metadata), "unique")
-  metadata$key <- ""
+  expect_identical(widen_attributes(metadata), list(id = "1", data = dplyr::as_tibble(list(id = "x"))))
+})
+
+test_that("metadata rejects duplicate normalized names and empty names", {
+  metadata <- data.frame(id = "1", key = "", value = "x")
   expect_error(widen_attributes(metadata), "empty")
   metadata <- data.frame(id = c("1", "2"), key = c(NA, "NA"), value = c("x", "y"))
   expect_error(widen_attributes(metadata), "unique")
+})
+
+test_that("GFF attributes named id survive missing rows and field selection", {
+  file <- tempfile(fileext = ".gff3")
+  on.exit(unlink(file))
+  writeLines(c("chr1\tdemo\tgene\t1\t20\t.\t+\t.\tid=custom1;ID=standard1",
+               "chr1\tdemo\tgene\t30\t40\t.\t+\t.\t.",
+               "chr1\tdemo\tgene\t50\t60\t.\t-\t.\tid=custom3"), file)
+  result <- read_gff(file)
+  expect_identical(result$id, c("custom1", NA_character_, "custom3"))
+  expect_identical(result$ID, c("standard1", NA_character_, NA_character_))
+  expect_identical(read_gff(file, fields = "id")$id, result$id)
+})
+
+test_that("FASTA metadata named id retains sequence order", {
+  skip_if_not_installed("Biostrings")
+  file <- tempfile(fileext = ".fasta")
+  on.exit(unlink(file))
+  writeLines(c(">s1 [id=custom1] [gene=a]", "MKT",
+               ">s2 [gene=b]", "MAA",
+               ">s3 [id=custom3] [gene=c]", "MAG"), file)
+  result <- read_fasta(file)
+  expect_identical(result$id, c("custom1", NA_character_, "custom3"))
+  expect_identical(result$sequence, c("MKT", "MAA", "MAG"))
 })
 
 test_that("GFF readers retain repeated attributes and rows without metadata", {

@@ -12,6 +12,7 @@ test_that("Read .gbk file from file path", {
 })
 
 test_that("Read FASTA from file path", {
+  skip_if_not_installed("Biostrings")
 
   # Use the actual FASTA file
   file_path <- system.file("extdata", "BGC0000108.fasta", package = "geneviewer")

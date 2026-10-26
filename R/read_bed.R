@@ -81,12 +81,10 @@ process_bed <- function(path){
   if(file.exists(path)){
 
     lines <- readLines(path)
-    # Find the line with the pattern 'track'
-    track_line <- grep("track", lines)
-    # Read data from the line after the 'track' line if it exists
-    if (length(track_line) > 0) {
-      lines <- lines[(track_line + 1):length(lines)]
-    }
+    # Remove UCSC directives and comments wherever they appear. Words inside
+    # chromosome or feature names are data, not declarations.
+    header <- grepl("^[[:space:]]*(track|browser)([[:space:]]|$)|^[[:space:]]*(#|$)", lines)
+    lines <- lines[!header]
 
     # Determine the number of columns from the first data line
     if (length(lines) > 0) {
@@ -101,6 +99,7 @@ process_bed <- function(path){
       header = FALSE,
       quote = "",
       sep = "\t",
+      comment.char = "",
       fill = TRUE,
       stringsAsFactors = FALSE,
       col.names = used_fields

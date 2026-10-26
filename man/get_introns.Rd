@@ -22,4 +22,6 @@ This function takes a dataset containing transcript information and calculates
 the start and end positions of introns based on the positions of exons. It
 generates a combined dataframe including both the original exons and the
 calculated introns.
+Overlapping, nested, and adjacent exon/UTR intervals are treated as a
+continuous covered region; only positive gaps become introns.
 }

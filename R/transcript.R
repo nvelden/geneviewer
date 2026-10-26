@@ -5,6 +5,8 @@
 #' the start and end positions of introns based on the positions of exons. It
 #' generates a combined dataframe including both the original exons and the
 #' calculated introns.
+#' Overlapping, nested, and adjacent exon/UTR intervals are treated as a
+#' continuous covered region; only positive gaps become introns.
 #'
 #' @param data A dataframe containing `start` and `end` positions of transcripts.
 #'   Optional columns are `type` (exon or UTR), `transcript` (containing unique
@@ -43,22 +45,23 @@ get_introns <- function(data) {
   swap_needed <- intron_results$start > intron_results$end
   intron_results[swap_needed, c("start", "end")] <- intron_results[swap_needed, c("end", "start")]
 
-  # Filter and sort exons, then calculate intron positions
+  # The running end merges overlapping/nested coverage without changing the
+  # original exon/UTR rows. Adjacent intervals have no intron between them.
   intron_results <- intron_results %>%
     dplyr::group_by(.data$transcript) %>%
     dplyr::filter(grepl("exon|utr", .data$type, ignore.case = TRUE)) %>%
     dplyr::arrange(.data$transcript, .data$start) %>%
     dplyr::mutate(
-      next_start = dplyr::lead(.data$start),
-      next_end = dplyr::lead(.data$end),
+      covered_end = cummax(.data$end),
+      next_start = dplyr::lead(.data$start)
     ) %>%
-    dplyr::filter(!is.na(.data$next_start)) %>%
+    dplyr::filter(!is.na(.data$next_start), .data$next_start > .data$covered_end + 1) %>%
     dplyr::mutate(
-      start = .data$end + 1,
+      start = .data$covered_end + 1,
       end = .data$next_start - 1,
       type = "intron"
     ) %>%
-    dplyr::select(-dplyr::all_of(c("next_start", "next_end")))
+    dplyr::select(-dplyr::all_of(c("next_start", "covered_end")))
 
   combined_results <- dplyr::bind_rows(data, intron_results) %>%
     dplyr::arrange(.data$original_transcript_order, .data$start) %>%

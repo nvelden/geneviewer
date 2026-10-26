@@ -22,7 +22,6 @@
 #'  the FASTA headers.
 #'
 #'@importFrom dplyr bind_rows select any_of
-#'@importFrom tidyr pivot_wider
 #'@importFrom tools file_path_sans_ext
 #'@importFrom rlang .data
 #' @examples
@@ -124,8 +123,7 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
         value = trimws(substring(pairs, equals + 1)),
         stringsAsFactors = FALSE
       )
-      df <- df_long %>%
-        tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+      df <- widen_attributes(df_long) %>%
         dplyr::select(-"id") # Remove the id column if not needed
 
       # Replace 'NA' with actual NA where applicable

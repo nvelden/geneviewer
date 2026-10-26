@@ -27,12 +27,12 @@ Imports:
     fontawesome,
     magrittr,
     dplyr,
-    tidyr,
     rlang,
     grDevices
 Suggests: 
     knitr,
     rmarkdown,
+    tidyr,
     shiny,
     biomaRt,
     pwalign,

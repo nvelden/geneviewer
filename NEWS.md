@@ -26,6 +26,7 @@
 - `GC_trackMouse()` takes the styles of the coordinate tooltip (e.g. `backgroundColor`, `fontSize`) and `cursor`.
 
 ### Changes:
+- FASTA and GFF readers now spread metadata with an internal helper instead of tidyr. Removing the tidyr dependency also avoids its stringr, stringi and purrr dependencies when they are not required by other packages, reducing Shinylive startup downloads.
 - The padding around automatic scale breaks (`GC_scale(scale_breaks = TRUE, scale_break_padding = )`) is now a share of the region shown, without the breaks, so all breaks get the same room around them; long breaks used to get much more padding than short ones.
 - With `GC_scale(axis_type = "range")`, scale breaks are given in the positions of the data, like the annotations and the line, and move with the genes; they were taken as positions on the shifted axis.
 - `GC_align()` leaves scale breaks out of the shared range: a cluster with breaks gets a range that much longer, so all clusters keep the same scale. The padding of the scale and the line is now a share of the range shown, without its breaks.

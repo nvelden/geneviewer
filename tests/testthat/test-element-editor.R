@@ -1,0 +1,106 @@
+test_that("element overrides target row IDs and merge without replacing neighbours", {
+  data <- data.frame(start = c(90, 10, 50), end = c(130, 40, 80),
+                     name = c("same", "same", "other"), cluster = c("A", "A", "B"))
+  base <- GC_chart(data, cluster = "cluster") %>% GC_labels("name")
+  chart <- base %>%
+    GC_element_style("genes", 1, fill = "red") %>%
+    GC_element_style("genes", 2, fill = "blue") %>%
+    GC_element_style("genes", 1, marker = "box") %>%
+    GC_element_style("labels", 1, text = "Changed", fontSize = "18px")
+  items <- chart$x$series$A$genes$itemStyle
+  expect_length(items, 2)
+  expect_equal(items[[2]], list(fill = "red", rowID = 1, marker = "box"))
+  expect_null(chart$x$series$B$genes$itemStyle)
+  expect_null(base$x$series$A$genes$itemStyle)
+  expect_equal(chart$x$series$A$labels$itemStyle[[1]]$text, "Changed")
+  reset <- GC_element_style(chart, "genes", 1, reset = TRUE)
+  expect_equal(reset$x$series$A$genes$itemStyle, list(list(fill = "blue", rowID = 2)))
+  expect_identical(reset$x$series$A$labels, chart$x$series$A$labels)
+  expect_error(GC_element_style(base, "genes", 99, fill = "red"), "row_id")
+  expect_error(GC_element_style(base, "genes", 1, "red"), "names")
+  expect_error(GC_element_style(base, "genes", 1, index = 0), "row_id")
+  expect_error(GC_element_style(base, "genes", 1, fill = "red", reset = TRUE), "reset")
+  expect_error(GC_element_style(base, "genes", 1, reset = NA), "TRUE or FALSE")
+})
+
+test_that("editor events are independent and validate their flags", {
+  chart <- GC_chart(data.frame(start = 1, end = 20))
+  events <- GC_events(chart, click = FALSE, dblclick = TRUE, select = TRUE,
+                      legend_click = FALSE)$x$events
+  expect_false(events$click)
+  expect_true(events$dblclick)
+  expect_true(events$select)
+  expect_false(events$legendClick)
+  for (argument in c("dblclick", "select", "legend_click")) {
+    for (value in list(NA, 1, "yes", logical(), c(TRUE, FALSE))) {
+      expect_error(do.call(GC_events, c(list(chart), setNames(list(value), argument))),
+                   "TRUE or FALSE")
+    }
+  }
+})
+
+# Exercise native click/double-click ordering independently of an app.
+test_that("selection and legend toggles remain independent across redraws", {
+  data <- data.frame(start = c(90, 10), end = c(130, 40),
+                     name = c("same", "same"), group = "A")
+  chart <- GC_chart(data, group = "group", height = "300px") %>%
+    GC_labels("name") %>%
+    GC_genes(groupStyle = list(A = list(fill = "green"))) %>%
+    GC_element_style("genes", 1, fill = "red") %>%
+    GC_element_style("labels", 1, text = "Edited") %>%
+    GC_events(click = FALSE, select = TRUE, dblclick = TRUE, legend_click = FALSE)
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const widget = HTMLWidgets.find('#' + el.id);
+      const x = JSON.parse(document.querySelector('script[data-for=\"' + el.id + '\"]').textContent).x;
+      const messages = [], dom = [];
+      window.Shiny = { setInputValue: (name, value) => messages.push({ name, value }) };
+      HTMLWidgets.shinyMode = true;
+      el.addEventListener('geneviewer:dblclick', e => dom.push(e.detail));
+      const gene = () => el.querySelector('.gene[rowID=\"1\"]');
+      const click = (node, detail = 1) => node.dispatchEvent(new MouseEvent('click', { bubbles: true, detail }));
+      const double = node => {
+        click(node); click(node, 2);
+        node.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, detail: 2 }));
+      };
+      const fill = getComputedStyle(gene()).fill;
+      const text = el.querySelector('text.label[rowID=\"1\"]').textContent;
+      double(gene());
+      double(el.querySelector('.legend-marker'));
+      widget.resize(700, 400);
+      widget.renderValue(x);
+      const hidden = gene().style.display;
+      const selected = el.querySelector('.geneviewer-selected').getAttribute('rowID');
+      click(el.querySelector('.legend-marker'));
+      gene().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      gene().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      const cleared = el.querySelectorAll('.geneviewer-selected').length;
+      click(gene());
+      x.data.name[0] = 'Replacement';
+      widget.renderValue(x);
+      const replaced = el.querySelectorAll('.geneviewer-selected').length;
+      x.events = { click: true };
+      widget.renderValue(x);
+      click(gene());
+      return JSON.stringify({ fill, text, hidden, selected, cleared, replaced, dom,
+        clicks: messages.filter(m => m.name.endsWith('_click')).length,
+        doubles: messages.filter(m => m.name.endsWith('_dblclick')).length });
+    })()
+  ")
+  expect_null(result$exceptionDetails)
+  value <- jsonlite::fromJSON(result$result$value, simplifyVector = FALSE)
+  expect_equal(value$fill, "rgb(255, 0, 0)")
+  expect_equal(value$text, "Edited")
+  expect_equal(value$hidden, "none")
+  expect_equal(value$selected, "1")
+  expect_equal(value$cleared, 0)
+  expect_equal(value$replaced, 0)
+  expect_equal(value$clicks, 1)
+  expect_equal(value$doubles, 2)
+  expect_length(value$dom, 2)
+  expect_equal(value$dom[[1]]$data$rowID, 1)
+})

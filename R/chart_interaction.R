@@ -176,7 +176,7 @@ GC_trackMouse <- function(
   return(GC_chart)
 }
 
-#' Report Chart Clicks and Completed Updates
+#' Report Chart Interactions and Completed Updates
 #'
 #' Makes a chart report clicks to Shiny, so an app can react to the part of the
 #' chart that was clicked: show the details of a gene, open the settings of the
@@ -201,6 +201,24 @@ GC_trackMouse <- function(
 #' Every part of the chart is marked with a `data-component` attribute and each
 #' cluster with `data-cluster`, also without this function, so they can be
 #' selected with CSS or JavaScript.
+#'
+#' With `dblclick = TRUE`, double-clicks independently report the same payload
+#' to `input$<outputId>_dblclick` and the bubbling browser event
+#' `geneviewer:dblclick`. Legend double-clicks are excluded, so visibility
+#' toggles do not open an editor. Browsers also send clicks during a
+#' double-click: use clicks for selection, and double-clicks for editing,
+#' rather than opening different settings panels on each event.
+#'
+#' With `select = TRUE`, a click selects an individual gene or label and
+#' outlines it. Clicking empty chart space or pressing Escape clears selection.
+#' Selection reports the click payload (or `NULL` when cleared) to
+#' `input$<outputId>_select` and `geneviewer:select`. It survives redraws of the
+#' same data and resize. Selected items can be opened with Enter when
+#' `dblclick = TRUE`; items are keyboard focusable in selection mode.
+#' Use `click = FALSE` to avoid legacy single-click settings handlers.
+#' `legend_click = FALSE` excludes legend clicks from click reporting without
+#' changing legend visibility toggles. Selection never includes the legend.
+#' Double-click and selection browser events also work outside Shiny.
 #'
 #' With `rendered = TRUE`, each successful update also sets
 #' `input$<outputId>_rendered` to a list containing `id` (the supplied
@@ -227,6 +245,9 @@ GC_trackMouse <- function(
 #'   with the rendered event, to identify the update. The default, `NULL`,
 #'   generates a unique ID for each update in the browser. It is not a DOM
 #'   element ID; the event's `chartId` identifies the chart itself.
+#' @param dblclick Logical, whether to report double-clicks for editing.
+#' @param select Logical, whether to enable gene and label selection.
+#' @param legend_click Logical, whether legend clicks are reported to Shiny.
 #'
 #' @return The GC chart object with the event settings.
 #'
@@ -257,10 +278,11 @@ GC_trackMouse <- function(
 #'
 #' @export
 GC_events <- function(GC_chart, click = TRUE, highlight = FALSE,
-                      rendered = FALSE, render_id = NULL) {
-  for (arg in list(click = click, highlight = highlight, rendered = rendered)) {
+                      rendered = FALSE, render_id = NULL, dblclick = FALSE,
+                      select = FALSE, legend_click = TRUE) {
+  for (arg in list(click, highlight, rendered, dblclick, select, legend_click)) {
     if (!is.logical(arg) || length(arg) != 1 || is.na(arg)) {
-      stop("'click', 'highlight' and 'rendered' must be TRUE or FALSE.")
+      stop("Event options must be TRUE or FALSE.")
     }
   }
   if (!is.null(render_id) &&
@@ -271,6 +293,9 @@ GC_events <- function(GC_chart, click = TRUE, highlight = FALSE,
   }
 
   GC_chart$x$events <- list(click = click, highlight = highlight)
+  if (dblclick) GC_chart$x$events$dblclick <- TRUE
+  if (select) GC_chart$x$events$select <- TRUE
+  if (!legend_click) GC_chart$x$events$legendClick <- FALSE
   if (rendered) {
     GC_chart$x$events$rendered <- TRUE
     GC_chart$x$events$renderId <- render_id

@@ -36,7 +36,10 @@ HTMLWidgets.widget({
     // Click events for Shiny (GC_events()): the part of the chart clicked (its
     // data-component), its cluster, and the data of the gene, label or link
     var clickData = ["genes", "transcript", "labels", "links", "legend"];
-    var onClick = function (event) {
+    var selected = null;
+    var dataSignature = null;
+    var preserveLegend = true;
+    var eventData = function (event) {
       var part = event.target.closest && event.target.closest("[data-component]");
       if (!part || !el.contains(part)) return;
       var component = part.getAttribute("data-component");
@@ -46,22 +49,91 @@ HTMLWidgets.widget({
         if (node.__data__ !== undefined) { datum = node.__data__; break; }
       }
       var cluster = part.closest("[data-cluster]");
-      Shiny.setInputValue(el.id + "_click", {
+      return {
         component: component,
         cluster: cluster ? cluster.getAttribute("data-cluster") : null,
         data: datum
-      }, { priority: "event" });
+      };
+    };
+
+    var report = function (name, detail) {
+      if (HTMLWidgets.shinyMode) {
+        Shiny.setInputValue(el.id + "_" + name, detail, { priority: "event" });
+      }
+      el.dispatchEvent(new CustomEvent("geneviewer:" + name, { bubbles: true, detail: detail }));
+    };
+
+    var sameSelection = function (a, b) {
+      return a && b && a.component === b.component && a.cluster === b.cluster &&
+        a.data.rowID === b.data.rowID;
+    };
+    var applySelection = function () {
+      var found = false;
+      el.querySelectorAll(".gene, text.label").forEach(function (node) {
+        var detail = eventData({ target: node });
+        var active = !!sameSelection(selected, detail);
+        node.classList.toggle("geneviewer-selected", active);
+        if (events.select === true) {
+          node.setAttribute("tabindex", "0");
+          node.setAttribute("role", "button");
+          node.setAttribute("aria-pressed", String(active));
+          node.setAttribute("aria-label", detail.component + ": " + (detail.data.name ?? detail.data.rowID));
+        }
+        if (active) { selected = detail; found = true; }
+      });
+      if (selected && !found) { selected = null; report("select", null); }
+    };
+    var selectElement = function (detail) {
+      if (detail && (!["genes", "labels"].includes(detail.component) || !detail.data)) return;
+      if ((!selected && !detail) || sameSelection(selected, detail)) return;
+      selected = detail;
+      applySelection();
+      report("select", selected);
+    };
+    var onClick = function (event) {
+      var detail = eventData(event);
+      if (events.select === true && event.detail < 2) {
+        // Controls such as the save button are not empty chart space.
+        if (detail || event.target.closest("svg") || event.target === el) selectElement(detail ?? null);
+      }
+      if (!detail || (detail.component === "legend" && events.legendClick === false)) return;
+      if (HTMLWidgets.shinyMode && events.click === true) {
+        Shiny.setInputValue(el.id + "_click", detail, { priority: "event" });
+      }
+    };
+    var onDoubleClick = function (event) {
+      var detail = eventData(event);
+      if (!detail || detail.component === "legend") return;
+      if (events.select === true) selectElement(detail);
+      report("dblclick", detail);
+    };
+    var onKeyDown = function (event) {
+      if (event.key === "Escape") { selectElement(null); return; }
+      if (event.key === "Enter" && events.dblclick === true && event.target.matches(".gene, text.label")) {
+        event.preventDefault();
+        onDoubleClick(event);
+      }
     };
 
     var wireEvents = function () {
       var click = HTMLWidgets.shinyMode && events.click === true;
       el.removeEventListener("click", onClick);
-      if (click) el.addEventListener("click", onClick);
-      el.classList.toggle("geneviewer-highlight", click && events.highlight === true);
+      el.removeEventListener("dblclick", onDoubleClick);
+      el.removeEventListener("keydown", onKeyDown);
+      if (click || events.select === true) el.addEventListener("click", onClick);
+      if (events.dblclick === true) el.addEventListener("dblclick", onDoubleClick);
+      if (events.select === true) el.addEventListener("keydown", onKeyDown);
+      if (events.select !== true && selected) { selected = null; report("select", null); }
+      el.classList.toggle("geneviewer-selectable", events.select === true);
+      el.classList.toggle("geneviewer-highlight", (click || events.select === true || events.dblclick === true) && events.highlight === true);
+      applySelection();
     };
 
     var draw = function (width, height) {
 
+      // Keep legend visibility while editing or resizing the same chart.
+      var hiddenGroups = preserveLegend ? Array.from(el.querySelectorAll(".legend.unselected"), function (node) { return node.__data__; }) : [];
+      preserveLegend = true;
       // Clear out the container if it has anything
       d3.select(el).selectAll('*').remove();
 
@@ -259,6 +331,12 @@ HTMLWidgets.widget({
       // Save icon
       createSaveIcon(widgetId, el, saveButton);
 
+      el.querySelectorAll(".legend").forEach(function (node) {
+        if (hiddenGroups.includes(node.__data__)) {
+          node.dispatchEvent(new MouseEvent("click", { bubbles: false }));
+        }
+      });
+
     };
 
     var addLinks = function () {
@@ -272,6 +350,12 @@ HTMLWidgets.widget({
 
     return {
       renderValue: function (input) {
+        var nextSignature = JSON.stringify([input.data, input.group, input.cluster, input.legend?.group]);
+        if (dataSignature !== null && nextSignature !== dataSignature) {
+          preserveLegend = false;
+          if (selected) { selected = null; report("select", null); }
+        }
+        dataSignature = nextSignature;
         graphContainer = input.graphContainer;
         style = input.style;
         data = HTMLWidgets.dataframeToD3(input.data);
@@ -302,6 +386,7 @@ HTMLWidgets.widget({
       resize: function (width, height) {
         draw(width, height);
         addLinks();
+        wireEvents();
       }
     };
   }

@@ -69,8 +69,8 @@ test_that("selection and legend toggles remain independent across redraws", {
       };
       const fill = getComputedStyle(gene()).fill;
       const text = el.querySelector('text.label[rowID=\"1\"]').textContent;
-      double(gene());
       double(el.querySelector('.legend-marker'));
+      double(gene());
       widget.resize(700, 400);
       widget.renderValue(x);
       const hidden = gene().style.display;
@@ -79,6 +79,13 @@ test_that("selection and legend toggles remain independent across redraws", {
       gene().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
       gene().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       const cleared = el.querySelectorAll('.geneviewer-selected').length;
+      // Another part of the chart ends the selection, as empty space does
+      const others = ['.legend-marker', '[data-component=\"sequence\"] line'].map(part => {
+        click(gene());
+        click(el.querySelector(part));
+        return el.querySelectorAll('.geneviewer-selected').length;
+      });
+      click(el.querySelector('.legend-marker'));
       click(gene());
       x.data.name[0] = 'Replacement';
       widget.renderValue(x);
@@ -86,7 +93,7 @@ test_that("selection and legend toggles remain independent across redraws", {
       x.events = { click: true };
       widget.renderValue(x);
       click(gene());
-      return JSON.stringify({ fill, text, hidden, selected, cleared, replaced, dom,
+      return JSON.stringify({ fill, text, hidden, selected, cleared, others, replaced, dom,
         clicks: messages.filter(m => m.name.endsWith('_click')).length,
         doubles: messages.filter(m => m.name.endsWith('_dblclick')).length });
     })()
@@ -98,6 +105,7 @@ test_that("selection and legend toggles remain independent across redraws", {
   expect_equal(value$hidden, "none")
   expect_equal(value$selected, "1")
   expect_equal(value$cleared, 0)
+  expect_equal(value$others, list(0, 0))
   expect_equal(value$replaced, 0)
   expect_equal(value$clicks, 1)
   expect_equal(value$doubles, 2)
@@ -111,7 +119,7 @@ test_that("links below the cluster SVGs report clicks and are highlighted", {
   chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "400px") %>%
     GC_links("class", label = FALSE) %>%
     GC_trackMouse() %>%
-    GC_events(click = TRUE, highlight = TRUE)
+    GC_events(click = TRUE, highlight = TRUE, select = TRUE)
   file <- tempfile(fileext = ".html")
   htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
   session <- chrome_page(file)
@@ -147,6 +155,8 @@ test_that("links below the cluster SVGs report clicks and are highlighted", {
   mouse <- function(type, ...) {
     session$Input$dispatchMouseEvent(type = type, x = point$x, y = point$y, ...)
   }
+  evaluate("document.querySelector('.gene').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }))")
+  expect_equal(evaluate("document.querySelectorAll('.geneviewer-selected').length"), 1)
   mouse("mouseMoved")
   mouse("mousePressed", button = "left", clickCount = 1)
   mouse("mouseReleased", button = "left", clickCount = 1)
@@ -157,6 +167,8 @@ test_that("links below the cluster SVGs report clicks and are highlighted", {
                    jsonlite::toJSON(jsonlite::fromJSON(point$data, simplifyVector = FALSE),
                                     auto_unbox = TRUE))
   expect_equal(evaluate("document.querySelectorAll('.geneviewer-hover').length"), 1)
+  # A click on a link ends the selection of a gene
+  expect_equal(evaluate("document.querySelectorAll('.geneviewer-selected').length"), 0)
   # GC_trackMouse() still follows the mouse over the cluster SVG
   expect_equal(evaluate("document.querySelector('.coordinate-tooltip').style.visibility"), "visible")
   # Leaving the link, e.g. for the save button, removes the highlight

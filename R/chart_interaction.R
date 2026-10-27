@@ -210,7 +210,8 @@ GC_trackMouse <- function(
 #' rather than opening different settings panels on each event.
 #'
 #' With `select = TRUE`, a click selects an individual gene or label and
-#' outlines it. Clicking empty chart space or pressing Escape clears selection.
+#' outlines it. Clicking empty chart space or any other part of the chart, or
+#' pressing Escape, clears selection.
 #' Selection reports the click payload (or `NULL` when cleared) to
 #' `input$<outputId>_select` and `geneviewer:select`. It survives redraws of the
 #' same data and resize. Selected items can be opened with Enter when

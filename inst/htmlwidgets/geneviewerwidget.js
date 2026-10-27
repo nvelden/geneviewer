@@ -96,8 +96,10 @@ HTMLWidgets.widget({
       });
       if (selected && !found) { selected = null; report("select", null); }
     };
+    // Only genes and labels can be selected: any other part of the chart ends
+    // the selection, as empty space does
     var selectElement = function (detail) {
-      if (detail && (!["genes", "labels"].includes(detail.component) || !detail.data)) return;
+      if (detail && (!["genes", "labels"].includes(detail.component) || !detail.data)) detail = null;
       if ((!selected && !detail) || sameSelection(selected, detail)) return;
       selected = detail;
       applySelection();

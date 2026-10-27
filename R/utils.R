@@ -516,6 +516,35 @@ dir_files <- function(path, pattern, type, call = sys.call(-1)) {
   files
 }
 
+#' Start and end of a GenBank feature location
+#'
+#' The span runs over all parts of a split location, from the lowest to the
+#' highest position, e.g. join(complement(5441..5600),complement(5095..5373))
+#' gives 5095 and 5600. Parts inside join(complement(..),complement(..)) are
+#' listed from right to left, all other parts from left to right. Parts out of
+#' that order (crossing the origin of a circular genome, trans-splicing) keep
+#' the first part.
+#'
+#' @param location Character, a location such as "complement(join(1..100,200..300))".
+#' @return Numeric vector of the start and end, NA when there is no position.
+#' @noRd
+location_span <- function(location) {
+  if (is.na(location)) return(c(NA_real_, NA_real_))
+  parts <- regmatches(location, gregexpr("[<>]?\\d+\\.\\.[<>]?\\d+", location))[[1]]
+  if (length(parts) == 0) {
+    # A single base, such as 123 or complement(123)
+    base <- regmatches(location, gregexpr("\\d+", location))[[1]]
+    if (length(base) == 1) return(rep(as.numeric(base), 2))
+    return(c(NA_real_, NA_real_))
+  }
+  pos <- matrix(as.numeric(gsub("[<>]", "", unlist(strsplit(parts, "..", fixed = TRUE)))),
+                ncol = 2, byrow = TRUE)
+  starts <- pos[, 1]
+  if (grepl("^\\s*(join|order)\\(\\s*complement", location)) starts <- rev(starts)
+  if (is.unsorted(starts)) return(pos[1, ])
+  range(pos)
+}
+
 #' Read a file, or all files of a directory into one data frame
 #'
 #' @param path Character, a file or a directory.

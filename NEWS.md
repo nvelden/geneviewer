@@ -48,6 +48,7 @@
 - New tutorial "Reproducing a published figure: Tn7-like transposons", which rebuilds Fig. 3 of Peters et al. (2017) step by step: scale breaks, lining up on a gene, group styles for genes, labels and the legend, and saving as SVG. The "Example charts" article shows the finished chart, which also replaces an example chart in the README. Its data are in the new dataset `tn7_crispr_elements`, made by `data-raw/tn7_crispr_elements.R` from the GenBank records.
 
 ### Bug fixes:
+- `gbk_features_to_df()` and `read_fasta()` now give the full span of spliced genes whose exons are listed from right to left, as in `join(complement(5441..5600),complement(5095..5373))` (common in fungal and other eukaryotic GenBank files). `gbk_features_to_df()` took the first and the last number, so the gene was drawn reversed and too short, and `read_fasta()` kept only the first exon. A location crossing the origin of a circular genome now keeps its first part in `gbk_features_to_df()` too, as in `read_fasta()`.
 - `mummer_alignment()` now finds MUMmer on Windows; it looked for it with a Unix-only shell command and always reported it as not installed.
 - `mummer_alignment()` now runs in a unique working subdirectory, preserving existing input and output files and cleaning up its own files on success or failure. With `remove_files = FALSE`, files are retained in that subdirectory of `output_dir`.
 - Bundled D3 and FileSaver.js now include their upstream license notices and copyright attribution.

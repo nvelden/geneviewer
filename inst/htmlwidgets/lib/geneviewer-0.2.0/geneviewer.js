@@ -2682,13 +2682,25 @@ container.prototype.tooltip = function (show = true, options = {}) {
   // Function to generate tooltip content
   const d3Format = d3.format(",");
 
+  const isMissing = (value) => value === null || value === undefined || value === '' ||
+    (typeof value === 'number' && isNaN(value));
+
+  // A line whose fields all have no value is left out, e.g. the identity of a
+  // gene without a BlastP hit
   const textAccessor = (d) => {
-    return combinedOptions.formatter.replace(/\{(\w+)\}/g, (match, p1) => {
-      if (typeof d[p1] === 'number') {
-        return d3Format(d[p1]);
-      }
-      return d[p1] || '';
-    });
+    return combinedOptions.formatter
+      .split(/<br\s*\/?>/i)
+      .filter(line => {
+        const fields = [...line.matchAll(/\{(\w+)\}/g)].map(m => m[1]);
+        return fields.length === 0 || !fields.every(field => isMissing(d[field]));
+      })
+      .join('<br>')
+      .replace(/\{(\w+)\}/g, (match, p1) => {
+        if (typeof d[p1] === 'number') {
+          return d3Format(d[p1]);
+        }
+        return d[p1] || '';
+      });
   };
 
   combinedOptions.triggers.forEach(trigger => {

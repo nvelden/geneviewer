@@ -171,7 +171,15 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$trackMouse <- list(show = FALSE)
 
     # Blast specific settings
-    if(all(c("BlastP", "protein_id") %in% colnames_data)){
+    if(all(c("BlastP", "protein_id") %in% colnames_data) &&
+       any(subset_data$BlastP == subset_data$protein_id, na.rm = TRUE) &&
+       all(subset_data$BlastP %in% c(subset_data$protein_id, "No Hit", NA))){
+      # The query cluster: its genes are only hits of themselves
+      formatter <-
+        "<b>{protein_id}</b><br>
+        <b>Query gene</b><br>
+        <b>Location:</b> {start} - {end}<br>"
+    } else if(all(c("BlastP", "protein_id") %in% colnames_data)){
       formatter <-
         "<b>{protein_id}</b><br>
         <b>BlastP hit with:</b> {BlastP}<br>

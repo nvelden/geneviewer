@@ -54,6 +54,7 @@
 - FASTA tests now skip when the optional Biostrings package is unavailable.
 - `read_bed()` no longer drops records when feature names contain "track", and preserves records across multiple track declarations.
 - `get_introns()` only adds positive gaps between covered regions, including when exons and UTRs overlap, nest or are adjacent.
+- Tooltips of `protein_blast()` results: genes of the query cluster are shown as "Query gene" instead of a hit with themselves (or "No Hit") at 100% identity, and genes without a hit no longer show empty "Identity: %" and "Similarity: %" lines. In `GC_tooltip()` formatters, a line whose fields all have no value is now left out.
 - `GC_links()` leaves the chart unchanged when supplied an empty alignment.
 - GFF and FASTA metadata named `id` no longer collides with internal record identifiers.
 - PNG export now rasterizes the same SVG snapshot as SVG export, so it works inside apps whose surrounding styles use modern CSS colors such as `oklch()`. Backgrounds, patterns and the device pixel ratio are retained without parsing the app's stylesheets. The unused html2canvas dependency is no longer bundled.

@@ -44,3 +44,53 @@ test_that("protein_blast ignores the deprecated parallel argument (B21)", {
   expect_identical(protein_blast(genes, query = "A", parallel = TRUE),
                    protein_blast(genes, query = "A", parallel = FALSE))
 })
+
+blast_genes <- data.frame(
+  protein_id = c("A1", "A2", "B1", "B2"),
+  cluster = c("A", "A", "B", "B"),
+  start = c(1, 200, 1, 200),
+  end = c(150, 350, 150, 350),
+  BlastP = c("A1", "No Hit", "A1", "No Hit"),
+  identity = c(100, 100, 55.4, NA),
+  similarity = c(100, 100, 68.2, NA)
+)
+
+test_that("the query cluster of BlastP results gets its own tooltip", {
+  chart <- GC_chart(blast_genes, cluster = "cluster", group = "BlastP")
+  expect_match(chart$x$series$A$tooltip$formatter, "Query gene")
+  expect_no_match(chart$x$series$A$tooltip$formatter, "Identity")
+  expect_match(chart$x$series$B$tooltip$formatter, "BlastP hit with")
+  expect_match(chart$x$series$B$tooltip$formatter, "Identity")
+})
+
+test_that("tooltips leave out lines without values", {
+  chart <- GC_chart(blast_genes, cluster = "cluster", group = "BlastP",
+                    width = "600px", height = "300px") %>%
+    GC_links(group = "BlastP")
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const tips = {};
+      d3.selectAll('[data-component=genes] *').filter(d => d && d.protein_id).each(function (d) {
+        this.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+        tips[d.cluster + d.protein_id] = Array.from(document.querySelectorAll('.cluster-tooltip'))
+          .map(t => t.innerText).find(t => t.includes(d.protein_id));
+        this.dispatchEvent(new MouseEvent('mouseout', { bubbles: true }));
+      });
+      return JSON.stringify(tips);
+    })()
+  ")
+  expect_null(result$exceptionDetails)
+  tips <- jsonlite::fromJSON(result$result$value)
+  expect_match(tips$AA1, "Query gene")
+  expect_match(tips$AA2, "Query gene")
+  expect_no_match(tips$AA2, "No Hit|Identity")
+  expect_match(tips$BB1, "BlastP hit with: A1")
+  expect_match(tips$BB1, "Identity: 55.4%")
+  expect_match(tips$BB1, "Similarity: 68.2%")
+  expect_match(tips$BB2, "BlastP hit with: No Hit")
+  expect_no_match(tips$BB2, "Identity|Similarity")
+  expect_match(tips$BB2, "Location: 200 - 350")
+})

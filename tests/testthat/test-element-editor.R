@@ -104,3 +104,62 @@ test_that("selection and legend toggles remain independent across redraws", {
   expect_length(value$dom, 2)
   expect_equal(value$dom[[1]]$data$rowID, 1)
 })
+
+# Links are drawn in an SVG below the cluster SVGs, which take the mouse over
+# their whole area: a real mouse click on a link must still report the link.
+test_that("links below the cluster SVGs report clicks and are highlighted", {
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "400px") %>%
+    GC_links("class", label = FALSE) %>%
+    GC_trackMouse() %>%
+    GC_events(click = TRUE, highlight = TRUE)
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  evaluate <- function(js) {
+    result <- session$Runtime$evaluate(js, returnByValue = TRUE)
+    expect_null(result$exceptionDetails)
+    result$result$value
+  }
+  evaluate("
+    window.messages = [];
+    window.Shiny = { setInputValue: (name, value) => messages.push({ name, value }) };
+    HTMLWidgets.shinyMode = true;
+    const el = document.querySelector('.geneviewer');
+    HTMLWidgets.find('#' + el.id).renderValue(
+      JSON.parse(document.querySelector('script[data-for=\"' + el.id + '\"]').textContent).x);
+  ")
+  # A point where only the cluster SVG lies above a link
+  point <- evaluate("
+    (() => {
+      for (const link of document.querySelectorAll('path[data-component=\"links\"]')) {
+        const r = link.getBoundingClientRect();
+        for (let fy = 0.3; fy < 0.8; fy += 0.1) {
+          const x = Math.round(r.left + r.width / 2), y = Math.round(r.top + r.height * fy);
+          const stack = document.elementsFromPoint(x, y);
+          const top = stack.find(e => e.matches('path[data-component=\"links\"]'));
+          if (stack[0].classList.contains('geneviewer-svg-content') && top)
+            return { x, y, data: JSON.stringify(top.__data__) };
+        }
+      }
+    })()
+  ")
+  expect_type(point, "list")
+  mouse <- function(type, ...) {
+    session$Input$dispatchMouseEvent(type = type, x = point$x, y = point$y, ...)
+  }
+  mouse("mouseMoved")
+  mouse("mousePressed", button = "left", clickCount = 1)
+  mouse("mouseReleased", button = "left", clickCount = 1)
+  click <- evaluate("JSON.stringify(messages.filter(m => m.name.endsWith('_click')).at(-1)?.value)")
+  click <- jsonlite::fromJSON(click, simplifyVector = FALSE)
+  expect_equal(click$component, "links")
+  expect_identical(jsonlite::toJSON(click$data, auto_unbox = TRUE),
+                   jsonlite::toJSON(jsonlite::fromJSON(point$data, simplifyVector = FALSE),
+                                    auto_unbox = TRUE))
+  expect_equal(evaluate("document.querySelectorAll('.geneviewer-hover').length"), 1)
+  # GC_trackMouse() still follows the mouse over the cluster SVG
+  expect_equal(evaluate("document.querySelector('.coordinate-tooltip').style.visibility"), "visible")
+  # Leaving the link, e.g. for the save button, removes the highlight
+  session$Input$dispatchMouseEvent(type = "mouseMoved", x = 2, y = 2)
+  expect_equal(evaluate("document.querySelectorAll('.geneviewer-hover').length"), 0)
+})

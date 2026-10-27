@@ -39,13 +39,26 @@ HTMLWidgets.widget({
     var selected = null;
     var dataSignature = null;
     var preserveLegend = true;
+    // The element under the mouse. Links are drawn in their own SVG below the
+    // clusters, whose SVGs take the mouse over their whole area: where the
+    // event lands on a cluster SVG itself, a link below it is the target.
+    var targetOf = function (event) {
+      var target = event.target;
+      if (!target.classList || !target.classList.contains("geneviewer-svg-content") ||
+          typeof event.clientX !== "number") return target;
+      var link = document.elementsFromPoint(event.clientX, event.clientY).find(function (node) {
+        return node.closest && node.closest('[data-component="links"]') && el.contains(node);
+      });
+      return link || target;
+    };
     var eventData = function (event) {
-      var part = event.target.closest && event.target.closest("[data-component]");
+      var target = targetOf(event);
+      var part = target.closest && target.closest("[data-component]");
       if (!part || !el.contains(part)) return;
       var component = part.getAttribute("data-component");
       // The data bound to the clicked element: a gene or link row, or a group
       var datum = null;
-      for (var node = event.target; clickData.includes(component) && node && node !== part.parentNode; node = node.parentNode) {
+      for (var node = target; clickData.includes(component) && node && node !== part.parentNode; node = node.parentNode) {
         if (node.__data__ !== undefined) { datum = node.__data__; break; }
       }
       var cluster = part.closest("[data-cluster]");
@@ -107,6 +120,20 @@ HTMLWidgets.widget({
       if (events.select === true) selectElement(detail);
       report("dblclick", detail);
     };
+    // A link below a cluster SVG gets no :hover, so it is highlighted here
+    var hovered = null;
+    var setHovered = function (node) {
+      if (hovered === node) return;
+      if (hovered) hovered.classList.remove("geneviewer-hover");
+      hovered = node;
+      if (hovered) hovered.classList.add("geneviewer-hover");
+      el.classList.toggle("geneviewer-hover-below", !!hovered);
+    };
+    var onMouseMove = function (event) {
+      var target = targetOf(event);
+      setHovered(target === event.target ? null : target.closest("[data-component]"));
+    };
+    var onMouseLeave = function () { setHovered(null); };
     var onKeyDown = function (event) {
       if (event.key === "Escape") { selectElement(null); return; }
       if (event.key === "Enter" && events.dblclick === true && event.target.matches(".gene, text.label")) {
@@ -120,12 +147,22 @@ HTMLWidgets.widget({
       el.removeEventListener("click", onClick);
       el.removeEventListener("dblclick", onDoubleClick);
       el.removeEventListener("keydown", onKeyDown);
+      el.removeEventListener("mousemove", onMouseMove);
+      el.removeEventListener("mouseleave", onMouseLeave);
+      // A redraw removed the hovered link
+      hovered = null;
+      el.classList.remove("geneviewer-hover-below");
+      var highlight = (click || events.select === true || events.dblclick === true) && events.highlight === true;
+      if (highlight) {
+        el.addEventListener("mousemove", onMouseMove);
+        el.addEventListener("mouseleave", onMouseLeave);
+      }
       if (click || events.select === true) el.addEventListener("click", onClick);
       if (events.dblclick === true) el.addEventListener("dblclick", onDoubleClick);
       if (events.select === true) el.addEventListener("keydown", onKeyDown);
       if (events.select !== true && selected) { selected = null; report("select", null); }
       el.classList.toggle("geneviewer-selectable", events.select === true);
-      el.classList.toggle("geneviewer-highlight", (click || events.select === true || events.dblclick === true) && events.highlight === true);
+      el.classList.toggle("geneviewer-highlight", highlight);
       applySelection();
     };
 

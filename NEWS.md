@@ -50,6 +50,7 @@
 - New tutorial "Reproducing a published figure: Tn7-like transposons", which rebuilds Fig. 3 of Peters et al. (2017) step by step: scale breaks, lining up on a gene, group styles for genes, labels and the legend, and saving as SVG. The "Example charts" article shows the finished chart, which also replaces an example chart in the README. Its data are in the new dataset `tn7_crispr_elements`, made by `data-raw/tn7_crispr_elements.R` from the GenBank records.
 
 ### Bug fixes:
+- Links can be clicked and highlighted with `GC_events()`: they are drawn below the SVGs of the clusters, which took every click over the chart, so a click on a link was never reported. Drawing, `GC_trackMouse()` and saved SVG and PNG files are unchanged.
 - `mummer_alignment()` now finds MUMmer on Windows; it looked for it with a Unix-only shell command and always reported it as not installed.
 - `mummer_alignment()` now runs in a unique working subdirectory, preserving existing input and output files and cleaning up its own files on success or failure. With `remove_files = FALSE`, files are retained in that subdirectory of `output_dir`.
 - Bundled D3 and FileSaver.js now include their upstream license notices and copyright attribution.

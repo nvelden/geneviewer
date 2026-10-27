@@ -58,8 +58,14 @@
   cursor: pointer;
 }
 
-.geneviewer-highlight [data-component]:hover {
+.geneviewer-highlight [data-component]:hover,
+.geneviewer-highlight .geneviewer-hover {
   filter: drop-shadow(0 0 1.5px rgba(37, 99, 235, 0.95)) drop-shadow(0 0 3px rgba(37, 99, 235, 0.45));
+}
+
+/* A link under the mouse, below the SVG of a cluster (see geneviewerwidget.js) */
+.geneviewer-highlight.geneviewer-hover-below .geneviewer-svg-content {
+  cursor: pointer;
 }
 
 /* In selection mode hover identifies one gene or label rather than its whole

@@ -23,14 +23,14 @@ test_that("protein_blast works with a cluster column of any name (B06)", {
   expect_equal(result$BlastP[result$protein_id == "B1"], "A1")
 })
 
-test_that("protein_blast gives the same result in parallel (B21)", {
+test_that("protein_blast ignores the deprecated parallel argument (B21)", {
   skip_on_cran()
   skip_if_not_installed("Biostrings")
   skip_if_not_installed("pwalign")
   requireNamespace("Biostrings", quietly = TRUE)
   requireNamespace("pwalign", quietly = TRUE)
 
-  # 40 x 40 proteins: more than 1000 combinations, so the parallel path is used
+  # 40 x 40 proteins: more than 1000 combinations, which used the parallel path
   set.seed(1)
   aa <- strsplit("ACDEFGHIKLMNPQRSTVWY", "")[[1]]
   proteins <- vapply(1:40, function(i) paste(sample(aa, 30, TRUE), collapse = ""), "")

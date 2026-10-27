@@ -43,8 +43,8 @@ analysis. Defaults to NULL.}
 \item{identity}{Minimum identity threshold for BLAST hits to be considered
 significant. Defaults to 30.}
 
-\item{parallel}{Logical indicating whether to use parallel processing for
-alignments. Defaults to TRUE.}
+\item{parallel}{Deprecated and ignored. The alignments are now fast enough
+without parallel processing. Kept so that existing code keeps working.}
 }
 \value{
 A modified version of the input \code{data} dataframe, including
@@ -74,7 +74,7 @@ if (requireNamespace("Biostrings", quietly = TRUE) &&
     translation = c("MKTAYIAKQRQISFVKSHFSRQ", "MSDNELLKRLGEAVLAHPTTG",
                     "MKTAYIAKQRQISFVKSHFSRQ", "MLPGGRTSWVQEHCDKAYNIF")
   )
-  protein_blast(genes, query = "A", identity = 30, parallel = FALSE)
+  protein_blast(genes, query = "A", identity = 30)
 }
 }
 

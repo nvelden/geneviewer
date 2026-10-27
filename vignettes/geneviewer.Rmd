@@ -398,8 +398,7 @@ BlastP_results <-
     end = "end",
     cluster = "cluster",
     genes = NULL, #Vector of protein IDs to include for BlastP analysis.
-    identity = 30,
-    parallel = TRUE
+    identity = 30
 )
 ```
 

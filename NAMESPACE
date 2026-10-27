@@ -66,14 +66,6 @@ importFrom(htmlwidgets,
   shinyWidgetOutput
 )
 importFrom(magrittr,"%>%")
-importFrom(parallel,
-  clusterEvalQ,
-  clusterExport,
-  detectCores,
-  makeCluster,
-  parLapply,
-  stopCluster
-)
 importFrom(rlang,.data)
 importFrom(stats,
   ave,

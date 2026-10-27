@@ -34,7 +34,6 @@ Imports:
     dplyr (>= 1.0.0),
     rlang,
     grDevices,
-    parallel,
     stats,
     tools,
     utils

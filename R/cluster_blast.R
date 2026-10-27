@@ -97,44 +97,33 @@ compute_identity <- function(patterns, subjects) {
     stop("The lists of patterns and subjects must be of the same length")
   }
 
-  # Apply the compute_identity logic to each pair of pattern and subject
-  results <- mapply(function(pattern, subject) {
-    if (nchar(pattern) != nchar(subject)) {
-      stop("The two sequences must be of the same length")
-    }
+  if (any(nchar(patterns) != nchar(subjects))) {
+    stop("The two sequences must be of the same length")
+  }
 
-    pattern_chars <- strsplit(pattern, "")[[1]]
-    subject_chars <- strsplit(subject, "")[[1]]
+  # Compare all sequences at once: split into characters and remember which
+  # pair each character belongs to
+  pattern_chars <- unlist(strsplit(patterns, ""), use.names = FALSE)
+  subject_chars <- unlist(strsplit(subjects, ""), use.names = FALSE)
+  pair <- rep(seq_along(patterns), nchar(patterns))
 
-    sequence_length <- nchar(pattern)
-    matches <- 0
-    similar <- 0
+  same <- pattern_chars == subject_chars
+  # Positions where both sequences have a gap don't count towards the length
+  both_gap <- same & (pattern_chars == "-" | pattern_chars == ".")
+  is_match <- same & !both_gap
+  group1 <- acid_group[pattern_chars]
+  group2 <- acid_group[subject_chars]
+  is_similar <- !same & !is.na(group1) & !is.na(group2) & group1 == group2
 
-    for (i in 1:sequence_length) {
-      acid1 <- pattern_chars[i]
-      acid2 <- subject_chars[i]
+  n <- length(patterns)
+  sequence_length <- tabulate(pair, n) - tabulate(pair[both_gap], n)
+  matches <- tabulate(pair[is_match], n)
+  similar <- tabulate(pair[is_similar], n)
 
-      if (acid1 == acid2) {
-        if (acid1 != "-" && acid1 != ".") {
-          matches <- matches + 1
-        } else {
-          sequence_length <- sequence_length - 1
-        }
-      } else if (!is.na(acid_group[acid1]) && !is.na(acid_group[acid2]) && acid_group[acid1] == acid_group[acid2]) {
-        similar <- similar + 1
-      }
-    }
-
-    identity <- round(matches / sequence_length, 3) * 100
-    similarity <- round((matches + similar) / sequence_length, 3) * 100
-
-    return(data.frame(identity = identity, similarity = similarity))
-  }, patterns, subjects, SIMPLIFY = FALSE)
-
-  # Combine the results into a data frame
-  names(results) <- NULL
-  results_df <- do.call(rbind, results)
-  return(results_df)
+  data.frame(
+    identity = round(matches / sequence_length, 3) * 100,
+    similarity = round((matches + similar) / sequence_length, 3) * 100
+  )
 }
 
 
@@ -197,8 +186,8 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #'   analysis. Defaults to NULL.
 #' @param identity Minimum identity threshold for BLAST hits to be considered
 #'   significant. Defaults to 30.
-#' @param parallel Logical indicating whether to use parallel processing for
-#'   alignments. Defaults to TRUE.
+#' @param parallel Deprecated and ignored. The alignments are now fast enough
+#'   without parallel processing. Kept so that existing code keeps working.
 #'
 #' @return A modified version of the input `data` dataframe, including
 #'   additional columns for BLAST results (identity, similarity).
@@ -215,14 +204,13 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #'     translation = c("MKTAYIAKQRQISFVKSHFSRQ", "MSDNELLKRLGEAVLAHPTTG",
 #'                     "MKTAYIAKQRQISFVKSHFSRQ", "MLPGGRTSWVQEHCDKAYNIF")
 #'   )
-#'   protein_blast(genes, query = "A", identity = 30, parallel = FALSE)
+#'   protein_blast(genes, query = "A", identity = 30)
 #' }
 #' }
 #'
 #' @importFrom dplyr bind_rows group_by slice_max ungroup left_join summarize arrange desc
 #' @importFrom stats setNames ave
 #' @importFrom rlang .data
-#' @importFrom parallel detectCores makeCluster clusterExport clusterEvalQ parLapply stopCluster
 #' @note This function relies on the Biostrings and pwalign package for sequence
 #' alignment and the dplyr package for data manipulation. Ensure these packages
 #' are installed and loaded into your R session.
@@ -312,40 +300,9 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
                                               subject = protein_combinations_alignment$translation2,
                                               scoreOnly = FALSE)
 
-  # The aligned sequences of an alignment, with gaps
-  aligned_sequences <- function(alignment) {
-    list(
-      pattern = as.character(pwalign::pattern(alignment)),
-      subject = as.character(pwalign::subject(alignment))
-    )
-  }
-
-  # Decide on parallel or sequential processing based on the number of rows
-  if (parallel && nrow(protein_combinations_alignment) > 1000) {
-
-    # Set up a cluster with at least one worker; always stop it when done
-    no_cores <- max(1, parallel::detectCores() - 1, na.rm = TRUE)
-    # Use at most 2 workers when R CMD check limits the number of cores
-    limit_cores <- tolower(Sys.getenv("_R_CHECK_LIMIT_CORES_", ""))
-    if (nzchar(limit_cores) && limit_cores != "false") {
-      no_cores <- min(no_cores, 2)
-    }
-    cl <- parallel::makeCluster(no_cores)
-    on.exit(parallel::stopCluster(cl), add = TRUE)
-
-    # Export the alignments list and the pwalign library to each cluster node
-    parallel::clusterExport(cl, varlist = c("alignments"), envir = environment())
-    parallel::clusterEvalQ(cl, library(pwalign))
-
-    # Use parLapply for parallel execution
-    alignment_list <- parallel::parLapply(cl, alignments, aligned_sequences)
-  } else {
-    # Sequential processing
-    alignment_list <- lapply(alignments, aligned_sequences)
-  }
-
-  patterns <- sapply(alignment_list, function(x) x$pattern)
-  subjects <- sapply(alignment_list, function(x) x$subject)
+  # The aligned sequences of all alignments, with gaps
+  patterns <- as.character(pwalign::pattern(alignments))
+  subjects <- as.character(pwalign::subject(alignments))
 
   identity_df <- compute_identity(patterns, subjects)
 

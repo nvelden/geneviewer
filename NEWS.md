@@ -27,6 +27,7 @@
 
 ### Enhancements:
 - `read_fasta()` is about 4-5 times faster on large FASTA files.
+- `protein_blast()` is about 3 to 9 times faster and gives the same results. The aligned sequences are now read from all alignments at once and identity and similarity are counted for all pairs at once, so parallel processing is no longer needed: the `parallel` argument is ignored and the `parallel` package is no longer a dependency.
 
 ### Changes:
 - MUMmer is now listed under `SystemRequirements`, and the examples of `read_fasta()`, `read_gff()`, `read_bed()`, `gbk_features_to_df()` and `protein_blast()` run on example data.

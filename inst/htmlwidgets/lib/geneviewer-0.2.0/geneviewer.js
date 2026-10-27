@@ -246,8 +246,9 @@ function setStyleFromOptions(currentElement, additionalOptions) {
 function withGroupStyles(items, column, groupStyle, itemStyle = []) {
   return items.flatMap((d, i) => {
     const ofGroup = column && groupStyle ? groupStyle[d[column]] : undefined;
-    const ofItem = itemStyle.find(s => s.index === i);
-    return ofGroup || ofItem ? [{ ...ofGroup, ...ofItem, index: i }] : [];
+    const ofIndex = itemStyle.find(s => s.rowID == null && s.index === i);
+    const ofRow = itemStyle.find(s => s.rowID != null && s.rowID === d.rowID);
+    return ofGroup || ofIndex || ofRow ? [{ ...ofGroup, ...ofIndex, ...ofRow, index: i }] : [];
   });
 }
 
@@ -255,7 +256,7 @@ function applyStyleToElement(currentElement, itemStyle, i) {
   const style = itemStyle.find(s => s.index === i);
   if (style) {
     for (const [key, value] of Object.entries(style)) {
-      if (key !== 'index' && key !== 'labelAdjustmentOptions') {
+      if (!['index', 'rowID', 'text', 'labelAdjustmentOptions'].includes(key)) {
         currentElement.style(camelToKebab(key), value);
       }
     }
@@ -2579,7 +2580,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
     .style("font-style", fontStyle)
     .style("font-family", fontFamily)
     .style("cursor", cursor)
-    .text(d => d[label])
+    .text((d, i) => itemStyle.find(s => s.index === i)?.text ?? d[label])
     // One label per gene: a gene with a link label gets it as a second line.
     // Done for all labels before the overlap check, which measures them all at once
     .each(function (d) {
@@ -3404,6 +3405,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
       element.classed("hovered", false);
     })
     .on("click", (event, d) => {
+      // A double-click includes a second click. Toggle only on its first one.
+      if (event.detail > 1) return;
       const element = d3.select(event.currentTarget);
       // If it's currently highlighted, unhighlight it, else highlight it
       if (element.classed("unselected")) {

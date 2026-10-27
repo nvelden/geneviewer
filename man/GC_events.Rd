@@ -2,14 +2,17 @@
 % Please edit documentation in R/chart_interaction.R
 \name{GC_events}
 \alias{GC_events}
-\title{Report Chart Clicks and Completed Updates}
+\title{Report Chart Interactions and Completed Updates}
 \usage{
 GC_events(
   GC_chart,
   click = TRUE,
   highlight = FALSE,
   rendered = FALSE,
-  render_id = NULL
+  render_id = NULL,
+  dblclick = FALSE,
+  select = FALSE,
+  legend_click = TRUE
 )
 }
 \arguments{
@@ -26,6 +29,12 @@ mouse, to show what a click selects.}
 with the rendered event, to identify the update. The default, \code{NULL},
 generates a unique ID for each update in the browser. It is not a DOM
 element ID; the event's \code{chartId} identifies the chart itself.}
+
+\item{dblclick}{Logical, whether to report double-clicks for editing.}
+
+\item{select}{Logical, whether to enable gene and label selection.}
+
+\item{legend_click}{Logical, whether legend clicks are reported to Shiny.}
 }
 \value{
 The GC chart object with the event settings.
@@ -55,6 +64,24 @@ and the group for the legend.}
 Every part of the chart is marked with a \code{data-component} attribute and each
 cluster with \code{data-cluster}, also without this function, so they can be
 selected with CSS or JavaScript.
+
+With \code{dblclick = TRUE}, double-clicks independently report the same payload
+to \verb{input$<outputId>_dblclick} and the bubbling browser event
+\code{geneviewer:dblclick}. Legend double-clicks are excluded, so visibility
+toggles do not open an editor. Browsers also send clicks during a
+double-click: use clicks for selection, and double-clicks for editing,
+rather than opening different settings panels on each event.
+
+With \code{select = TRUE}, a click selects an individual gene or label and
+outlines it. Clicking empty chart space or pressing Escape clears selection.
+Selection reports the click payload (or \code{NULL} when cleared) to
+\verb{input$<outputId>_select} and \code{geneviewer:select}. It survives redraws of the
+same data and resize. Selected items can be opened with Enter when
+\code{dblclick = TRUE}; items are keyboard focusable in selection mode.
+Use \code{click = FALSE} to avoid legacy single-click settings handlers.
+\code{legend_click = FALSE} excludes legend clicks from click reporting without
+changing legend visibility toggles. Selection never includes the legend.
+Double-click and selection browser events also work outside Shiny.
 
 With \code{rendered = TRUE}, each successful update also sets
 \verb{input$<outputId>_rendered} to a list containing \code{id} (the supplied

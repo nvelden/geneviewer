@@ -29,6 +29,7 @@ Depends:
     R (>= 3.5.0)
 Imports:
     htmlwidgets,
+    jsonlite,
     fontawesome,
     magrittr,
     dplyr (>= 1.0.0),
@@ -47,7 +48,6 @@ Suggests:
     Biostrings,
     chromote,
     htmltools,
-    jsonlite,
     testthat (>= 3.2.0)
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.1

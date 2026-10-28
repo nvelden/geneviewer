@@ -182,3 +182,31 @@ test_that("links below the cluster SVGs report clicks and are highlighted", {
   session$Input$dispatchMouseEvent(type = "mouseMoved", x = 2, y = 2)
   expect_equal(evaluate("document.querySelectorAll('.geneviewer-hover').length"), 0)
 })
+
+# With a pattern for some groups, every gene is filled with a pattern: one of
+# a single rect for the groups without stripes
+test_that("a gene without stripes reports its colour when other groups have a pattern", {
+  data <- data.frame(start = c(10, 60), end = c(40, 90), group = c("A", "B"))
+  chart <- GC_chart(data, group = "group", height = "200px") %>%
+    GC_color(customColors = list(A = "#c7e02c", B = "#1f77b4")) %>%
+    # Patterns on the gene colours, as in the Tn7 example
+    GC_pattern(patterns = list(B = "diagonal"), background = NULL) %>%
+    GC_events(select = TRUE)
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const fills = [];
+      el.addEventListener('geneviewer:select', e => fills.push(e.detail.style.fill));
+      el.querySelectorAll('.gene').forEach(gene =>
+        gene.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 })));
+      return JSON.stringify(fills);
+    })()
+  ")
+  expect_null(result$exceptionDetails)
+  fills <- jsonlite::fromJSON(result$result$value)
+  expect_equal(fills[1], "#c7e02c")
+  expect_match(fills[2], "^url\\(")
+})

@@ -58,13 +58,21 @@ HTMLWidgets.widget({
       if (!rgb || (rgb[4] !== undefined && rgb[4] !== "1")) return color;
       return "#" + rgb.slice(1, 4).map(function (v) { return (+v).toString(16).padStart(2, "0"); }).join("");
     };
+    // When some groups have a pattern, the genes of the other groups are
+    // filled with a pattern of one rect: their colour is that of the rect
+    var solidFill = function (fill) {
+      var id = /^url\("?#([^")]+)"?\)$/.exec(fill);
+      var pattern = id && el.querySelector("#" + CSS.escape(id[1]));
+      if (!pattern || pattern.children.length !== 1 || pattern.firstElementChild.tagName !== "rect") return fill;
+      return getComputedStyle(pattern.firstElementChild).fill;
+    };
     // How a gene or label is drawn, with the names of its element options:
     // colours, opacity and font from its computed style, the shape settings of
     // a gene (recorded when it is drawn) and the text of a label
     var drawnStyle = function (component, node) {
       node = node.closest(component === "genes" ? ".gene" : "text") || node;
       var css = getComputedStyle(node);
-      var style = { fill: hex(css.fill), opacity: +css.opacity };
+      var style = { fill: hex(solidFill(css.fill)), opacity: +css.opacity };
       if (component === "genes") {
         return Object.assign(style, {
           stroke: hex(css.stroke), strokeWidth: parseFloat(css.strokeWidth),

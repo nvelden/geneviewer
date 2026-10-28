@@ -84,10 +84,18 @@ HTMLWidgets.widget({
           strokeDasharray: css.strokeDasharray
         }, node.__drawn__);
       }
-      return Object.assign(style, {
+      Object.assign(style, {
         text: node.__text__ ?? node.textContent, fontSize: parseFloat(css.fontSize),
         fontWeight: css.fontWeight, fontStyle: css.fontStyle, fontFamily: css.fontFamily
-      });
+      }, node.__drawn__);
+      if (component === "labels") {
+        // SVG resolves offsets such as 1em to the pixels used by the editor.
+        ["dx", "dy"].forEach(function (name) {
+          var lengths = node[name].baseVal;
+          if (lengths.numberOfItems) style[name] = lengths.getItem(0).value;
+        });
+      }
+      return style;
     };
     var eventData = function (event, withStyle) {
       var target = targetOf(event);

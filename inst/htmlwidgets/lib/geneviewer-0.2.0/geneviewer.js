@@ -2616,6 +2616,10 @@ container.prototype.labels = function (label, show = true, options = {}) {
     .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-label-${i}`)
     .attr("rowID", (d, i) => `${d["rowID"]}`)
     .attr("class", "label")
+    .each(function(d, i) {
+      const { dx, dy, rotate } = attributesByIndex[i];
+      this.__drawn__ = { dx, dy, rotate };
+    })
     .attr("x", (d, i) => attributesByIndex[i].xPos)
     .attr("y", (d, i) => attributesByIndex[i].yPos)
     .attr("dx", (d, i) => attributesByIndex[i].dx)

@@ -208,6 +208,7 @@ function createLabelAdjuster(container, labelSelector) {
           .attr("y", centerY)
           .attr("transform", `rotate(${rotation}, ${centerX}, ${centerY})`);
 
+        specificLabel.__drawn__ = { ...specificLabel.__drawn__, rotate: rotation };
         refresh(specificLabel);
         return true;
       }
@@ -236,6 +237,7 @@ function extractAdditionalOptions(combinedOptions, defaultOptions) {
 
 function setStyleFromOptions(currentElement, additionalOptions) {
   for (const [key, value] of Object.entries(additionalOptions)) {
+    if (key === "moveX" || key === "moveY") continue;
     currentElement.style(camelToKebab(key), value);
   }
 }
@@ -1627,6 +1629,17 @@ function partStyle(itemStyle, part) {
   return { text, style };
 }
 
+// Translation in SVG axes, independent of text rotation and automatic layout.
+function positionText(selection, options = {}) {
+  selection.each(function () {
+    const moveX = Number(options.moveX ?? 0);
+    const moveY = Number(options.moveY ?? 0);
+    const base = this.getAttribute("transform") || "";
+    this.__drawn__ = { ...this.__drawn__, moveX, moveY };
+    this.setAttribute("transform", `translate(${moveX}, ${moveY}) ${base}`.trim());
+  });
+}
+
 function styleFontText(selection, text, font, defaultFont) {
   for (const key of Object.keys(defaultFont)) {
     selection.style(camelToKebab(key), font[key]);
@@ -1637,6 +1650,7 @@ function styleFontText(selection, text, font, defaultFont) {
     parseAndStyleText(text, currentElement, font);
     setStyleFromOptions(currentElement, additionalOptions);
   });
+  positionText(selection, font);
 }
 
 container.prototype.title = function (title, subtitle, show = true, options = {}, themeOptionsKey = "titleOptions") {
@@ -1970,6 +1984,9 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     setLabelY(clusterTitle, titleY);
     setLabelY(clusterSubtitle, titleY + titleLines.last + lineSpacing - subtitleLines.first);
   }
+  positionText(clusterTitle, ownTitle.style);
+  this.svg.selectAll('text[data-component="clusterLabel"][data-part="subtitle"]')
+    .call(positionText, ownSubtitle.style);
 
   return this;
 };
@@ -2664,6 +2681,10 @@ container.prototype.labels = function (label, show = true, options = {}) {
       labelAdjuster.refresh(this);
 
     });
+
+  g.selectAll("text.label").each(function(d, i) {
+    positionText(d3.select(this), itemStyle.find(style => style.index === i) ?? {});
+  });
 
   //Make markers available to tooltip
   this.labels = g.selectAll(".label");

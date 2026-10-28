@@ -39,7 +39,7 @@ HTMLWidgets.widget({
     var clickData = ["genes", "transcript", "labels", "links", "legend", "coordinates"];
     // The parts of the chart that can be selected (GC_events(select = TRUE)),
     // one by one: they can be styled with GC_element_style()
-    var selectable = ["genes", "labels", "coordinates", "clusterTitle", "clusterFooter", "clusterLabel", "legend"];
+    var selectable = ["genes", "labels", "coordinates", "clusterTitle", "clusterFooter", "clusterLabel", "legend", "title"];
     var selectableNodes = ".gene, text.label, text.coordinate, [data-part]";
     var selected = null;
     var dataSignature = null;
@@ -144,7 +144,8 @@ HTMLWidgets.widget({
     var sameSelection = function (a, b) {
       return keyOf(a) !== null && keyOf(a) === keyOf(b);
     };
-    var applySelection = function () {
+    var applySelection = function (refresh) {
+      var previousStyle = JSON.stringify(selected?.style);
       var found = false;
       el.querySelectorAll(selectableNodes).forEach(function (node) {
         var detail = eventData({ target: node });
@@ -159,9 +160,12 @@ HTMLWidgets.widget({
             (detail.component === "legend" ? String(detail.data) + " " + detail.part :
               detail.data?.name ?? node.__text__ ?? node.textContent));
         }
-        if (active) { selected = detail; found = true; }
+        if (active) { selected = eventData({ target: node }, true); found = true; }
       });
       if (selected && !found) { selected = null; report("select", null); }
+      else if (refresh && selected && JSON.stringify(selected.style) !== previousStyle) {
+        report("select", selected);
+      }
     };
     // Only the selectable elements can be selected: any other part of the
     // chart ends the selection, as empty space does
@@ -173,7 +177,9 @@ HTMLWidgets.widget({
       // The clicked element's payload, with how it is drawn
       report("select", selected && detail);
     };
+    var suppressClickUntil = 0;
     var onClick = function (event) {
+      if (performance.now() < suppressClickUntil) { event.preventDefault(); event.stopPropagation(); return; }
       var detail = eventData(event, true);
       if (events.select === true && event.detail < 2) {
         // Controls such as the save button are not empty chart space. A click
@@ -188,11 +194,152 @@ HTMLWidgets.widget({
       }
     };
     var onDoubleClick = function (event) {
+      if (performance.now() < suppressClickUntil) return;
       var detail = eventData(event, true);
       if (!detail) return;
       if (events.select === true) selectElement(detail);
       report("dblclick", detail);
     };
+    var draggable = ["labels", "title", "clusterTitle", "clusterFooter", "clusterLabel"];
+    // Moved text shares one chart-wide viewport, above the cluster SVGs.
+    // Keep the original parent's coordinate system and logical component.
+    var liftText = function (node, detail) {
+      if (node.closest(".geneviewer-text-overlay") || !el.clientWidth || !el.clientHeight) return null;
+      var parent = node.parentNode;
+      var matrix = parent.getScreenCTM();
+      if (!matrix) return null;
+      var ns = "http://www.w3.org/2000/svg";
+      var overlay = el.querySelector(".geneviewer-text-overlay");
+      if (!overlay) {
+        overlay = document.createElementNS(ns, "svg");
+        overlay.setAttribute("class", "geneviewer-text-overlay");
+        overlay.setAttribute("width", el.clientWidth);
+        overlay.setAttribute("height", el.clientHeight);
+        overlay.setAttribute("viewBox", `0 0 ${el.clientWidth} ${el.clientHeight}`);
+        Object.assign(overlay.style, { position: "absolute", left: "0", top: "0",
+          width: "100%", height: "100%", pointerEvents: "none", zIndex: "4" });
+        el.appendChild(overlay);
+      }
+      var placement = { parent: parent, next: node.nextSibling };
+      var style = getComputedStyle(node);
+      ["fill", "fill-opacity", "stroke", "stroke-width", "stroke-opacity", "font-family",
+        "font-size", "font-weight", "font-style", "text-anchor", "dominant-baseline"].forEach(function (name) {
+        if (!node.style.getPropertyValue(name)) node.style.setProperty(name, style.getPropertyValue(name));
+      });
+      var frame = document.createElementNS(ns, "g");
+      var transform = overlay.getScreenCTM().inverse().multiply(matrix);
+      frame.setAttribute("transform", `matrix(${transform.a} ${transform.b} ${transform.c} ${transform.d} ${transform.e} ${transform.f})`);
+      frame.setAttribute("data-component", detail.component);
+      if (detail.cluster != null) frame.setAttribute("data-cluster", detail.cluster);
+      overlay.appendChild(frame);
+      frame.appendChild(node);
+      node.style.pointerEvents = "visiblePainted";
+      placement.frame = frame;
+      return placement;
+    };
+    var liftMovedText = function () {
+      el.querySelectorAll("text.label, text[data-part]").forEach(function (node) {
+        if (!(node.__drawn__?.moveX || node.__drawn__?.moveY)) return;
+        var detail = eventData({ target: node });
+        if (detail && draggable.includes(detail.component)) liftText(node, detail);
+      });
+    };
+    var dragState = null;
+    var queuedRender = null;
+    var flushQueuedRender = function () {
+      var input = queuedRender;
+      queuedRender = null;
+      if (input) renderValue(input);
+    };
+    var finishDrag = function (commit) {
+      if (!dragState) return;
+      var state = dragState;
+      dragState = null;
+      window.removeEventListener("pointermove", moveDrag);
+      window.removeEventListener("pointerup", endDrag);
+      window.removeEventListener("pointercancel", cancelDrag);
+      window.removeEventListener("blur", cancelDrag);
+      window.removeEventListener("keydown", escapeDrag);
+      el.classList.remove("geneviewer-dragging");
+      if (!state.moved) { flushQueuedRender(); return; }
+      suppressClickUntil = performance.now() + 350;
+      if (!commit) {
+        state.node.setAttribute("transform", state.transform);
+        if (state.placement) {
+          var place = state.placement;
+          place.parent.insertBefore(state.node, place.next && place.next.parentNode === place.parent ? place.next : null);
+          var overlay = place.frame.parentNode;
+          place.frame.remove();
+          if (!overlay.firstChild) overlay.remove();
+        }
+        selected = state.selection;
+        applySelection();
+        el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
+          detail: Object.assign({}, state.detail, { position: { moveX: state.moveX, moveY: state.moveY } }) }));
+        flushQueuedRender();
+        return;
+      }
+      state.node.__drawn__ = Object.assign({}, state.node.__drawn__, state.position);
+      var detail = eventData({ target: state.node }, true);
+      detail.position = state.position;
+      flushQueuedRender();
+      if (events.select === true) report("select", detail);
+      report("drag", detail);
+    };
+    var cancelDrag = function () { finishDrag(false); };
+    var escapeDrag = function (event) {
+      if (event.key === "Escape" && dragState) { event.preventDefault(); cancelDrag(); }
+    };
+    var endDrag = function (event) {
+      if (dragState && event.pointerId === dragState.id) finishDrag(true);
+    };
+    var moveDrag = function (event) {
+      var state = dragState;
+      if (!state || event.pointerId !== state.id) return;
+      if (!state.moved && Math.hypot(event.clientX - state.x, event.clientY - state.y) < 4) return;
+      if (!state.moved) {
+        state.moved = true;
+        state.placement = liftText(state.node, state.detail);
+        if (events.select === true) {
+          // Keep server redraws until release; moving the pointer is a preview.
+          selected = state.detail;
+          applySelection();
+        }
+        el.classList.add("geneviewer-dragging");
+      }
+      event.preventDefault();
+      var point = new DOMPoint(event.clientX, event.clientY).matrixTransform(state.inverse);
+      var dx = point.x - state.start.x, dy = point.y - state.start.y;
+      state.position = {
+        moveX: Math.round((state.moveX + dx) * 100) / 100,
+        moveY: Math.round((state.moveY + dy) * 100) / 100
+      };
+      state.node.setAttribute("transform", `translate(${dx}, ${dy}) ${state.transform}`);
+      el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
+        detail: Object.assign({}, state.detail, { position: state.position }) }));
+    };
+    var startDrag = function (event) {
+      if (event.button !== 0 || event.isPrimary === false) return;
+      var detail = eventData(event, true);
+      if (!detail || !draggable.includes(detail.component) || keyOf(detail) === null) return;
+      var node = event.target.closest("text");
+      if (!node) return;
+      var matrix = node.parentNode.getScreenCTM();
+      if (!matrix) return;
+      var inverse = matrix.inverse();
+      dragState = {
+        id: event.pointerId, node: node, detail: detail, inverse: inverse, selection: selected,
+        start: new DOMPoint(event.clientX, event.clientY).matrixTransform(inverse),
+        x: event.clientX, y: event.clientY, transform: node.getAttribute("transform") || "",
+        moveX: detail.style.moveX ?? 0, moveY: detail.style.moveY ?? 0, moved: false
+      };
+      window.addEventListener("pointermove", moveDrag, { passive: false });
+      window.addEventListener("pointerup", endDrag);
+      window.addEventListener("pointercancel", cancelDrag);
+      window.addEventListener("blur", cancelDrag);
+      window.addEventListener("keydown", escapeDrag);
+    };
+
     // A link below a cluster SVG gets no :hover, so it is highlighted here
     var hovered = null;
     var setHovered = function (node) {
@@ -208,7 +355,10 @@ HTMLWidgets.widget({
     };
     var onMouseLeave = function () { setHovered(null); };
     var onKeyDown = function (event) {
-      if (event.key === "Escape") { selectElement(null); return; }
+      if (event.key === "Escape") {
+        if (dragState) cancelDrag(); else selectElement(null);
+        return;
+      }
       if (event.key === "Enter" && events.dblclick === true && event.target.matches(selectableNodes)) {
         event.preventDefault();
         onDoubleClick(event);
@@ -216,10 +366,12 @@ HTMLWidgets.widget({
     };
 
     var wireEvents = function () {
+      cancelDrag();
       var click = HTMLWidgets.shinyMode && events.click === true;
       el.removeEventListener("click", onClick);
       el.removeEventListener("dblclick", onDoubleClick);
       el.removeEventListener("keydown", onKeyDown);
+      el.removeEventListener("pointerdown", startDrag);
       el.removeEventListener("mousemove", onMouseMove);
       el.removeEventListener("mouseleave", onMouseLeave);
       // A redraw removed the hovered link
@@ -232,14 +384,17 @@ HTMLWidgets.widget({
       }
       if (click || events.select === true) el.addEventListener("click", onClick);
       if (events.dblclick === true) el.addEventListener("dblclick", onDoubleClick);
-      if (events.select === true) el.addEventListener("keydown", onKeyDown);
+      if (events.select === true || events.drag === true) el.addEventListener("keydown", onKeyDown);
+      if (events.drag === true) el.addEventListener("pointerdown", startDrag);
+      el.classList.toggle("geneviewer-draggable", events.drag === true);
       if (events.select !== true && selected) { selected = null; report("select", null); }
       el.classList.toggle("geneviewer-selectable", events.select === true);
       el.classList.toggle("geneviewer-highlight", highlight);
-      applySelection();
+      applySelection(true);
     };
 
     var draw = function (width, height) {
+      cancelDrag();
 
       // Keep legend visibility while editing or resizing the same chart.
       var hiddenGroups = preserveLegend ? Array.from(el.querySelectorAll(".legend.unselected"), function (node) { return node.__data__; }) : [];
@@ -460,9 +615,16 @@ HTMLWidgets.widget({
       makeColorBar(graphContainer, links, theme);
     };
 
-    return {
-      renderValue: function (input) {
+    var renderValue = function (input) {
         var nextSignature = JSON.stringify([input.data, input.group, input.cluster, input.legend?.group]);
+        // A settings response must not remove the text under an active pointer.
+        // Data changes and disabling drag still redraw immediately and cancel it.
+        if (dragState && nextSignature === dataSignature && input.events?.drag === true) {
+          queuedRender = input;
+          return;
+        }
+        queuedRender = null;
+        cancelDrag();
         if (dataSignature !== null && nextSignature !== dataSignature) {
           preserveLegend = false;
           if (selected) { selected = null; report("select", null); }
@@ -481,6 +643,7 @@ HTMLWidgets.widget({
         size = input.size ?? {};
         draw(width, height);
         addLinks();
+        liftMovedText();
         wireEvents();
         if (events.rendered === true) {
           var detail = {
@@ -494,10 +657,13 @@ HTMLWidgets.widget({
           }
           el.dispatchEvent(new CustomEvent("geneviewer:rendered", { bubbles: true, detail: detail }));
         }
-      },
+    };
+    return {
+      renderValue: renderValue,
       resize: function (width, height) {
         draw(width, height);
         addLinks();
+        liftMovedText();
         wireEvents();
       }
     };

@@ -213,7 +213,8 @@ GC_trackMouse <- function(
 #' the chart, or pressing Escape, clears selection.
 #' Selection reports the click payload (or `NULL` when cleared) to
 #' `input$<outputId>_select` and `geneviewer:select`. It survives redraws of the
-#' same data and resize. Selected items can be opened with Enter when
+#' same data and resize. When a redraw changes the selected element's style,
+#' its updated payload is reported again. Selected items can be opened with Enter when
 #' `dblclick = TRUE`; items are keyboard focusable in selection mode.
 #' Use `click = FALSE` to avoid legacy single-click settings handlers.
 #' `legend_click = FALSE` excludes legend clicks from click reporting without
@@ -262,6 +263,12 @@ GC_trackMouse <- function(
 #'   element ID; the event's `chartId` identifies the chart itself.
 #' @param dblclick Logical, whether to report double-clicks for editing.
 #' @param select Logical, whether to enable individual element selection.
+#' @param drag Logical, enable dragging gene labels, chart titles and cluster
+#'   titles, footers and labels. Off by default. Releasing a drag reports
+#'   `input$<outputId>_drag` and `geneviewer:drag`, with `position` containing
+#'   `moveX` and `moveY` offsets in SVG pixels. Apply them with
+#'   [GC_element_style()] to preserve the position on redraw. Escape cancels
+#'   an active drag.
 #' @param legend_click Logical, whether legend clicks are reported to Shiny.
 #'
 #' @return The GC chart object with the event settings.
@@ -294,8 +301,8 @@ GC_trackMouse <- function(
 #' @export
 GC_events <- function(GC_chart, click = TRUE, highlight = FALSE,
                       rendered = FALSE, render_id = NULL, dblclick = FALSE,
-                      select = FALSE, legend_click = TRUE) {
-  for (arg in list(click, highlight, rendered, dblclick, select, legend_click)) {
+                      select = FALSE, legend_click = TRUE, drag = FALSE) {
+  for (arg in list(click, highlight, rendered, dblclick, select, legend_click, drag)) {
     if (!is.logical(arg) || length(arg) != 1 || is.na(arg)) {
       stop("Event options must be TRUE or FALSE.")
     }
@@ -310,6 +317,7 @@ GC_events <- function(GC_chart, click = TRUE, highlight = FALSE,
   GC_chart$x$events <- list(click = click, highlight = highlight)
   if (dblclick) GC_chart$x$events$dblclick <- TRUE
   if (select) GC_chart$x$events$select <- TRUE
+  if (drag) GC_chart$x$events$drag <- TRUE
   if (!legend_click) GC_chart$x$events$legendClick <- FALSE
   if (rendered) {
     GC_chart$x$events$rendered <- TRUE

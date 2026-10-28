@@ -399,3 +399,131 @@ test_that("legend parts report editing events and normal mode keeps visibility t
   expect_equal(value$optedOutHidden, "none")
   expect_equal(value$label, "Edited")
 })
+
+test_that("text drag events are opt-in and chart titles support individual offsets", {
+  chart <- GC_chart(data.frame(start = 1, end = 20)) %>% GC_title("Chart", subtitle = "Sub")
+  expect_null(GC_events(chart)$x$events$drag)
+  expect_true(GC_events(chart, drag = TRUE)$x$events$drag)
+  expect_error(GC_events(chart, drag = NA), "TRUE or FALSE")
+  edited <- chart %>%
+    GC_element_style("title", part = "title", moveX = 25, moveY = 10, fill = "red") %>%
+    GC_element_style("title", part = "subtitle", moveX = -5) %>%
+    GC_element_style("title", part = "title", moveY = 20)
+  expect_equal(edited$x$title$itemStyle[[2]], list(moveX = 25, moveY = 20, fill = "red", part = "title"))
+  reset <- GC_element_style(edited, "title", part = "title", reset = TRUE)
+  expect_equal(reset$x$title$itemStyle, list(list(moveX = -5, part = "subtitle")))
+  expect_error(GC_element_style(chart, "title", part = "title", cluster = 1), "part")
+  expect_error(GC_element_style(chart, "title", part = "other"), "part")
+})
+
+test_that("dragging works without selection and Escape cancels before reporting", {
+  chart <- GC_chart(data.frame(start = 10, end = 50, name = "Gene"), height = "250px") %>%
+    GC_labels("name", adjustLabels = FALSE, rotate = 30) %>%
+    GC_events(click = FALSE, drag = TRUE)
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const node = el.querySelector('text.label');
+      const drags = [];
+      el.addEventListener('geneviewer:drag', event => drags.push(event.detail));
+      el.style.transform = 'scale(0.5)'; el.style.transformOrigin = 'top left';
+      const pointer = (target, type, x, y) => target.dispatchEvent(new PointerEvent(type, {
+        pointerId: 1, isPrimary: true, button: 0, bubbles: true, clientX: x, clientY: y
+      }));
+      const r = node.getBoundingClientRect(), x = r.left, y = r.top;
+      pointer(node, 'pointerdown', x, y);
+      pointer(window, 'pointermove', x + 10, y + 5);
+      pointer(window, 'pointerup', x + 10, y + 5);
+      const committed = node.getAttribute('transform');
+      pointer(node, 'pointerdown', x, y);
+      pointer(window, 'pointermove', x + 20, y + 10);
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      pointer(window, 'pointerup', x + 20, y + 10);
+      const cancelled = node.getAttribute('transform');
+      pointer(el.querySelector('.gene'), 'pointerdown', x, y);
+      pointer(window, 'pointermove', x + 20, y + 10);
+      pointer(window, 'pointerup', x + 20, y + 10);
+      const initialDrags = drags.slice();
+      const widget = HTMLWidgets.find('#' + el.id);
+      const input = JSON.parse(document.querySelector('script[data-for]').textContent).x;
+      pointer(node, 'pointerdown', x, y);
+      widget.renderValue(input);
+      const deferredStart = el.contains(node);
+      pointer(window, 'pointermove', x + 10, y + 5);
+      widget.renderValue(input);
+      const deferred = el.contains(node);
+      pointer(window, 'pointerup', x + 10, y + 5);
+      const flushed = !el.contains(node);
+      return JSON.stringify({ drags: initialDrags, committed, cancelled, deferredStart, deferred, flushed,
+        totalDrags: drags.length, dragging: el.classList.contains('geneviewer-dragging') });
+    })()
+  ")
+  expect_null(result$exceptionDetails)
+  value <- jsonlite::fromJSON(result$result$value, simplifyVector = FALSE)
+  expect_length(value$drags, 1)
+  expect_equal(value$drags[[1]]$component, "labels")
+  expect_equal(value$drags[[1]]$data$rowID, 1)
+  expect_equal(value$drags[[1]]$position, list(moveX = 20, moveY = 10))
+  expect_identical(value$cancelled, value$committed)
+  expect_false(value$dragging)
+  expect_true(value$deferredStart)
+  expect_true(value$deferred)
+  expect_true(value$flushed)
+  expect_equal(value$totalDrags, 2)
+})
+
+test_that("selection reports final label styles and clears when data changes during a drag", {
+  chart <- GC_chart(data.frame(start = c(10, 30, 50), end = c(25, 45, 65),
+                               name = c("long gene label alpha", "long gene label beta", "long gene label gamma")),
+                    width = "450px", height = "300px") %>%
+    GC_labels("name", fontSize = "30px") %>%
+    GC_element_style("labels", 1, fill = "red", moveX = 25, moveY = 10) %>%
+    GC_events(click = FALSE, select = TRUE, drag = TRUE)
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const widget = HTMLWidgets.find('#' + el.id);
+      const input = JSON.parse(document.querySelector('script[data-for]').textContent).x;
+      const selections = [], drags = [];
+      el.addEventListener('geneviewer:select', e => selections.push(e.detail));
+      el.addEventListener('geneviewer:drag', e => drags.push(e.detail));
+      const label = () => el.querySelector('text.label[rowID=\"1\"]');
+      label().dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+      const rotation = selections.at(-1).style.rotate;
+      const transform = label().getAttribute('transform');
+      Object.values(input.series)[0].labels.itemStyle = [];
+      widget.renderValue(input);
+      const reset = selections.at(-1).style;
+      const pointer = (target, type, x, y) => target.dispatchEvent(new PointerEvent(type, {
+        pointerId: 1, isPrimary: true, button: 0, bubbles: true, clientX: x, clientY: y
+      }));
+      pointer(label(), 'pointerdown', 100, 100);
+      pointer(window, 'pointermove', 120, 110);
+      // Drop any deferred settings redraw before replacing the dataset.
+      widget.renderValue(input);
+      input.data.name = ['new alpha', 'new beta', 'new gamma'];
+      Object.values(input.series)[0].data.name = input.data.name;
+      widget.renderValue(input);
+      pointer(window, 'pointerup', 120, 110);
+      return JSON.stringify({ rotation, transform, reset,
+        selected: el.querySelectorAll('.geneviewer-selected').length,
+        cleared: selections.at(-1) === null, drags: drags.length });
+    })()
+  ")
+  expect_null(result$exceptionDetails)
+  value <- jsonlite::fromJSON(result$result$value)
+  expect_equal(value$rotation, -65)
+  expect_match(value$transform, "rotate\\(-65,")
+  expect_equal(value$reset$moveX, 0)
+  expect_equal(value$reset$moveY, 0)
+  expect_false(identical(value$reset$fill, "#ff0000"))
+  expect_equal(value$selected, 0)
+  expect_true(value$cleared)
+  expect_equal(value$drags, 0)
+})

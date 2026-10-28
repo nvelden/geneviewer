@@ -12,7 +12,8 @@ GC_events(
   render_id = NULL,
   dblclick = FALSE,
   select = FALSE,
-  legend_click = TRUE
+  legend_click = TRUE,
+  drag = FALSE
 )
 }
 \arguments{
@@ -35,6 +36,13 @@ element ID; the event's \code{chartId} identifies the chart itself.}
 \item{select}{Logical, whether to enable individual element selection.}
 
 \item{legend_click}{Logical, whether legend clicks are reported to Shiny.}
+
+\item{drag}{Logical, enable dragging gene labels, chart titles and cluster
+titles, footers and labels. Off by default. Releasing a drag reports
+\verb{input$<outputId>_drag} and \code{geneviewer:drag}, with \code{position} containing
+\code{moveX} and \code{moveY} offsets in SVG pixels. Apply them with
+\code{\link[=GC_element_style]{GC_element_style()}} to preserve the position on redraw. Escape cancels
+an active drag.}
 }
 \value{
 The GC chart object with the event settings.
@@ -76,7 +84,8 @@ outlines it. Clicking it again, empty chart space or a noneditable part of
 the chart, or pressing Escape, clears selection.
 Selection reports the click payload (or \code{NULL} when cleared) to
 \verb{input$<outputId>_select} and \code{geneviewer:select}. It survives redraws of the
-same data and resize. Selected items can be opened with Enter when
+same data and resize. When a redraw changes the selected element's style,
+its updated payload is reported again. Selected items can be opened with Enter when
 \code{dblclick = TRUE}; items are keyboard focusable in selection mode.
 Use \code{click = FALSE} to avoid legacy single-click settings handlers.
 \code{legend_click = FALSE} excludes legend clicks from click reporting without

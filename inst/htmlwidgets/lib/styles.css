@@ -96,3 +96,19 @@
   filter: drop-shadow(0 0 1px #2563eb) drop-shadow(0 0 1px #2563eb) drop-shadow(0 0 5px rgba(37, 99, 235, 0.7));
   outline: none;
 }
+
+/* Dragging text uses chart axes even when the text itself is rotated. */
+.geneviewer-draggable text.label,
+.geneviewer-draggable [data-component="title"] text,
+.geneviewer-draggable [data-component="clusterTitle"] text,
+.geneviewer-draggable [data-component="clusterFooter"] text,
+.geneviewer-draggable text[data-component="clusterFooter"],
+.geneviewer-draggable text[data-component="clusterLabel"] {
+  cursor: grab !important;
+  touch-action: none;
+  user-select: none;
+}
+.geneviewer-dragging, .geneviewer-dragging text {
+  cursor: grabbing !important;
+  user-select: none;
+}

@@ -8,18 +8,19 @@
 #'
 #' @param GC_chart A GC chart object.
 #' @param component The component to edit: `"genes"`, `"labels"`,
-#'   `"coordinates"`, `"clusterTitle"`, `"clusterFooter"`, `"clusterLabel"` or `"legend"`.
+#'   `"coordinates"`, `"clusterTitle"`, `"clusterFooter"`, `"clusterLabel"`, `"legend"` or `"title"`.
 #' @param row_id For genes, labels and coordinates: the gene's `rowID` in
 #'   `GC_chart$x$data`, also returned in `input$<outputId>_select$data$rowID`
 #'   and double-click event data.
 #' @param ... Named element options, using JavaScript names, e.g. `fill`,
 #'   `stroke`, `strokeWidth`, `marker`, `markerSize`, `fontSize`, `dx`, `dy`
 #'   or `rotate`. Labels, titles and subtitles also accept `text` to override
-#'   their displayed text. Coordinates accept `show = FALSE` to leave them out
+#'   their displayed text. Gene labels, chart titles and cluster text accept
+#'   `moveX` and `moveY`, pixel offsets from their configured position. Coordinates accept `show = FALSE` to leave them out
 #'   and `tick`, a list of options for their tick.
 #' @param cluster For cluster titles, footers and labels: the name or number of
 #'   the cluster.
-#' @param part For cluster titles, footers and labels: `"title"` or
+#' @param part For chart and cluster titles, footers and labels: `"title"` or
 #'   `"subtitle"`; for the legend: `"label"` or `"marker"`.
 #' @param end For coordinates: `"start"` or `"end"` for the coordinate of the
 #'   start or end of the gene, or `NULL` (default) for both.
@@ -58,12 +59,19 @@
 #' @export
 GC_element_style <- function(GC_chart,
                              component = c("genes", "labels", "coordinates", "clusterTitle",
-                                           "clusterFooter", "clusterLabel", "legend"),
+                                           "clusterFooter", "clusterLabel", "legend", "title"),
                              row_id = NULL, ..., cluster = NULL, part = NULL, end = NULL,
                              reset = FALSE, group = NULL) {
   component <- match.arg(component)
   by_row <- component %in% c("genes", "labels", "coordinates")
-  if (component == "legend") {
+  if (component == "title") {
+    if (!is.null(row_id) || !is.null(cluster) || !is.null(end) || !is.null(group)) {
+      stop("Use 'part' to identify a chart title or subtitle.")
+    }
+    if (length(part) != 1 || !part %in% c("title", "subtitle")) {
+      stop("'part' must be \"title\" or \"subtitle\".")
+    }
+  } else if (component == "legend") {
     if (!is.null(row_id) || !is.null(cluster) || !is.null(end)) {
       stop("Use 'group' and 'part' to identify a legend label or marker.")
     }
@@ -90,7 +98,7 @@ GC_element_style <- function(GC_chart,
                           !identical(end, "start") && !identical(end, "end"))) {
       stop("'end' must be \"start\" or \"end\", and only for coordinates.")
     }
-  } else if (component != "legend") {
+  } else if (!component %in% c("legend", "title")) {
     if (!is.null(row_id) || !is.null(end)) {
       stop("Use 'cluster' and 'part' to identify a title or subtitle, not 'row_id' or 'end'.")
     }
@@ -114,20 +122,13 @@ GC_element_style <- function(GC_chart,
   }
   if (reset && length(style)) stop("Do not supply element options with 'reset = TRUE'.")
 
-  if (component == "legend") {
-    items <- GC_chart$x$legend$itemStyle
-    matched <- vapply(items, function(item) {
-      identical(item$group, group) && identical(item$part, part)
-    }, logical(1))
-    previous <- if (any(matched)) items[[which(matched)[1]]] else list()
-    items <- items[!matched]
-    if (!reset) {
-      override <- utils::modifyList(previous, style)
-      override$group <- group
-      override$part <- part
-      items <- c(items, list(override))
+  if (component %in% c("legend", "title")) {
+    id <- c(if (component == "legend") list(group = group), list(part = part))
+    same <- function(item) {
+      identical(item$part, part) && (component == "title" || identical(item$group, group))
     }
-    GC_chart$x$legend$itemStyle <- unname(items)
+    GC_chart$x[[component]]$itemStyle <- update_element_override(
+      GC_chart$x[[component]]$itemStyle, same, id, style, reset)
     return(GC_chart)
   }
 
@@ -146,16 +147,22 @@ GC_element_style <- function(GC_chart,
   for (name in clusters) {
     series <- GC_chart$x$series[[name]]
     if (by_row && !row_id %in% series$data$rowID) next
-    items <- series[[key]]$itemStyle
-    matched <- vapply(items, same, logical(1))
-    previous <- if (any(matched)) items[[which(matched)[1]]] else list()
-    items <- items[!matched]
-    if (!reset) {
-      override <- utils::modifyList(previous, style)
-      override[names(id)] <- id
-      items <- c(items, list(override))
-    }
-    GC_chart$x$series[[name]][[key]]$itemStyle <- unname(items)
+    GC_chart$x$series[[name]][[key]]$itemStyle <- update_element_override(
+      series[[key]]$itemStyle, same, id, style, reset)
   }
   GC_chart
+}
+
+
+# Merge or remove one override while keeping the other elements unchanged.
+update_element_override <- function(items, same, id, style, reset) {
+  matched <- vapply(items, same, logical(1))
+  previous <- if (any(matched)) items[[which(matched)[1]]] else list()
+  items <- items[!matched]
+  if (!reset) {
+    override <- utils::modifyList(previous, style)
+    override[names(id)] <- id
+    items <- c(items, list(override))
+  }
+  unname(items)
 }

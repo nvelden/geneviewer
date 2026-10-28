@@ -51,7 +51,32 @@ HTMLWidgets.widget({
       });
       return link || target;
     };
-    var eventData = function (event) {
+    // A computed colour as hex, as typed in an editor: rgb(31, 119, 180) is
+    // #1f77b4. Transparent colours, none and patterns (url(...)) stay as they are.
+    var hex = function (color) {
+      var rgb = /^rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?\)$/.exec(color);
+      if (!rgb || (rgb[4] !== undefined && rgb[4] !== "1")) return color;
+      return "#" + rgb.slice(1, 4).map(function (v) { return (+v).toString(16).padStart(2, "0"); }).join("");
+    };
+    // How a gene or label is drawn, with the names of its element options:
+    // colours, opacity and font from its computed style, the shape settings of
+    // a gene (recorded when it is drawn) and the text of a label
+    var drawnStyle = function (component, node) {
+      node = node.closest(component === "genes" ? ".gene" : "text") || node;
+      var css = getComputedStyle(node);
+      var style = { fill: hex(css.fill), opacity: +css.opacity };
+      if (component === "genes") {
+        return Object.assign(style, {
+          stroke: hex(css.stroke), strokeWidth: parseFloat(css.strokeWidth),
+          strokeDasharray: css.strokeDasharray
+        }, node.__drawn__);
+      }
+      return Object.assign(style, {
+        text: node.textContent, fontSize: parseFloat(css.fontSize),
+        fontWeight: css.fontWeight, fontStyle: css.fontStyle, fontFamily: css.fontFamily
+      });
+    };
+    var eventData = function (event, withStyle) {
       var target = targetOf(event);
       var part = target.closest && target.closest("[data-component]");
       if (!part || !el.contains(part)) return;
@@ -62,11 +87,15 @@ HTMLWidgets.widget({
         if (node.__data__ !== undefined) { datum = node.__data__; break; }
       }
       var cluster = part.closest("[data-cluster]");
-      return {
+      var detail = {
         component: component,
         cluster: cluster ? cluster.getAttribute("data-cluster") : null,
         data: datum
       };
+      if (withStyle && datum !== null && (component === "genes" || component === "labels")) {
+        detail.style = drawnStyle(component, node);
+      }
+      return detail;
     };
 
     var report = function (name, detail) {
@@ -103,10 +132,11 @@ HTMLWidgets.widget({
       if ((!selected && !detail) || sameSelection(selected, detail)) return;
       selected = detail;
       applySelection();
-      report("select", selected);
+      // The clicked element's payload, with how it is drawn
+      report("select", selected && detail);
     };
     var onClick = function (event) {
-      var detail = eventData(event);
+      var detail = eventData(event, true);
       if (events.select === true && event.detail < 2) {
         // Controls such as the save button are not empty chart space.
         if (detail || event.target.closest("svg") || event.target === el) selectElement(detail ?? null);
@@ -117,7 +147,7 @@ HTMLWidgets.widget({
       }
     };
     var onDoubleClick = function (event) {
-      var detail = eventData(event);
+      var detail = eventData(event, true);
       if (!detail || detail.component === "legend") return;
       if (events.select === true) selectElement(detail);
       report("dblclick", detail);

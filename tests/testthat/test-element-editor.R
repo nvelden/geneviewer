@@ -111,6 +111,13 @@ test_that("selection and legend toggles remain independent across redraws", {
   expect_equal(value$doubles, 2)
   expect_length(value$dom, 2)
   expect_equal(value$dom[[1]]$data$rowID, 1)
+  # How the gene is drawn: its own fill, the default arrow
+  style <- value$dom[[1]]$style
+  expect_equal(style$fill, "#ff0000")
+  expect_equal(style[c("marker", "markerSize", "markerHeight", "arrowheadWidth", "y")],
+               list(marker = "arrow", markerSize = "medium", markerHeight = 15,
+                    arrowheadWidth = 10, y = 50))
+  expect_equal(style$stroke, "#000000")
 })
 
 # Links are drawn in an SVG below the cluster SVGs, which take the mouse over

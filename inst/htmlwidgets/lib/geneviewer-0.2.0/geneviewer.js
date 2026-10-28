@@ -2879,7 +2879,9 @@ function getGenePath(marker, length, markerSize, options = {}) {
             path = "";
     }
 
-    return { path, length, scaledArrowheadWidth, scaledArrowheadHeight, height };
+    // The options the marker was drawn with, before scaling by its size
+    const used = { arrowheadWidth, arrowheadHeight, markerHeight, cornerRadius: cornerRadius ?? 0 };
+    return { path, length, scaledArrowheadWidth, scaledArrowheadHeight, height, used };
 }
 
 // Path and position of the gene (or exon, intron, UTR) marker of d, the i-th
@@ -2909,10 +2911,12 @@ function getMarkerAttributes(container, d, i, y, styles, itemStyles) {
   const geneLength = Math.abs(container.xScale(d.end) - container.xScale(d.start));
   const currentY = style.y ?? y;
 
-  const { path, arrowheadWidth, arrowheadHeight, height } = getGenePath(
-    style.marker ?? styles.marker,
+  const marker = style.marker ?? styles.marker;
+  const markerSize = style.markerSize ?? styles.markerSize;
+  const { path, arrowheadWidth, arrowheadHeight, height, used } = getGenePath(
+    marker,
     geneLength,
-    style.markerSize ?? styles.markerSize,
+    markerSize,
     {
       arrowheadWidth: style.arrowheadWidth ?? styles.arrowheadWidth,
       arrowheadHeight: style.arrowheadHeight ?? styles.arrowheadHeight,
@@ -2943,7 +2947,10 @@ function getMarkerAttributes(container, d, i, y, styles, itemStyles) {
   const yPos = container.yScale(currentY) - currentGeneStrandSpacing + currentOverlapSpacing;
   const xPos = container.xScale(d.start);
 
-  return { xPos, yPos, path, arrowheadWidth, arrowheadHeight, height };
+  // The settings the gene was drawn with, e.g. for an editor to show them
+  const drawn = { marker, markerSize, ...used, y: currentY };
+
+  return { xPos, yPos, path, arrowheadWidth, arrowheadHeight, height, drawn };
 }
 
 container.prototype.genes = function (group, show = true, options = {}) {
@@ -3024,6 +3031,8 @@ container.prototype.genes = function (group, show = true, options = {}) {
       setStyleFromOptions(currentElement, additionalOptions);
       // Override with itemStyle based on the index
       applyStyleToElement(currentElement, itemStyle, i);
+      // The shape settings it was drawn with, reported by GC_events()
+      this.__drawn__ = getAttributesForIndex(d, i).drawn;
     });
 
   // Update the reference

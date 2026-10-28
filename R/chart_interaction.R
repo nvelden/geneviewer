@@ -221,6 +221,15 @@ GC_trackMouse <- function(
 #' changing legend visibility toggles. Selection never includes the legend.
 #' Double-click and selection browser events also work outside Shiny.
 #'
+#' Click, double-click and selection payloads of a gene or label also contain
+#' `style`: how it is drawn, with the names of [GC_element_style()] options, so
+#' an editor can show the current values. For a gene these are `fill`,
+#' `opacity`, `stroke`, `strokeWidth`, `strokeDasharray`, `marker`,
+#' `markerSize`, `markerHeight`, `arrowheadWidth`, `arrowheadHeight`,
+#' `cornerRadius` and `y`; for a label `fill`, `opacity`, `text`, `fontSize`
+#' (in pixels), `fontWeight`, `fontStyle` and `fontFamily`. Colours are hex
+#' codes, except transparent colours, `"none"` and patterns.
+#'
 #' With `rendered = TRUE`, each successful update also sets
 #' `input$<outputId>_rendered` to a list containing `id` (the supplied
 #' `render_id`, or a generated ID), `chartId` (the chart's DOM element ID),

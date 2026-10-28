@@ -84,6 +84,15 @@ Use \code{click = FALSE} to avoid legacy single-click settings handlers.
 changing legend visibility toggles. Selection never includes the legend.
 Double-click and selection browser events also work outside Shiny.
 
+Click, double-click and selection payloads of a gene or label also contain
+\code{style}: how it is drawn, with the names of \code{\link[=GC_element_style]{GC_element_style()}} options, so
+an editor can show the current values. For a gene these are \code{fill},
+\code{opacity}, \code{stroke}, \code{strokeWidth}, \code{strokeDasharray}, \code{marker},
+\code{markerSize}, \code{markerHeight}, \code{arrowheadWidth}, \code{arrowheadHeight},
+\code{cornerRadius} and \code{y}; for a label \code{fill}, \code{opacity}, \code{text}, \code{fontSize}
+(in pixels), \code{fontWeight}, \code{fontStyle} and \code{fontFamily}. Colours are hex
+codes, except transparent colours, \code{"none"} and patterns.
+
 With \code{rendered = TRUE}, each successful update also sets
 \verb{input$<outputId>_rendered} to a list containing \code{id} (the supplied
 \code{render_id}, or a generated ID), \code{chartId} (the chart's DOM element ID),

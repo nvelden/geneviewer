@@ -38,7 +38,7 @@ element ID; the event's \code{chartId} identifies the chart itself.}
 \item{legend_click}{Logical, whether legend clicks are reported to Shiny.}
 
 \item{drag}{Logical, enable dragging gene labels, chart titles and cluster
-titles, footers and labels. Off by default. Releasing a drag reports
+titles, footers, labels, whole scale bars and axes. Off by default. Releasing a drag reports
 \verb{input$<outputId>_drag} and \code{geneviewer:drag}, with \code{position} containing
 \code{moveX} and \code{moveY} offsets in SVG pixels. Apply them with
 \code{\link[=GC_element_style]{GC_element_style()}} to preserve the position on redraw. Escape cancels

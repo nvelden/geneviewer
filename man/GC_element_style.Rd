@@ -7,7 +7,7 @@
 GC_element_style(
   GC_chart,
   component = c("genes", "labels", "coordinates", "clusterTitle", "clusterFooter",
-    "clusterLabel", "legend", "title"),
+    "clusterLabel", "legend", "title", "scaleBar", "scale"),
   row_id = NULL,
   ...,
   cluster = NULL,
@@ -21,7 +21,7 @@ GC_element_style(
 \item{GC_chart}{A GC chart object.}
 
 \item{component}{The component to edit: \code{"genes"}, \code{"labels"},
-\code{"coordinates"}, \code{"clusterTitle"}, \code{"clusterFooter"}, \code{"clusterLabel"}, \code{"legend"} or \code{"title"}.}
+\code{"coordinates"}, \code{"clusterTitle"}, \code{"clusterFooter"}, \code{"clusterLabel"}, \code{"legend"}, \code{"title"}, \code{"scaleBar"} or \code{"scale"}.}
 
 \item{row_id}{For genes, labels and coordinates: the gene's \code{rowID} in
 \code{GC_chart$x$data}, also returned in \verb{input$<outputId>_select$data$rowID}
@@ -30,11 +30,11 @@ and double-click event data.}
 \item{...}{Named element options, using JavaScript names, e.g. \code{fill},
 \code{stroke}, \code{strokeWidth}, \code{marker}, \code{markerSize}, \code{fontSize}, \code{dx}, \code{dy}
 or \code{rotate}. Labels, titles and subtitles also accept \code{text} to override
-their displayed text. Gene labels, chart titles and cluster text accept
+their displayed text. Gene labels, chart titles, cluster text and whole scale bars and axes accept
 \code{moveX} and \code{moveY}, pixel offsets from their configured position. Coordinates accept \code{show = FALSE} to leave them out
 and \code{tick}, a list of options for their tick.}
 
-\item{cluster}{For cluster titles, footers and labels: the name or number of
+\item{cluster}{For cluster titles, footers, labels, scale bars and axes: the name or number of
 the cluster.}
 
 \item{part}{For chart and cluster titles, footers and labels: \code{"title"} or

@@ -39,8 +39,8 @@ HTMLWidgets.widget({
     var clickData = ["genes", "transcript", "labels", "links", "legend", "coordinates"];
     // The parts of the chart that can be selected (GC_events(select = TRUE)),
     // one by one: they can be styled with GC_element_style()
-    var selectable = ["genes", "labels", "coordinates", "clusterTitle", "clusterFooter", "clusterLabel", "legend", "title"];
-    var selectableNodes = ".gene, text.label, text.coordinate, [data-part]";
+    var selectable = ["genes", "labels", "coordinates", "clusterTitle", "clusterFooter", "clusterLabel", "legend", "title", "scaleBar", "scale"];
+    var selectableNodes = '.gene, text.label, text.coordinate, [data-part], [data-component="scaleBar"], [data-component="scale"]';
     var selected = null;
     var dataSignature = null;
     var preserveLegend = true;
@@ -75,6 +75,7 @@ HTMLWidgets.widget({
     // colours, opacity and font from its computed style, the shape settings of
     // a gene (recorded when it is drawn) and the text of a label or title
     var drawnStyle = function (component, node) {
+      if (["scale", "scaleBar"].includes(component)) return Object.assign({ moveX: 0, moveY: 0 }, node.__drawn__);
       node = node.closest(component === "genes" ? ".gene" : component === "legend" ? "[data-part]" : "text") || node;
       var css = getComputedStyle(node);
       var style = { fill: hex(solidFill(css.fill)), opacity: +css.opacity };
@@ -115,7 +116,7 @@ HTMLWidgets.widget({
       };
       var textPart = target.closest("[data-part]");
       if (textPart && part.contains(textPart)) detail.part = textPart.getAttribute("data-part");
-      if (withStyle && keyOf(detail) !== null) detail.style = drawnStyle(component, component === "legend" ? textPart : node);
+      if (withStyle && keyOf(detail) !== null) detail.style = drawnStyle(component, ["scale", "scaleBar"].includes(component) ? part : component === "legend" ? textPart : node);
       return detail;
     };
     // What identifies a selectable element: a gene, label or coordinate by its
@@ -123,6 +124,7 @@ HTMLWidgets.widget({
     // cluster and part. Null for the other parts of the chart.
     var keyOf = function (d) {
       if (!d || !selectable.includes(d.component)) return null;
+      if (["scale", "scaleBar"].includes(d.component)) return [d.component, d.cluster].join("|");
       if (d.component === "legend") {
         return d.data != null && ["label", "marker"].includes(d.part) ?
           JSON.stringify([d.component, d.data, d.part]) : null;
@@ -200,8 +202,8 @@ HTMLWidgets.widget({
       if (events.select === true) selectElement(detail);
       report("dblclick", detail);
     };
-    var draggable = ["labels", "title", "clusterTitle", "clusterFooter", "clusterLabel"];
-    // Moved text shares one chart-wide viewport, above the cluster SVGs.
+    var draggable = ["labels", "title", "clusterTitle", "clusterFooter", "clusterLabel", "scaleBar", "scale"];
+    // Moved text and scale bars share one chart-wide viewport, above the cluster SVGs.
     // Keep the original parent's coordinate system and logical component.
     var liftText = function (node, detail) {
       if (node.closest(".geneviewer-text-overlay") || !el.clientWidth || !el.clientHeight) return null;
@@ -229,7 +231,7 @@ HTMLWidgets.widget({
       var frame = document.createElementNS(ns, "g");
       var transform = overlay.getScreenCTM().inverse().multiply(matrix);
       frame.setAttribute("transform", `matrix(${transform.a} ${transform.b} ${transform.c} ${transform.d} ${transform.e} ${transform.f})`);
-      frame.setAttribute("data-component", detail.component);
+      if (!["scale", "scaleBar"].includes(detail.component)) frame.setAttribute("data-component", detail.component);
       if (detail.cluster != null) frame.setAttribute("data-cluster", detail.cluster);
       overlay.appendChild(frame);
       frame.appendChild(node);
@@ -238,7 +240,7 @@ HTMLWidgets.widget({
       return placement;
     };
     var liftMovedText = function () {
-      el.querySelectorAll("text.label, text[data-part]").forEach(function (node) {
+      el.querySelectorAll('text.label, text[data-part], [data-component="scaleBar"], [data-component="scale"]').forEach(function (node) {
         if (!(node.__drawn__?.moveX || node.__drawn__?.moveY)) return;
         var detail = eventData({ target: node });
         if (detail && draggable.includes(detail.component)) liftText(node, detail);
@@ -322,7 +324,7 @@ HTMLWidgets.widget({
       if (event.button !== 0 || event.isPrimary === false) return;
       var detail = eventData(event, true);
       if (!detail || !draggable.includes(detail.component) || keyOf(detail) === null) return;
-      var node = event.target.closest("text");
+      var node = event.target.closest(["scale", "scaleBar"].includes(detail.component) ? '[data-component="' + detail.component + '"]' : "text");
       if (!node) return;
       var matrix = node.parentNode.getScreenCTM();
       if (!matrix) return;

@@ -103,12 +103,18 @@
 .geneviewer-draggable [data-component="clusterTitle"] text,
 .geneviewer-draggable [data-component="clusterFooter"] text,
 .geneviewer-draggable text[data-component="clusterFooter"],
-.geneviewer-draggable text[data-component="clusterLabel"] {
+.geneviewer-draggable text[data-component="clusterLabel"],
+.geneviewer-draggable [data-component="scaleBar"],
+.geneviewer-draggable [data-component="scaleBar"] *,
+.geneviewer-draggable [data-component="scale"],
+.geneviewer-draggable [data-component="scale"] * {
   cursor: grab !important;
   touch-action: none;
   user-select: none;
 }
-.geneviewer-dragging, .geneviewer-dragging text {
+.geneviewer-dragging, .geneviewer-dragging text,
+.geneviewer-dragging [data-component="scaleBar"] *,
+.geneviewer-dragging [data-component="scale"] * {
   cursor: grabbing !important;
   user-select: none;
 }

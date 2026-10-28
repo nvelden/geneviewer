@@ -264,7 +264,7 @@ GC_trackMouse <- function(
 #' @param dblclick Logical, whether to report double-clicks for editing.
 #' @param select Logical, whether to enable individual element selection.
 #' @param drag Logical, enable dragging gene labels, chart titles and cluster
-#'   titles, footers and labels. Off by default. Releasing a drag reports
+#'   titles, footers, labels, whole scale bars and axes. Off by default. Releasing a drag reports
 #'   `input$<outputId>_drag` and `geneviewer:drag`, with `position` containing
 #'   `moveX` and `moveY` offsets in SVG pixels. Apply them with
 #'   [GC_element_style()] to preserve the position on redraw. Escape cancels

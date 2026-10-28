@@ -1548,6 +1548,7 @@ container.prototype.scale = function (options = {}) {
     }
 
     const axis = axisGroup.append("g").call(xAxis);
+    positionText(axisGroup, combinedOptions.itemStyle?.[0]);
 
     // Style axis lines and text
     axis.selectAll(".tick line")
@@ -2448,6 +2449,9 @@ container.prototype.scaleBar = function (show = true, options = {}) {
       setStyleFromOptions(currentElement, additionalOptionsLabel);
     })
     .text(title);
+
+  // Move the complete bar, including its label, line and ticks.
+  positionText(g, combinedOptions.itemStyle?.[0]);
 
   return this;
 };

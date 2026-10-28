@@ -527,3 +527,75 @@ test_that("selection reports final label styles and clears when data changes dur
   expect_true(value$cleared)
   expect_equal(value$drags, 0)
 })
+
+for (component in c("scaleBar", "scale")) test_that(paste(component, "drags as a whole group and retains per-cluster offsets"), {
+  chart <- GC_chart(data.frame(start = c(10, 20), end = c(50, 60), cluster = c("A", "B")),
+                    cluster = "cluster", height = "400px") %>%
+    GC_scale(hidden = FALSE) %>%
+    GC_scaleBar(scaleBarUnit = 10) %>%
+    GC_element_style(component, cluster = "A", moveX = 5, moveY = -5) %>%
+    GC_events(click = FALSE, select = TRUE, drag = TRUE)
+  expect_error(GC_element_style(chart, component, cluster = "A", part = "label"), "whole")
+  reset <- GC_element_style(chart, component, cluster = "A", reset = TRUE)
+  expect_length(reset$x$series$A[[component]]$itemStyle, 0)
+  expect_null(chart$x$series$B[[component]]$itemStyle)
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  result <- session$Runtime$evaluate(gsub("SCALE_COMPONENT", component, "
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const widget = HTMLWidgets.find('#' + el.id);
+      const input = JSON.parse(document.querySelector('script[data-for]').textContent).x;
+      const bars = () => [...el.querySelectorAll('[data-component=\"SCALE_COMPONENT\"]')];
+      const bar = () => bars().find(n => n.closest('[data-cluster]').dataset.cluster === 'A');
+      const other = bars().find(n => n !== bar());
+      const otherTransform = other.getAttribute('transform');
+      const children = [...bar().querySelectorAll('line, text, path')];
+      const geometry = children.map(n => n.outerHTML);
+      const drags = [];
+      el.addEventListener('geneviewer:drag', e => drags.push(e.detail));
+      const pointer = (node, type, x, y) => node.dispatchEvent(new PointerEvent(type, {
+        pointerId: 1, isPrimary: true, button: 0, bubbles: true, clientX: x, clientY: y
+      }));
+      // The main line, both ticks and the label all move the same group.
+      children.forEach(node => {
+        pointer(node, 'pointerdown', 100, 100);
+        pointer(window, 'pointermove', 120, 110);
+        pointer(window, 'pointerup', 120, 110);
+      });
+      const moved = bar().getAttribute('transform');
+      pointer(children[0], 'pointerdown', 100, 100);
+      pointer(window, 'pointermove', 130, 120);
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      const cancelled = bar().getAttribute('transform') === moved;
+      const intact = children.every((n, i) => n.outerHTML === geometry[i] && bar().contains(n));
+      const isolated = other.getAttribute('transform') === otherTransform;
+      const selected = el.querySelectorAll('.geneviewer-selected').length;
+      input.series.A.SCALE_COMPONENT.itemStyle = [drags.at(-1).position];
+      widget.renderValue(input);
+      widget.resize(700, 450);
+      const restored = bar().__drawn__;
+      input.events.drag = false;
+      widget.renderValue(input);
+      pointer(bar().querySelector('text'), 'pointerdown', 100, 100);
+      pointer(window, 'pointermove', 140, 120);
+      pointer(window, 'pointerup', 140, 120);
+      return JSON.stringify({ drags, intact, isolated, cancelled, selected, restored });
+    })()
+  "))
+  expect_null(result$exceptionDetails)
+  value <- jsonlite::fromJSON(result$result$value, simplifyVector = FALSE)
+  expect_gt(length(value$drags), 0)
+  expect_true(value$intact)
+  expect_true(value$isolated)
+  expect_true(value$cancelled)
+  expect_equal(value$selected, 1)
+  expect_equal(value$restored, list(moveX = 5 + 20 * length(value$drags), moveY = -5 + 10 * length(value$drags)))
+  for (i in seq_along(value$drags)) {
+    expect_equal(value$drags[[i]]$component, component)
+    expect_equal(value$drags[[i]]$cluster, "A")
+    expect_null(value$drags[[i]]$part)
+    expect_equal(value$drags[[i]]$position, list(moveX = 5 + 20 * i, moveY = -5 + 10 * i))
+  }
+})

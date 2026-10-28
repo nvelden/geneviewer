@@ -8,17 +8,17 @@
 #'
 #' @param GC_chart A GC chart object.
 #' @param component The component to edit: `"genes"`, `"labels"`,
-#'   `"coordinates"`, `"clusterTitle"`, `"clusterFooter"`, `"clusterLabel"`, `"legend"` or `"title"`.
+#'   `"coordinates"`, `"clusterTitle"`, `"clusterFooter"`, `"clusterLabel"`, `"legend"`, `"title"`, `"scaleBar"` or `"scale"`.
 #' @param row_id For genes, labels and coordinates: the gene's `rowID` in
 #'   `GC_chart$x$data`, also returned in `input$<outputId>_select$data$rowID`
 #'   and double-click event data.
 #' @param ... Named element options, using JavaScript names, e.g. `fill`,
 #'   `stroke`, `strokeWidth`, `marker`, `markerSize`, `fontSize`, `dx`, `dy`
 #'   or `rotate`. Labels, titles and subtitles also accept `text` to override
-#'   their displayed text. Gene labels, chart titles and cluster text accept
+#'   their displayed text. Gene labels, chart titles, cluster text and whole scale bars and axes accept
 #'   `moveX` and `moveY`, pixel offsets from their configured position. Coordinates accept `show = FALSE` to leave them out
 #'   and `tick`, a list of options for their tick.
-#' @param cluster For cluster titles, footers and labels: the name or number of
+#' @param cluster For cluster titles, footers, labels, scale bars and axes: the name or number of
 #'   the cluster.
 #' @param part For chart and cluster titles, footers and labels: `"title"` or
 #'   `"subtitle"`; for the legend: `"label"` or `"marker"`.
@@ -59,7 +59,7 @@
 #' @export
 GC_element_style <- function(GC_chart,
                              component = c("genes", "labels", "coordinates", "clusterTitle",
-                                           "clusterFooter", "clusterLabel", "legend", "title"),
+                                           "clusterFooter", "clusterLabel", "legend", "title", "scaleBar", "scale"),
                              row_id = NULL, ..., cluster = NULL, part = NULL, end = NULL,
                              reset = FALSE, group = NULL) {
   component <- match.arg(component)
@@ -105,7 +105,9 @@ GC_element_style <- function(GC_chart,
     if (length(cluster) != 1 || is.na(cluster)) stop("'cluster' must be one cluster.")
     cluster <- suppressWarnings(getUpdatedClusters(GC_chart, cluster))
     if (is.null(cluster)) stop("'cluster' must be the name or number of a cluster of the chart.")
-    if (!identical(part, "title") && !identical(part, "subtitle")) {
+    if (component %in% c("scaleBar", "scale")) {
+      if (!is.null(part)) stop("Scale bars and axes are edited as a whole; do not supply 'part'.")
+    } else if (!identical(part, "title") && !identical(part, "subtitle")) {
       stop("'part' must be \"title\" or \"subtitle\".")
     }
   }
@@ -134,7 +136,9 @@ GC_element_style <- function(GC_chart,
 
   # The series entry of the component, and what identifies the element in it
   key <- switch(component, clusterFooter = "footer", component)
-  id <- if (by_row) c(list(rowID = row_id), if (!is.null(end)) list(end = end)) else list(part = part)
+  id <- if (by_row) {
+    c(list(rowID = row_id), if (!is.null(end)) list(end = end))
+  } else if (component %in% c("scaleBar", "scale")) list() else list(part = part)
   same <- function(item) {
     if (by_row) {
       identical(as.numeric(item$rowID), as.numeric(row_id)) && identical(item$end, end)

@@ -419,10 +419,16 @@ nearly white at an identity of <code>vmin</code> (0 by default) to the
 full colour at <code>vmax</code> (100); setting <code>vmin</code> to the
 lowest identity in the alignment spreads the colours over the data. In
 addition, we change the axis_type to “range”, make the genes a little
-smaller, add cluster labels and use the <code>"publication"</code> theme
-(<code><a href="../reference/GC_theme.html">GC_theme()</a></code> is only available in the development version).
-For more customization options see <a href="https://nvelden.github.io/geneviewer/articles/geneviewer.html">Get
+smaller, add cluster labels and use the <code>"publication"</code>
+theme. For more customization options see <a href="https://nvelden.github.io/geneviewer/articles/geneviewer.html">Get
 started</a>.</p>
+<blockquote>
+<p><strong>Note:</strong> <code><a href="../reference/GC_theme.html">GC_theme()</a></code> and the
+<code>vmin</code> and <code>vmax</code> arguments of
+<code><a href="../reference/GC_links.html">GC_links()</a></code> are only available in the development version of
+geneviewer. Install it with
+<code>devtools::install_github("nvelden/geneviewer")</code>.</p>
+</blockquote>
 <p><strong>Important</strong>: The gene cluster data like the alignment
 data is loaded in the order of the files in the folder. If a custom
 order was used for the MUMer alignment make sure to sort the “cluster”

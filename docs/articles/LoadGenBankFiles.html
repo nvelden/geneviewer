@@ -326,6 +326,11 @@ to make the cluster visualization.</p>
 add a title, alter the coloring and appearance of the genes and add a
 scale. In addition, we alter the tooltip to display the gene, product
 and region on hoover.</p>
+<blockquote>
+<p><strong>Note:</strong> <code><a href="../reference/GC_theme.html">GC_theme()</a></code> is only available in
+the development version of geneviewer. Install it with
+<code>devtools::install_github("nvelden/geneviewer")</code>.</p>
+</blockquote>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="st">"biosynthetic"</span> <span class="op">=</span> <span class="st">"#810E15"</span>, </span>
@@ -490,6 +495,11 @@ title for each cluster.</p>
 <p>We can now plot the graph but this time we specify the “cluster”
 column as identifier to distinguish the clusters and add cluster labels
 and titles.</p>
+<blockquote>
+<p><strong>Note:</strong> <code><a href="../reference/GC_theme.html">GC_theme()</a></code> is only available in
+the development version of geneviewer. Install it with
+<code>devtools::install_github("nvelden/geneviewer")</code>.</p>
+</blockquote>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># replace NA with "other" for gene_kind</span></span>
 <span><span class="va">cds_clusters_df</span><span class="op">$</span><span class="va">gene_kind</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">cds_clusters_df</span><span class="op">$</span><span class="va">gene_kind</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"other"</span></span>

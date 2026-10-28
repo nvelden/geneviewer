@@ -163,8 +163,11 @@ HTMLWidgets.widget({
     var onClick = function (event) {
       var detail = eventData(event, true);
       if (events.select === true && event.detail < 2) {
-        // Controls such as the save button are not empty chart space.
-        if (detail || event.target.closest("svg") || event.target === el) selectElement(detail ?? null);
+        // Controls such as the save button are not empty chart space. A click
+        // on the selected element ends its selection.
+        if (detail || event.target.closest("svg") || event.target === el) {
+          selectElement(sameSelection(selected, detail) ? null : detail ?? null);
+        }
       }
       if (!detail || (detail.component === "legend" && events.legendClick === false)) return;
       if (HTMLWidgets.shinyMode && events.click === true) {

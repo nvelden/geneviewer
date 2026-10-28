@@ -99,6 +99,8 @@ chart
 
 To make the chart more similar to the one we find on the [MIBiG](https://mibig.secondarymetabolites.org/) website we can add a title, alter the coloring and appearance of the genes and add a scale. In addition, we alter the tooltip to display the gene, product and region on hoover. 
 
+> **Note:** `GC_theme()` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
+
 ```{r echo = TRUE, results='asis'}
 colors <- list(
   "biosynthetic" = "#810E15", 
@@ -175,6 +177,8 @@ kable(head(cds_df))
 ```
 
 We can now plot the graph but this time we specify the "cluster" column as identifier to distinguish the clusters and add cluster labels and titles.
+
+> **Note:** `GC_theme()` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
 
 ```{r echo = TRUE, results='asis'}
 # replace NA with "other" for gene_kind

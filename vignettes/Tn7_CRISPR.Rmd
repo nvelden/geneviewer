@@ -23,7 +23,9 @@ This tutorial shows how to rebuild a figure from a paper with **`geneviewer`**. 
 
 Open [Figure 3](https://pmc.ncbi.nlm.nih.gov/articles/PMC5584455/figure/fig03/) next to this tutorial: at each step we point out which part of the published figure we recreate.
 
-Step by step we will line the elements up, leave out long stretches of DNA with scale breaks, draw the ends of the elements as bars, write the gene names inside the genes and finish the chart for a publication. Unlike the published figure, the genes are drawn to scale. Several of the options used here (`groupStyle`, `style_by` and a `scale_break_padding` in base pairs) are only available in the development version of `geneviewer`.
+Step by step we will line the elements up, leave out long stretches of DNA with scale breaks, draw the ends of the elements as bars, write the gene names inside the genes and finish the chart for a publication. Unlike the published figure, the genes are drawn to scale.
+
+> **Note:** This tutorial needs the development version of geneviewer: the `tn7_crispr_elements` data set, `GC_pattern()`, `GC_theme()`, the `groupStyle` and `style_by` options, the `subtitle` of `GC_clusterLabel()`, the `groupStyle` and `align` of `GC_legend()` and a `scale_break_padding` in base pairs are only available there. Install it with `devtools::install_github("nvelden/geneviewer")`.
 
 ### Materials
 

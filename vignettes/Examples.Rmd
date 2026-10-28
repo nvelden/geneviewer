@@ -16,6 +16,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+> **Note:** Most examples below use `GC_theme()`, and some use `GC_pattern()`, the `groupStyle` and `style_by` options, the `subtitle` of `GC_clusterLabel()` and the `pQEB1_plasmids`, `pQEB1_alignment` and `tn7_crispr_elements` data sets. These are only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
+
 ### *E.coli* Lac operon
 
 <details>
@@ -581,6 +583,8 @@ GC_chart(blastp,
 
 ### *bla*KPC-2 plasmid pQEB1 and its variants
 
+> **Note:** The `pQEB1_plasmids` and `pQEB1_alignment` data sets are only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
+
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
@@ -677,6 +681,8 @@ GC_chart(pQEB1_plasmids, cluster = "cluster", group = "category",
 ### Tn7-like transposons carrying a CRISPR-Cas system
 
 Redrawn from Figure 3 of Peters et al. (2017). The [tutorial](Tn7_CRISPR.html) builds this chart step by step.
+
+> **Note:** The `tn7_crispr_elements` data set is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
 
 <details>
 <summary>Click to see the code</summary>

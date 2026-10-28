@@ -79,6 +79,11 @@ test_that("selection and legend toggles remain independent across redraws", {
       gene().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
       gene().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       const cleared = el.querySelectorAll('.geneviewer-selected').length;
+      // A second click on the selected gene ends its selection
+      click(gene());
+      const toggled = [el.querySelectorAll('.geneviewer-selected').length];
+      click(gene());
+      toggled.push(el.querySelectorAll('.geneviewer-selected').length);
       // Another part of the chart ends the selection, as empty space does
       const others = ['.legend-marker', '[data-component=\"sequence\"] line'].map(part => {
         click(gene());
@@ -93,7 +98,7 @@ test_that("selection and legend toggles remain independent across redraws", {
       x.events = { click: true };
       widget.renderValue(x);
       click(gene());
-      return JSON.stringify({ fill, text, hidden, selected, cleared, others, replaced, dom,
+      return JSON.stringify({ fill, text, hidden, selected, cleared, toggled, others, replaced, dom,
         clicks: messages.filter(m => m.name.endsWith('_click')).length,
         doubles: messages.filter(m => m.name.endsWith('_dblclick')).length });
     })()
@@ -105,6 +110,7 @@ test_that("selection and legend toggles remain independent across redraws", {
   expect_equal(value$hidden, "none")
   expect_equal(value$selected, "1")
   expect_equal(value$cleared, 0)
+  expect_equal(value$toggled, list(1, 0))
   expect_equal(value$others, list(0, 0))
   expect_equal(value$replaced, 0)
   expect_equal(value$clicks, 1)

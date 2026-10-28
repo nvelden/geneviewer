@@ -73,8 +73,8 @@ double-click: use clicks for selection, and double-clicks for editing,
 rather than opening different settings panels on each event.
 
 With \code{select = TRUE}, a click selects an individual gene or label and
-outlines it. Clicking empty chart space or any other part of the chart, or
-pressing Escape, clears selection.
+outlines it. Clicking it again, empty chart space or any other part of the
+chart, or pressing Escape, clears selection.
 Selection reports the click payload (or \code{NULL} when cleared) to
 \verb{input$<outputId>_select} and \code{geneviewer:select}. It survives redraws of the
 same data and resize. Selected items can be opened with Enter when

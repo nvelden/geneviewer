@@ -122,6 +122,54 @@ server <- function(input, output) {
 shinyApp(ui = ui, server = server)
 ```
 
+### Click interactions
+
+Charts react to the mouse only when you ask for it with `GC_events()`. Each kind of interaction has its own argument, and `FALSE` switches it off:
+
+| Argument | What it does |
+|---|---|
+| `click` | Reports a click to Shiny in `input$<outputId>_click`: the part of the chart (`"genes"`, `"labels"`, `"links"`, `"scale"`, `"clusterTitle"`, ...), its cluster and the data of the clicked gene, link or legend group. On by default. |
+| `select` | A click selects one gene, label, coordinate, or the title or subtitle of a cluster title, footer or label, and outlines it. A click elsewhere or Escape ends the selection. Reported in `input$<outputId>_select`. |
+| `dblclick` | Reports double-clicks in `input$<outputId>_dblclick`; Enter opens a selected element. |
+| `highlight` | Outlines the part of the chart under the mouse. |
+| `legend_click` | `FALSE` leaves legend clicks out of `click`. Hiding and showing groups in the legend always works. |
+
+The payload of a selected element also has `style`: how it is drawn (its colour, size, font, ...), for example to show the current values in an editor. In the app below a click on a gene shows its row of the data.
+
+```{r echo=TRUE, eval = FALSE}
+library(shiny)
+library(geneviewer)
+
+ui <- fluidPage(
+  GC_chartOutput("gcChart", height = "300px"),
+  verbatimTextOutput("clicked")
+)
+
+server <- function(input, output) {
+  output$gcChart <- renderGC_chart({
+    GC_chart(ophA_clusters, cluster = "cluster", group = "class") %>%
+      GC_labels("name") %>%
+      GC_events(click = TRUE, select = TRUE, highlight = TRUE)
+  })
+  output$clicked <- renderPrint({
+    click <- input$gcChart_click
+    req(click, click$component == "genes")
+    str(click$data)
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+Selection also works outside Shiny, as a `geneviewer:select` event in the browser. Click a gene, label or cluster title in the chart below to select it:
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "250px") %>%
+  GC_labels("name") %>%
+  GC_clusterLabel(title = c("O. olearius", "D. bispora")) %>%
+  GC_events(select = TRUE, highlight = TRUE)
+```
+
 ## Selections
 
 ### Specific Clusters
@@ -162,6 +210,20 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "300px") 
                 list(index = 3, y = 10, x = -5)
                 )
     )
+```
+
+`GC_element_style()` styles one element at a time, without the index: a gene, label or coordinate by its row in the data (`row_id`, the `rowID` column of the chart), or the title or subtitle of a cluster title, footer or label by its `cluster` and `part`. Its options add to the other styles of the chart, so it is called after them. These are also the calls an editor records, e.g. one built with the selection of `GC_events()` (see [Click interactions](#click-interactions)).
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "300px") %>%
+  GC_labels("name") %>%
+  GC_coordinates() %>%
+  GC_clusterLabel(title = c("O. olearius", "D. bispora"), subtitle = "ophA") %>%
+  GC_element_style("genes", row_id = 3, fill = "red", markerHeight = 30) %>%
+  GC_element_style("labels", row_id = 3, text = "ophMA", fontWeight = "bold") %>%
+  GC_element_style("coordinates", row_id = 1, end = "start", show = FALSE) %>%
+  GC_element_style("clusterLabel", cluster = 2, part = "subtitle",
+                   text = "dbophA", fill = "grey")
 ```
 
 ## Cluster

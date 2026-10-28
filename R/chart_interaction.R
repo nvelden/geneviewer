@@ -204,31 +204,36 @@ GC_trackMouse <- function(
 #'
 #' With `dblclick = TRUE`, double-clicks independently report the same payload
 #' to `input$<outputId>_dblclick` and the bubbling browser event
-#' `geneviewer:dblclick`. Legend double-clicks are excluded, so visibility
-#' toggles do not open an editor. Browsers also send clicks during a
+#' `geneviewer:dblclick`. Browsers also send clicks during a
 #' double-click: use clicks for selection, and double-clicks for editing,
 #' rather than opening different settings panels on each event.
 #'
-#' With `select = TRUE`, a click selects an individual gene or label and
-#' outlines it. Clicking it again, empty chart space or any other part of the
-#' chart, or pressing Escape, clears selection.
+#' With `select = TRUE`, a click selects an individual editable element and
+#' outlines it. Clicking it again, empty chart space or a noneditable part of
+#' the chart, or pressing Escape, clears selection.
 #' Selection reports the click payload (or `NULL` when cleared) to
 #' `input$<outputId>_select` and `geneviewer:select`. It survives redraws of the
 #' same data and resize. Selected items can be opened with Enter when
 #' `dblclick = TRUE`; items are keyboard focusable in selection mode.
 #' Use `click = FALSE` to avoid legacy single-click settings handlers.
 #' `legend_click = FALSE` excludes legend clicks from click reporting without
-#' changing legend visibility toggles. Selection never includes the legend.
+#' enabling legend click editing. Legend labels and patches are individually
+#' selectable, with `part` set to `"label"` or `"marker"` and `data` set to
+#' the original group value. Legend clicks edit instead of toggling visibility
+#' when selection or double-click events are enabled, or when click reporting
+#' is enabled with `legend_click = TRUE`. Otherwise they hide/show genes.
 #' Double-click and selection browser events also work outside Shiny.
 #'
-#' Click, double-click and selection payloads of a gene or label also contain
+#' Click, double-click and selection payloads of editable elements also contain
 #' `style`: how it is drawn, with the names of [GC_element_style()] options, so
 #' an editor can show the current values. For a gene these are `fill`,
 #' `opacity`, `stroke`, `strokeWidth`, `strokeDasharray`, `marker`,
 #' `markerSize`, `markerHeight`, `arrowheadWidth`, `arrowheadHeight`,
 #' `cornerRadius` and `y`; for a label `fill`, `opacity`, `text`, `fontSize`
 #' (in pixels), `fontWeight`, `fontStyle` and `fontFamily`. Colours are hex
-#' codes, except transparent colours, `"none"` and patterns.
+#' codes, except transparent colours, `"none"` and patterns. Legend labels
+#' report the same text options; legend markers report `fill`, `opacity`,
+#' `stroke`, `strokeWidth` and `strokeDasharray`.
 #'
 #' With `rendered = TRUE`, each successful update also sets
 #' `input$<outputId>_rendered` to a list containing `id` (the supplied
@@ -256,7 +261,7 @@ GC_trackMouse <- function(
 #'   generates a unique ID for each update in the browser. It is not a DOM
 #'   element ID; the event's `chartId` identifies the chart itself.
 #' @param dblclick Logical, whether to report double-clicks for editing.
-#' @param select Logical, whether to enable gene and label selection.
+#' @param select Logical, whether to enable individual element selection.
 #' @param legend_click Logical, whether legend clicks are reported to Shiny.
 #'
 #' @return The GC chart object with the event settings.

@@ -39,7 +39,7 @@ HTMLWidgets.widget({
     var clickData = ["genes", "transcript", "labels", "links", "legend", "coordinates"];
     // The parts of the chart that can be selected (GC_events(select = TRUE)),
     // one by one: they can be styled with GC_element_style()
-    var selectable = ["genes", "labels", "coordinates", "clusterTitle", "clusterFooter", "clusterLabel"];
+    var selectable = ["genes", "labels", "coordinates", "clusterTitle", "clusterFooter", "clusterLabel", "legend"];
     var selectableNodes = ".gene, text.label, text.coordinate, [data-part]";
     var selected = null;
     var dataSignature = null;
@@ -75,10 +75,10 @@ HTMLWidgets.widget({
     // colours, opacity and font from its computed style, the shape settings of
     // a gene (recorded when it is drawn) and the text of a label or title
     var drawnStyle = function (component, node) {
-      node = node.closest(component === "genes" ? ".gene" : "text") || node;
+      node = node.closest(component === "genes" ? ".gene" : component === "legend" ? "[data-part]" : "text") || node;
       var css = getComputedStyle(node);
       var style = { fill: hex(solidFill(css.fill)), opacity: +css.opacity };
-      if (component === "genes") {
+      if (component === "genes" || (component === "legend" && node.matches(".legend-marker"))) {
         return Object.assign(style, {
           stroke: hex(css.stroke), strokeWidth: parseFloat(css.strokeWidth),
           strokeDasharray: css.strokeDasharray
@@ -107,7 +107,7 @@ HTMLWidgets.widget({
       };
       var textPart = target.closest("[data-part]");
       if (textPart && part.contains(textPart)) detail.part = textPart.getAttribute("data-part");
-      if (withStyle && keyOf(detail) !== null) detail.style = drawnStyle(component, node);
+      if (withStyle && keyOf(detail) !== null) detail.style = drawnStyle(component, component === "legend" ? textPart : node);
       return detail;
     };
     // What identifies a selectable element: a gene, label or coordinate by its
@@ -115,6 +115,10 @@ HTMLWidgets.widget({
     // cluster and part. Null for the other parts of the chart.
     var keyOf = function (d) {
       if (!d || !selectable.includes(d.component)) return null;
+      if (d.component === "legend") {
+        return d.data != null && ["label", "marker"].includes(d.part) ?
+          JSON.stringify([d.component, d.data, d.part]) : null;
+      }
       if (["genes", "labels", "coordinates"].includes(d.component)) {
         if (!d.data || d.data.rowID == null) return null;
         return [d.component, d.cluster, d.data.rowID, d.data.end ?? ""].join("|");
@@ -144,7 +148,8 @@ HTMLWidgets.widget({
           node.setAttribute("role", "button");
           node.setAttribute("aria-pressed", String(active));
           node.setAttribute("aria-label", detail.component + ": " +
-            (detail.data?.name ?? node.__text__ ?? node.textContent));
+            (detail.component === "legend" ? String(detail.data) + " " + detail.part :
+              detail.data?.name ?? node.__text__ ?? node.textContent));
         }
         if (active) { selected = detail; found = true; }
       });
@@ -176,7 +181,7 @@ HTMLWidgets.widget({
     };
     var onDoubleClick = function (event) {
       var detail = eventData(event, true);
-      if (!detail || detail.component === "legend") return;
+      if (!detail) return;
       if (events.select === true) selectElement(detail);
       report("dblclick", detail);
     };
@@ -321,7 +326,9 @@ HTMLWidgets.widget({
         // The width of the chart, as for the title: in a standalone page the width
         // htmlwidgets passes is that of the window, also for a chart of fixed width
         var legendOpts = { ...legendOptions, width: el.clientWidth,
-                           height: computeSize(legendOptions.height, el.clientHeight) };
+                           height: computeSize(legendOptions.height, el.clientHeight),
+                           editable: events.select === true || events.dblclick === true ||
+                             (events.click === true && events.legendClick !== false) };
 
         createContainer(`#geneviewer-legend-container-${widgetId}`,
           "svg-container",

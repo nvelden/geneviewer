@@ -3342,7 +3342,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'legendOptions', options);
-  const { x, y, width, orientation, align, adjustHeight, order, cornerRadius, legendOptions, legendTextOptions, groupStyle } = combinedOptions;
+  const { x, y, width, orientation, align, adjustHeight, order, cornerRadius, legendOptions, legendTextOptions, groupStyle, itemStyle = [], editable = false } = combinedOptions;
 
   const additionalLegendOptions = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
   const additionalLegendTextOptions = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
@@ -3395,23 +3395,29 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     .each((d, i, nodes) => {
       const legendGroup = d3.select(nodes[i]);
       // The style of this group: for its text, and in marker for its marker
-      const { marker: markerStyle = {}, ...textStyle } = groupStyle[d] ?? {};
+      const { marker: markerStyle = {}, text: groupText, ...textStyle } = groupStyle[d] ?? {};
+      const { group: _labelGroup, part: _labelPart, text, ...labelStyle } =
+        itemStyle.find(s => s.group === d && s.part === "label") ?? {};
+      const { group: _markerGroup, part: _markerPart, ...ownMarkerStyle } =
+        itemStyle.find(s => s.group === d && s.part === "marker") ?? {};
 
       const textLabel = legendGroup
         .append("text")
         .attr("class", "legend-label")
+        .attr("data-part", "label")
         .attr("id", `legend-label-${i}`)
         .attr("dy", legendTextOptions.dy)
         .style("text-anchor", legendTextOptions.textAnchor)
         .style("font-size", legendTextOptions.fontSize)
         .style("font-family", legendTextOptions.fontFamily)
         .style("cursor", legendTextOptions.cursor)
-        .text(d)
+        .text(text ?? groupText ?? d)
         .each(function () {
           const currentElement = d3.select(this);
           setStyleFromOptions(currentElement, additionalLegendTextOptions);
           // Before the text is measured below, so the items do not overlap
           setStyleFromOptions(currentElement, textStyle);
+          setStyleFromOptions(currentElement, labelStyle);
         });
 
       const textLength = textLabel.node().getComputedTextLength();
@@ -3430,6 +3436,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
       const rect = legendGroup
         .append("rect")
         .attr("class", "legend-marker")
+        .attr("data-part", "marker")
         .attr("id", `legend-marker-${i}`)
         .style("cursor", legendOptions.cursor)
         .attr("x", currentX)
@@ -3444,6 +3451,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
           const currentElement = d3.select(this);
           setStyleFromOptions(currentElement, additionalLegendOptions);
           setStyleFromOptions(currentElement, markerStyle);
+          setStyleFromOptions(currentElement, ownMarkerStyle);
         })
 
       itemExtents.push({ node: nodes[i], row: currentY, start: currentX,
@@ -3465,7 +3473,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     })
     .on("click", (event, d) => {
       // A double-click includes a second click. Toggle only on its first one.
-      if (event.detail > 1) return;
+      // Non-bubbling synthetic clicks restore hidden groups after a redraw.
+      if (event.detail > 1 || (editable && event.bubbles)) return;
       const element = d3.select(event.currentTarget);
       // If it's currently highlighted, unhighlight it, else highlight it
       if (element.classed("unselected")) {

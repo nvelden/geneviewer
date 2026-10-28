@@ -74,7 +74,8 @@
 .geneviewer-selectable.geneviewer-highlight [data-component="genes"]:hover,
 .geneviewer-selectable.geneviewer-highlight [data-component="labels"]:hover,
 .geneviewer-selectable.geneviewer-highlight [data-component="coordinates"]:hover,
-.geneviewer-selectable.geneviewer-highlight [data-component="clusterTitle"]:hover {
+.geneviewer-selectable.geneviewer-highlight [data-component="clusterTitle"]:hover,
+.geneviewer-selectable.geneviewer-highlight [data-component="legend"]:hover {
   filter: none;
 }
 

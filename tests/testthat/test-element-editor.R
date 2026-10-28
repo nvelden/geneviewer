@@ -107,18 +107,19 @@ test_that("selection and legend toggles remain independent across redraws", {
   value <- jsonlite::fromJSON(result$result$value, simplifyVector = FALSE)
   expect_equal(value$fill, "rgb(255, 0, 0)")
   expect_equal(value$text, "Edited")
-  expect_equal(value$hidden, "none")
+  expect_equal(value$hidden, "")
   expect_equal(value$selected, "1")
   expect_equal(value$cleared, 0)
   expect_equal(value$toggled, list(1, 0))
-  expect_equal(value$others, list(0, 0))
+  expect_equal(value$others, list(1, 0))
   expect_equal(value$replaced, 0)
   expect_equal(value$clicks, 1)
-  expect_equal(value$doubles, 2)
-  expect_length(value$dom, 2)
-  expect_equal(value$dom[[1]]$data$rowID, 1)
+  expect_equal(value$doubles, 3)
+  expect_length(value$dom, 3)
+  expect_equal(value$dom[[1]]$part, "marker")
+  expect_equal(value$dom[[2]]$data$rowID, 1)
   # How the gene is drawn: its own fill, the default arrow
-  style <- value$dom[[1]]$style
+  style <- value$dom[[2]]$style
   expect_equal(style$fill, "#ff0000")
   expect_equal(style[c("marker", "markerSize", "markerHeight", "arrowheadWidth", "y")],
                list(marker = "arrow", markerSize = "medium", markerHeight = 15,
@@ -298,4 +299,103 @@ test_that("cluster titles, footers, labels and coordinates are styled and select
   expect_equal(s[[3]][c("component", "row", "end", "fill")],
                list(component = "coordinates", row = 1, end = "start", fill = "#ff0000"))
   expect_null(s[[4]])
+})
+
+test_that("legend overrides merge and reset each part independently", {
+  base <- GC_chart(data.frame(start = c(10, 60), end = c(40, 90), group = c("A", "B")),
+                   group = "group") %>%
+    GC_legend(groupStyle = list(A = list(fill = "grey", marker = list(fill = "green"))))
+  chart <- base %>%
+    GC_element_style("legend", group = "A", part = "label", text = "Edited", fill = "red") %>%
+    GC_element_style("legend", group = "A", part = "marker", fill = "blue") %>%
+    GC_element_style("legend", group = "B", part = "label", fontStyle = "italic") %>%
+    GC_element_style("legend", group = "A", part = "label", fontSize = "20px")
+  expect_length(chart$x$legend$itemStyle, 3)
+  label <- chart$x$legend$itemStyle[[3]]
+  expect_equal(label$text, "Edited")
+  expect_equal(label$fontSize, "20px")
+  reset <- GC_element_style(chart, "legend", group = "A", part = "label", reset = TRUE)
+  expect_length(reset$x$legend$itemStyle, 2)
+  expect_equal(reset$x$legend$groupStyle, base$x$legend$groupStyle)
+  expect_null(base$x$legend$itemStyle)
+  expect_error(GC_element_style(base, "legend", group = "absent", part = "label"), "group")
+  expect_error(GC_element_style(base, "legend", group = "A", part = "title"), "part")
+  expect_error(GC_element_style(base, "legend", row_id = 1, group = "A", part = "label"), "group")
+})
+
+test_that("legend parts report editing events and normal mode keeps visibility toggles", {
+  chart <- GC_chart(data.frame(start = c(10, 60), end = c(40, 90), group = c("A", "B")),
+                    group = "group", height = "300px") %>%
+    GC_element_style("legend", group = "A", part = "label", text = "Edited", fill = "red") %>%
+    GC_element_style("legend", group = "A", part = "marker", fill = "blue", strokeWidth = 3) %>%
+    GC_events(select = TRUE, dblclick = TRUE)
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const widget = HTMLWidgets.find('#' + el.id);
+      const x = JSON.parse(document.querySelector('script[data-for=\"' + el.id + '\"]').textContent).x;
+      const messages = [], selections = [], doubles = [];
+      window.Shiny = { setInputValue: (name, value) => messages.push({ name, value }) };
+      HTMLWidgets.shinyMode = true;
+      widget.renderValue(x);
+      el.addEventListener('geneviewer:select', e => selections.push(e.detail));
+      el.addEventListener('geneviewer:dblclick', e => doubles.push(e.detail));
+      const click = node => node.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+      const label = () => el.querySelector('.legend-label');
+      const marker = () => el.querySelector('.legend-marker');
+      const hidden = () => el.querySelector('.gene').style.display;
+      click(label());
+      click(marker());
+      marker().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      const editingHidden = hidden();
+      widget.resize(700, 400);
+      const preserved = el.querySelector('.geneviewer-selected')?.getAttribute('data-part');
+      label().dispatchEvent(new MouseEvent('dblclick', { bubbles: true, detail: 2 }));
+      x.events = {};
+      widget.renderValue(x);
+      click(label());
+      const normalHidden = hidden();
+      widget.resize(650, 400);
+      const hiddenAfterResize = hidden();
+      click(marker());
+      const shown = hidden();
+      // Legacy click reporting alone also edits, without a selection outline.
+      x.events = { click: true };
+      widget.renderValue(x);
+      click(label());
+      const clickOnlyHidden = hidden();
+      const lastClick = messages.filter(m => m.name.endsWith('_click')).at(-1).value;
+      x.events = { click: true, legendClick: false };
+      widget.renderValue(x);
+      click(marker());
+      return JSON.stringify({ selections, doubles, editingHidden, preserved,
+        normalHidden, hiddenAfterResize, shown, clickOnlyHidden, lastClick,
+        optedOutHidden: hidden(), label: label().textContent });
+    })()
+  ")
+  expect_null(result$exceptionDetails)
+  value <- jsonlite::fromJSON(result$result$value, simplifyVector = FALSE)
+  expect_equal(value$selections[[1]]$part, "label")
+  expect_equal(value$selections[[1]]$data, "A")
+  expect_equal(value$selections[[1]]$style$text, "Edited")
+  expect_equal(value$selections[[1]]$style$fill, "#ff0000")
+  expect_equal(value$selections[[2]]$part, "marker")
+  expect_equal(value$selections[[2]]$style$fill, "#0000ff")
+  expect_equal(value$selections[[2]]$style$strokeWidth, 3)
+  expect_null(value$selections[[2]]$style$text)
+  expect_equal(value$doubles[[1]]$part, "marker")
+  expect_equal(value$doubles[[2]]$part, "label")
+  expect_equal(value$editingHidden, "")
+  expect_equal(value$preserved, "marker")
+  expect_equal(value$normalHidden, "none")
+  expect_equal(value$hiddenAfterResize, "none")
+  expect_equal(value$shown, "")
+  expect_equal(value$clickOnlyHidden, "")
+  expect_equal(value$lastClick$part, "label")
+  expect_equal(value$lastClick$data, "A")
+  expect_equal(value$optedOutHidden, "none")
+  expect_equal(value$label, "Edited")
 })

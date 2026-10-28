@@ -32,7 +32,7 @@ element ID; the event's \code{chartId} identifies the chart itself.}
 
 \item{dblclick}{Logical, whether to report double-clicks for editing.}
 
-\item{select}{Logical, whether to enable gene and label selection.}
+\item{select}{Logical, whether to enable individual element selection.}
 
 \item{legend_click}{Logical, whether legend clicks are reported to Shiny.}
 }
@@ -67,31 +67,36 @@ selected with CSS or JavaScript.
 
 With \code{dblclick = TRUE}, double-clicks independently report the same payload
 to \verb{input$<outputId>_dblclick} and the bubbling browser event
-\code{geneviewer:dblclick}. Legend double-clicks are excluded, so visibility
-toggles do not open an editor. Browsers also send clicks during a
+\code{geneviewer:dblclick}. Browsers also send clicks during a
 double-click: use clicks for selection, and double-clicks for editing,
 rather than opening different settings panels on each event.
 
-With \code{select = TRUE}, a click selects an individual gene or label and
-outlines it. Clicking it again, empty chart space or any other part of the
-chart, or pressing Escape, clears selection.
+With \code{select = TRUE}, a click selects an individual editable element and
+outlines it. Clicking it again, empty chart space or a noneditable part of
+the chart, or pressing Escape, clears selection.
 Selection reports the click payload (or \code{NULL} when cleared) to
 \verb{input$<outputId>_select} and \code{geneviewer:select}. It survives redraws of the
 same data and resize. Selected items can be opened with Enter when
 \code{dblclick = TRUE}; items are keyboard focusable in selection mode.
 Use \code{click = FALSE} to avoid legacy single-click settings handlers.
 \code{legend_click = FALSE} excludes legend clicks from click reporting without
-changing legend visibility toggles. Selection never includes the legend.
+enabling legend click editing. Legend labels and patches are individually
+selectable, with \code{part} set to \code{"label"} or \code{"marker"} and \code{data} set to
+the original group value. Legend clicks edit instead of toggling visibility
+when selection or double-click events are enabled, or when click reporting
+is enabled with \code{legend_click = TRUE}. Otherwise they hide/show genes.
 Double-click and selection browser events also work outside Shiny.
 
-Click, double-click and selection payloads of a gene or label also contain
+Click, double-click and selection payloads of editable elements also contain
 \code{style}: how it is drawn, with the names of \code{\link[=GC_element_style]{GC_element_style()}} options, so
 an editor can show the current values. For a gene these are \code{fill},
 \code{opacity}, \code{stroke}, \code{strokeWidth}, \code{strokeDasharray}, \code{marker},
 \code{markerSize}, \code{markerHeight}, \code{arrowheadWidth}, \code{arrowheadHeight},
 \code{cornerRadius} and \code{y}; for a label \code{fill}, \code{opacity}, \code{text}, \code{fontSize}
 (in pixels), \code{fontWeight}, \code{fontStyle} and \code{fontFamily}. Colours are hex
-codes, except transparent colours, \code{"none"} and patterns.
+codes, except transparent colours, \code{"none"} and patterns. Legend labels
+report the same text options; legend markers report \code{fill}, \code{opacity},
+\code{stroke}, \code{strokeWidth} and \code{strokeDasharray}.
 
 With \code{rendered = TRUE}, each successful update also sets
 \verb{input$<outputId>_rendered} to a list containing \code{id} (the supplied

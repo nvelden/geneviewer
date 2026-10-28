@@ -101,19 +101,19 @@ frames from all files into one.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="co"># Read GFF files from a directory</span></span></span>
-<span class="r-in"><span><span class="va">gff_data</span> <span class="op">&lt;-</span> <span class="fu">read_gff</span><span class="op">(</span><span class="st">"path/to/directory"</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">gff_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"HQ113105.1.gff3"</span>, package <span class="op">=</span> <span class="st">"geneviewer"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Read a single GFF file</span></span></span>
-<span class="r-in"><span><span class="va">gff_data</span> <span class="op">&lt;-</span> <span class="fu">read_gff</span><span class="op">(</span><span class="st">"path/to/file.gff"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">gff_data</span> <span class="op">&lt;-</span> <span class="fu">read_gff</span><span class="op">(</span><span class="va">gff_file</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Read specific fields from GFF files</span></span></span>
+<span class="r-in"><span><span class="co"># Read GFF files from a directory</span></span></span>
+<span class="r-in"><span><span class="va">gff_data</span> <span class="op">&lt;-</span> <span class="fu">read_gff</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">gff_file</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Read specific fields</span></span></span>
 <span class="r-in"><span><span class="va">gff_data</span> <span class="op">&lt;-</span> <span class="fu">read_gff</span><span class="op">(</span></span></span>
-<span class="r-in"><span><span class="st">"path/to/directory"</span>,</span></span>
-<span class="r-in"><span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"seqid"</span>, <span class="st">"start"</span>, <span class="st">"end"</span>, <span class="st">"attributes"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">gff_file</span>,</span></span>
+<span class="r-in"><span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"seqid"</span>, <span class="st">"type"</span>, <span class="st">"start"</span>, <span class="st">"end"</span>, <span class="st">"strand"</span>, <span class="st">"Name"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

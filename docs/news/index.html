@@ -61,10 +61,18 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="geneviewer-development-version">geneviewer (development version)<a class="anchor" aria-label="anchor" href="#geneviewer-development-version"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.2.0" id="geneviewer-020">geneviewer 0.2.0<a class="anchor" aria-label="anchor" href="#geneviewer-020"></a></h2>
 <div class="section level4">
-<h4 id="new-features-development-version">New features:<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h4>
+<h4 id="new-features-0-2-0">New features:<a class="anchor" aria-label="anchor" href="#new-features-0-2-0"></a></h4>
 <ul><li>
+<code>GC_events(rendered = TRUE, render_id = )</code> reports successful chart updates through Shiny’s <code>input$&lt;outputId&gt;_rendered</code> and a bubbling <code>geneviewer:rendered</code> browser event. The event carries the update identifier, chart DOM ID (<code>chartId</code>) and widget dimensions. An omitted <code>render_id</code> generates a unique ID per update across charts on the page. It fires after drawing and click setup, and does not fire on resize or failed draws.</li>
+<li>
+<code><a href="../reference/GC_events.html">GC_events()</a></code> makes a chart report clicks to Shiny: <code>input$&lt;outputId&gt;_click</code> gives the part of the chart that was clicked (<code>"genes"</code>, <code>"labels"</code>, <code>"scale"</code>, <code>"clusterTitle"</code>, …), its cluster, and the row of the clicked gene or link or the legend group, e.g. to show the details of a gene. <code>highlight = TRUE</code> outlines the part under the mouse. Charts are not clickable unless it is set. Every part of the chart is now marked with a <code>data-component</code> attribute and each cluster with <code>data-cluster</code>, for CSS and JavaScript.</li>
+<li>
+<code><a href="../reference/GC_events.html">GC_events()</a></code> can report double-clicks independently of clicks, enable individual gene and label selection with keyboard access, and exclude legend clicks from settings handlers. Selection and hidden legend groups survive redraws and resize for the same data. The payloads of a gene or label include <code>style</code>, how it is drawn (colours, opacity, border, shape, text and font), so an editor can show the current values.</li>
+<li>
+<code><a href="../reference/GC_element_style.html">GC_element_style()</a></code> edits or resets one element: a gene, gene label or coordinate by row ID (and <code>end = "start"</code> or <code>"end"</code> for a coordinate), so sorting and repeated names do not redirect an edit, or the title or subtitle of a cluster title, footer or label by <code>cluster</code> and <code>part</code>. Labels, titles and subtitles can also change their displayed text, and coordinates can be hidden. Generated R code can record these calls to reproduce visual edits. With <code>GC_events(select = TRUE)</code> all of these elements can be selected one by one.</li>
+<li>
 <code>GC_legend(groupStyle = )</code> styles the legend entry of a group: its text, e.g. <code>list(tnsA = list(fontStyle = "italic"))</code> for italic gene names, and its marker through <code>marker</code>, e.g. <code>list(A = list(marker = list(stroke = "black")))</code>.</li>
 <li>
 <code>GC_transcript(groupStyleExons = , groupStyleIntrons = , groupStyleUTRs = )</code> style all exons, introns or UTRs of a group, with the options of the matching <code>itemStyle</code>; <code>style_by</code> sets the column they are matched against, e.g. <code>style_by = "transcript"</code> to style one transcript.</li>
@@ -106,8 +114,17 @@
 <code><a href="../reference/GC_trackMouse.html">GC_trackMouse()</a></code> takes the styles of the coordinate tooltip (e.g. <code>backgroundColor</code>, <code>fontSize</code>) and <code>cursor</code>.</li>
 </ul></div>
 <div class="section level4">
-<h4 id="changes-development-version">Changes:<a class="anchor" aria-label="anchor" href="#changes-development-version"></a></h4>
-<ul><li>The padding around automatic scale breaks (<code>GC_scale(scale_breaks = TRUE, scale_break_padding = )</code>) is now a share of the region shown, without the breaks, so all breaks get the same room around them; long breaks used to get much more padding than short ones.</li>
+<h4 id="enhancements-0-2-0">Enhancements:<a class="anchor" aria-label="anchor" href="#enhancements-0-2-0"></a></h4>
+<ul><li>
+<code><a href="../reference/read_fasta.html">read_fasta()</a></code> is about 4-5 times faster on large FASTA files.</li>
+<li>
+<code><a href="../reference/protein_blast.html">protein_blast()</a></code> is about 3 to 9 times faster and gives the same results. The aligned sequences are now read from all alignments at once and identity and similarity are counted for all pairs at once, so parallel processing is no longer needed: the <code>parallel</code> argument is ignored and the <code>parallel</code> package is no longer a dependency.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="changes-0-2-0">Changes:<a class="anchor" aria-label="anchor" href="#changes-0-2-0"></a></h4>
+<ul><li>MUMmer is now listed under <code>SystemRequirements</code>, and the examples of <code><a href="../reference/read_fasta.html">read_fasta()</a></code>, <code><a href="../reference/read_gff.html">read_gff()</a></code>, <code><a href="../reference/read_bed.html">read_bed()</a></code>, <code><a href="../reference/gbk_features_to_df.html">gbk_features_to_df()</a></code> and <code><a href="../reference/protein_blast.html">protein_blast()</a></code> run on example data.</li>
+<li>FASTA and GFF readers now spread metadata with an internal helper instead of tidyr. Removing the tidyr dependency also avoids its stringr, stringi and purrr dependencies when they are not required by other packages, reducing Shinylive startup downloads.</li>
+<li>The padding around automatic scale breaks (<code>GC_scale(scale_breaks = TRUE, scale_break_padding = )</code>) is now a share of the region shown, without the breaks, so all breaks get the same room around them; long breaks used to get much more padding than short ones.</li>
 <li>With <code>GC_scale(axis_type = "range")</code>, scale breaks are given in the positions of the data, like the annotations and the line, and move with the genes; they were taken as positions on the shifted axis.</li>
 <li>
 <code><a href="../reference/GC_align.html">GC_align()</a></code> leaves scale breaks out of the shared range: a cluster with breaks gets a range that much longer, so all clusters keep the same scale. The padding of the scale and the line is now a share of the range shown, without its breaks.</li>
@@ -125,8 +142,26 @@
 <li>New tutorial “Reproducing a published figure: Tn7-like transposons”, which rebuilds Fig. 3 of Peters et al. (2017) step by step: scale breaks, lining up on a gene, group styles for genes, labels and the legend, and saving as SVG. The “Example charts” article shows the finished chart, which also replaces an example chart in the README. Its data are in the new dataset <code>tn7_crispr_elements</code>, made by <code>data-raw/tn7_crispr_elements.R</code> from the GenBank records.</li>
 </ul></div>
 <div class="section level4">
-<h4 id="bug-fixes-development-version">Bug fixes:<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h4>
-<ul><li>The <code>start</code> and <code>end</code> of the line of a cluster (<code><a href="../reference/GC_sequence.html">GC_sequence()</a></code>) now stay with the genes with <code>GC_scale(axis_type = "range")</code>, like the annotations, whether they are set before or after <code><a href="../reference/GC_scale.html">GC_scale()</a></code>; they were taken as positions on the shifted axis.</li>
+<h4 id="bug-fixes-0-2-0">Bug fixes:<a class="anchor" aria-label="anchor" href="#bug-fixes-0-2-0"></a></h4>
+<ul><li>Links can be clicked and highlighted with <code><a href="../reference/GC_events.html">GC_events()</a></code>: they are drawn below the SVGs of the clusters, which took every click over the chart, so a click on a link was never reported. Drawing, <code><a href="../reference/GC_trackMouse.html">GC_trackMouse()</a></code> and saved SVG and PNG files are unchanged.</li>
+<li>
+<code><a href="../reference/mummer_alignment.html">mummer_alignment()</a></code> now finds MUMmer on Windows; it looked for it with a Unix-only shell command and always reported it as not installed.</li>
+<li>
+<code><a href="../reference/mummer_alignment.html">mummer_alignment()</a></code> now runs in a unique working subdirectory, preserving existing input and output files and cleaning up its own files on success or failure. With <code>remove_files = FALSE</code>, files are retained in that subdirectory of <code>output_dir</code>.</li>
+<li>Bundled D3 and FileSaver.js now include their upstream license notices and copyright attribution.</li>
+<li>FASTA tests now skip when the optional Biostrings package is unavailable.</li>
+<li>
+<code><a href="../reference/read_bed.html">read_bed()</a></code> no longer drops records when feature names contain “track”, and preserves records across multiple track declarations.</li>
+<li>
+<code><a href="../reference/get_introns.html">get_introns()</a></code> only adds positive gaps between covered regions, including when exons and UTRs overlap, nest or are adjacent.</li>
+<li>Tooltips of <code><a href="../reference/protein_blast.html">protein_blast()</a></code> results: genes of the query cluster are shown as “Query gene” instead of a hit with themselves (or “No Hit”) at 100% identity, and genes without a hit no longer show empty “Identity: %” and “Similarity: %” lines. In <code><a href="../reference/GC_tooltip.html">GC_tooltip()</a></code> formatters, a line whose fields all have no value is now left out.</li>
+<li>
+<code><a href="../reference/GC_links.html">GC_links()</a></code> leaves the chart unchanged when supplied an empty alignment.</li>
+<li>GFF and FASTA metadata named <code>id</code> no longer collides with internal record identifiers.</li>
+<li>PNG export now rasterizes the same SVG snapshot as SVG export, so it works inside apps whose surrounding styles use modern CSS colors such as <code>oklch()</code>. Backgrounds, patterns and the device pixel ratio are retained without parsing the app’s stylesheets. The unused html2canvas dependency is no longer bundled.</li>
+<li>In Shiny, fixed pixel chart widths now size the whole widget before drawing, so the title, clusters and legend share the requested width instead of shrinking the clusters into the output container. Switching back to a responsive chart restores the original output width; standalone and height sizing are unchanged.</li>
+<li>When <code><a href="../reference/GC_links.html">GC_links()</a></code> is called more than once, the link labels of each call now use the options of that call (<code>label</code>, <code>measure</code>, <code>labelStyle</code>, <code>value1</code>, <code>value2</code>, …); all link sets used those of the first call. A gene in more than one link set gets one label.</li>
+<li>The <code>start</code> and <code>end</code> of the line of a cluster (<code><a href="../reference/GC_sequence.html">GC_sequence()</a></code>) now stay with the genes with <code>GC_scale(axis_type = "range")</code>, like the annotations, whether they are set before or after <code><a href="../reference/GC_scale.html">GC_scale()</a></code>; they were taken as positions on the shifted axis.</li>
 <li>The line of a cluster now stops at a scale break (<code>GC_scale(breaks = )</code> or <code>scale_breaks = TRUE</code>) and starts again after it, so the break marks show a real gap; the line ran on between them.</li>
 <li>A gene made taller or moved with <code>GC_genes(itemStyle = )</code> (e.g. <code>markerHeight</code>, <code>arrowheadHeight</code> or <code>y</code>) no longer moves the labels of the other genes in its cluster. The labels and track spacing used the size and position of whichever gene was drawn last.</li>
 <li>Annotations now stay on their genes with <code>GC_scale(axis_type = "range")</code>: the range axis moves the genes of each cluster to start at 1, and now moves the annotations of the cluster (<code>x</code>, <code>x1</code>, <code>x2</code> and <code>position</code>) with them, whether they are added before or after <code><a href="../reference/GC_scale.html">GC_scale()</a></code>. They used to be drawn too far to the right.</li>
@@ -170,18 +205,7 @@
 <li>A percentage <code>GC_title(height = )</code> or <code>GC_legend(height = )</code> now follows the chart height when the chart is resized; it kept the pixel height of the first draw.</li>
 <li>Smaller fixes: legend items fade on hover again (an invalid CSS selector dropped the transition; it now only animates the opacity, so rotated gene labels no longer swing into place on every draw), legend items have unique ids, the 3’ and 5’ transcript labels have their own classes (<code>three-prime-label</code>, <code>five-prime-label</code>), and unused or invalid styles were removed from the footer subtitle and the link layer.</li>
 <li>The <code><a href="../reference/GC_links.html">GC_links()</a></code> colour bar now shows a gradient for each link colour on the chart: the inverted gradient only when at least one link (in any <code><a href="../reference/GC_links.html">GC_links()</a></code> set) joins opposite strands, and the normal gradient only when at least one link joins the same strand. Charts with only inverted links showed only the normal gradient, and charts with forward and reverse normal links showed an inverted gradient. The link data is no longer modified.</li>
-</ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.0" id="geneviewer-020">geneviewer 0.2.0<a class="anchor" aria-label="anchor" href="#geneviewer-020"></a></h2>
-<div class="section level4">
-<h4 id="enhancements-0-2-0">Enhancements:<a class="anchor" aria-label="anchor" href="#enhancements-0-2-0"></a></h4>
-<ul><li>
-<code><a href="../reference/read_fasta.html">read_fasta()</a></code> is about 4-5 times faster on large FASTA files.</li>
-</ul></div>
-<div class="section level4">
-<h4 id="bug-fixes-0-2-0">Bug fixes:<a class="anchor" aria-label="anchor" href="#bug-fixes-0-2-0"></a></h4>
-<ul><li>
+<li>
 <code><a href="../reference/GC_chart.html">GC_chart()</a></code> no longer errors when <code>height</code> is a percentage (e.g. <code>height = "100%"</code>).</li>
 <li>
 <code>GC_cluster(prevent_gene_overlap = TRUE, cluster = ...)</code> now stacks overlapping genes in the selected clusters instead of the first ones.</li>

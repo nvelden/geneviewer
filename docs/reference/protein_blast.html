@@ -137,8 +137,8 @@ significant. Defaults to 30.</p></dd>
 
 
 <dt>parallel</dt>
-<dd><p>Logical indicating whether to use parallel processing for
-alignments. Defaults to TRUE.</p></dd>
+<dd><p>Deprecated and ignored. The alignments are now fast enough
+without parallel processing. Kept so that existing code keeps working.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -157,15 +157,30 @@ are installed and loaded into your R session.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="va">path_to_folder</span> <span class="op">&lt;-</span> <span class="st">"path/to/gbk/folder/"</span></span></span>
-<span class="r-in"><span><span class="va">data_updated</span> <span class="op">&lt;-</span> <span class="fu">protein_blast</span><span class="op">(</span></span></span>
-<span class="r-in"><span>                         <span class="va">path_to_folder</span>,</span></span>
-<span class="r-in"><span>                         id <span class="op">=</span> <span class="st">"protein_id"</span>,</span></span>
-<span class="r-in"><span>                         query <span class="op">=</span> <span class="st">"cluster A"</span>,</span></span>
-<span class="r-in"><span>                         identity <span class="op">=</span> <span class="fl">30</span></span></span>
-<span class="r-in"><span>                         <span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"Biostrings"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">&amp;&amp;</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"pwalign"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    protein_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A1"</span>, <span class="st">"A2"</span>, <span class="st">"B1"</span>, <span class="st">"B2"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    cluster <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"B"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">200</span>, <span class="fl">1</span>, <span class="fl">200</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    end <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">150</span>, <span class="fl">350</span>, <span class="fl">150</span>, <span class="fl">350</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    translation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MKTAYIAKQRQISFVKSHFSRQ"</span>, <span class="st">"MSDNELLKRLGEAVLAHPTTG"</span>,</span></span>
+<span class="r-in"><span>                    <span class="st">"MKTAYIAKQRQISFVKSHFSRQ"</span>, <span class="st">"MLPGGRTSWVQEHCDKAYNIF"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu">protein_blast</span><span class="op">(</span><span class="va">genes</span>, query <span class="op">=</span> <span class="st">"A"</span>, identity <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   protein_id cluster start end            translation rowID identity similarity</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1         A1       A     1 150 MKTAYIAKQRQISFVKSHFSRQ     1      100        100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2         A2       A   200 350  MSDNELLKRLGEAVLAHPTTG     2      100        100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3         B1       B     1 150 MKTAYIAKQRQISFVKSHFSRQ     3      100        100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4         B2       B   200 350  MLPGGRTSWVQEHCDKAYNIF     4       NA         NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   BlastP score</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     A1   2.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 No Hit   2.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3     A1   0.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 No Hit   0.5</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

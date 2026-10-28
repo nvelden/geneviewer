@@ -52,3 +52,46 @@
   border-style: solid;
   border-color: var(--tooltip-bg, white) transparent transparent transparent;
 }
+
+/* GC_events(highlight = TRUE): show which part of the chart a click selects */
+.geneviewer-highlight [data-component] {
+  cursor: pointer;
+}
+
+.geneviewer-highlight [data-component]:hover,
+.geneviewer-highlight .geneviewer-hover {
+  filter: drop-shadow(0 0 1.5px rgba(37, 99, 235, 0.95)) drop-shadow(0 0 3px rgba(37, 99, 235, 0.45));
+}
+
+/* A link under the mouse, below the SVG of a cluster (see geneviewerwidget.js) */
+.geneviewer-highlight.geneviewer-hover-below .geneviewer-svg-content {
+  cursor: pointer;
+}
+
+/* In selection mode hover identifies one selectable element (a gene, label,
+   coordinate, title or subtitle) rather than its whole layer. Other parts of
+   the chart keep their layer highlight. */
+.geneviewer-selectable.geneviewer-highlight [data-component="genes"]:hover,
+.geneviewer-selectable.geneviewer-highlight [data-component="labels"]:hover,
+.geneviewer-selectable.geneviewer-highlight [data-component="coordinates"]:hover,
+.geneviewer-selectable.geneviewer-highlight [data-component="clusterTitle"]:hover {
+  filter: none;
+}
+
+.geneviewer-selectable.geneviewer-highlight .gene:hover,
+.geneviewer-selectable.geneviewer-highlight text.label:hover,
+.geneviewer-selectable.geneviewer-highlight text.coordinate:hover,
+.geneviewer-selectable.geneviewer-highlight [data-part]:hover {
+  filter: drop-shadow(0 0 1.5px rgba(37, 99, 235, 0.95)) drop-shadow(0 0 3px rgba(37, 99, 235, 0.45));
+}
+
+/* After the hover rules, so a selected item keeps its outline under the mouse */
+.geneviewer .geneviewer-selected,
+.geneviewer-selectable.geneviewer-highlight .geneviewer-selected:hover,
+.geneviewer .gene:focus-visible,
+.geneviewer text.label:focus-visible,
+.geneviewer text.coordinate:focus-visible,
+.geneviewer [data-part]:focus-visible {
+  filter: drop-shadow(0 0 1px #2563eb) drop-shadow(0 0 1px #2563eb) drop-shadow(0 0 5px rgba(37, 99, 235, 0.7));
+  outline: none;
+}

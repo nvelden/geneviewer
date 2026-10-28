@@ -121,15 +121,14 @@ the FASTA headers.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="co"># Read sequences from a single FASTA file</span></span></span>
-<span class="r-in"><span><span class="va">sequences_df</span> <span class="op">&lt;-</span> <span class="fu">read_fasta</span><span class="op">(</span><span class="st">"path/to/single_file.fasta"</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"Biostrings"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">fasta_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"BGC0000108.fasta"</span>, package <span class="op">=</span> <span class="st">"geneviewer"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Read all sequences from a directory of FASTA files</span></span></span>
-<span class="r-in"><span><span class="va">sequences_df</span> <span class="op">&lt;-</span> <span class="fu">read_fasta</span><span class="op">(</span><span class="st">"path/to/directory/"</span>, file_extension <span class="op">=</span> <span class="st">"fa"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="co"># Read sequences from a single FASTA file</span></span></span>
+<span class="r-in"><span>  <span class="va">sequences_df</span> <span class="op">&lt;-</span> <span class="fu">read_fasta</span><span class="op">(</span><span class="va">fasta_file</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Read sequences and include the protein sequences in the output</span></span></span>
-<span class="r-in"><span><span class="va">sequences_df</span> <span class="op">&lt;-</span> <span class="fu">read_fasta</span><span class="op">(</span><span class="st">"path/to/directory/"</span>, sequence <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="co"># Read all FASTA files in a directory, without the sequences</span></span></span>
+<span class="r-in"><span>  <span class="va">sequences_df</span> <span class="op">&lt;-</span> <span class="fu">read_fasta</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">fasta_file</span><span class="op">)</span>, sequence <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>

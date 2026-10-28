@@ -113,6 +113,15 @@ you want to save an expression in a variable.</p></dd>
 <p>GC_chart widget that can be placed in the UI.</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>In Shiny, a fixed pixel width set by <code><a href="GC_chart.html">GC_chart()</a></code> (or <code><a href="GC_grid.html">GC_grid()</a></code>)
+takes precedence over the output width. Put the output in a container with
+<code>overflow-x: auto</code> to scroll a chart wider than the available space.
+Responsive charts keep the width set by <code>GC_chartOutput()</code>, including when
+switching back from a fixed width. Standalone widgets keep their usual
+htmlwidgets sizing. Height behavior is unchanged.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="GC_chart.html">GC_chart()</a></code></p></div>
     </div>

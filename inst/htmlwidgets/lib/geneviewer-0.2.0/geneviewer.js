@@ -1620,6 +1620,13 @@ function titleAlignment(container, align, x, inSvg = false) {
 // Styles a title or subtitle text: the font options of defaultFont as styles,
 // in their order, then the text with its <b>, <i> and <u> tags and the font
 // options not in defaultFont
+// The style a title or subtitle has of its own (GC_element_style(part = )):
+// its text, and the options of its font
+function partStyle(itemStyle, part) {
+  const { part: _part, text, ...style } = (itemStyle ?? []).find(s => s.part === part) ?? {};
+  return { text, style };
+}
+
 function styleFontText(selection, text, font, defaultFont) {
   for (const key of Object.keys(defaultFont)) {
     selection.style(camelToKebab(key), font[key]);
@@ -1670,7 +1677,13 @@ container.prototype.title = function (title, subtitle, show = true, options = {}
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, themeOptionsKey, options);
-  const { x, y, titleFont, subtitleFont, align, spacing } = combinedOptions;
+  const { x, y, align, spacing, itemStyle } = combinedOptions;
+  const ownTitle = partStyle(itemStyle, "title");
+  const ownSubtitle = partStyle(itemStyle, "subtitle");
+  const titleFont = { ...combinedOptions.titleFont, ...ownTitle.style };
+  const subtitleFont = { ...combinedOptions.subtitleFont, ...ownSubtitle.style };
+  title = ownTitle.text ?? title;
+  subtitle = ownSubtitle.text ?? subtitle;
 
   // Determine text align and anchor based on the provided align
   const { xPos, textAnchor } = titleAlignment(this, align, x);
@@ -1682,6 +1695,8 @@ container.prototype.title = function (title, subtitle, show = true, options = {}
   if (title) {
     // Add title to the SVG
     g.append("text")
+      .attr("data-part", "title")
+      .property("__text__", title)
       .attr("x", xPos)
       .attr("y", y + (this.margin.top / 2))
       .attr("text-anchor", textAnchor)
@@ -1691,6 +1706,8 @@ container.prototype.title = function (title, subtitle, show = true, options = {}
   if (subtitle) {
     // Add subtitle to the SVG
     g.append("text")
+      .attr("data-part", "subtitle")
+      .property("__text__", subtitle)
       .attr("x", xPos)
       .attr("y", y + (this.margin.top / 2) + spacing)
       .attr("text-anchor", textAnchor)
@@ -1734,7 +1751,13 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'footerOptions', options);
-  const { x, y, titleFont, subtitleFont, align, spacing } = combinedOptions;
+  const { x, y, align, spacing, itemStyle } = combinedOptions;
+  const ownTitle = partStyle(itemStyle, "title");
+  const ownSubtitle = partStyle(itemStyle, "subtitle");
+  const titleFont = { ...combinedOptions.titleFont, ...ownTitle.style };
+  const subtitleFont = { ...combinedOptions.subtitleFont, ...ownSubtitle.style };
+  title = ownTitle.text ?? title;
+  subtitle = ownSubtitle.text ?? subtitle;
 
   // Determine text align and anchor based on the provided align; the footer is
   // drawn in the SVG itself, so the positions include the left margin
@@ -1747,6 +1770,8 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
   if (title) {
     this.svg.append("text")
       .attr("data-component", "clusterFooter")
+      .attr("data-part", "title")
+      .property("__text__", title)
       .attr("x", xPos)
       .attr("y", titleYPos)
       .attr("text-anchor", textAnchor)
@@ -1757,6 +1782,8 @@ container.prototype.footer = function (title, subtitle, show = true, options = {
   if (subtitle) {
     this.svg.append("text")
       .attr("data-component", "clusterFooter")
+      .attr("data-part", "subtitle")
+      .property("__text__", subtitle)
       .attr("x", xPos)
       .attr("y", subtitleYPos)
       .attr("text-anchor", textAnchor)
@@ -1811,8 +1838,18 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     }
   };
 
-  // Merge the options using the generic function
-  const combinedOptions = mergeOptions.call(this, defaultOptions, 'clusterLabelOptions', options);
+  // Merge the options using the generic function; a title or subtitle with a
+  // style of its own (itemStyle) takes it on top
+  const { itemStyle, ...mergedOptions } = mergeOptions.call(this, defaultOptions, 'clusterLabelOptions', options);
+  const ownTitle = partStyle(itemStyle, "title");
+  const ownSubtitle = partStyle(itemStyle, "subtitle");
+  const combinedOptions = {
+    ...mergedOptions,
+    ...ownTitle.style,
+    subtitle: ownSubtitle.text ?? mergedOptions.subtitle,
+    subtitleFont: { ...mergedOptions.subtitleFont, ...ownSubtitle.style }
+  };
+  title = ownTitle.text ?? title;
 
   const {
     x,
@@ -1862,6 +1899,8 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
 
   let clusterTitle = this.svg.append("text")
       .attr("data-component", "clusterLabel")
+    .attr("data-part", "title")
+    .property("__text__", title)
     .attr("x", xposition)
     .attr("y", middleY)
     .attr("text-anchor", textAnchor)
@@ -1897,6 +1936,8 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
 
     const clusterSubtitle = this.svg.append("text")
       .attr("data-component", "clusterLabel")
+      .attr("data-part", "subtitle")
+      .property("__text__", subtitle)
       .attr("x", xposition)
       .attr("y", middleY)
       .attr("text-anchor", textAnchor)
@@ -2081,6 +2122,7 @@ container.prototype.coordinates = function (show = true, options = {}) {
     ticksFormat: ",.0f",
     groupStyle: {},
     styleBy: null,
+    itemStyle: [],
     tickStyle: {
       stroke: "black",
       strokeWidth: 1,
@@ -2097,11 +2139,19 @@ container.prototype.coordinates = function (show = true, options = {}) {
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'coordinatesOptions', options);
-  const { rotate, yPositionTop, yPositionBottom, tickValuesBottom, tickValuesTop, ticksFormat, tickStyle, textStyle, groupStyle, styleBy } = combinedOptions;
+  const { rotate, yPositionTop, yPositionBottom, tickValuesBottom, tickValuesTop, ticksFormat, tickStyle, textStyle, groupStyle, styleBy, itemStyle } = combinedOptions;
 
-  // The style of the group of the gene of a coordinate: show = false leaves
-  // the coordinates of its genes out, tick styles their tick, the rest their text
-  const styleOf = t => (styleBy && t?.gene ? groupStyle[t.gene[styleBy]] : undefined) ?? {};
+  // The style of the group of the gene of a coordinate, with the style of the
+  // coordinate itself on top (itemStyle, by rowID and start or end): show =
+  // false leaves it out, tick styles its tick, the rest its text
+  const ownStyleOf = t => itemStyle
+    .filter(s => t?.rowID != null && s.rowID === t.rowID && (s.end == null || s.end === t.end))
+    .reduce((style, { rowID, end, ...own }) => ({ ...style, ...own }), {});
+  const styleOf = t => {
+    const group = (styleBy && t?.gene ? groupStyle[t.gene[styleBy]] : undefined) ?? {};
+    const own = ownStyleOf(t);
+    return { ...group, ...own, tick: { ...group.tick, ...own.tick } };
+  };
   const textStyleOf = t => {
     const { show, tick, ...text } = styleOf(t);
     return text;
@@ -2127,8 +2177,8 @@ container.prototype.coordinates = function (show = true, options = {}) {
 
     let allTickValues = this.data.reduce((acc, d) => {
       // Define tickValueStart and tickValueStop
-      let tickValueStart = { value: d.start, rowID: d.rowID, gene: d };
-      let tickValueStop = { value: d.end, rowID: d.rowID, gene: d };
+      let tickValueStart = { value: d.start, rowID: d.rowID, end: "start", gene: d };
+      let tickValueStop = { value: d.end, rowID: d.rowID, end: "end", gene: d };
       // Add strand property if it exists
       tickValueStart.strand = d.strand;
       tickValueStop.strand = d.strand;

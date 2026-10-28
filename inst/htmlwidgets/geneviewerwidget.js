@@ -34,8 +34,13 @@ HTMLWidgets.widget({
     var appliedStyleKeys = [];
 
     // Click events for Shiny (GC_events()): the part of the chart clicked (its
-    // data-component), its cluster, and the data of the gene, label or link
-    var clickData = ["genes", "transcript", "labels", "links", "legend"];
+    // data-component), its cluster, and the data of the gene, label, link or
+    // coordinate, or the title or subtitle (part) of a cluster title, footer or label
+    var clickData = ["genes", "transcript", "labels", "links", "legend", "coordinates"];
+    // The parts of the chart that can be selected (GC_events(select = TRUE)),
+    // one by one: they can be styled with GC_element_style()
+    var selectable = ["genes", "labels", "coordinates", "clusterTitle", "clusterFooter", "clusterLabel"];
+    var selectableNodes = ".gene, text.label, text.coordinate, [data-part]";
     var selected = null;
     var dataSignature = null;
     var preserveLegend = true;
@@ -66,9 +71,9 @@ HTMLWidgets.widget({
       if (!pattern || pattern.children.length !== 1 || pattern.firstElementChild.tagName !== "rect") return fill;
       return getComputedStyle(pattern.firstElementChild).fill;
     };
-    // How a gene or label is drawn, with the names of its element options:
+    // How a selectable element is drawn, with the names of its element options:
     // colours, opacity and font from its computed style, the shape settings of
-    // a gene (recorded when it is drawn) and the text of a label
+    // a gene (recorded when it is drawn) and the text of a label or title
     var drawnStyle = function (component, node) {
       node = node.closest(component === "genes" ? ".gene" : "text") || node;
       var css = getComputedStyle(node);
@@ -80,7 +85,7 @@ HTMLWidgets.widget({
         }, node.__drawn__);
       }
       return Object.assign(style, {
-        text: node.textContent, fontSize: parseFloat(css.fontSize),
+        text: node.__text__ ?? node.textContent, fontSize: parseFloat(css.fontSize),
         fontWeight: css.fontWeight, fontStyle: css.fontStyle, fontFamily: css.fontFamily
       });
     };
@@ -100,10 +105,21 @@ HTMLWidgets.widget({
         cluster: cluster ? cluster.getAttribute("data-cluster") : null,
         data: datum
       };
-      if (withStyle && datum !== null && (component === "genes" || component === "labels")) {
-        detail.style = drawnStyle(component, node);
-      }
+      var textPart = target.closest("[data-part]");
+      if (textPart && part.contains(textPart)) detail.part = textPart.getAttribute("data-part");
+      if (withStyle && keyOf(detail) !== null) detail.style = drawnStyle(component, node);
       return detail;
+    };
+    // What identifies a selectable element: a gene, label or coordinate by its
+    // row (and a coordinate by its start or end), a title or subtitle by its
+    // cluster and part. Null for the other parts of the chart.
+    var keyOf = function (d) {
+      if (!d || !selectable.includes(d.component)) return null;
+      if (["genes", "labels", "coordinates"].includes(d.component)) {
+        if (!d.data || d.data.rowID == null) return null;
+        return [d.component, d.cluster, d.data.rowID, d.data.end ?? ""].join("|");
+      }
+      return d.part ? [d.component, d.cluster, d.part].join("|") : null;
     };
 
     var report = function (name, detail) {
@@ -114,29 +130,30 @@ HTMLWidgets.widget({
     };
 
     var sameSelection = function (a, b) {
-      return a && b && a.component === b.component && a.cluster === b.cluster &&
-        a.data.rowID === b.data.rowID;
+      return keyOf(a) !== null && keyOf(a) === keyOf(b);
     };
     var applySelection = function () {
       var found = false;
-      el.querySelectorAll(".gene, text.label").forEach(function (node) {
+      el.querySelectorAll(selectableNodes).forEach(function (node) {
         var detail = eventData({ target: node });
+        if (keyOf(detail) === null) return;
         var active = !!sameSelection(selected, detail);
         node.classList.toggle("geneviewer-selected", active);
         if (events.select === true) {
           node.setAttribute("tabindex", "0");
           node.setAttribute("role", "button");
           node.setAttribute("aria-pressed", String(active));
-          node.setAttribute("aria-label", detail.component + ": " + (detail.data.name ?? detail.data.rowID));
+          node.setAttribute("aria-label", detail.component + ": " +
+            (detail.data?.name ?? node.__text__ ?? node.textContent));
         }
         if (active) { selected = detail; found = true; }
       });
       if (selected && !found) { selected = null; report("select", null); }
     };
-    // Only genes and labels can be selected: any other part of the chart ends
-    // the selection, as empty space does
+    // Only the selectable elements can be selected: any other part of the
+    // chart ends the selection, as empty space does
     var selectElement = function (detail) {
-      if (detail && (!["genes", "labels"].includes(detail.component) || !detail.data)) detail = null;
+      if (keyOf(detail) === null) detail = null;
       if ((!selected && !detail) || sameSelection(selected, detail)) return;
       selected = detail;
       applySelection();
@@ -176,7 +193,7 @@ HTMLWidgets.widget({
     var onMouseLeave = function () { setHovered(null); };
     var onKeyDown = function (event) {
       if (event.key === "Escape") { selectElement(null); return; }
-      if (event.key === "Enter" && events.dblclick === true && event.target.matches(".gene, text.label")) {
+      if (event.key === "Enter" && events.dblclick === true && event.target.matches(selectableNodes)) {
         event.preventDefault();
         onDoubleClick(event);
       }

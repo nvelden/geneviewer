@@ -210,3 +210,86 @@ test_that("a gene without stripes reports its colour when other groups have a pa
   expect_equal(fills[1], "#c7e02c")
   expect_match(fills[2], "^url\\(")
 })
+
+test_that("cluster titles, footers, labels and coordinates are styled and selected one by one", {
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "500px") %>%
+    GC_clusterTitle(title = c("Title A", "Title B"), subtitle = "Sub") %>%
+    GC_clusterFooter(title = "Foot", subtitle = "Foot sub") %>%
+    GC_clusterLabel(title = c("Label A", "Label B"), subtitle = "Species") %>%
+    GC_coordinates() %>%
+    GC_element_style("clusterTitle", cluster = 1, part = "subtitle", text = "Edited",
+                     fill = "red", fontStyle = "italic") %>%
+    GC_element_style("clusterFooter", cluster = "ophA", part = "title", text = "") %>%
+    GC_element_style("clusterLabel", cluster = 2, part = "title", fontSize = "20px") %>%
+    GC_element_style("clusterLabel", cluster = 2, part = "subtitle", fill = "blue") %>%
+    GC_element_style("coordinates", row_id = 1, end = "start", fill = "red") %>%
+    GC_element_style("coordinates", row_id = 2, show = FALSE) %>%
+    GC_events(click = FALSE, select = TRUE)
+  expect_equal(chart$x$series$ophA$footer$itemStyle, list(list(text = "", part = "title")))
+  expect_equal(chart$x$series$ophA$coordinates$itemStyle[[1]],
+               list(fill = "red", rowID = 1, end = "start"))
+  expect_error(GC_element_style(chart, "clusterTitle", cluster = 1, part = "header"), "part")
+  expect_error(GC_element_style(chart, "clusterTitle", cluster = "nope", part = "title"), "cluster")
+  expect_error(GC_element_style(chart, "coordinates", row_id = 1, end = "middle"), "end")
+  expect_error(GC_element_style(chart, "genes", row_id = 1, cluster = 1), "row_id")
+  reset <- GC_element_style(chart, "clusterLabel", cluster = 2, part = "title", reset = TRUE)
+  expect_length(reset$x$series$dbophA$clusterLabel$itemStyle, 1)
+
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const [a, b] = el.querySelectorAll('.geneviewer-svg-content');
+      const css = n => n && getComputedStyle(n);
+      const part = (svg, component, p) => svg.querySelector(`[data-component=\"${component}\"][data-part=\"${p}\"], [data-component=\"${component}\"] [data-part=\"${p}\"]`);
+      const subtitleA = part(a, 'clusterTitle', 'subtitle');
+      const coordinates = [...a.querySelectorAll('text.coordinate')];
+      const drawn = {
+        subtitleA: [subtitleA.textContent, css(subtitleA).fill, css(subtitleA).fontStyle],
+        subtitleB: part(b, 'clusterTitle', 'subtitle').textContent,
+        footerTitleA: !!part(a, 'clusterFooter', 'title'),
+        footerTitleB: part(b, 'clusterFooter', 'title').textContent,
+        labelB: css(part(b, 'clusterLabel', 'title')).fontSize,
+        labelA: css(part(a, 'clusterLabel', 'title')).fontSize,
+        labelSubB: css(part(b, 'clusterLabel', 'subtitle')).fill,
+        coordinateRed: coordinates.filter(t => css(t).fill === 'rgb(255, 0, 0)').map(t => [t.__data__.rowID, t.__data__.end]),
+        coordinateRow2: coordinates.filter(t => t.__data__.rowID === 2).length
+      };
+      const selections = [];
+      el.addEventListener('geneviewer:select', e => selections.push(e.detail));
+      const click = n => n.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+      click(subtitleA);
+      click(part(b, 'clusterLabel', 'title'));
+      click(coordinates.find(t => t.__data__.rowID === 1 && t.__data__.end === 'start'));
+      const outlined = el.querySelectorAll('.geneviewer-selected').length;
+      click(a.querySelector('[data-component=\"sequence\"] line'));
+      return JSON.stringify({ drawn, outlined, selections: selections.map(s => s && {
+        component: s.component, cluster: s.cluster, part: s.part ?? null,
+        row: s.data?.rowID ?? null, end: s.data?.end ?? null, text: s.style?.text, fill: s.style?.fill }) });
+    })()
+  ")
+  expect_null(result$exceptionDetails)
+  value <- jsonlite::fromJSON(result$result$value, simplifyVector = FALSE)
+  drawn <- value$drawn
+  expect_equal(drawn$subtitleA, list("Edited", "rgb(255, 0, 0)", "italic"))
+  expect_equal(drawn$subtitleB, "Sub")
+  expect_false(drawn$footerTitleA)
+  expect_equal(drawn$footerTitleB, "Foot")
+  expect_equal(c(drawn$labelA, drawn$labelB), c("12px", "20px"))
+  expect_equal(drawn$labelSubB, "rgb(0, 0, 255)")
+  expect_equal(drawn$coordinateRed, list(list(1, "start")))
+  expect_equal(drawn$coordinateRow2, 0)
+  expect_equal(value$outlined, 1)
+  s <- value$selections
+  expect_length(s, 4)
+  expect_equal(s[[1]][c("component", "cluster", "part", "text", "fill")],
+               list(component = "clusterTitle", cluster = "ophA", part = "subtitle",
+                    text = "Edited", fill = "#ff0000"))
+  expect_equal(s[[2]][c("component", "cluster", "part", "text")],
+               list(component = "clusterLabel", cluster = "dbophA", part = "title", text = "Label B"))
+  expect_equal(s[[3]][c("component", "row", "end", "fill")],
+               list(component = "coordinates", row = 1, end = "start", fill = "#ff0000"))
+  expect_null(s[[4]])
+})

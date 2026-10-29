@@ -34,8 +34,8 @@
 /* Highlighted/Clicked styles: Gives a more dimmed effect to both marker and text when clicked */
 .legend.unselected .legend-marker,
 .legend.unselected .legend-label,
-.geneviewer-text-overlay .unselected > .legend-marker,
-.geneviewer-text-overlay .unselected > .legend-label {
+.geneviewer-move-overlay .unselected > .legend-marker,
+.geneviewer-move-overlay .unselected > .legend-label {
     opacity: 0.5;
 }
 

@@ -345,7 +345,7 @@ GC_events <- function(GC_chart, click = TRUE, highlight = FALSE,
   if (drag) {
     GC_chart$x$events$drag <- TRUE
     # The undo and redo icons, like the save icon
-    GC_chart$dependencies <- c(GC_chart$dependencies, list(fontawesome::fa_html_dependency()))
+    GC_chart <- add_fontawesome(GC_chart)
   }
   if (!legend_click) GC_chart$x$events$legendClick <- FALSE
   if (rendered) {
@@ -428,39 +428,46 @@ GC_toolbar <- function(GC_chart, show = NULL, position = NULL, buttons = NULL, s
   GC_chart$x$toolbar <- utils::modifyList(if (is.null(GC_chart$x$toolbar)) list() else GC_chart$x$toolbar,
                                           options)
   # Custom icons and the undo and redo icons are Font Awesome icons
-  GC_chart$dependencies <- c(GC_chart$dependencies, list(fontawesome::fa_html_dependency()))
+  GC_chart <- add_fontawesome(GC_chart)
   GC_chart
 }
 
+# The buttons of the toolbar, in their order (also in geneviewerwidget.js)
 toolbar_buttons <- c("undo", "redo", "reset", "save")
+
+# The Font Awesome stylesheet, once, for the save, undo and redo icons
+add_fontawesome <- function(GC_chart) {
+  fontawesome <- fontawesome::fa_html_dependency()
+  known <- vapply(GC_chart$dependencies, function(dep) identical(dep$name, fontawesome$name), logical(1))
+  if (!any(known)) GC_chart$dependencies <- c(GC_chart$dependencies, list(fontawesome))
+  GC_chart
+}
+
+# Choices for error messages: "a", "b", "c"
+quoted <- function(x) paste0('"', x, '"', collapse = ", ")
 
 check_toolbar <- function(options) {
   one_of <- function(name, choices) {
     value <- options[[name]]
     if (!is.null(value) && !(is.character(value) && length(value) == 1 && value %in% choices)) {
-      stop("'", name, "' must be one of ", paste0('"', choices, '"', collapse = ", "), ".")
+      stop("'", name, "' must be one of ", quoted(choices), ".")
     }
   }
   one_of("show", c("hover", "always", "never"))
   one_of("position", c("topright", "topleft", "bottomright", "bottomleft"))
   if (!is.null(options$buttons) && (!is.character(options$buttons) ||
                                     !all(options$buttons %in% toolbar_buttons))) {
-    stop("'buttons' must be of ", paste0('"', toolbar_buttons, '"', collapse = ", "), ".")
+    stop("'buttons' must be of ", quoted(toolbar_buttons), ".")
   }
   if (!is.null(options$size) && (!is.numeric(options$size) || length(options$size) != 1 ||
                                  is.na(options$size) || options$size <= 0)) {
     stop("'size' must be a single positive number of pixels.")
   }
-  for (name in c("color", "hoverColor", "tooltipBackground", "tooltipColor")) {
+  colours <- c("color", "hoverColor", "tooltipBackground", "tooltipColor")
+  for (name in c(colours, "tooltipBorder", "tooltipShadow", "fontFamily")) {
     value <- options[[name]]
     if (!is.null(value) && !(is.character(value) && length(value) == 1 && !is.na(value))) {
-      stop("'", name, "' must be a single colour.")
-    }
-  }
-  for (name in c("tooltipBorder", "tooltipShadow", "fontFamily")) {
-    value <- options[[name]]
-    if (!is.null(value) && !(is.character(value) && length(value) == 1 && !is.na(value))) {
-      stop("'", name, "' must be a single character string.")
+      stop("'", name, "' must be a single ", if (name %in% colours) "colour" else "character string", ".")
     }
   }
   radius <- options$tooltipRadius
@@ -473,7 +480,7 @@ check_toolbar <- function(options) {
     if (is.list(icons)) icons <- unlist(icons)
     if (!is.character(icons) || is.null(names(icons)) || !all(names(icons) %in% toolbar_buttons) ||
         anyNA(icons) || any(!nzchar(icons))) {
-      stop("'icons' must name Font Awesome icons for ", paste0('"', toolbar_buttons, '"', collapse = ", "),
+      stop("'icons' must name Font Awesome icons for ", quoted(toolbar_buttons),
            ", e.g. list(reset = \"arrows-to-circle\").")
     }
   }

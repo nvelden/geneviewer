@@ -1,9 +1,98 @@
 (function () {
 // Shared by all chart instances, including ones removed and recreated.
 var renderSequence = 0;
-// The chart last clicked or focused: its moves are undone with Ctrl/Cmd+Z
-var activeChart = null;
+// The keyboard shortcuts of the chart last clicked or focused: its moves are
+// undone with Ctrl/Cmd+Z. One listener for all charts, so a chart that is
+// removed leaves none behind.
+var activeShortcuts = null;
+// Fields, menus and other controls keep their own keys
+var ownKeys = function (node) {
+  return !node || node.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(node.tagName) ||
+    !!(node.closest && node.closest('[role="combobox"], [role="listbox"], [role="menu"], ' +
+      '[role="dialog"], [role="slider"], [role="tablist"], [role="radiogroup"], [role="spinbutton"]'));
+};
+document.addEventListener("keydown", function (event) {
+  if (!activeShortcuts || event.defaultPrevented || event.altKey || ownKeys(event.target)) return;
+  activeShortcuts(event);
+});
 var onMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+
+// Scale axes and scale bars are selected and moved as a whole
+var scaleComponents = ["scale", "scaleBar"];
+var isScale = function (component) { return scaleComponents.includes(component); };
+var scaleNodes = scaleComponents.map(function (c) { return '[data-component="' + c + '"]'; }).join(", ");
+// The buttons of the toolbar (GC_toolbar()), in their order
+var toolbarButtons = ["undo", "redo", "reset", "save"];
+
+// Positions of moved elements: moveX and moveY (GC_element_style())
+var samePosition = function (a, b) {
+  return !!a && !!b && Math.abs(a.moveX - b.moveX) < 0.01 && Math.abs(a.moveY - b.moveY) < 0.01;
+};
+
+// Listen on the window while a drag or a selection box lasts. Gives the
+// function that stops listening.
+var listenWindow = function (handlers) {
+  Object.keys(handlers).forEach(function (type) {
+    window.addEventListener(type, handlers[type], type === "pointermove" ? { passive: false } : undefined);
+  });
+  return function () {
+    Object.keys(handlers).forEach(function (type) { window.removeEventListener(type, handlers[type]); });
+  };
+};
+
+// The steps of moves that can be undone and redone (GC_events(drag = TRUE)).
+// A step lists its elements, by key, with their position before and after it.
+// Steps that merge (arrow-key nudges) take in the next step of the same
+// elements within a second. Keeps the last 100 steps.
+var createMoveHistory = function () {
+  var past = [], future = [];
+  var keysOf = function (items) { return items.map(function (item) { return item.key; }).join("\n"); };
+  return {
+    canUndo: function () { return past.length > 0; },
+    canRedo: function () { return future.length > 0; },
+    clear: function () { past = []; future = []; },
+    record: function (items, merge) {
+      items = items.filter(function (item) {
+        return item.key !== null && !samePosition(item.before, item.after);
+      });
+      if (!items.length) return;
+      var last = past[past.length - 1], now = performance.now();
+      if (merge && last && last.merge && keysOf(last.items) === keysOf(items) && now - last.time < 1000) {
+        last.items.forEach(function (item, i) { item.after = items[i].after; });
+        last.time = now;
+      } else {
+        past.push({ items: items, merge: merge, time: now });
+        if (past.length > 100) past.shift();
+      }
+      future = [];
+    },
+    // The step that undo (or redo) would take, or undefined
+    next: function (undo) {
+      var from = undo ? past : future;
+      return from[from.length - 1];
+    },
+    // Take that step: gives the positions its elements move to
+    take: function (undo) {
+      var entry = (undo ? past : future).pop();
+      entry.merge = false;
+      (undo ? future : past).push(entry);
+      return entry.items.map(function (item) {
+        return { key: item.key, position: undo ? item.before : item.after };
+      });
+    },
+    // Where each element of a step is now, after the steps taken
+    expected: function () {
+      var positions = {};
+      future.forEach(function (entry) {
+        entry.items.forEach(function (item) { positions[item.key] = item.before; });
+      });
+      past.forEach(function (entry) {
+        entry.items.forEach(function (item) { positions[item.key] = item.after; });
+      });
+      return positions;
+    }
+  };
+};
 
 HTMLWidgets.widget({
   name: 'geneviewer',
@@ -44,7 +133,10 @@ HTMLWidgets.widget({
     // The parts of the chart that can be selected (GC_events(select = TRUE)),
     // one by one: they can be styled with GC_element_style()
     var selectable = ["genes", "labels", "coordinates", "clusterTitle", "clusterFooter", "clusterLabel", "legend", "title", "scaleBar", "scale"];
-    var selectableNodes = '.gene, text.label, text.coordinate, [data-part], [data-component="scaleBar"], [data-component="scale"]';
+    var selectableNodes = ".gene, text.label, text.coordinate, [data-part], " + scaleNodes;
+    // The parts that can be dragged: all of them but genes and coordinates
+    var draggable = selectable.filter(function (c) { return !["genes", "coordinates"].includes(c); });
+    var draggableNodes = "text.label, [data-part], " + scaleNodes;
     // The selected elements, in the order they were selected; the last one is
     // the primary selection, reported as select
     var selection = [];
@@ -86,7 +178,7 @@ HTMLWidgets.widget({
     // colours, opacity and font from its computed style, the shape settings of
     // a gene (recorded when it is drawn) and the text of a label or title
     var drawnStyle = function (component, node) {
-      if (["scale", "scaleBar"].includes(component)) return Object.assign({ moveX: 0, moveY: 0 }, node.__drawn__);
+      if (isScale(component)) return Object.assign({ moveX: 0, moveY: 0 }, node.__drawn__);
       node = node.closest(component === "genes" ? ".gene" : component === "legend" ? "[data-part]" : "text") || node;
       var css = getComputedStyle(node);
       var style = { fill: hex(solidFill(css.fill)), opacity: +css.opacity };
@@ -127,7 +219,7 @@ HTMLWidgets.widget({
       };
       var textPart = target.closest("[data-part]");
       if (textPart && part.contains(textPart)) detail.part = textPart.getAttribute("data-part");
-      if (withStyle && keyOf(detail) !== null) detail.style = drawnStyle(component, ["scale", "scaleBar"].includes(component) ? part : component === "legend" ? textPart : node);
+      if (withStyle && keyOf(detail) !== null) detail.style = drawnStyle(component, isScale(component) ? part : component === "legend" ? textPart : node);
       return detail;
     };
     // What identifies a selectable element: a gene, label or coordinate by its
@@ -135,7 +227,7 @@ HTMLWidgets.widget({
     // cluster and part. Null for the other parts of the chart.
     var keyOf = function (d) {
       if (!d || !selectable.includes(d.component)) return null;
-      if (["scale", "scaleBar"].includes(d.component)) return [d.component, d.cluster].join("|");
+      if (isScale(d.component)) return [d.component, d.cluster].join("|");
       if (d.component === "legend") {
         return d.data != null && ["label", "marker"].includes(d.part) ?
           JSON.stringify([d.component, d.data, d.part]) : null;
@@ -146,6 +238,8 @@ HTMLWidgets.widget({
       }
       return d.part ? [d.component, d.cluster, d.part].join("|") : null;
     };
+    // The keys of a list of elements, to compare selections
+    var keysOf = function (list) { return JSON.stringify(list.map(keyOf)); };
 
     var report = function (name, detail) {
       if (HTMLWidgets.shinyMode) {
@@ -197,16 +291,19 @@ HTMLWidgets.widget({
     // Only the selectable elements can be selected: any other part of the
     // chart ends the selection, as empty space does. mode: "replace" the
     // selection, "toggle" the elements in it, or "add" them to it.
-    var changeSelection = function (details, mode, quiet) {
-      details = details.filter(function (detail) { return keyOf(detail) !== null; });
-      var next = mode === "replace" ? [] : selection.slice();
+    var mergeSelection = function (base, details, mode) {
+      var next = mode === "replace" ? [] : base.slice();
       details.forEach(function (detail) {
+        if (keyOf(detail) === null) return;
         var at = next.findIndex(function (item) { return keyOf(item) === keyOf(detail); });
         if (at >= 0 && mode === "toggle") next.splice(at, 1);
         else if (at < 0) next.push(detail);
       });
-      var keys = function (list) { return JSON.stringify(list.map(keyOf)); };
-      if (keys(next) === keys(selection)) return;
+      return next;
+    };
+    var changeSelection = function (details, mode, quiet) {
+      var next = mergeSelection(selection, details, mode);
+      if (keysOf(next) === keysOf(selection)) return;
       setSelection(next);
       applySelection();
       if (!quiet) reportSelection();
@@ -242,25 +339,25 @@ HTMLWidgets.widget({
       if (events.select === true) selectElement(detail);
       report("dblclick", detail);
     };
-    var draggable = ["labels", "title", "clusterTitle", "clusterFooter", "clusterLabel", "scaleBar", "scale", "legend"];
     // The node a drag moves: a whole scale, a legend label or marker on its
     // own, or the text of a label or title
     var movableOf = function (target, component) {
-      if (["scale", "scaleBar"].includes(component)) return target.closest('[data-component="' + component + '"]');
+      if (isScale(component)) return target.closest('[data-component="' + component + '"]');
       return target.closest(component === "legend" ? "[data-part]" : "text");
     };
-    // Moved text and scale bars share one chart-wide viewport, above the cluster SVGs.
-    // Keep the original parent's coordinate system and logical component.
-    var liftText = function (node, detail) {
-      if (node.closest(".geneviewer-text-overlay") || !el.clientWidth || !el.clientHeight) return null;
+    // Moved elements (text, legend parts and whole scales) share one
+    // chart-wide viewport, above the cluster SVGs. Each keeps the coordinate
+    // system of its original parent and its logical component.
+    var liftMovable = function (node, detail) {
+      if (node.closest(".geneviewer-move-overlay") || !el.clientWidth || !el.clientHeight) return null;
       var parent = node.parentNode;
       var matrix = parent.getScreenCTM();
       if (!matrix) return null;
       var ns = "http://www.w3.org/2000/svg";
-      var overlay = el.querySelector(".geneviewer-text-overlay");
+      var overlay = el.querySelector(".geneviewer-move-overlay");
       if (!overlay) {
         overlay = document.createElementNS(ns, "svg");
-        overlay.setAttribute("class", "geneviewer-text-overlay");
+        overlay.setAttribute("class", "geneviewer-move-overlay");
         overlay.setAttribute("width", el.clientWidth);
         overlay.setAttribute("height", el.clientHeight);
         overlay.setAttribute("viewBox", `0 0 ${el.clientWidth} ${el.clientHeight}`);
@@ -279,7 +376,7 @@ HTMLWidgets.widget({
       var frame = document.createElementNS(ns, "g");
       var transform = overlay.getScreenCTM().inverse().multiply(matrix);
       frame.setAttribute("transform", `matrix(${transform.a} ${transform.b} ${transform.c} ${transform.d} ${transform.e} ${transform.f})`);
-      if (!["scale", "scaleBar"].includes(detail.component)) frame.setAttribute("data-component", detail.component);
+      if (!isScale(detail.component)) frame.setAttribute("data-component", detail.component);
       if (detail.cluster != null) frame.setAttribute("data-cluster", detail.cluster);
       overlay.appendChild(frame);
       frame.appendChild(node);
@@ -290,23 +387,30 @@ HTMLWidgets.widget({
     };
     // Moved legend parts are dimmed with the rest of a hidden group
     var syncLegendFrames = function () {
-      el.querySelectorAll(".geneviewer-text-overlay [data-part]").forEach(function (node) {
+      el.querySelectorAll(".geneviewer-move-overlay [data-part]").forEach(function (node) {
         if (node.__home__) node.parentNode.classList.toggle("unselected", node.__home__.classList.contains("unselected"));
       });
     };
-    var liftMovedText = function () {
-      el.querySelectorAll('text.label, [data-part], [data-component="scaleBar"], [data-component="scale"]').forEach(function (node) {
+    var liftMovedElements = function () {
+      el.querySelectorAll(draggableNodes).forEach(function (node) {
         if (!(node.__drawn__?.moveX || node.__drawn__?.moveY)) return;
         var detail = eventData({ target: node });
-        if (detail && draggable.includes(detail.component)) liftText(node, detail);
+        if (detail && draggable.includes(detail.component)) liftMovable(node, detail);
       });
+    };
+    // Where an element is while it is dragged or nudged, for live editors
+    var emitDragMove = function (detail, position) {
+      el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
+        detail: Object.assign({}, detail, { position: position }) }));
     };
     var dragState = null;
     var queuedRender = null;
+    // Gives whether there was a render to draw
     var flushQueuedRender = function () {
       var input = queuedRender;
       queuedRender = null;
       if (input) renderValue(input);
+      return !!input;
     };
     // A drag moves one element, or all movable selected elements when it
     // starts on one of them. Each keeps its own coordinate system.
@@ -314,11 +418,7 @@ HTMLWidgets.widget({
       if (!dragState) return;
       var state = dragState;
       dragState = null;
-      window.removeEventListener("pointermove", moveDrag);
-      window.removeEventListener("pointerup", endDrag);
-      window.removeEventListener("pointercancel", cancelDrag);
-      window.removeEventListener("blur", cancelDrag);
-      window.removeEventListener("keydown", escapeDrag);
+      state.stopListening();
       el.classList.remove("geneviewer-dragging");
       if (!state.moved) { flushQueuedRender(); return; }
       suppressClickUntil = performance.now() + 350;
@@ -332,8 +432,7 @@ HTMLWidgets.widget({
             place.frame.remove();
             if (!overlay.firstChild) overlay.remove();
           }
-          el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
-            detail: Object.assign({}, item.detail, { position: { moveX: item.moveX, moveY: item.moveY } }) }));
+          emitDragMove(item.detail, { moveX: item.moveX, moveY: item.moveY });
         });
         setSelection(state.selection);
         applySelection();
@@ -347,8 +446,18 @@ HTMLWidgets.widget({
         detail.action = "drag";
         return detail;
       });
-      flushQueuedRender();
-      record(state.items.map(function (item) {
+      // A settings redraw held back during the drag was sent before the server
+      // knew of it: it draws the elements where they were, so they go back to
+      // where they were dropped. The step is recorded after the redraw, which
+      // would otherwise find it stale.
+      if (flushQueuedRender()) {
+        var nodes = movableNodes();
+        state.items.forEach(function (item) {
+          var node = nodes[keyOf(item.detail)];
+          if (node) placeAt(node, item.position);
+        });
+      }
+      moveHistory.record(state.items.map(function (item) {
         return { key: keyOf(item.detail), before: { moveX: item.moveX, moveY: item.moveY }, after: item.position };
       }), false);
       updateToolbar();
@@ -367,7 +476,7 @@ HTMLWidgets.widget({
       if (!state.moved && Math.hypot(event.clientX - state.x, event.clientY - state.y) < 4) return;
       if (!state.moved) {
         state.moved = true;
-        state.items.forEach(function (item) { item.placement = liftText(item.node, item.detail); });
+        state.items.forEach(function (item) { item.placement = liftMovable(item.node, item.detail); });
         // Dragging an element that is not selected selects it alone. Server
         // redraws wait until release; moving the pointer is a preview.
         if (events.select === true && state.items.length === 1 && !isSelected(state.items[0].detail)) {
@@ -387,8 +496,7 @@ HTMLWidgets.widget({
         };
         var dx = item.position.moveX - item.moveX, dy = item.position.moveY - item.moveY;
         item.node.setAttribute("transform", `translate(${dx}, ${dy}) ${item.transform}`);
-        el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
-          detail: Object.assign({}, item.detail, { position: item.position }) }));
+        emitDragMove(item.detail, item.position);
       });
     };
     // What a drag would move, for each element: its node and where it starts
@@ -428,13 +536,10 @@ HTMLWidgets.widget({
       }
       dragState = {
         id: event.pointerId, items: items, selection: selection.slice(),
-        x: event.clientX, y: event.clientY, moved: false
+        x: event.clientX, y: event.clientY, moved: false,
+        stopListening: listenWindow({ pointermove: moveDrag, pointerup: endDrag,
+                                      pointercancel: cancelDrag, blur: cancelDrag, keydown: escapeDrag })
       };
-      window.addEventListener("pointermove", moveDrag, { passive: false });
-      window.addEventListener("pointerup", endDrag);
-      window.addEventListener("pointercancel", cancelDrag);
-      window.addEventListener("blur", cancelDrag);
-      window.addEventListener("keydown", escapeDrag);
     };
 
     // Box select (GC_events(select = TRUE)): dragging on empty space selects
@@ -443,15 +548,12 @@ HTMLWidgets.widget({
     var startMarquee = function (event, detail) {
       if (events.select !== true || keyOf(detail) !== null ||
           event.target.closest(".geneviewer-toolbar") || !el.contains(event.target)) return;
-      var box = el.getBoundingClientRect();
-      marquee = { id: event.pointerId, x: event.clientX, y: event.clientY, box: box, node: null,
+      marquee = { id: event.pointerId, x: event.clientX, y: event.clientY, node: null,
                   mode: event.shiftKey || event.metaKey || event.ctrlKey ? "add" : "replace",
-                  selection: selection.slice() };
-      window.addEventListener("pointermove", moveMarquee, { passive: false });
-      window.addEventListener("pointerup", endMarquee);
-      window.addEventListener("pointercancel", cancelMarquee);
-      window.addEventListener("blur", cancelMarquee);
-      window.addEventListener("keydown", escapeMarquee);
+                  selection: selection.slice(),
+                  stopListening: listenWindow({ pointermove: moveMarquee, pointerup: endMarquee,
+                                                pointercancel: cancelMarquee, blur: cancelMarquee,
+                                                keydown: escapeMarquee }) };
     };
     var marqueeHits = function (rect) {
       var hits = {};
@@ -483,21 +585,14 @@ HTMLWidgets.widget({
         width: (rect.right - rect.left) / sx + "px", height: (rect.bottom - rect.top) / sy + "px"
       });
       // The selection follows the box while it is drawn, and is reported once
-      var hits = marqueeHits(rect);
-      setSelection(marquee.mode === "add" ? marquee.selection.concat(hits.filter(function (hit) {
-        return !marquee.selection.some(function (item) { return keyOf(item) === keyOf(hit); });
-      })) : hits);
+      setSelection(mergeSelection(marquee.selection, marqueeHits(rect), marquee.mode));
       applySelection();
     };
     var finishMarquee = function (commit) {
       if (!marquee) return;
       var state = marquee;
       marquee = null;
-      window.removeEventListener("pointermove", moveMarquee);
-      window.removeEventListener("pointerup", endMarquee);
-      window.removeEventListener("pointercancel", cancelMarquee);
-      window.removeEventListener("blur", cancelMarquee);
-      window.removeEventListener("keydown", escapeMarquee);
+      state.stopListening();
       if (!state.node) return;
       state.node.remove();
       // The click that ends the box does not clear what it selected
@@ -507,8 +602,7 @@ HTMLWidgets.widget({
         applySelection();
         return;
       }
-      var keys = function (list) { return JSON.stringify(list.map(keyOf)); };
-      if (keys(selection) !== keys(state.selection)) reportSelection();
+      if (keysOf(selection) !== keysOf(state.selection)) reportSelection();
     };
     var endMarquee = function (event) {
       if (marquee && event.pointerId === marquee.id) finishMarquee(true);
@@ -523,7 +617,7 @@ HTMLWidgets.widget({
     // and a reset is one step of all moved elements. Undo, redo and reset
     // report the new positions as a drag (one element) or as moves (more), so
     // an app that keeps drags with GC_element_style() keeps them as well.
-    var moves = { past: [], future: [] };
+    var moveHistory = createMoveHistory();
     // Positions reported to Shiny that no redraw has shown yet: until then a
     // redraw may still show the older position, which is not an outside change
     var awaiting = {};
@@ -534,9 +628,6 @@ HTMLWidgets.widget({
     var origin = {};
     var nudgeTimer = null;
     var toolbar = null;
-    var samePosition = function (a, b) {
-      return !!a && !!b && Math.abs(a.moveX - b.moveX) < 0.01 && Math.abs(a.moveY - b.moveY) < 0.01;
-    };
     var positionOf = function (node) {
       return { moveX: node.__drawn__?.moveX ?? 0, moveY: node.__drawn__?.moveY ?? 0 };
     };
@@ -557,7 +648,7 @@ HTMLWidgets.widget({
       var dx = position.moveX - from.moveX, dy = position.moveY - from.moveY;
       if (dx || dy) {
         var detail = eventData({ target: node });
-        if (detail) liftText(node, detail);
+        if (detail) liftMovable(node, detail);
         node.setAttribute("transform", `translate(${dx}, ${dy}) ${node.getAttribute("transform") || ""}`.trim());
       }
       node.__drawn__ = Object.assign({}, node.__drawn__, { moveX: position.moveX, moveY: position.moveY });
@@ -598,27 +689,10 @@ HTMLWidgets.widget({
       // The buttons show once there is a step or a move to reset; the ones
       // that cannot act are disabled, so none of them shifts
       toolbar.select(".geneviewer-history")
-        .property("hidden", !moves.past.length && !moves.future.length && !canReset);
-      toolbar.select(".geneviewer-undo").property("disabled", !moves.past.length);
-      toolbar.select(".geneviewer-redo").property("disabled", !moves.future.length);
+        .property("hidden", !moveHistory.canUndo() && !moveHistory.canRedo() && !canReset);
+      toolbar.select(".geneviewer-undo").property("disabled", !moveHistory.canUndo());
+      toolbar.select(".geneviewer-redo").property("disabled", !moveHistory.canRedo());
       toolbar.select(".geneviewer-reset").property("disabled", !canReset);
-    };
-    // items: the elements of a step, with their position before and after it
-    var record = function (items, merge) {
-      items = items.filter(function (item) {
-        return item.key !== null && !samePosition(item.before, item.after);
-      });
-      if (!items.length) return;
-      var last = moves.past[moves.past.length - 1], now = performance.now();
-      var keys = function (list) { return list.map(function (item) { return item.key; }).join("\n"); };
-      if (merge && last && last.merge && keys(last.items) === keys(items) && now - last.time < 1000) {
-        last.items.forEach(function (item, i) { item.after = items[i].after; });
-        last.time = now;
-      } else {
-        moves.past.push({ items: items, merge: merge, time: now });
-        if (moves.past.length > 100) moves.past.shift();
-      }
-      moves.future = [];
     };
     // Move elements to positions, and report them
     var apply = function (positions, action, outline) {
@@ -636,8 +710,7 @@ HTMLWidgets.widget({
       announce(details, outline);
     };
     var step = function (undo) {
-      var from = undo ? moves.past : moves.future;
-      var entry = from[from.length - 1];
+      var entry = moveHistory.next(undo);
       if (!entry || dragState) return;
       var nodes = movableNodes();
       // Moved or removed by something else since: the steps no longer apply
@@ -645,15 +718,10 @@ HTMLWidgets.widget({
         return nodes[item.key] && samePosition(positionOf(nodes[item.key]), undo ? item.after : item.before);
       });
       if (!fresh) {
-        moves = { past: [], future: [] };
+        moveHistory.clear();
         return updateToolbar(nodes);
       }
-      from.pop();
-      entry.merge = false;
-      (undo ? moves.future : moves.past).push(entry);
-      apply(entry.items.map(function (item) {
-        return { key: item.key, position: undo ? item.before : item.after };
-      }), undo ? "undo" : "redo", entry.items.length === 1);
+      apply(moveHistory.take(undo), undo ? "undo" : "redo", entry.items.length === 1);
     };
     var resetMoves = function () {
       if (dragState) return;
@@ -662,7 +730,7 @@ HTMLWidgets.widget({
         return { key: key, before: positionOf(nodes[key]), after: origin[key] };
       });
       if (!items.length) return;
-      record(items, false);
+      moveHistory.record(items, false);
       apply(items.map(function (item) { return { key: item.key, position: item.after }; }), "reset", false);
     };
     // After a redraw: remember where new elements are first drawn, and drop
@@ -677,17 +745,11 @@ HTMLWidgets.widget({
         if (!nodes[key] || samePosition(positionOf(nodes[key]), awaiting[key])) delete awaiting[key];
       });
       if (nudgeTimer === null && !Object.keys(awaiting).length) {
-        var expected = {};
-        moves.future.forEach(function (entry) {
-          entry.items.forEach(function (item) { expected[item.key] = item.before; });
-        });
-        moves.past.forEach(function (entry) {
-          entry.items.forEach(function (item) { expected[item.key] = item.after; });
-        });
+        var expected = moveHistory.expected();
         var stale = Object.keys(expected).some(function (key) {
           return !nodes[key] || !samePosition(positionOf(nodes[key]), expected[key]);
         });
-        if (stale) moves = { past: [], future: [] };
+        if (stale) moveHistory.clear();
       }
       updateToolbar(nodes);
     };
@@ -704,15 +766,14 @@ HTMLWidgets.widget({
         return key !== null && nodes[key];
       }).map(function (key) {
         var before = positionOf(nodes[key]);
-        var after = { moveX: Math.round((before.moveX + dx) * 100) / 100,
-                      moveY: Math.round((before.moveY + dy) * 100) / 100 };
+        // Whole pixels, as drags
+        var after = { moveX: Math.round(before.moveX + dx), moveY: Math.round(before.moveY + dy) };
         placeAt(nodes[key], after);
-        el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
-          detail: Object.assign({}, eventData({ target: nodes[key] }), { position: after }) }));
+        emitDragMove(eventData({ target: nodes[key] }), after);
         return { key: key, before: before, after: after };
       });
       if (!items.length) return false;
-      record(items, true);
+      moveHistory.record(items, true);
       updateToolbar();
       clearTimeout(nudgeTimer);
       nudgeTimer = setTimeout(function () {
@@ -724,15 +785,8 @@ HTMLWidgets.widget({
       }, 300);
       return true;
     };
-    // Fields, menus and other controls keep their own keys
-    var ownKeys = function (node) {
-      return !node || node.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(node.tagName) ||
-        !!(node.closest && node.closest('[role="combobox"], [role="listbox"], [role="menu"], ' +
-          '[role="dialog"], [role="slider"], [role="tablist"], [role="radiogroup"], [role="spinbutton"]'));
-    };
-    document.addEventListener("keydown", function (event) {
-      if (activeChart !== el || events.drag !== true || !el.isConnected || event.defaultPrevented ||
-          event.altKey || ownKeys(event.target)) return;
+    var onShortcut = function (event) {
+      if (events.drag !== true || !el.isConnected) return;
       var key = event.key.toLowerCase();
       if ((event.metaKey || event.ctrlKey) && (key === "z" || key === "y")) {
         event.preventDefault();
@@ -744,8 +798,8 @@ HTMLWidgets.widget({
       if (event.target !== document.body && !el.contains(event.target)) return;
       var size = event.shiftKey ? 10 : 1;
       if (nudge(arrow[0] * size, arrow[1] * size)) event.preventDefault();
-    });
-    var markActive = function () { activeChart = el; };
+    };
+    var markActive = function () { activeShortcuts = onShortcut; };
     // A drag ends with a click, which must not also select, open or toggle
     // what it ends on, e.g. hide the genes of a legend group. Only that one
     // click: the chart's own buttons, and later clicks, work as usual.
@@ -758,7 +812,7 @@ HTMLWidgets.widget({
       }
       // A moved legend part toggles its group like the rest of its item,
       // unless legend clicks edit
-      var home = event.target.closest && event.target.closest(".geneviewer-text-overlay [data-part]")?.__home__;
+      var home = event.target.closest && event.target.closest(".geneviewer-move-overlay [data-part]")?.__home__;
       var legendEdits = events.select === true || events.dblclick === true ||
         (events.click === true && events.legendClick !== false);
       if (home && !legendEdits && home.isConnected) {
@@ -783,7 +837,7 @@ HTMLWidgets.widget({
     var addToolbar = function () {
       toolbar = null;
       var opts = mergeOptions({ show: "hover", position: "topright",
-                                buttons: ["undo", "redo", "reset", "save"], icons: {} },
+                                buttons: toolbarButtons, icons: {} },
                               "toolbarOptions", toolbarOptions, theme);
       // One button from R arrives as a string
       var buttons = [].concat(opts.buttons);
@@ -806,33 +860,38 @@ HTMLWidgets.widget({
        ["tooltipShadow", "--gv-toolbar-tip-shadow"], ["fontFamily", "--gv-toolbar-font"], ["size", "--gv-toolbar-size"]]
         .forEach(function (v) { if (opts[v[0]] != null) toolbar.style(v[1], px(opts[v[0]])); });
       if (movable) {
-        var history = toolbar.append("div")
+        var historyGroup = toolbar.append("div")
           .attr("class", "geneviewer-history")
           .attr("role", "group")
           .attr("aria-label", "Positions")
           .property("hidden", true);
-        [["undo", "Undo", "rotate-left", onMac ? "\u2318Z" : "Ctrl+Z", "Control+Z Meta+Z", function () { step(true); }],
-         ["redo", "Redo", "rotate-right", onMac ? "\u21e7\u2318Z" : "Ctrl+Y",
-          "Control+Shift+Z Meta+Shift+Z Control+Y", function () { step(false); }],
-         ["reset", "Reset positions", "house", null, null, resetMoves]].filter(function (b) { return wanted(b[0]); })
-         .forEach(function (b) {
-          var button = history.append("button")
-            .attr("type", "button")
-            .attr("class", "geneviewer-toolbar-button geneviewer-" + b[0])
-            .attr("aria-label", b[1])
-            .attr("aria-keyshortcuts", b[4])
-            .property("disabled", true)
-            .on("click", b[5]);
-          button.append("i").attr("class", icon(b[0], b[2])).attr("aria-hidden", "true");
-          var tip = button.append("span").attr("class", "geneviewer-toolbar-tip").attr("aria-hidden", "true");
-          tip.append("span").text(b[1]);
-          if (b[3]) tip.append("kbd").text(b[3]);
-        });
+        // icon: the default icon; kbd: the shortcut shown in the tooltip;
+        // shortcuts: the same for assistive technology
+        [{ name: "undo", label: "Undo", icon: "rotate-left", kbd: onMac ? "\u2318Z" : "Ctrl+Z",
+           shortcuts: "Control+Z Meta+Z", onClick: function () { step(true); } },
+         { name: "redo", label: "Redo", icon: "rotate-right", kbd: onMac ? "\u21e7\u2318Z" : "Ctrl+Y",
+           shortcuts: "Control+Shift+Z Meta+Shift+Z Control+Y", onClick: function () { step(false); } },
+         { name: "reset", label: "Reset positions", icon: "house", kbd: null, shortcuts: null,
+           onClick: resetMoves }]
+          .filter(function (b) { return wanted(b.name); })
+          .forEach(function (b) {
+            var button = historyGroup.append("button")
+              .attr("type", "button")
+              .attr("class", "geneviewer-toolbar-button geneviewer-" + b.name)
+              .attr("aria-label", b.label)
+              .attr("aria-keyshortcuts", b.shortcuts)
+              .property("disabled", true)
+              .on("click", b.onClick);
+            button.append("i").attr("class", icon(b.name, b.icon)).attr("aria-hidden", "true");
+            var tip = button.append("span").attr("class", "geneviewer-toolbar-tip").attr("aria-hidden", "true");
+            tip.append("span").text(b.label);
+            if (b.kbd) tip.append("kbd").text(b.kbd);
+          });
         // Moving elements and saving the chart are apart, so a click that
         // misses one does not do the other
-        if (save) history.append("span").attr("class", "geneviewer-toolbar-divider");
+        if (save) historyGroup.append("span").attr("class", "geneviewer-toolbar-divider");
       }
-      createSaveIcon(widgetId, el, save, toolbar.node(), icon("save", "download"));
+      if (save) createSaveIcon(widgetId, el, toolbar.node(), icon("save", "download"));
     };
 
     // A link below a cluster SVG gets no :hover, so it is highlighted here
@@ -851,7 +910,11 @@ HTMLWidgets.widget({
     var onMouseLeave = function () { setHovered(null); };
     var onKeyDown = function (event) {
       if (event.key === "Escape") {
-        if (dragState) cancelDrag(); else selectElement(null);
+        // An active drag or selection box is cancelled: the selection before
+        // it stays
+        if (dragState) cancelDrag();
+        else if (marquee) cancelMarquee();
+        else selectElement(null);
         return;
       }
       if (event.key === "Enter" && events.dblclick === true && event.target.matches(selectableNodes)) {
@@ -1125,7 +1188,7 @@ HTMLWidgets.widget({
         if (dataSignature !== null && nextSignature !== dataSignature) {
           preserveLegend = false;
           if (selection.length) { setSelection([]); reportSelection(); }
-          moves = { past: [], future: [] };
+          moveHistory.clear();
           awaiting = {};
           origin = {};
         }
@@ -1146,7 +1209,7 @@ HTMLWidgets.widget({
         size = input.size ?? {};
         draw(width, height);
         addLinks();
-        liftMovedText();
+        liftMovedElements();
         wireEvents();
         checkMoves();
         if (events.rendered === true) {
@@ -1167,7 +1230,7 @@ HTMLWidgets.widget({
       resize: function (width, height) {
         draw(width, height);
         addLinks();
-        liftMovedText();
+        liftMovedElements();
         restoreLocalMoves();
         wireEvents();
         checkMoves();

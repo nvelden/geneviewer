@@ -875,6 +875,69 @@ test_that("several elements are selected, moved together and undone as one step"
   expect_equal(value$moves[[2]], list(action = "undo", n = 2L))
 })
 
+test_that("Escape cancels a selection box and a held-back redraw keeps a drop", {
+  data <- data.frame(start = c(10, 100), end = c(50, 140), name = c("Gene", "Other"))
+  chart <- GC_chart(data, height = "300px") %>%
+    GC_labels("name", adjustLabels = FALSE) %>%
+    GC_events(click = FALSE, select = TRUE, drag = TRUE)
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const widget = HTMLWidgets.find('#' + el.id);
+      const input = JSON.parse(document.querySelector('script[data-for]').textContent).x;
+      const label = row => el.querySelector('text.label[rowID=\"' + row + '\"]');
+      const selects = [];
+      el.addEventListener('geneviewer:select', e => selects.push(e.detail && e.detail.data.rowID));
+      const pointer = (target, type, x, y, mods = {}) => target.dispatchEvent(new PointerEvent(type, Object.assign({
+        pointerId: 1, isPrimary: true, button: 0, bubbles: true, clientX: x, clientY: y }, mods)));
+      label(1).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+      label(1).focus();
+      // Escape on the focused element while a box adds to the selection: only
+      // the box ends, and the selection before it stays
+      const box = el.getBoundingClientRect();
+      const x0 = box.left + 2, y0 = box.bottom - 2;
+      pointer(document.elementFromPoint(x0, y0), 'pointerdown', x0, y0, { shiftKey: true });
+      pointer(window, 'pointermove', x0 + 40, y0 - 40);
+      const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+      document.activeElement.dispatchEvent(escape);
+      pointer(window, 'pointerup', x0 + 40, y0 - 40);
+      const afterEscape = { selects: selects.slice(), outlined: el.querySelectorAll('.geneviewer-selected').length };
+      // A settings redraw that arrives during a drag waits for the drop and
+      // does not move the element back
+      const r = label(2).getBoundingClientRect(), x = r.left + 2, y = r.top + 2;
+      pointer(label(2), 'pointerdown', x, y);
+      pointer(window, 'pointermove', x + 12, y + 7);
+      widget.renderValue(input);
+      pointer(window, 'pointerup', x + 12, y + 7);
+      return JSON.stringify({ afterEscape, dropped: label(2).__drawn__,
+        transform: label(2).getAttribute('transform'),
+        undo: !el.querySelector('.geneviewer-undo').disabled });
+    })()
+  ")
+  expect_null(result$exceptionDetails)
+  value <- jsonlite::fromJSON(result$result$value, simplifyVector = FALSE)
+  expect_equal(value$afterEscape$selects, list(1L))
+  expect_equal(value$afterEscape$outlined, 1)
+  expect_equal(value$dropped[c("moveX", "moveY")], list(moveX = 12, moveY = 7))
+  expect_match(value$transform, "^translate\\(12, 7\\)")
+  expect_true(value$undo)
+})
+
+test_that("genes and coordinates cannot be moved, and Font Awesome is added once", {
+  chart <- GC_chart(data.frame(start = 10, end = 50), height = "200px")
+  expect_error(GC_element_style(chart, "genes", 1, moveX = 5), "cannot be moved")
+  expect_error(GC_element_style(chart, "coordinates", 1, moveY = 5), "cannot be moved")
+  chart <- GC_chart(data.frame(start = 10, end = 50), height = "200px") %>%
+    GC_events(drag = TRUE) %>%
+    GC_toolbar(size = 16) %>%
+    GC_toolbar(color = "grey")
+  names <- vapply(chart$dependencies, function(dep) dep$name, character(1))
+  expect_equal(sum(names == fontawesome::fa_html_dependency()$name), 1)
+})
+
 test_that("lists of selected elements reach Shiny as lists", {
   skip_if_not_installed("shiny")
   loadNamespace("shiny")

@@ -58,13 +58,19 @@
 #'   GC_element_style("legend", group = "A", part = "label", text = "Family A") %>%
 #'   GC_element_style("legend", group = "A", part = "marker", fill = "red")
 #' @export
+# Components identified by a row of the data, those of the chart as a whole,
+# and those moved as a whole: there is one per cluster
+row_components <- c("genes", "labels", "coordinates")
+chart_components <- c("legend", "title")
+scale_components <- c("scaleBar", "scale")
+
 GC_element_style <- function(GC_chart,
                              component = c("genes", "labels", "coordinates", "clusterTitle",
                                            "clusterFooter", "clusterLabel", "legend", "title", "scaleBar", "scale"),
                              row_id = NULL, ..., cluster = NULL, part = NULL, end = NULL,
                              reset = FALSE, group = NULL) {
   component <- match.arg(component)
-  by_row <- component %in% c("genes", "labels", "coordinates")
+  by_row <- component %in% row_components
   if (component == "title") {
     if (!is.null(row_id) || !is.null(cluster) || !is.null(end) || !is.null(group)) {
       stop("Use 'part' to identify a chart title or subtitle.")
@@ -99,14 +105,14 @@ GC_element_style <- function(GC_chart,
                           !identical(end, "start") && !identical(end, "end"))) {
       stop("'end' must be \"start\" or \"end\", and only for coordinates.")
     }
-  } else if (!component %in% c("legend", "title")) {
+  } else if (!component %in% chart_components) {
     if (!is.null(row_id) || !is.null(end)) {
       stop("Use 'cluster' and 'part' to identify a title or subtitle, not 'row_id' or 'end'.")
     }
     if (length(cluster) != 1 || is.na(cluster)) stop("'cluster' must be one cluster.")
     cluster <- suppressWarnings(getUpdatedClusters(GC_chart, cluster))
     if (is.null(cluster)) stop("'cluster' must be the name or number of a cluster of the chart.")
-    if (component %in% c("scaleBar", "scale")) {
+    if (component %in% scale_components) {
       if (!is.null(part)) stop("Scale bars and axes are edited as a whole; do not supply 'part'.")
     } else if (!identical(part, "title") && !identical(part, "subtitle")) {
       stop("'part' must be \"title\" or \"subtitle\".")
@@ -124,8 +130,12 @@ GC_element_style <- function(GC_chart,
     stop("Identify the element with 'row_id', 'cluster', 'part' or 'end', not with element options.")
   }
   if (reset && length(style)) stop("Do not supply element options with 'reset = TRUE'.")
+  if (component %in% c("genes", "coordinates") && any(names(style) %in% c("moveX", "moveY"))) {
+    stop("Genes and coordinates cannot be moved; 'moveX' and 'moveY' are for ",
+         "labels, titles, scales and the legend.")
+  }
 
-  if (component %in% c("legend", "title")) {
+  if (component %in% chart_components) {
     id <- c(if (component == "legend") list(group = group), list(part = part))
     same <- function(item) {
       identical(item$part, part) && (component == "title" || identical(item$group, group))
@@ -139,7 +149,7 @@ GC_element_style <- function(GC_chart,
   key <- switch(component, clusterFooter = "footer", component)
   id <- if (by_row) {
     c(list(rowID = row_id), if (!is.null(end)) list(end = end))
-  } else if (component %in% c("scaleBar", "scale")) list() else list(part = part)
+  } else if (component %in% scale_components) list() else list(part = part)
   same <- function(item) {
     if (by_row) {
       identical(as.numeric(item$rowID), as.numeric(row_id)) && identical(item$end, end)

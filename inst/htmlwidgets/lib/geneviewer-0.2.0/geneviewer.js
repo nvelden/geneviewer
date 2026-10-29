@@ -235,9 +235,12 @@ function extractAdditionalOptions(combinedOptions, defaultOptions) {
   return additionalOptions;
 }
 
+// Element options that position an element (applyMove()), not CSS
+const moveKeys = ["moveX", "moveY"];
+
 function setStyleFromOptions(currentElement, additionalOptions) {
   for (const [key, value] of Object.entries(additionalOptions)) {
-    if (key === "moveX" || key === "moveY") continue;
+    if (moveKeys.includes(key)) continue;
     currentElement.style(camelToKebab(key), value);
   }
 }
@@ -258,7 +261,7 @@ function applyStyleToElement(currentElement, itemStyle, i) {
   const style = itemStyle.find(s => s.index === i);
   if (style) {
     for (const [key, value] of Object.entries(style)) {
-      if (!['index', 'rowID', 'text', 'labelAdjustmentOptions'].includes(key)) {
+      if (!['index', 'rowID', 'text', 'labelAdjustmentOptions', ...moveKeys].includes(key)) {
         currentElement.style(camelToKebab(key), value);
       }
     }
@@ -896,120 +899,88 @@ function chartToPNG(el, exclude = null) {
   });
 }
 
-// In a toolbar (container), the toolbar shows and places the icon; on its
-// own it shows in the top right corner while the mouse is over the chart
-function createSaveIcon(widgetId, el, show = true, container = null, iconClass = "fa-solid fa-download") {
+// The save icon and its formats, in the chart's toolbar (container), which
+// shows and places it. Its colours are those of the stylesheet, set with
+// GC_toolbar() and GC_theme(toolbar = ...).
+function createSaveIcon(widgetId, el, container, iconClass = "fa-solid fa-download") {
+  var saveMenu = d3.select(container).append("div")
+      .attr("id", `saveMenu-${widgetId}`)
+      .style("position", "relative")
+      .style("z-index", "1000")
+      .style("display", "block");
 
-  if (show) {
-    // In a toolbar the stylesheet sets its colours (GC_toolbar(), GC_theme())
-    const styled = !container;
-    var saveMenu = d3.select(container ?? el).append("div")
-        .attr("id", `saveMenu-${widgetId}`)
-        .style("position", container ? "relative" : "absolute")
-        .style("z-index", "1000")
-        .style("top", container ? null : "10px")
-        .style("right", container ? null : "10px")
-        .style("display", container ? "block" : "none");
+  var icon = saveMenu.append("i")
+      .attr("class", iconClass + " geneviewer-save-icon")
+      .attr("id", `saveIcon-${widgetId}`)
+      .attr("tabindex", "0")
+      .attr("role", "button")
+      .attr("aria-label", "Save chart")
+      .attr("aria-haspopup", "menu")
+      .style("text-align", "right")
+      .style("cursor", "pointer");
 
-    var icon = saveMenu.append("i")
-        .attr("class", iconClass + (container ? " geneviewer-save-icon" : ""))
-        .attr("id", `saveIcon-${widgetId}`)
-        .style("display", "block")
-        .style("text-align", "right")
-        .style("font-size", styled ? "20px" : null)
-        .style("color", styled ? "#D3D3D3" : null)
-        .style("padding", "5px")
-        .style("cursor", "pointer");
+  // Format options, shown when hovering or focusing the icon
+  var options = saveMenu.append("div")
+      .attr("id", `saveIconTooltip-${widgetId}`)
+      .attr("class", "save-tooltip")
+      .attr("role", "menu")
+      .style("display", "none")
+      .style("font-size", "12px")
+      .style("overflow", "hidden")
+      .style("white-space", "nowrap");
 
-    // Format options, shown when hovering the icon
-    var options = saveMenu.append("div")
-        .attr("id", `saveIconTooltip-${widgetId}`)
-        .attr("class", "save-tooltip")
-        .style("display", "none")
-        .style("background-color", styled ? "#333" : null)
-        .style("border-radius", styled ? "3px" : null)
-        .style("font-size", "12px")
-        .style("font-family", styled ? "Arial, sans-serif" : null)
-        .style("overflow", "hidden")
-        .style("white-space", "nowrap");
+  // Hide the menu so it is not in the PNG, and until the mouse enters again
+  var hideMenu = function () {
+      options.style("display", "none");
+  };
 
-    // Hide the menu so it is not in the PNG, and until the mouse enters again
-    var hideMenu = function () {
-        if (!container) saveMenu.style("display", "none");
-        options.style("display", "none");
-        if (styled) icon.style("color", "#D3D3D3");
-    };
-
-    var formats = [
-      {
-        label: "Save as SVG",
-        save: function () {
-          var svg = chartToSVG(el, container ?? saveMenu.node());
-          saveAs(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "graph.svg");
-        }
-      },
-      {
-        label: "Save as PNG",
-        save: function () {
-          return chartToPNG(el, container ?? saveMenu.node()).then(blob => saveAs(blob, "graph.png"));
-        }
+  var formats = [
+    {
+      label: "Save as SVG",
+      save: function () {
+        var svg = chartToSVG(el, container);
+        saveAs(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "graph.svg");
       }
-    ];
-
-    formats.forEach(function (format) {
-      options.append("div")
-        .attr("class", "save-option")
-        .text(format.label)
-        .style("color", styled ? "#fff" : null)
-        .style("padding", "5px 8px")
-        .style("cursor", "pointer")
-        .on("mouseenter", function () { if (styled) d3.select(this).style("background-color", "#555"); })
-        .on("mouseleave", function () { if (styled) d3.select(this).style("background-color", null); })
-        .on("click", function () {
-          hideMenu();
-          format.save();
-        });
-    });
-
-    // In a toolbar the icon and its formats can also be used with the keyboard
-    if (container) {
-      icon.attr("tabindex", "0")
-        .attr("role", "button")
-        .attr("aria-label", "Save chart")
-        .attr("aria-haspopup", "menu");
-      options.attr("role", "menu");
-      options.selectAll(".save-option")
-        .attr("tabindex", "0")
-        .attr("role", "menuitem")
-        .on("keydown", function (event) {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            this.click();
-          }
-        });
-      saveMenu.on("focusin", function () {
-        options.style("display", "block");
-      }).on("focusout", function (event) {
-        if (saveMenu.node().contains(event.relatedTarget)) return;
-        options.style("display", "none");
-      });
+    },
+    {
+      label: "Save as PNG",
+      save: function () {
+        return chartToPNG(el, container).then(blob => saveAs(blob, "graph.png"));
+      }
     }
+  ];
 
-    // Ensure icon is displayed on hover
-    if (container) d3.select(el).on("mouseleave", hideMenu);
-    else d3.select(el).on("mouseenter", function() {
-        saveMenu.style("display", "block");
-    }).on("mouseleave", hideMenu);
+  formats.forEach(function (format) {
+    options.append("div")
+      .attr("class", "save-option")
+      .attr("tabindex", "0")
+      .attr("role", "menuitem")
+      .text(format.label)
+      .style("padding", "5px 8px")
+      .style("cursor", "pointer")
+      .on("click", function () {
+        hideMenu();
+        format.save();
+      })
+      // The formats can also be chosen with the keyboard
+      .on("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          this.click();
+        }
+      });
+  });
 
-    // Change icon color on hover and display the format options
-    saveMenu.on("mouseenter", function() {
-        if (styled) icon.style("color", "#555555");
-        options.style("display", "block");
-    }).on("mouseleave", function() {
-        if (styled) icon.style("color", "#D3D3D3");
-        options.style("display", "none");
-    });
-  }
+  saveMenu.on("focusin", function () {
+    options.style("display", "block");
+  }).on("focusout", function (event) {
+    if (saveMenu.node().contains(event.relatedTarget)) return;
+    hideMenu();
+  });
+  d3.select(el).on("mouseleave", hideMenu);
+  saveMenu.on("mouseenter", function () {
+    options.style("display", "block");
+  }).on("mouseleave", hideMenu);
 }
 
 // Make links function
@@ -1577,7 +1548,7 @@ container.prototype.scale = function (options = {}) {
     }
 
     const axis = axisGroup.append("g").call(xAxis);
-    positionText(axisGroup, combinedOptions.itemStyle?.[0]);
+    applyMove(axisGroup, combinedOptions.itemStyle?.[0]);
 
     // Style axis lines and text
     axis.selectAll(".tick line")
@@ -1659,8 +1630,9 @@ function partStyle(itemStyle, part) {
   return { text, style };
 }
 
-// Translation in SVG axes, independent of text rotation and automatic layout.
-function positionText(selection, options = {}) {
+// Move an element by its moveX and moveY (GC_element_style()): a translation
+// in SVG pixels, independent of text rotation and automatic layout
+function applyMove(selection, options = {}) {
   selection.each(function () {
     const moveX = Number(options.moveX ?? 0);
     const moveY = Number(options.moveY ?? 0);
@@ -1680,7 +1652,7 @@ function styleFontText(selection, text, font, defaultFont) {
     parseAndStyleText(text, currentElement, font);
     setStyleFromOptions(currentElement, additionalOptions);
   });
-  positionText(selection, font);
+  applyMove(selection, font);
 }
 
 container.prototype.title = function (title, subtitle, show = true, options = {}, themeOptionsKey = "titleOptions") {
@@ -2014,9 +1986,9 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     setLabelY(clusterTitle, titleY);
     setLabelY(clusterSubtitle, titleY + titleLines.last + lineSpacing - subtitleLines.first);
   }
-  positionText(clusterTitle, ownTitle.style);
+  applyMove(clusterTitle, ownTitle.style);
   this.svg.selectAll('text[data-component="clusterLabel"][data-part="subtitle"]')
-    .call(positionText, ownSubtitle.style);
+    .call(applyMove, ownSubtitle.style);
 
   return this;
 };
@@ -2480,7 +2452,7 @@ container.prototype.scaleBar = function (show = true, options = {}) {
     .text(title);
 
   // Move the complete bar, including its label, line and ticks.
-  positionText(g, combinedOptions.itemStyle?.[0]);
+  applyMove(g, combinedOptions.itemStyle?.[0]);
 
   return this;
 };
@@ -2716,7 +2688,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
     });
 
   g.selectAll("text.label").each(function(d, i) {
-    positionText(d3.select(this), itemStyle.find(style => style.index === i) ?? {});
+    applyMove(d3.select(this), itemStyle.find(style => style.index === i) ?? {});
   });
 
   //Make markers available to tooltip
@@ -3513,8 +3485,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
         })
 
       // Dragged labels and markers move on their own (GC_element_style)
-      positionText(textLabel, labelStyle);
-      positionText(rect, ownMarkerStyle);
+      applyMove(textLabel, labelStyle);
+      applyMove(rect, ownMarkerStyle);
 
       itemExtents.push({ node: nodes[i], row: currentY, start: currentX,
                          end: currentX + legendSize + legendPadding + textLength });

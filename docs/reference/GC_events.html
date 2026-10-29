@@ -84,7 +84,8 @@ click reporting has no effect outside Shiny.</p>
 <span>  render_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dblclick <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  select <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  legend_click <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  legend_click <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  drag <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -119,11 +120,21 @@ element ID; the event's <code>chartId</code> identifies the chart itself.</p></d
 
 
 <dt>select</dt>
-<dd><p>Logical, whether to enable gene and label selection.</p></dd>
+<dd><p>Logical, whether to enable individual element selection.</p></dd>
 
 
 <dt>legend_click</dt>
 <dd><p>Logical, whether legend clicks are reported to Shiny.</p></dd>
+
+
+<dt>drag</dt>
+<dd><p>Logical, enable dragging gene labels, chart titles and cluster
+titles, footers, labels, whole scale bars and axes, and legend labels and
+markers, each on its own. Off by default. Releasing a drag reports
+<code>input$&lt;outputId&gt;_drag</code> and <code>geneviewer:drag</code>, with <code>position</code> containing
+<code>moveX</code> and <code>moveY</code> offsets in whole SVG pixels and <code>action</code> set to <code>"drag"</code>.
+Apply them with <code><a href="GC_element_style.html">GC_element_style()</a></code> to preserve the position on redraw.
+Escape cancels an active drag. Moves can be undone and redone, see Details.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -157,29 +168,58 @@ cluster with <code>data-cluster</code>, also without this function, so they can 
 selected with CSS or JavaScript.</p>
 <p>With <code>dblclick = TRUE</code>, double-clicks independently report the same payload
 to <code>input$&lt;outputId&gt;_dblclick</code> and the bubbling browser event
-<code>geneviewer:dblclick</code>. Legend double-clicks are excluded, so visibility
-toggles do not open an editor. Browsers also send clicks during a
+<code>geneviewer:dblclick</code>. Browsers also send clicks during a
 double-click: use clicks for selection, and double-clicks for editing,
 rather than opening different settings panels on each event.</p>
-<p>With <code>select = TRUE</code>, a click selects an individual gene or label and
-outlines it. Clicking it again, empty chart space or any other part of the
-chart, or pressing Escape, clears selection.
-Selection reports the click payload (or <code>NULL</code> when cleared) to
-<code>input$&lt;outputId&gt;_select</code> and <code>geneviewer:select</code>. It survives redraws of the
-same data and resize. Selected items can be opened with Enter when
+<p>With <code>select = TRUE</code>, a click selects an individual editable element and
+outlines it. Clicking it again, empty chart space or a noneditable part of
+the chart, or pressing Escape, clears selection. Shift-, Ctrl- or
+Cmd-click adds an element to the selection or takes it out, and dragging on
+empty chart space draws a box that selects the elements entirely inside it
+(with Shift, Ctrl or Cmd, in addition to the selection). With <code>drag = TRUE</code>
+as well, dragging one of the selected elements moves all of them that can
+be moved, and the arrow keys move them together; such a move of several
+elements is one step to undo, reported as <code>input$&lt;outputId&gt;_moves</code>.
+Selection reports the payload of the element selected last (or <code>NULL</code> when
+cleared) to <code>input$&lt;outputId&gt;_select</code> and <code>geneviewer:select</code>, and a list of
+the payloads of all selected elements, in the order they were selected, to
+<code>input$&lt;outputId&gt;_selection</code> and <code>geneviewer:selection</code>. It survives redraws of the
+same data and resize. When a redraw changes the selected element's style,
+its updated payload is reported again. Selected items can be opened with Enter when
 <code>dblclick = TRUE</code>; items are keyboard focusable in selection mode.
 Use <code>click = FALSE</code> to avoid legacy single-click settings handlers.
 <code>legend_click = FALSE</code> excludes legend clicks from click reporting without
-changing legend visibility toggles. Selection never includes the legend.
+enabling legend click editing. Legend labels and patches are individually
+selectable, with <code>part</code> set to <code>"label"</code> or <code>"marker"</code> and <code>data</code> set to
+the original group value. Legend clicks edit instead of toggling visibility
+when selection or double-click events are enabled, or when click reporting
+is enabled with <code>legend_click = TRUE</code>. Otherwise they hide/show genes.
 Double-click and selection browser events also work outside Shiny.</p>
-<p>Click, double-click and selection payloads of a gene or label also contain
+<p>Click, double-click and selection payloads of editable elements also contain
 <code>style</code>: how it is drawn, with the names of <code><a href="GC_element_style.html">GC_element_style()</a></code> options, so
 an editor can show the current values. For a gene these are <code>fill</code>,
 <code>opacity</code>, <code>stroke</code>, <code>strokeWidth</code>, <code>strokeDasharray</code>, <code>marker</code>,
 <code>markerSize</code>, <code>markerHeight</code>, <code>arrowheadWidth</code>, <code>arrowheadHeight</code>,
 <code>cornerRadius</code> and <code>y</code>; for a label <code>fill</code>, <code>opacity</code>, <code>text</code>, <code>fontSize</code>
 (in pixels), <code>fontWeight</code>, <code>fontStyle</code> and <code>fontFamily</code>. Colours are hex
-codes, except transparent colours, <code>"none"</code> and patterns.</p>
+codes, except transparent colours, <code>"none"</code> and patterns. Legend labels
+report the same text options; legend markers report <code>fill</code>, <code>opacity</code>,
+<code>stroke</code>, <code>strokeWidth</code> and <code>strokeDasharray</code>.</p>
+<p>With <code>drag = TRUE</code>, the undo, redo and reset icons next to the download
+icon undo and redo moves, and move every element back to where it was first
+drawn, so positions set with <code><a href="GC_element_style.html">GC_element_style()</a></code> are kept. They show while
+the mouse is over the chart, once there is a move. After clicking the
+chart, Ctrl+Z (Cmd+Z on a Mac) undoes and Ctrl+Shift+Z or Ctrl+Y redoes.
+With <code>select = TRUE</code> as well, the arrow keys move the selected text or
+scale by a pixel, or 10 pixels with Shift. Each drag is one step to undo,
+arrow-key moves of one element within a second are one step, and a reset
+is one step. A step that moves one element reports it like a drag, with
+<code>action</code> set to <code>"undo"</code>, <code>"redo"</code> or <code>"nudge"</code>. A step that moves more,
+such as a reset, reports <code>input$&lt;outputId&gt;_moves</code> and <code>geneviewer:moves</code>
+once, with <code>action</code> (<code>"reset"</code>, <code>"undo"</code> or <code>"redo"</code>) and <code>moves</code>, a list
+of drag payloads, so an app that keeps drags keeps these too. Steps whose
+element was since moved by something else are dropped. Outside Shiny,
+moves are kept when the chart is resized.</p>
 <p>With <code>rendered = TRUE</code>, each successful update also sets
 <code>input$&lt;outputId&gt;_rendered</code> to a list containing <code>id</code> (the supplied
 <code>render_id</code>, or a generated ID), <code>chartId</code> (the chart's DOM element ID),

@@ -33,7 +33,9 @@
 
 /* Highlighted/Clicked styles: Gives a more dimmed effect to both marker and text when clicked */
 .legend.unselected .legend-marker,
-.legend.unselected .legend-label {
+.legend.unselected .legend-label,
+.geneviewer-text-overlay .unselected > .legend-marker,
+.geneviewer-text-overlay .unselected > .legend-label {
     opacity: 0.5;
 }
 
@@ -74,7 +76,8 @@
 .geneviewer-selectable.geneviewer-highlight [data-component="genes"]:hover,
 .geneviewer-selectable.geneviewer-highlight [data-component="labels"]:hover,
 .geneviewer-selectable.geneviewer-highlight [data-component="coordinates"]:hover,
-.geneviewer-selectable.geneviewer-highlight [data-component="clusterTitle"]:hover {
+.geneviewer-selectable.geneviewer-highlight [data-component="clusterTitle"]:hover,
+.geneviewer-selectable.geneviewer-highlight [data-component="legend"]:hover {
   filter: none;
 }
 
@@ -94,4 +97,206 @@
 .geneviewer [data-part]:focus-visible {
   filter: drop-shadow(0 0 1px #2563eb) drop-shadow(0 0 1px #2563eb) drop-shadow(0 0 5px rgba(37, 99, 235, 0.7));
   outline: none;
+}
+
+/* Dragging text uses chart axes even when the text itself is rotated. */
+.geneviewer-draggable text.label,
+.geneviewer-draggable [data-component="title"] text,
+.geneviewer-draggable [data-component="clusterTitle"] text,
+.geneviewer-draggable [data-component="clusterFooter"] text,
+.geneviewer-draggable text[data-component="clusterFooter"],
+.geneviewer-draggable text[data-component="clusterLabel"],
+.geneviewer-draggable [data-component="scaleBar"],
+.geneviewer-draggable [data-component="scaleBar"] *,
+.geneviewer-draggable [data-component="scale"],
+.geneviewer-draggable [data-component="scale"] *,
+.geneviewer-draggable [data-component="legend"] [data-part] {
+  cursor: grab !important;
+  touch-action: none;
+  user-select: none;
+}
+.geneviewer-dragging, .geneviewer-dragging text,
+.geneviewer-dragging [data-component="scaleBar"] *,
+.geneviewer-dragging [data-component="scale"] * {
+  cursor: grabbing !important;
+  user-select: none;
+}
+
+/* The chart's controls, in a corner (GC_toolbar()): undo, redo and reset of
+   moves, and the save icon. They show while the mouse is over the chart or
+   one has keyboard focus, and hide during a drag. Only the buttons take
+   clicks: the gaps between them, and the toolbar while hidden, leave clicks
+   to the chart. Colours and size are variables, set by GC_toolbar() and
+   GC_theme(toolbar = ...). */
+.geneviewer-toolbar {
+  --gv-toolbar-color: #D3D3D3;
+  --gv-toolbar-hover: #555555;
+  --gv-toolbar-tip-background: #333333;
+  --gv-toolbar-tip-color: #ffffff;
+  --gv-toolbar-size: 20px;
+  --gv-toolbar-tip-border: none;
+  --gv-toolbar-tip-radius: 3px;
+  --gv-toolbar-tip-shadow: none;
+  --gv-toolbar-font: Arial, sans-serif;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.geneviewer-toolbar-topleft { left: 10px; right: auto; }
+.geneviewer-toolbar-bottomright { top: auto; bottom: 10px; align-items: flex-end; }
+.geneviewer-toolbar-bottomleft { top: auto; bottom: 10px; left: 10px; right: auto; align-items: flex-end; }
+.html-widget:hover > .geneviewer-toolbar,
+.geneviewer-toolbar:focus-within,
+.geneviewer-toolbar.geneviewer-toolbar-always {
+  opacity: 1;
+}
+.geneviewer-toolbar-button,
+.geneviewer-toolbar > [id^="saveMenu-"] {
+  pointer-events: none;
+}
+.html-widget:hover > .geneviewer-toolbar .geneviewer-toolbar-button,
+.html-widget:hover > .geneviewer-toolbar > [id^="saveMenu-"],
+.geneviewer-toolbar:focus-within .geneviewer-toolbar-button,
+.geneviewer-toolbar:focus-within > [id^="saveMenu-"],
+.geneviewer-toolbar-always .geneviewer-toolbar-button,
+.geneviewer-toolbar-always > [id^="saveMenu-"] {
+  pointer-events: auto;
+}
+.html-widget.geneviewer-dragging > .geneviewer-toolbar {
+  opacity: 0;
+}
+.html-widget.geneviewer-dragging > .geneviewer-toolbar * {
+  pointer-events: none !important;
+}
+/* Undo, redo and reset, 4px apart, and a divider before the save icon.
+   Disabled buttons keep their place, so none of them shifts. */
+.geneviewer-history {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+.geneviewer-history[hidden] {
+  display: none;
+}
+.geneviewer-toolbar-divider {
+  width: 1px;
+  height: calc(var(--gv-toolbar-size) * 0.9);
+  margin: calc(5px + var(--gv-toolbar-size) * 0.05) 2px 0;
+  background-color: var(--gv-toolbar-color);
+  opacity: 0.6;
+}
+.geneviewer-toolbar-button {
+  position: relative;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gv-toolbar-color);
+  cursor: pointer;
+}
+.geneviewer-toolbar-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+/* Glyphs the size of the save icon */
+.geneviewer-toolbar-button > i,
+.geneviewer-toolbar .geneviewer-save-icon {
+  display: block;
+  padding: 5px;
+  font-size: var(--gv-toolbar-size);
+}
+.geneviewer-toolbar .geneviewer-save-icon {
+  color: var(--gv-toolbar-color);
+}
+.geneviewer-toolbar-button:enabled:hover,
+.geneviewer-toolbar-button:focus-visible,
+.geneviewer-toolbar [id^="saveMenu-"]:hover .geneviewer-save-icon,
+.geneviewer-toolbar .geneviewer-save-icon:focus-visible {
+  color: var(--gv-toolbar-hover);
+}
+.geneviewer-toolbar-button:focus-visible,
+.geneviewer-toolbar [tabindex]:focus-visible {
+  outline: 2px solid var(--gv-toolbar-hover);
+  outline-offset: -2px;
+  border-radius: 3px;
+}
+/* Tooltips and the formats of the save icon, below the toolbar, or above it
+   in a bottom corner, and towards the middle of the chart */
+.geneviewer-toolbar-tip,
+.geneviewer-toolbar .save-tooltip {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  box-sizing: border-box;
+  border: var(--gv-toolbar-tip-border);
+  border-radius: var(--gv-toolbar-tip-radius);
+  box-shadow: var(--gv-toolbar-tip-shadow);
+  background-color: var(--gv-toolbar-tip-background);
+  color: var(--gv-toolbar-tip-color);
+  font-family: var(--gv-toolbar-font);
+}
+.geneviewer-toolbar-bottomright .geneviewer-toolbar-tip,
+.geneviewer-toolbar-bottomright .save-tooltip,
+.geneviewer-toolbar-bottomleft .geneviewer-toolbar-tip,
+.geneviewer-toolbar-bottomleft .save-tooltip {
+  top: auto;
+  bottom: 100%;
+}
+.geneviewer-toolbar-topleft .geneviewer-toolbar-tip,
+.geneviewer-toolbar-topleft .save-tooltip,
+.geneviewer-toolbar-bottomleft .geneviewer-toolbar-tip,
+.geneviewer-toolbar-bottomleft .save-tooltip {
+  right: auto;
+  left: 0;
+}
+.geneviewer-toolbar .save-option {
+  color: var(--gv-toolbar-tip-color);
+}
+.geneviewer-toolbar .save-option:hover,
+.geneviewer-toolbar .save-option:focus-visible {
+  background-color: color-mix(in srgb, var(--gv-toolbar-tip-color) 18%, transparent);
+}
+/* Tooltips wait a moment, so they do not flicker while the mouse passes over
+   the toolbar */
+.geneviewer-toolbar-tip {
+  padding: 5px 8px;
+  font-size: 12px;
+  line-height: normal;
+  white-space: nowrap;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.1s, visibility 0s linear 0.1s;
+}
+.geneviewer-toolbar-tip kbd {
+  margin-left: 8px;
+  font: inherit;
+  color: inherit;
+  opacity: 0.7;
+}
+.geneviewer-toolbar-button:enabled:hover .geneviewer-toolbar-tip {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.1s linear 0.3s, visibility 0s linear 0.3s;
+}
+.geneviewer-toolbar-button:focus-visible .geneviewer-toolbar-tip {
+  visibility: visible;
+  opacity: 1;
+  transition: none;
+}
+
+/* The box drawn on empty space to select several elements */
+.geneviewer-marquee {
+  position: absolute;
+  z-index: 999;
+  border: 1px solid #2563eb;
+  background-color: rgba(37, 99, 235, 0.08);
+  pointer-events: none;
 }

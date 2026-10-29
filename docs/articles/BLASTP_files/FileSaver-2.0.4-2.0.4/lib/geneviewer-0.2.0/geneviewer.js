@@ -208,6 +208,7 @@ function createLabelAdjuster(container, labelSelector) {
           .attr("y", centerY)
           .attr("transform", `rotate(${rotation}, ${centerX}, ${centerY})`);
 
+        specificLabel.__drawn__ = { ...specificLabel.__drawn__, rotate: rotation };
         refresh(specificLabel);
         return true;
       }
@@ -236,6 +237,7 @@ function extractAdditionalOptions(combinedOptions, defaultOptions) {
 
 function setStyleFromOptions(currentElement, additionalOptions) {
   for (const [key, value] of Object.entries(additionalOptions)) {
+    if (key === "moveX" || key === "moveY") continue;
     currentElement.style(camelToKebab(key), value);
   }
 }
@@ -894,24 +896,28 @@ function chartToPNG(el, exclude = null) {
   });
 }
 
-function createSaveIcon(widgetId, el, show = true) {
+// In a toolbar (container), the toolbar shows and places the icon; on its
+// own it shows in the top right corner while the mouse is over the chart
+function createSaveIcon(widgetId, el, show = true, container = null, iconClass = "fa-solid fa-download") {
 
   if (show) {
-    var saveMenu = d3.select(el).append("div")
+    // In a toolbar the stylesheet sets its colours (GC_toolbar(), GC_theme())
+    const styled = !container;
+    var saveMenu = d3.select(container ?? el).append("div")
         .attr("id", `saveMenu-${widgetId}`)
-        .style("position", "absolute")
+        .style("position", container ? "relative" : "absolute")
         .style("z-index", "1000")
-        .style("top", "10px")
-        .style("right", "10px")
-        .style("display", "none");
+        .style("top", container ? null : "10px")
+        .style("right", container ? null : "10px")
+        .style("display", container ? "block" : "none");
 
     var icon = saveMenu.append("i")
-        .attr("class", "fa-solid fa-download")
+        .attr("class", iconClass + (container ? " geneviewer-save-icon" : ""))
         .attr("id", `saveIcon-${widgetId}`)
         .style("display", "block")
         .style("text-align", "right")
-        .style("font-size", "20px")
-        .style("color", "#D3D3D3")
+        .style("font-size", styled ? "20px" : null)
+        .style("color", styled ? "#D3D3D3" : null)
         .style("padding", "5px")
         .style("cursor", "pointer");
 
@@ -920,32 +926,32 @@ function createSaveIcon(widgetId, el, show = true) {
         .attr("id", `saveIconTooltip-${widgetId}`)
         .attr("class", "save-tooltip")
         .style("display", "none")
-        .style("background-color", "#333")
-        .style("border-radius", "3px")
+        .style("background-color", styled ? "#333" : null)
+        .style("border-radius", styled ? "3px" : null)
         .style("font-size", "12px")
-        .style("font-family", "Arial, sans-serif")
+        .style("font-family", styled ? "Arial, sans-serif" : null)
         .style("overflow", "hidden")
         .style("white-space", "nowrap");
 
     // Hide the menu so it is not in the PNG, and until the mouse enters again
     var hideMenu = function () {
-        saveMenu.style("display", "none");
+        if (!container) saveMenu.style("display", "none");
         options.style("display", "none");
-        icon.style("color", "#D3D3D3");
+        if (styled) icon.style("color", "#D3D3D3");
     };
 
     var formats = [
       {
         label: "Save as SVG",
         save: function () {
-          var svg = chartToSVG(el, saveMenu.node());
+          var svg = chartToSVG(el, container ?? saveMenu.node());
           saveAs(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "graph.svg");
         }
       },
       {
         label: "Save as PNG",
         save: function () {
-          return chartToPNG(el, saveMenu.node()).then(blob => saveAs(blob, "graph.png"));
+          return chartToPNG(el, container ?? saveMenu.node()).then(blob => saveAs(blob, "graph.png"));
         }
       }
     ];
@@ -954,28 +960,53 @@ function createSaveIcon(widgetId, el, show = true) {
       options.append("div")
         .attr("class", "save-option")
         .text(format.label)
-        .style("color", "#fff")
+        .style("color", styled ? "#fff" : null)
         .style("padding", "5px 8px")
         .style("cursor", "pointer")
-        .on("mouseenter", function () { d3.select(this).style("background-color", "#555"); })
-        .on("mouseleave", function () { d3.select(this).style("background-color", null); })
+        .on("mouseenter", function () { if (styled) d3.select(this).style("background-color", "#555"); })
+        .on("mouseleave", function () { if (styled) d3.select(this).style("background-color", null); })
         .on("click", function () {
           hideMenu();
           format.save();
         });
     });
 
+    // In a toolbar the icon and its formats can also be used with the keyboard
+    if (container) {
+      icon.attr("tabindex", "0")
+        .attr("role", "button")
+        .attr("aria-label", "Save chart")
+        .attr("aria-haspopup", "menu");
+      options.attr("role", "menu");
+      options.selectAll(".save-option")
+        .attr("tabindex", "0")
+        .attr("role", "menuitem")
+        .on("keydown", function (event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            this.click();
+          }
+        });
+      saveMenu.on("focusin", function () {
+        options.style("display", "block");
+      }).on("focusout", function (event) {
+        if (saveMenu.node().contains(event.relatedTarget)) return;
+        options.style("display", "none");
+      });
+    }
+
     // Ensure icon is displayed on hover
-    d3.select(el).on("mouseenter", function() {
+    if (container) d3.select(el).on("mouseleave", hideMenu);
+    else d3.select(el).on("mouseenter", function() {
         saveMenu.style("display", "block");
     }).on("mouseleave", hideMenu);
 
     // Change icon color on hover and display the format options
     saveMenu.on("mouseenter", function() {
-        icon.style("color", "#555555");
+        if (styled) icon.style("color", "#555555");
         options.style("display", "block");
     }).on("mouseleave", function() {
-        icon.style("color", "#D3D3D3");
+        if (styled) icon.style("color", "#D3D3D3");
         options.style("display", "none");
     });
   }
@@ -1546,6 +1577,7 @@ container.prototype.scale = function (options = {}) {
     }
 
     const axis = axisGroup.append("g").call(xAxis);
+    positionText(axisGroup, combinedOptions.itemStyle?.[0]);
 
     // Style axis lines and text
     axis.selectAll(".tick line")
@@ -1627,6 +1659,17 @@ function partStyle(itemStyle, part) {
   return { text, style };
 }
 
+// Translation in SVG axes, independent of text rotation and automatic layout.
+function positionText(selection, options = {}) {
+  selection.each(function () {
+    const moveX = Number(options.moveX ?? 0);
+    const moveY = Number(options.moveY ?? 0);
+    const base = this.getAttribute("transform") || "";
+    this.__drawn__ = { ...this.__drawn__, moveX, moveY };
+    this.setAttribute("transform", `translate(${moveX}, ${moveY}) ${base}`.trim());
+  });
+}
+
 function styleFontText(selection, text, font, defaultFont) {
   for (const key of Object.keys(defaultFont)) {
     selection.style(camelToKebab(key), font[key]);
@@ -1637,6 +1680,7 @@ function styleFontText(selection, text, font, defaultFont) {
     parseAndStyleText(text, currentElement, font);
     setStyleFromOptions(currentElement, additionalOptions);
   });
+  positionText(selection, font);
 }
 
 container.prototype.title = function (title, subtitle, show = true, options = {}, themeOptionsKey = "titleOptions") {
@@ -1970,6 +2014,9 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     setLabelY(clusterTitle, titleY);
     setLabelY(clusterSubtitle, titleY + titleLines.last + lineSpacing - subtitleLines.first);
   }
+  positionText(clusterTitle, ownTitle.style);
+  this.svg.selectAll('text[data-component="clusterLabel"][data-part="subtitle"]')
+    .call(positionText, ownSubtitle.style);
 
   return this;
 };
@@ -2432,6 +2479,9 @@ container.prototype.scaleBar = function (show = true, options = {}) {
     })
     .text(title);
 
+  // Move the complete bar, including its label, line and ticks.
+  positionText(g, combinedOptions.itemStyle?.[0]);
+
   return this;
 };
 
@@ -2616,6 +2666,10 @@ container.prototype.labels = function (label, show = true, options = {}) {
     .attr("id", (d, i) => `cluster-${sanitizeId(d.cluster)}-label-${i}`)
     .attr("rowID", (d, i) => `${d["rowID"]}`)
     .attr("class", "label")
+    .each(function(d, i) {
+      const { dx, dy, rotate } = attributesByIndex[i];
+      this.__drawn__ = { dx, dy, rotate };
+    })
     .attr("x", (d, i) => attributesByIndex[i].xPos)
     .attr("y", (d, i) => attributesByIndex[i].yPos)
     .attr("dx", (d, i) => attributesByIndex[i].dx)
@@ -2660,6 +2714,10 @@ container.prototype.labels = function (label, show = true, options = {}) {
       labelAdjuster.refresh(this);
 
     });
+
+  g.selectAll("text.label").each(function(d, i) {
+    positionText(d3.select(this), itemStyle.find(style => style.index === i) ?? {});
+  });
 
   //Make markers available to tooltip
   this.labels = g.selectAll(".label");
@@ -3342,7 +3400,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   };
 
   const combinedOptions = mergeOptions.call(this, defaultOptions, 'legendOptions', options);
-  const { x, y, width, orientation, align, adjustHeight, order, cornerRadius, legendOptions, legendTextOptions, groupStyle } = combinedOptions;
+  const { x, y, width, orientation, align, adjustHeight, order, cornerRadius, legendOptions, legendTextOptions, groupStyle, itemStyle = [], editable = false } = combinedOptions;
 
   const additionalLegendOptions = extractAdditionalOptions(legendOptions, defaultOptions.legendOptions);
   const additionalLegendTextOptions = extractAdditionalOptions(legendTextOptions, defaultOptions.legendTextOptions);
@@ -3395,23 +3453,29 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     .each((d, i, nodes) => {
       const legendGroup = d3.select(nodes[i]);
       // The style of this group: for its text, and in marker for its marker
-      const { marker: markerStyle = {}, ...textStyle } = groupStyle[d] ?? {};
+      const { marker: markerStyle = {}, text: groupText, ...textStyle } = groupStyle[d] ?? {};
+      const { group: _labelGroup, part: _labelPart, text, ...labelStyle } =
+        itemStyle.find(s => s.group === d && s.part === "label") ?? {};
+      const { group: _markerGroup, part: _markerPart, ...ownMarkerStyle } =
+        itemStyle.find(s => s.group === d && s.part === "marker") ?? {};
 
       const textLabel = legendGroup
         .append("text")
         .attr("class", "legend-label")
+        .attr("data-part", "label")
         .attr("id", `legend-label-${i}`)
         .attr("dy", legendTextOptions.dy)
         .style("text-anchor", legendTextOptions.textAnchor)
         .style("font-size", legendTextOptions.fontSize)
         .style("font-family", legendTextOptions.fontFamily)
         .style("cursor", legendTextOptions.cursor)
-        .text(d)
+        .text(text ?? groupText ?? d)
         .each(function () {
           const currentElement = d3.select(this);
           setStyleFromOptions(currentElement, additionalLegendTextOptions);
           // Before the text is measured below, so the items do not overlap
           setStyleFromOptions(currentElement, textStyle);
+          setStyleFromOptions(currentElement, labelStyle);
         });
 
       const textLength = textLabel.node().getComputedTextLength();
@@ -3430,6 +3494,7 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
       const rect = legendGroup
         .append("rect")
         .attr("class", "legend-marker")
+        .attr("data-part", "marker")
         .attr("id", `legend-marker-${i}`)
         .style("cursor", legendOptions.cursor)
         .attr("x", currentX)
@@ -3444,7 +3509,12 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
           const currentElement = d3.select(this);
           setStyleFromOptions(currentElement, additionalLegendOptions);
           setStyleFromOptions(currentElement, markerStyle);
+          setStyleFromOptions(currentElement, ownMarkerStyle);
         })
+
+      // Dragged labels and markers move on their own (GC_element_style)
+      positionText(textLabel, labelStyle);
+      positionText(rect, ownMarkerStyle);
 
       itemExtents.push({ node: nodes[i], row: currentY, start: currentX,
                          end: currentX + legendSize + legendPadding + textLength });
@@ -3465,7 +3535,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
     })
     .on("click", (event, d) => {
       // A double-click includes a second click. Toggle only on its first one.
-      if (event.detail > 1) return;
+      // Non-bubbling synthetic clicks restore hidden groups after a redraw.
+      if (event.detail > 1 || (editable && event.bubbles)) return;
       const element = d3.select(event.currentTarget);
       // If it's currently highlighted, unhighlight it, else highlight it
       if (element.classed("unselected")) {

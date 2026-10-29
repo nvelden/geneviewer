@@ -864,6 +864,16 @@ test_that("GC_legend updates legend options with all options correctly", {
 })
 
 # GC_annotation
+test_that("GC_annotation draws a text annotation by default and checks the type", {
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "220px")
+
+  annotation <- GC_annotation(chart, text = "Hello", x = 10, y = 50)$x$series[[1]]$annotations[[1]]
+  expect_equal(annotation$type, "text")
+
+  expect_error(GC_annotation(chart, type = "textAnnotation"), "'type' must be one of")
+  expect_error(GC_annotation(chart, type = c("text", "line")), "'type' must be one of")
+})
+
 test_that("GC_annotation adds annotations to GC chart correctly", {
 
   data("ophA_clusters", package = "geneviewer")

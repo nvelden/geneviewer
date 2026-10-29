@@ -9,7 +9,7 @@
   min-height: 0; /* This may be needed for correct sizing in some browsers */
 }
 
-.hovered {
+.geneviewer .hovered {
   cursor: pointer !important;
 }
 
@@ -18,28 +18,29 @@
 }
 
 /* Common styles */
-.legend .legend-marker,
-.legend .legend-label,
-.label {
+.geneviewer .legend .legend-marker,
+.geneviewer .legend .legend-label,
+.geneviewer .label {
     transition: opacity 0.3s ease-in-out;  /* Fade on hover; only opacity, so rotated labels are not animated */
 }
 
 /* Hover styles: Gives a dim effect to the marker and text when hovered */
-.legend.hovered .legend-marker,
-.legend.hovered .legend-label,
-.label.hovered {
+.geneviewer .legend.hovered .legend-marker,
+.geneviewer .legend.hovered .legend-label,
+.geneviewer .label.hovered {
     opacity: 0.7;
 }
 
 /* Highlighted/Clicked styles: Gives a more dimmed effect to both marker and text when clicked */
-.legend.unselected .legend-marker,
-.legend.unselected .legend-label,
+.geneviewer .legend.unselected .legend-marker,
+.geneviewer .legend.unselected .legend-label,
 .geneviewer-move-overlay .unselected > .legend-marker,
 .geneviewer-move-overlay .unselected > .legend-label {
     opacity: 0.5;
 }
 
-.gene.hovered, .exon.hovered, .utr.hovered, .intron.hovered {
+.geneviewer .gene.hovered, .geneviewer .exon.hovered,
+.geneviewer .utr.hovered, .geneviewer .intron.hovered {
   filter: brightness(80%);
 }
 

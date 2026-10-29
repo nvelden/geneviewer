@@ -3,13 +3,14 @@
 #' This function adds annotations to specified clusters within a GC chart.
 #' Annotations can be of various types and are positioned based on provided
 #' coordinates. The types of annotations available are: text, textMarker, line,
-#' arrow, symbol, rectangle, promoter, and terminator.
+#' arrow, symbol, rectangle, promoter, terminator and arc.
 #'
 #' @param GC_chart A GC chart object to which the annotations will be added.
 #' @param cluster Numeric or character vector specifying the clusters to which
 #'   annotations should be added.
-#' @param type Character vector specifying the type of annotations to add. The
-#'   default is "text".
+#' @param type The type of annotation to add: one of "text" (default),
+#'   "textMarker", "line", "arrow", "symbol", "rectangle", "promoter",
+#'   "terminator" or "arc".
 #' @param ... Additional parameters for customization of annotations, depending
 #'   on the type.
 #'
@@ -63,10 +64,14 @@
 #' @export
 GC_annotation <- function(
     GC_chart,
-    type = "textAnnotation",
+    type = "text",
     cluster = NULL,
     ...
 ) {
+
+  if (!is.character(type) || length(type) != 1 || !type %in% annotation_types) {
+    stop("'type' must be one of ", quoted(annotation_types), ".")
+  }
 
   # Update the GC_chart object with title and options for each cluster
   clusters <- getUpdatedClusters(GC_chart, cluster)
@@ -94,6 +99,10 @@ GC_annotation <- function(
 
   return(GC_chart)
 }
+
+# The annotation types, as drawn by createAnnotation() in geneviewer.js
+annotation_types <- c("text", "textMarker", "line", "arrow", "symbol",
+                      "rectangle", "promoter", "terminator", "arc")
 
 #' Move the x positions of an annotation
 #'

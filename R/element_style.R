@@ -1,3 +1,9 @@
+# Components identified by a row of the data, those of the chart as a whole,
+# and those moved as a whole: there is one per cluster
+row_components <- c("genes", "labels", "coordinates")
+chart_components <- c("legend", "title")
+scale_components <- c("scaleBar", "scale")
+
 #' Style an Individual Element
 #'
 #' Adds or updates an override for one element of a chart, without replacing
@@ -58,12 +64,6 @@
 #'   GC_element_style("legend", group = "A", part = "label", text = "Family A") %>%
 #'   GC_element_style("legend", group = "A", part = "marker", fill = "red")
 #' @export
-# Components identified by a row of the data, those of the chart as a whole,
-# and those moved as a whole: there is one per cluster
-row_components <- c("genes", "labels", "coordinates")
-chart_components <- c("legend", "title")
-scale_components <- c("scaleBar", "scale")
-
 GC_element_style <- function(GC_chart,
                              component = c("genes", "labels", "coordinates", "clusterTitle",
                                            "clusterFooter", "clusterLabel", "legend", "title", "scaleBar", "scale"),

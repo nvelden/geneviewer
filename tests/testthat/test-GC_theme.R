@@ -90,6 +90,17 @@ test_that("GC_transcript() keeps the theme, in either order", {
   expect_equal(GC_theme(transcripts(chart), "dark")$x$theme, geneviewer_theme("dark"))
 })
 
+test_that("GC_transcript() keeps the events and toolbar of the chart", {
+  brca <- subset(BRCA1_splice_variants, ensembl_transcript_id %in% unique(ensembl_transcript_id)[1:2])
+  chart <- GC_chart(brca, start = "start", end = "end", strand = "strand", height = "200px") %>%
+    GC_events(select = TRUE, drag = TRUE) %>%
+    GC_toolbar(show = "always", position = "bottomleft")
+
+  transcripts <- GC_transcript(chart, transcript = "ensembl_transcript_id", type = "type")
+  expect_equal(transcripts$x$events, chart$x$events)
+  expect_equal(transcripts$x$toolbar, chart$x$toolbar)
+})
+
 test_that("the theme is converted when the chart is drawn", {
   themed <- GC_theme(chart, "classic")
   file <- tempfile(fileext = ".html")

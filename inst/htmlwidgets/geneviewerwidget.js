@@ -1,6 +1,9 @@
 (function () {
 // Shared by all chart instances, including ones removed and recreated.
 var renderSequence = 0;
+// The chart last clicked or focused: its moves are undone with Ctrl/Cmd+Z
+var activeChart = null;
+var onMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
 HTMLWidgets.widget({
   name: 'geneviewer',
@@ -284,9 +287,12 @@ HTMLWidgets.widget({
       state.node.__drawn__ = Object.assign({}, state.node.__drawn__, state.position);
       var detail = eventData({ target: state.node }, true);
       detail.position = state.position;
+      detail.action = "drag";
       flushQueuedRender();
-      if (events.select === true) report("select", detail);
-      report("drag", detail);
+      record([{ key: keyOf(state.detail), before: { moveX: state.moveX, moveY: state.moveY },
+                after: state.position }], false);
+      updateToolbar();
+      announce([detail], false);
     };
     var cancelDrag = function () { finishDrag(false); };
     var escapeDrag = function (event) {
@@ -312,10 +318,14 @@ HTMLWidgets.widget({
       event.preventDefault();
       var point = new DOMPoint(event.clientX, event.clientY).matrixTransform(state.inverse);
       var dx = point.x - state.start.x, dy = point.y - state.start.y;
+      // Whole pixels: a scaled chart makes fractions of a pixel that no one
+      // means, and the offsets stay readable in code
       state.position = {
-        moveX: Math.round((state.moveX + dx) * 100) / 100,
-        moveY: Math.round((state.moveY + dy) * 100) / 100
+        moveX: Math.round(state.moveX + dx),
+        moveY: Math.round(state.moveY + dy)
       };
+      dx = state.position.moveX - state.moveX;
+      dy = state.position.moveY - state.moveY;
       state.node.setAttribute("transform", `translate(${dx}, ${dy}) ${state.transform}`);
       el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
         detail: Object.assign({}, state.detail, { position: state.position }) }));
@@ -340,6 +350,276 @@ HTMLWidgets.widget({
       window.addEventListener("pointercancel", cancelDrag);
       window.addEventListener("blur", cancelDrag);
       window.addEventListener("keydown", escapeDrag);
+    };
+
+    // Undo, redo and reset of moves (GC_events(drag = TRUE)). Each drag is
+    // a step, arrow-key nudges of one element within a second are one step,
+    // and a reset is one step of all moved elements. Undo, redo and reset
+    // report the new positions as a drag (one element) or as moves (more), so
+    // an app that keeps drags with GC_element_style() keeps them as well.
+    var moves = { past: [], future: [] };
+    // Positions reported to Shiny that no redraw has shown yet: until then a
+    // redraw may still show the older position, which is not an outside change
+    var awaiting = {};
+    // Outside Shiny nothing keeps a move: redraws on resize restore them here
+    var localMoves = {};
+    // Where each element was when it was first drawn with this data: reset
+    // moves it back here, so positions set in R are kept
+    var origin = {};
+    var nudgeTimer = null;
+    var toolbar = null;
+    var samePosition = function (a, b) {
+      return !!a && !!b && Math.abs(a.moveX - b.moveX) < 0.01 && Math.abs(a.moveY - b.moveY) < 0.01;
+    };
+    var positionOf = function (node) {
+      return { moveX: node.__drawn__?.moveX ?? 0, moveY: node.__drawn__?.moveY ?? 0 };
+    };
+    // The nodes that move, by element: their text, or a whole scale
+    var movableNodes = function () {
+      var nodes = {};
+      el.querySelectorAll(selectableNodes).forEach(function (node) {
+        var detail = eventData({ target: node });
+        var key = detail && draggable.includes(detail.component) ? keyOf(detail) : null;
+        if (key === null || nodes[key]) return;
+        nodes[key] = node.closest(["scale", "scaleBar"].includes(detail.component) ?
+          '[data-component="' + detail.component + '"]' : "text");
+      });
+      return nodes;
+    };
+    // Move a node to a position, as a drag does
+    var placeAt = function (node, position) {
+      var from = positionOf(node);
+      var dx = position.moveX - from.moveX, dy = position.moveY - from.moveY;
+      if (dx || dy) {
+        var detail = eventData({ target: node });
+        if (detail) liftText(node, detail);
+        node.setAttribute("transform", `translate(${dx}, ${dy}) ${node.getAttribute("transform") || ""}`.trim());
+      }
+      node.__drawn__ = Object.assign({}, node.__drawn__, { moveX: position.moveX, moveY: position.moveY });
+    };
+    var detailOf = function (node, action) {
+      var detail = eventData({ target: node }, true);
+      if (!detail) return null;
+      detail.position = positionOf(node);
+      detail.action = action;
+      return detail;
+    };
+    // Report where elements are now: one element as a drag, more as moves
+    var announce = function (details, outline) {
+      details.forEach(function (detail) {
+        var key = keyOf(detail);
+        if (HTMLWidgets.shinyMode) awaiting[key] = detail.position;
+        else localMoves[key] = detail.position;
+      });
+      if (details.length === 1) {
+        var detail = details[0];
+        if (events.select === true) {
+          if (outline) { selected = detail; applySelection(); }
+          report("select", detail);
+        }
+        report("drag", detail);
+      } else if (details.length) {
+        report("moves", { action: details[0].action, moves: details });
+      }
+    };
+    // Elements that are not where they were first drawn
+    var movedAway = function (nodes) {
+      return Object.keys(nodes).filter(function (key) {
+        return origin[key] && !samePosition(positionOf(nodes[key]), origin[key]);
+      });
+    };
+    var updateToolbar = function (nodes) {
+      if (!toolbar || events.drag !== true) return;
+      var canReset = movedAway(nodes || movableNodes()).length > 0;
+      // The buttons show once there is a step or a move to reset; the ones
+      // that cannot act are disabled, so none of them shifts
+      toolbar.select(".geneviewer-history")
+        .property("hidden", !moves.past.length && !moves.future.length && !canReset);
+      toolbar.select(".geneviewer-undo").property("disabled", !moves.past.length);
+      toolbar.select(".geneviewer-redo").property("disabled", !moves.future.length);
+      toolbar.select(".geneviewer-reset").property("disabled", !canReset);
+    };
+    // items: the elements of a step, with their position before and after it
+    var record = function (items, merge) {
+      items = items.filter(function (item) {
+        return item.key !== null && !samePosition(item.before, item.after);
+      });
+      if (!items.length) return;
+      var last = moves.past[moves.past.length - 1], now = performance.now();
+      if (merge && last && last.merge && last.items.length === 1 && items.length === 1 &&
+          last.items[0].key === items[0].key && now - last.time < 1000) {
+        last.items[0].after = items[0].after;
+        last.time = now;
+      } else {
+        moves.past.push({ items: items, merge: merge, time: now });
+        if (moves.past.length > 100) moves.past.shift();
+      }
+      moves.future = [];
+    };
+    // Move elements to positions, and report them
+    var apply = function (positions, action, outline) {
+      var nodes = movableNodes(), details = [];
+      positions.forEach(function (target) {
+        var node = nodes[target.key];
+        if (!node) return;
+        placeAt(node, target.position);
+        var detail = detailOf(node, action);
+        if (detail) details.push(detail);
+      });
+      clearTimeout(nudgeTimer);
+      nudgeTimer = null;
+      updateToolbar(nodes);
+      announce(details, outline);
+    };
+    var step = function (undo) {
+      var from = undo ? moves.past : moves.future;
+      var entry = from[from.length - 1];
+      if (!entry || dragState) return;
+      var nodes = movableNodes();
+      // Moved or removed by something else since: the steps no longer apply
+      var fresh = entry.items.every(function (item) {
+        return nodes[item.key] && samePosition(positionOf(nodes[item.key]), undo ? item.after : item.before);
+      });
+      if (!fresh) {
+        moves = { past: [], future: [] };
+        return updateToolbar(nodes);
+      }
+      from.pop();
+      entry.merge = false;
+      (undo ? moves.future : moves.past).push(entry);
+      apply(entry.items.map(function (item) {
+        return { key: item.key, position: undo ? item.before : item.after };
+      }), undo ? "undo" : "redo", entry.items.length === 1);
+    };
+    var resetMoves = function () {
+      if (dragState) return;
+      var nodes = movableNodes();
+      var items = movedAway(nodes).map(function (key) {
+        return { key: key, before: positionOf(nodes[key]), after: origin[key] };
+      });
+      if (!items.length) return;
+      record(items, false);
+      apply(items.map(function (item) { return { key: item.key, position: item.after }; }), "reset", false);
+    };
+    // After a redraw: remember where new elements are first drawn, and drop
+    // steps whose element is no longer where they left it, e.g. when an app
+    // moved it back itself
+    var checkMoves = function () {
+      var nodes = movableNodes();
+      Object.keys(nodes).forEach(function (key) {
+        if (!origin[key]) origin[key] = positionOf(nodes[key]);
+      });
+      Object.keys(awaiting).forEach(function (key) {
+        if (!nodes[key] || samePosition(positionOf(nodes[key]), awaiting[key])) delete awaiting[key];
+      });
+      if (nudgeTimer === null && !Object.keys(awaiting).length) {
+        var expected = {};
+        moves.future.forEach(function (entry) {
+          entry.items.forEach(function (item) { expected[item.key] = item.before; });
+        });
+        moves.past.forEach(function (entry) {
+          entry.items.forEach(function (item) { expected[item.key] = item.after; });
+        });
+        var stale = Object.keys(expected).some(function (key) {
+          return !nodes[key] || !samePosition(positionOf(nodes[key]), expected[key]);
+        });
+        if (stale) moves = { past: [], future: [] };
+      }
+      updateToolbar(nodes);
+    };
+    var restoreLocalMoves = function () {
+      var nodes = movableNodes();
+      Object.keys(localMoves).forEach(function (key) {
+        if (nodes[key]) placeAt(nodes[key], localMoves[key]);
+      });
+    };
+    // Arrow keys move the selected text or scale, reported once they stop
+    var nudge = function (dx, dy) {
+      var key = keyOf(selected);
+      if (key === null || !draggable.includes(selected.component)) return false;
+      var node = movableNodes()[key];
+      if (!node) return false;
+      var before = positionOf(node);
+      var after = { moveX: Math.round((before.moveX + dx) * 100) / 100,
+                    moveY: Math.round((before.moveY + dy) * 100) / 100 };
+      placeAt(node, after);
+      record([{ key: key, before: before, after: after }], true);
+      updateToolbar();
+      el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
+        detail: Object.assign({}, selected, { position: after }) }));
+      clearTimeout(nudgeTimer);
+      nudgeTimer = setTimeout(function () {
+        nudgeTimer = null;
+        var current = movableNodes()[key];
+        var detail = current && detailOf(current, "nudge");
+        if (detail) announce([detail], true);
+      }, 300);
+      return true;
+    };
+    // Fields, menus and other controls keep their own keys
+    var ownKeys = function (node) {
+      return !node || node.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(node.tagName) ||
+        !!(node.closest && node.closest('[role="combobox"], [role="listbox"], [role="menu"], ' +
+          '[role="dialog"], [role="slider"], [role="tablist"], [role="radiogroup"], [role="spinbutton"]'));
+    };
+    document.addEventListener("keydown", function (event) {
+      if (activeChart !== el || events.drag !== true || !el.isConnected || event.defaultPrevented ||
+          event.altKey || ownKeys(event.target)) return;
+      var key = event.key.toLowerCase();
+      if ((event.metaKey || event.ctrlKey) && (key === "z" || key === "y")) {
+        event.preventDefault();
+        step(!(key === "y" || event.shiftKey));
+        return;
+      }
+      var arrow = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
+      if (!arrow || event.metaKey || event.ctrlKey || events.select !== true || dragState) return;
+      if (event.target !== document.body && !el.contains(event.target)) return;
+      var size = event.shiftKey ? 10 : 1;
+      if (nudge(arrow[0] * size, arrow[1] * size)) event.preventDefault();
+    });
+    var markActive = function () { activeChart = el; };
+    el.addEventListener("pointerdown", markActive, true);
+    el.addEventListener("focusin", markActive);
+
+    // The chart's controls, top right: undo, redo and reset of moves, then
+    // the save button. They show while the mouse is over the chart or a control
+    // has keyboard focus, and hide during a drag; undo, redo and reset once
+    // there is a move. Gaps between them do not take clicks from the chart.
+    var addToolbar = function () {
+      toolbar = null;
+      if (events.drag !== true && !saveButton) return;
+      toolbar = d3.select(el).append("div")
+        .attr("class", "geneviewer-toolbar")
+        .attr("id", `geneviewer-toolbar-${widgetId}`)
+        .attr("role", "toolbar")
+        .attr("aria-label", "Chart");
+      if (events.drag === true) {
+        var history = toolbar.append("div")
+          .attr("class", "geneviewer-history")
+          .attr("role", "group")
+          .attr("aria-label", "Positions")
+          .property("hidden", true);
+        [["undo", "Undo", "rotate-left", onMac ? "\u2318Z" : "Ctrl+Z", "Control+Z Meta+Z", function () { step(true); }],
+         ["redo", "Redo", "rotate-right", onMac ? "\u21e7\u2318Z" : "Ctrl+Y",
+          "Control+Shift+Z Meta+Shift+Z Control+Y", function () { step(false); }],
+         ["reset", "Reset positions", "house", null, null, resetMoves]].forEach(function (b) {
+          var button = history.append("button")
+            .attr("type", "button")
+            .attr("class", "geneviewer-toolbar-button geneviewer-" + b[0])
+            .attr("aria-label", b[1])
+            .attr("aria-keyshortcuts", b[4])
+            .property("disabled", true)
+            .on("click", b[5]);
+          button.append("i").attr("class", "fa-solid fa-" + b[2]).attr("aria-hidden", "true");
+          var tip = button.append("span").attr("class", "geneviewer-toolbar-tip").attr("aria-hidden", "true");
+          tip.append("span").text(b[1]);
+          if (b[3]) tip.append("kbd").text(b[3]);
+        });
+        // Moving elements and saving the chart are apart, so a click that
+        // misses one does not do the other
+        if (saveButton) history.append("span").attr("class", "geneviewer-toolbar-divider");
+      }
+      createSaveIcon(widgetId, el, saveButton, toolbar.node());
     };
 
     // A link below a cluster SVG gets no :hover, so it is highlighted here
@@ -597,8 +877,8 @@ HTMLWidgets.widget({
         el.appendChild(legendElement);
       }
 
-      // Save icon
-      createSaveIcon(widgetId, el, saveButton);
+      // Undo, redo and the save icon
+      addToolbar();
 
       el.querySelectorAll(".legend").forEach(function (node) {
         if (hiddenGroups.includes(node.__data__)) {
@@ -630,7 +910,12 @@ HTMLWidgets.widget({
         if (dataSignature !== null && nextSignature !== dataSignature) {
           preserveLegend = false;
           if (selected) { selected = null; report("select", null); }
+          moves = { past: [], future: [] };
+          awaiting = {};
+          origin = {};
         }
+        // New settings are where everything is, also for moves kept here
+        localMoves = {};
         dataSignature = nextSignature;
         graphContainer = input.graphContainer;
         style = input.style;
@@ -647,6 +932,7 @@ HTMLWidgets.widget({
         addLinks();
         liftMovedText();
         wireEvents();
+        checkMoves();
         if (events.rendered === true) {
           var detail = {
             id: events.renderId ?? (el.id + "-render-" + (++renderSequence)),
@@ -666,7 +952,9 @@ HTMLWidgets.widget({
         draw(width, height);
         addLinks();
         liftMovedText();
+        restoreLocalMoves();
         wireEvents();
+        checkMoves();
       }
     };
   }

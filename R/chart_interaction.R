@@ -236,6 +236,22 @@ GC_trackMouse <- function(
 #' report the same text options; legend markers report `fill`, `opacity`,
 #' `stroke`, `strokeWidth` and `strokeDasharray`.
 #'
+#' With `drag = TRUE`, the undo, redo and reset icons next to the download
+#' icon undo and redo moves, and move every element back to where it was first
+#' drawn, so positions set with [GC_element_style()] are kept. They show while
+#' the mouse is over the chart, once there is a move. After clicking the
+#' chart, Ctrl+Z (Cmd+Z on a Mac) undoes and Ctrl+Shift+Z or Ctrl+Y redoes.
+#' With `select = TRUE` as well, the arrow keys move the selected text or
+#' scale by a pixel, or 10 pixels with Shift. Each drag is one step to undo,
+#' arrow-key moves of one element within a second are one step, and a reset
+#' is one step. A step that moves one element reports it like a drag, with
+#' `action` set to `"undo"`, `"redo"` or `"nudge"`. A step that moves more,
+#' such as a reset, reports `input$<outputId>_moves` and `geneviewer:moves`
+#' once, with `action` (`"reset"`, `"undo"` or `"redo"`) and `moves`, a list
+#' of drag payloads, so an app that keeps drags keeps these too. Steps whose
+#' element was since moved by something else are dropped. Outside Shiny,
+#' moves are kept when the chart is resized.
+#'
 #' With `rendered = TRUE`, each successful update also sets
 #' `input$<outputId>_rendered` to a list containing `id` (the supplied
 #' `render_id`, or a generated ID), `chartId` (the chart's DOM element ID),
@@ -266,9 +282,9 @@ GC_trackMouse <- function(
 #' @param drag Logical, enable dragging gene labels, chart titles and cluster
 #'   titles, footers, labels, whole scale bars and axes. Off by default. Releasing a drag reports
 #'   `input$<outputId>_drag` and `geneviewer:drag`, with `position` containing
-#'   `moveX` and `moveY` offsets in SVG pixels. Apply them with
-#'   [GC_element_style()] to preserve the position on redraw. Escape cancels
-#'   an active drag.
+#'   `moveX` and `moveY` offsets in whole SVG pixels and `action` set to `"drag"`.
+#'   Apply them with [GC_element_style()] to preserve the position on redraw.
+#'   Escape cancels an active drag. Moves can be undone and redone, see Details.
 #' @param legend_click Logical, whether legend clicks are reported to Shiny.
 #'
 #' @return The GC chart object with the event settings.
@@ -317,7 +333,11 @@ GC_events <- function(GC_chart, click = TRUE, highlight = FALSE,
   GC_chart$x$events <- list(click = click, highlight = highlight)
   if (dblclick) GC_chart$x$events$dblclick <- TRUE
   if (select) GC_chart$x$events$select <- TRUE
-  if (drag) GC_chart$x$events$drag <- TRUE
+  if (drag) {
+    GC_chart$x$events$drag <- TRUE
+    # The undo and redo icons, like the save icon
+    GC_chart$dependencies <- c(GC_chart$dependencies, list(fontawesome::fa_html_dependency()))
+  }
   if (!legend_click) GC_chart$x$events$legendClick <- FALSE
   if (rendered) {
     GC_chart$x$events$rendered <- TRUE

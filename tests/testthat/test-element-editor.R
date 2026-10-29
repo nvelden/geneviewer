@@ -599,3 +599,139 @@ for (component in c("scaleBar", "scale")) test_that(paste(component, "drags as a
     expect_equal(value$drags[[i]]$position, list(moveX = 5 + 20 * i, moveY = -5 + 10 * i))
   }
 })
+
+test_that("moves are undone, redone and reset from the toolbar, keys and arrow keys", {
+  chart <- GC_chart(data.frame(start = c(10, 100), end = c(50, 140), name = c("Gene", "Other")),
+                    height = "250px") %>%
+    GC_labels("name", adjustLabels = FALSE) %>%
+    # Set in R: reset keeps it
+    GC_element_style("labels", 2, moveX = 5, moveY = 5) %>%
+    GC_events(click = FALSE, select = TRUE, drag = TRUE)
+  expect_true("font-awesome" %in% vapply(chart$dependencies, `[[`, "", "name"))
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const label = (row = 1) => el.querySelector('text.label[rowID=\"' + row + '\"]');
+      const at = (row = 1) => label(row).__drawn__.moveX + ',' + label(row).__drawn__.moveY;
+      const drags = [], multi = [];
+      el.addEventListener('geneviewer:drag', event => drags.push(event.detail));
+      el.addEventListener('geneviewer:moves', event => multi.push(event.detail));
+      const shown = name => {
+        const b = el.querySelector('.geneviewer-' + name);
+        return !b.closest('.geneviewer-history').hidden && !b.disabled;
+      };
+      const pointer = (target, type, x, y) => target.dispatchEvent(new PointerEvent(type, {
+        pointerId: 1, isPrimary: true, button: 0, bubbles: true, clientX: x, clientY: y
+      }));
+      const drag = (dx, dy, row = 1) => {
+        const r = label(row).getBoundingClientRect(), x = r.left + 2, y = r.top + 2;
+        pointer(label(row), 'pointerdown', x, y);
+        pointer(window, 'pointermove', x + dx, y + dy);
+        pointer(window, 'pointerup', x + dx, y + dy);
+      };
+      const key = (k, mods = {}) => document.body.dispatchEvent(new KeyboardEvent('keydown',
+        Object.assign({ key: k, bubbles: true, cancelable: true }, mods)));
+      const order = Array.from(el.querySelectorAll('.geneviewer-toolbar button, .geneviewer-toolbar-divider, [id^=saveMenu]'),
+        n => n.className || n.id);
+      const before = { undo: shown('undo'), redo: shown('redo'), reset: shown('reset'),
+        group: el.querySelector('.geneviewer-history').hidden };
+      drag(10, 5); drag(20, 0);
+      const dragged = at();
+      el.querySelector('.geneviewer-undo').click();
+      const undone = at(), afterUndo = { undo: shown('undo'), redo: shown('redo') };
+      key('z', { ctrlKey: true });
+      const undoneTwice = at(), empty = { undo: shown('undo'), redo: shown('redo') };
+      key('z', { ctrlKey: true, shiftKey: true });
+      key('y', { ctrlKey: true });
+      const redone = at();
+      // Arrow keys move the selected label; a run of them is one step
+      key('ArrowRight'); key('ArrowRight'); key('ArrowDown', { shiftKey: true });
+      const nudged = at();
+      key('z', { metaKey: true });
+      const nudgeUndone = at();
+      // Reset moves everything back to where it was first drawn, in one step
+      drag(10, 0, 2);
+      const second = at(2);
+      el.querySelector('.geneviewer-reset').click();
+      const reset1 = at(), reset2 = at(2), afterReset = shown('reset');
+      el.querySelector('.geneviewer-undo').click();
+      const resetUndone = at() + ' ' + at(2);
+      // Kept on resize outside Shiny
+      const widget = HTMLWidgets.find('#' + el.id);
+      widget.resize(el.clientWidth, el.clientHeight);
+      const resized = at(), keptSteps = shown('undo');
+      // Moved elsewhere by new settings: the steps no longer apply
+      const input = JSON.parse(document.querySelector('script[data-for]').textContent).x;
+      input.series[Object.keys(input.series)[0]].labels.itemStyle = [{ rowID: 1, moveX: 3, moveY: 3 }];
+      widget.renderValue(input);
+      const reset = { at: at(), undo: shown('undo'), redo: shown('redo') };
+      return JSON.stringify({ order, before, dragged, undone, afterUndo, undoneTwice, empty, redone,
+        nudged, nudgeUndone, second, reset1, reset2, afterReset, resetUndone, resized, keptSteps, reset,
+        actions: drags.map(d => d.action), last: drags.at(-1).position,
+        multi: multi.map(m => ({ action: m.action, n: m.moves.length, rows: m.moves.map(d => d.data.rowID).sort() })) });
+    })()
+  ")
+  expect_null(result$exceptionDetails)
+  value <- jsonlite::fromJSON(result$result$value, simplifyVector = FALSE)
+  # Undo, redo and reset, then a divider before the save icon
+  expect_equal(unlist(value$order)[1:4], c("geneviewer-toolbar-button geneviewer-undo",
+                                           "geneviewer-toolbar-button geneviewer-redo",
+                                           "geneviewer-toolbar-button geneviewer-reset",
+                                           "geneviewer-toolbar-divider"))
+  expect_match(value$order[[5]], "^saveMenu-")
+  expect_equal(value$before, list(undo = FALSE, redo = FALSE, reset = FALSE, group = TRUE))
+  expect_equal(value$dragged, "30,5")
+  expect_equal(value$undone, "10,5")
+  expect_equal(value$afterUndo, list(undo = TRUE, redo = TRUE))
+  expect_equal(value$undoneTwice, "0,0")
+  expect_equal(value$empty, list(undo = FALSE, redo = TRUE))
+  expect_equal(value$redone, "30,5")
+  expect_equal(value$nudged, "32,15")
+  expect_equal(value$nudgeUndone, "30,5")
+  expect_equal(value$second, "15,5")
+  expect_equal(c(value$reset1, value$reset2), c("0,0", "5,5"))
+  expect_false(value$afterReset)
+  expect_equal(value$resetUndone, "30,5 15,5")
+  expect_equal(value$resized, "30,5")
+  expect_true(value$keptSteps)
+  expect_equal(value$reset, list(at = "3,3", undo = FALSE, redo = FALSE))
+  expect_equal(unlist(value$actions), c("drag", "drag", "undo", "undo", "redo", "redo", "undo", "drag"))
+  expect_equal(value$last, list(moveX = 15, moveY = 5))
+  # A step of more elements is reported once
+  expect_equal(value$multi, list(list(action = "reset", n = 2L, rows = list(1L, 2L)),
+                                 list(action = "undo", n = 2L, rows = list(1L, 2L))))
+})
+
+test_that("drags on a scaled chart move by whole pixels", {
+  chart <- GC_chart(data.frame(start = 10, end = 50, name = "Gene"), height = "250px") %>%
+    GC_labels("name", adjustLabels = FALSE) %>%
+    GC_events(click = FALSE, drag = TRUE)
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const node = el.querySelector('text.label');
+      const drags = [];
+      el.addEventListener('geneviewer:drag', event => drags.push(event.detail.position));
+      el.style.transform = 'scale(0.3)'; el.style.transformOrigin = 'top left';
+      const pointer = (target, type, x, y) => target.dispatchEvent(new PointerEvent(type, {
+        pointerId: 1, isPrimary: true, button: 0, bubbles: true, clientX: x, clientY: y
+      }));
+      const r = node.getBoundingClientRect(), x = r.left + 1, y = r.top + 1;
+      pointer(node, 'pointerdown', x, y);
+      pointer(window, 'pointermove', x + 10, y + 7);
+      pointer(window, 'pointerup', x + 10, y + 7);
+      return JSON.stringify({ drag: drags[0], drawn: node.__drawn__ });
+    })()
+  ")
+  expect_null(result$exceptionDetails)
+  value <- jsonlite::fromJSON(result$result$value, simplifyVector = FALSE)
+  # 10 / 0.3 and 7 / 0.3 pixels
+  expect_equal(value$drag, list(moveX = 33, moveY = 23))
+  expect_equal(value$drawn[c("moveX", "moveY")], list(moveX = 33, moveY = 23))
+})

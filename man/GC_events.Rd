@@ -40,9 +40,9 @@ element ID; the event's \code{chartId} identifies the chart itself.}
 \item{drag}{Logical, enable dragging gene labels, chart titles and cluster
 titles, footers, labels, whole scale bars and axes. Off by default. Releasing a drag reports
 \verb{input$<outputId>_drag} and \code{geneviewer:drag}, with \code{position} containing
-\code{moveX} and \code{moveY} offsets in SVG pixels. Apply them with
-\code{\link[=GC_element_style]{GC_element_style()}} to preserve the position on redraw. Escape cancels
-an active drag.}
+\code{moveX} and \code{moveY} offsets in whole SVG pixels and \code{action} set to \code{"drag"}.
+Apply them with \code{\link[=GC_element_style]{GC_element_style()}} to preserve the position on redraw.
+Escape cancels an active drag. Moves can be undone and redone, see Details.}
 }
 \value{
 The GC chart object with the event settings.
@@ -106,6 +106,22 @@ an editor can show the current values. For a gene these are \code{fill},
 codes, except transparent colours, \code{"none"} and patterns. Legend labels
 report the same text options; legend markers report \code{fill}, \code{opacity},
 \code{stroke}, \code{strokeWidth} and \code{strokeDasharray}.
+
+With \code{drag = TRUE}, the undo, redo and reset icons next to the download
+icon undo and redo moves, and move every element back to where it was first
+drawn, so positions set with \code{\link[=GC_element_style]{GC_element_style()}} are kept. They show while
+the mouse is over the chart, once there is a move. After clicking the
+chart, Ctrl+Z (Cmd+Z on a Mac) undoes and Ctrl+Shift+Z or Ctrl+Y redoes.
+With \code{select = TRUE} as well, the arrow keys move the selected text or
+scale by a pixel, or 10 pixels with Shift. Each drag is one step to undo,
+arrow-key moves of one element within a second are one step, and a reset
+is one step. A step that moves one element reports it like a drag, with
+\code{action} set to \code{"undo"}, \code{"redo"} or \code{"nudge"}. A step that moves more,
+such as a reset, reports \verb{input$<outputId>_moves} and \code{geneviewer:moves}
+once, with \code{action} (\code{"reset"}, \code{"undo"} or \code{"redo"}) and \code{moves}, a list
+of drag payloads, so an app that keeps drags keeps these too. Steps whose
+element was since moved by something else are dropped. Outside Shiny,
+moves are kept when the chart is resized.
 
 With \code{rendered = TRUE}, each successful update also sets
 \verb{input$<outputId>_rendered} to a list containing \code{id} (the supplied

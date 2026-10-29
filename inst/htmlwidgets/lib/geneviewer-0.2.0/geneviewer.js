@@ -896,16 +896,18 @@ function chartToPNG(el, exclude = null) {
   });
 }
 
-function createSaveIcon(widgetId, el, show = true) {
+// In a toolbar (container), the toolbar shows and places the icon; on its
+// own it shows in the top right corner while the mouse is over the chart
+function createSaveIcon(widgetId, el, show = true, container = null) {
 
   if (show) {
-    var saveMenu = d3.select(el).append("div")
+    var saveMenu = d3.select(container ?? el).append("div")
         .attr("id", `saveMenu-${widgetId}`)
-        .style("position", "absolute")
+        .style("position", container ? "relative" : "absolute")
         .style("z-index", "1000")
-        .style("top", "10px")
-        .style("right", "10px")
-        .style("display", "none");
+        .style("top", container ? null : "10px")
+        .style("right", container ? null : "10px")
+        .style("display", container ? "block" : "none");
 
     var icon = saveMenu.append("i")
         .attr("class", "fa-solid fa-download")
@@ -922,6 +924,10 @@ function createSaveIcon(widgetId, el, show = true) {
         .attr("id", `saveIconTooltip-${widgetId}`)
         .attr("class", "save-tooltip")
         .style("display", "none")
+        // Below the icon, without widening the toolbar
+        .style("position", container ? "absolute" : null)
+        .style("top", container ? "100%" : null)
+        .style("right", container ? "0" : null)
         .style("background-color", "#333")
         .style("border-radius", "3px")
         .style("font-size", "12px")
@@ -931,7 +937,7 @@ function createSaveIcon(widgetId, el, show = true) {
 
     // Hide the menu so it is not in the PNG, and until the mouse enters again
     var hideMenu = function () {
-        saveMenu.style("display", "none");
+        if (!container) saveMenu.style("display", "none");
         options.style("display", "none");
         icon.style("color", "#D3D3D3");
     };
@@ -940,14 +946,14 @@ function createSaveIcon(widgetId, el, show = true) {
       {
         label: "Save as SVG",
         save: function () {
-          var svg = chartToSVG(el, saveMenu.node());
+          var svg = chartToSVG(el, container ?? saveMenu.node());
           saveAs(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "graph.svg");
         }
       },
       {
         label: "Save as PNG",
         save: function () {
-          return chartToPNG(el, saveMenu.node()).then(blob => saveAs(blob, "graph.png"));
+          return chartToPNG(el, container ?? saveMenu.node()).then(blob => saveAs(blob, "graph.png"));
         }
       }
     ];
@@ -967,8 +973,35 @@ function createSaveIcon(widgetId, el, show = true) {
         });
     });
 
+    // In a toolbar the icon and its formats can also be used with the keyboard
+    if (container) {
+      icon.attr("tabindex", "0")
+        .attr("role", "button")
+        .attr("aria-label", "Save chart")
+        .attr("aria-haspopup", "menu");
+      options.attr("role", "menu");
+      options.selectAll(".save-option")
+        .attr("tabindex", "0")
+        .attr("role", "menuitem")
+        .on("keydown", function (event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            this.click();
+          }
+        });
+      saveMenu.on("focusin", function () {
+        icon.style("color", "#555555");
+        options.style("display", "block");
+      }).on("focusout", function (event) {
+        if (saveMenu.node().contains(event.relatedTarget)) return;
+        icon.style("color", "#D3D3D3");
+        options.style("display", "none");
+      });
+    }
+
     // Ensure icon is displayed on hover
-    d3.select(el).on("mouseenter", function() {
+    if (container) d3.select(el).on("mouseleave", hideMenu);
+    else d3.select(el).on("mouseenter", function() {
         saveMenu.style("display", "block");
     }).on("mouseleave", hideMenu);
 

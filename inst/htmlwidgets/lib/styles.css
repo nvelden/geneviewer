@@ -118,3 +118,117 @@
   cursor: grabbing !important;
   user-select: none;
 }
+
+/* The chart's controls, top right: undo, redo and reset of moves, and the
+   save icon. They show while the mouse is over the chart or one has keyboard
+   focus, and hide during a drag. Only the buttons take clicks: the gaps
+   between them, and the toolbar while hidden, leave clicks to the chart. */
+.geneviewer-toolbar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.html-widget:hover > .geneviewer-toolbar,
+.geneviewer-toolbar:focus-within {
+  opacity: 1;
+}
+.geneviewer-toolbar-button,
+.geneviewer-toolbar > [id^="saveMenu-"] {
+  pointer-events: none;
+}
+.html-widget:hover > .geneviewer-toolbar .geneviewer-toolbar-button,
+.html-widget:hover > .geneviewer-toolbar > [id^="saveMenu-"],
+.geneviewer-toolbar:focus-within .geneviewer-toolbar-button,
+.geneviewer-toolbar:focus-within > [id^="saveMenu-"] {
+  pointer-events: auto;
+}
+.html-widget.geneviewer-dragging > .geneviewer-toolbar {
+  opacity: 0;
+}
+.html-widget.geneviewer-dragging > .geneviewer-toolbar * {
+  pointer-events: none !important;
+}
+/* Undo, redo and reset, 4px apart, and a divider before the save icon.
+   Disabled buttons keep their place, so none of them shifts. */
+.geneviewer-history {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+.geneviewer-history[hidden] {
+  display: none;
+}
+.geneviewer-toolbar-divider {
+  width: 1px;
+  height: 18px;
+  margin: 6px 2px 0;
+  background-color: #E5E5E5;
+}
+.geneviewer-toolbar-button {
+  position: relative;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #D3D3D3;
+  cursor: pointer;
+}
+.geneviewer-toolbar-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+/* Glyphs the size of the save icon */
+.geneviewer-toolbar-button > i {
+  display: block;
+  padding: 5px;
+  font-size: 20px;
+}
+.geneviewer-toolbar-button:enabled:hover,
+.geneviewer-toolbar-button:focus-visible {
+  color: #555555;
+}
+.geneviewer-toolbar-button:focus-visible,
+.geneviewer-toolbar [tabindex]:focus-visible {
+  outline: 2px solid #555555;
+  outline-offset: -2px;
+  border-radius: 3px;
+}
+/* Tooltips in the style of the save formats. They wait a moment, so they do
+   not flicker while the mouse passes over the toolbar. */
+.geneviewer-toolbar-tip {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  padding: 5px 8px;
+  border-radius: 3px;
+  background-color: #333;
+  color: #fff;
+  font: 12px Arial, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.1s, visibility 0s linear 0.1s;
+}
+.geneviewer-toolbar-tip kbd {
+  margin-left: 8px;
+  font: inherit;
+  color: #bbb;
+}
+.geneviewer-toolbar-button:enabled:hover .geneviewer-toolbar-tip {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.1s linear 0.3s, visibility 0s linear 0.3s;
+}
+.geneviewer-toolbar-button:focus-visible .geneviewer-toolbar-tip {
+  visibility: visible;
+  opacity: 1;
+  transition: none;
+}

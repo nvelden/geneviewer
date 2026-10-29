@@ -126,6 +126,7 @@
 <h4 id="enhancements-0-2-0">Enhancements:<a class="anchor" aria-label="anchor" href="#enhancements-0-2-0"></a></h4>
 <ul><li>
 <code><a href="../reference/read_fasta.html">read_fasta()</a></code> is about 4-5 times faster on large FASTA files.</li>
+<li>Charts are drawn faster and are much smaller in HTML pages, Shiny apps and R Markdown documents. Gene labels are placed without laying out the page again for each label, and are only checked against the labels near them: a cluster of 4,000 labelled genes is drawn about 10 times faster, also on resize. The gene data is sent to the browser once instead of twice, and protein sequences (the <code>translation</code> and <code>sequence</code> columns) are left out unless an option names them, e.g. a tooltip <code>formatter</code> with <code>{translation}</code>, so a chart of the erythromycin BlastP example is 32 KB instead of 261 KB. They stay in the chart in R, and the row data of Shiny events no longer includes them unless they are shown.</li>
 <li>
 <code><a href="../reference/protein_blast.html">protein_blast()</a></code> is about 3 to 9 times faster and gives the same results. The aligned sequences are now read from all alignments at once and identity and similarity are counted for all pairs at once, so parallel processing is no longer needed: the <code>parallel</code> argument is ignored and the <code>parallel</code> package is no longer a dependency.</li>
 </ul></div>
@@ -152,7 +153,12 @@
 </ul></div>
 <div class="section level4">
 <h4 id="bug-fixes-0-2-0">Bug fixes:<a class="anchor" aria-label="anchor" href="#bug-fixes-0-2-0"></a></h4>
-<ul><li>Links can be clicked and highlighted with <code><a href="../reference/GC_events.html">GC_events()</a></code>: they are drawn below the SVGs of the clusters, which took every click over the chart, so a click on a link was never reported. Drawing, <code><a href="../reference/GC_trackMouse.html">GC_trackMouse()</a></code> and saved SVG and PNG files are unchanged.</li>
+<ul><li>
+<code><a href="../reference/GC_annotation.html">GC_annotation()</a></code> draws a text annotation by default, as documented; its default type was <code>"textAnnotation"</code>, which was not drawn. An unknown <code>type</code> is now an error that lists the types.</li>
+<li>
+<code><a href="../reference/GC_transcript.html">GC_transcript()</a></code> keeps the <code><a href="../reference/GC_events.html">GC_events()</a></code> and <code><a href="../reference/GC_toolbar.html">GC_toolbar()</a></code> settings of the chart; they were lost when they were set before it.</li>
+<li>The stylesheet of the chart no longer styles elements outside it: its rules for the <code>hovered</code>, <code>label</code>, <code>legend</code> and gene classes only apply inside a chart.</li>
+<li>Links can be clicked and highlighted with <code><a href="../reference/GC_events.html">GC_events()</a></code>: they are drawn below the SVGs of the clusters, which took every click over the chart, so a click on a link was never reported. Drawing, <code><a href="../reference/GC_trackMouse.html">GC_trackMouse()</a></code> and saved SVG and PNG files are unchanged.</li>
 <li>
 <code><a href="../reference/mummer_alignment.html">mummer_alignment()</a></code> now finds MUMmer on Windows; it looked for it with a Unix-only shell command and always reported it as not installed.</li>
 <li>

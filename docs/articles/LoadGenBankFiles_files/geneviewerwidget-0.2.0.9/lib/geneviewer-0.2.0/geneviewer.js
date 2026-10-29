@@ -168,24 +168,90 @@ function createLabelAdjuster(container, labelSelector) {
     return (overlapArea / rect1Area) * 100;
   };
 
+  // The box of a label in the page, as getBoundingClientRect() gives it, from
+  // its own box (getBBox()) and the transforms down to it
+  const screenCTMs = new Map();
+  const toScreen = (label, box) => {
+    const parent = label.parentNode;
+    if (!screenCTMs.has(parent)) {
+      const ctm = parent.getScreenCTM?.();
+      screenCTMs.set(parent, ctm ? DOMMatrix.fromMatrix(ctm) : null);
+    }
+    let matrix = screenCTMs.get(parent);
+    if (!matrix) return label.getBoundingClientRect();
+    const own = label.transform?.baseVal?.consolidate();
+    if (own) matrix = matrix.multiply(DOMMatrix.fromMatrix(own.matrix));
+    const corners = [
+      [box.x, box.y], [box.x + box.width, box.y],
+      [box.x, box.y + box.height], [box.x + box.width, box.y + box.height]
+    ].map(([x, y]) => new DOMPoint(x, y).matrixTransform(matrix));
+    const xs = corners.map(p => p.x);
+    const ys = corners.map(p => p.y);
+    return { left: Math.min(...xs), right: Math.max(...xs), top: Math.min(...ys), bottom: Math.max(...ys) };
+  };
+  const boxes = new Map();
+  const measure = (label) => {
+    const box = label.getBBox();
+    boxes.set(label, box);
+    return toScreen(label, box);
+  };
+
+  // dx or dy in pixels; null for a unit other than px or em
+  const pixels = (label, value) => {
+    if (value == null || value === "") return 0;
+    const match = String(value).trim().match(/^([-+]?[0-9.]+(?:e[-+]?[0-9]+)?)(px|em)?$/i);
+    if (!match) return null;
+    const number = parseFloat(match[1]);
+    if (number === 0 || !match[2] || match[2].toLowerCase() === "px") return number;
+    const fontSize = label.style.fontSize.endsWith("px") ? label.style.fontSize : getComputedStyle(label).fontSize;
+    return number * parseFloat(fontSize);
+  };
+
+  // Labels by the columns of the page they reach into, so a label is only
+  // checked against the labels near it
+  const columnWidth = 50;
+  const columns = new Map();
+  const columnsOf = (rect) => {
+    if (!Number.isFinite(rect.left) || !Number.isFinite(rect.right)) return [];
+    const result = [];
+    for (let c = Math.floor(rect.left / columnWidth); c <= Math.floor(rect.right / columnWidth); c++) result.push(c);
+    return result;
+  };
+  const place = (label, rect) => {
+    const previous = rects.get(label);
+    if (previous) columnsOf(previous).forEach(c => columns.get(c).delete(label));
+    rects.set(label, rect);
+    columnsOf(rect).forEach(c => {
+      if (!columns.has(c)) columns.set(c, new Set());
+      columns.get(c).add(label);
+    });
+  };
+  const neighbours = (label) => {
+    const result = new Set();
+    columnsOf(rects.get(label)).forEach(c => columns.get(c)?.forEach(other => result.add(other)));
+    result.delete(label);
+    return result;
+  };
+
   // Measured on the first adjust(), when all labels are drawn
   let labels = null;
   const rects = new Map();
 
   const refresh = (label) => {
-    if (labels) rects.set(label, label.getBoundingClientRect());
+    if (labels) place(label, measure(label));
   };
 
   const adjust = (specificLabel, options = {}) => {
     if (!labels) {
       labels = container.svg.selectAll(labelSelector).nodes();
-      labels.forEach(label => rects.set(label, label.getBoundingClientRect()));
+      labels.forEach(label => place(label, measure(label)));
     }
 
     const { rotation, offsetX, offsetY, dx, dy } = { ...defaultOptions, ...options };
 
-    // Calculate the label's original center position
-    const bbox = specificLabel.getBBox();
+    // Calculate the label's original center position. Its box is as measured:
+    // only other labels have changed since.
+    const bbox = boxes.get(specificLabel) ?? specificLabel.getBBox();
     let centerX = bbox.x + bbox.width / 2;
     let centerY = bbox.y;
 
@@ -194,10 +260,15 @@ function createLabelAdjuster(container, labelSelector) {
     centerY += offsetY;
 
     // Check for overlap with other labels
+    if (!rects.has(specificLabel)) place(specificLabel, measure(specificLabel));
     const specificLabelRect = rects.get(specificLabel);
-    for (const label of labels) {
+    for (const label of neighbours(specificLabel)) {
       // If the specific label overlaps with another label
-      if (label !== specificLabel && overlapPercentage(specificLabelRect, rects.get(label)) > 0) {
+      if (overlapPercentage(specificLabelRect, rects.get(label)) > 0) {
+        const oldY = parseFloat(specificLabel.getAttribute("y"));
+        const oldDy = pixels(specificLabel, specificLabel.getAttribute("dy"));
+        const newDx = pixels(specificLabel, dx);
+        const newDy = pixels(specificLabel, dy);
 
         // Adjust the label rotation and position
         d3.select(specificLabel)
@@ -209,7 +280,22 @@ function createLabelAdjuster(container, labelSelector) {
           .attr("transform", `rotate(${rotation}, ${centerX}, ${centerY})`);
 
         specificLabel.__drawn__ = { ...specificLabel.__drawn__, rotate: rotation };
-        refresh(specificLabel);
+        // The text keeps its size and now starts at x + dx, with its baseline
+        // moved from y + dy to the new y + dy. Measuring it instead would lay
+        // out the page again for every label that turns.
+        if (!specificLabel.childElementCount && Number.isFinite(oldY) &&
+            [oldDy, newDx, newDy].every(Number.isFinite)) {
+          const box = {
+            x: centerX + offsetX + newDx,
+            y: bbox.y + (centerY + newDy) - (oldY + oldDy),
+            width: bbox.width,
+            height: bbox.height
+          };
+          boxes.set(specificLabel, box);
+          place(specificLabel, toScreen(specificLabel, box));
+        } else {
+          refresh(specificLabel);
+        }
         return true;
       }
     }
@@ -235,9 +321,24 @@ function extractAdditionalOptions(combinedOptions, defaultOptions) {
   return additionalOptions;
 }
 
+// Element options that position an element (applyMove()), not CSS
+const moveKeys = ["moveX", "moveY"];
+
+// Styles that colour an element but leave its size
+const paintStyles = ["fill", "fillOpacity", "stroke", "strokeOpacity", "strokeWidth",
+                     "strokeDasharray", "opacity", "color", "cursor", "pointerEvents"];
+const notStyles = ["index", "rowID", "text", "labelAdjustmentOptions", ...moveKeys];
+
+// True when styles (setStyleFromOptions(), applyStyleToElement()) can change
+// the size of an element. Options that are no CSS property (label, show) do not.
+function changesSize(styles) {
+  return Object.keys(styles ?? {}).some(key =>
+    !paintStyles.includes(key) && !notStyles.includes(key) && key in document.documentElement.style);
+}
+
 function setStyleFromOptions(currentElement, additionalOptions) {
   for (const [key, value] of Object.entries(additionalOptions)) {
-    if (key === "moveX" || key === "moveY") continue;
+    if (moveKeys.includes(key)) continue;
     currentElement.style(camelToKebab(key), value);
   }
 }
@@ -258,7 +359,7 @@ function applyStyleToElement(currentElement, itemStyle, i) {
   const style = itemStyle.find(s => s.index === i);
   if (style) {
     for (const [key, value] of Object.entries(style)) {
-      if (!['index', 'rowID', 'text', 'labelAdjustmentOptions'].includes(key)) {
+      if (!['index', 'rowID', 'text', 'labelAdjustmentOptions', ...moveKeys].includes(key)) {
         currentElement.style(camelToKebab(key), value);
       }
     }
@@ -896,120 +997,88 @@ function chartToPNG(el, exclude = null) {
   });
 }
 
-// In a toolbar (container), the toolbar shows and places the icon; on its
-// own it shows in the top right corner while the mouse is over the chart
-function createSaveIcon(widgetId, el, show = true, container = null, iconClass = "fa-solid fa-download") {
+// The save icon and its formats, in the chart's toolbar (container), which
+// shows and places it. Its colours are those of the stylesheet, set with
+// GC_toolbar() and GC_theme(toolbar = ...).
+function createSaveIcon(widgetId, el, container, iconClass = "fa-solid fa-download") {
+  var saveMenu = d3.select(container).append("div")
+      .attr("id", `saveMenu-${widgetId}`)
+      .style("position", "relative")
+      .style("z-index", "1000")
+      .style("display", "block");
 
-  if (show) {
-    // In a toolbar the stylesheet sets its colours (GC_toolbar(), GC_theme())
-    const styled = !container;
-    var saveMenu = d3.select(container ?? el).append("div")
-        .attr("id", `saveMenu-${widgetId}`)
-        .style("position", container ? "relative" : "absolute")
-        .style("z-index", "1000")
-        .style("top", container ? null : "10px")
-        .style("right", container ? null : "10px")
-        .style("display", container ? "block" : "none");
+  var icon = saveMenu.append("i")
+      .attr("class", iconClass + " geneviewer-save-icon")
+      .attr("id", `saveIcon-${widgetId}`)
+      .attr("tabindex", "0")
+      .attr("role", "button")
+      .attr("aria-label", "Save chart")
+      .attr("aria-haspopup", "menu")
+      .style("text-align", "right")
+      .style("cursor", "pointer");
 
-    var icon = saveMenu.append("i")
-        .attr("class", iconClass + (container ? " geneviewer-save-icon" : ""))
-        .attr("id", `saveIcon-${widgetId}`)
-        .style("display", "block")
-        .style("text-align", "right")
-        .style("font-size", styled ? "20px" : null)
-        .style("color", styled ? "#D3D3D3" : null)
-        .style("padding", "5px")
-        .style("cursor", "pointer");
+  // Format options, shown when hovering or focusing the icon
+  var options = saveMenu.append("div")
+      .attr("id", `saveIconTooltip-${widgetId}`)
+      .attr("class", "save-tooltip")
+      .attr("role", "menu")
+      .style("display", "none")
+      .style("font-size", "12px")
+      .style("overflow", "hidden")
+      .style("white-space", "nowrap");
 
-    // Format options, shown when hovering the icon
-    var options = saveMenu.append("div")
-        .attr("id", `saveIconTooltip-${widgetId}`)
-        .attr("class", "save-tooltip")
-        .style("display", "none")
-        .style("background-color", styled ? "#333" : null)
-        .style("border-radius", styled ? "3px" : null)
-        .style("font-size", "12px")
-        .style("font-family", styled ? "Arial, sans-serif" : null)
-        .style("overflow", "hidden")
-        .style("white-space", "nowrap");
+  // Hide the menu so it is not in the PNG, and until the mouse enters again
+  var hideMenu = function () {
+      options.style("display", "none");
+  };
 
-    // Hide the menu so it is not in the PNG, and until the mouse enters again
-    var hideMenu = function () {
-        if (!container) saveMenu.style("display", "none");
-        options.style("display", "none");
-        if (styled) icon.style("color", "#D3D3D3");
-    };
-
-    var formats = [
-      {
-        label: "Save as SVG",
-        save: function () {
-          var svg = chartToSVG(el, container ?? saveMenu.node());
-          saveAs(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "graph.svg");
-        }
-      },
-      {
-        label: "Save as PNG",
-        save: function () {
-          return chartToPNG(el, container ?? saveMenu.node()).then(blob => saveAs(blob, "graph.png"));
-        }
+  var formats = [
+    {
+      label: "Save as SVG",
+      save: function () {
+        var svg = chartToSVG(el, container);
+        saveAs(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "graph.svg");
       }
-    ];
-
-    formats.forEach(function (format) {
-      options.append("div")
-        .attr("class", "save-option")
-        .text(format.label)
-        .style("color", styled ? "#fff" : null)
-        .style("padding", "5px 8px")
-        .style("cursor", "pointer")
-        .on("mouseenter", function () { if (styled) d3.select(this).style("background-color", "#555"); })
-        .on("mouseleave", function () { if (styled) d3.select(this).style("background-color", null); })
-        .on("click", function () {
-          hideMenu();
-          format.save();
-        });
-    });
-
-    // In a toolbar the icon and its formats can also be used with the keyboard
-    if (container) {
-      icon.attr("tabindex", "0")
-        .attr("role", "button")
-        .attr("aria-label", "Save chart")
-        .attr("aria-haspopup", "menu");
-      options.attr("role", "menu");
-      options.selectAll(".save-option")
-        .attr("tabindex", "0")
-        .attr("role", "menuitem")
-        .on("keydown", function (event) {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            this.click();
-          }
-        });
-      saveMenu.on("focusin", function () {
-        options.style("display", "block");
-      }).on("focusout", function (event) {
-        if (saveMenu.node().contains(event.relatedTarget)) return;
-        options.style("display", "none");
-      });
+    },
+    {
+      label: "Save as PNG",
+      save: function () {
+        return chartToPNG(el, container).then(blob => saveAs(blob, "graph.png"));
+      }
     }
+  ];
 
-    // Ensure icon is displayed on hover
-    if (container) d3.select(el).on("mouseleave", hideMenu);
-    else d3.select(el).on("mouseenter", function() {
-        saveMenu.style("display", "block");
-    }).on("mouseleave", hideMenu);
+  formats.forEach(function (format) {
+    options.append("div")
+      .attr("class", "save-option")
+      .attr("tabindex", "0")
+      .attr("role", "menuitem")
+      .text(format.label)
+      .style("padding", "5px 8px")
+      .style("cursor", "pointer")
+      .on("click", function () {
+        hideMenu();
+        format.save();
+      })
+      // The formats can also be chosen with the keyboard
+      .on("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          this.click();
+        }
+      });
+  });
 
-    // Change icon color on hover and display the format options
-    saveMenu.on("mouseenter", function() {
-        if (styled) icon.style("color", "#555555");
-        options.style("display", "block");
-    }).on("mouseleave", function() {
-        if (styled) icon.style("color", "#D3D3D3");
-        options.style("display", "none");
-    });
-  }
+  saveMenu.on("focusin", function () {
+    options.style("display", "block");
+  }).on("focusout", function (event) {
+    if (saveMenu.node().contains(event.relatedTarget)) return;
+    hideMenu();
+  });
+  d3.select(el).on("mouseleave", hideMenu);
+  saveMenu.on("mouseenter", function () {
+    options.style("display", "block");
+  }).on("mouseleave", hideMenu);
 }
 
 // Make links function
@@ -1577,7 +1646,7 @@ container.prototype.scale = function (options = {}) {
     }
 
     const axis = axisGroup.append("g").call(xAxis);
-    positionText(axisGroup, combinedOptions.itemStyle?.[0]);
+    applyMove(axisGroup, combinedOptions.itemStyle?.[0]);
 
     // Style axis lines and text
     axis.selectAll(".tick line")
@@ -1659,8 +1728,9 @@ function partStyle(itemStyle, part) {
   return { text, style };
 }
 
-// Translation in SVG axes, independent of text rotation and automatic layout.
-function positionText(selection, options = {}) {
+// Move an element by its moveX and moveY (GC_element_style()): a translation
+// in SVG pixels, independent of text rotation and automatic layout
+function applyMove(selection, options = {}) {
   selection.each(function () {
     const moveX = Number(options.moveX ?? 0);
     const moveY = Number(options.moveY ?? 0);
@@ -1680,7 +1750,7 @@ function styleFontText(selection, text, font, defaultFont) {
     parseAndStyleText(text, currentElement, font);
     setStyleFromOptions(currentElement, additionalOptions);
   });
-  positionText(selection, font);
+  applyMove(selection, font);
 }
 
 container.prototype.title = function (title, subtitle, show = true, options = {}, themeOptionsKey = "titleOptions") {
@@ -2014,9 +2084,9 @@ container.prototype.clusterLabel = function (title, show = true, options = {}) {
     setLabelY(clusterTitle, titleY);
     setLabelY(clusterSubtitle, titleY + titleLines.last + lineSpacing - subtitleLines.first);
   }
-  positionText(clusterTitle, ownTitle.style);
+  applyMove(clusterTitle, ownTitle.style);
   this.svg.selectAll('text[data-component="clusterLabel"][data-part="subtitle"]')
-    .call(positionText, ownSubtitle.style);
+    .call(applyMove, ownSubtitle.style);
 
   return this;
 };
@@ -2480,7 +2550,7 @@ container.prototype.scaleBar = function (show = true, options = {}) {
     .text(title);
 
   // Move the complete bar, including its label, line and ticks.
-  positionText(g, combinedOptions.itemStyle?.[0]);
+  applyMove(g, combinedOptions.itemStyle?.[0]);
 
   return this;
 };
@@ -2584,9 +2654,10 @@ container.prototype.labels = function (label, show = true, options = {}) {
   // column in styleBy or else group), with the style of the label itself
   // (itemStyle, by index) on top
   const itemStyle = withGroupStyles(this.data, styleBy ?? group, groupStyle, combinedOptions.itemStyle);
+  const styleByIndex = new Map(itemStyle.map(s => [s.index, s]));
 
   const getAttributesForIndex = (d, i) => {
-    const style = itemStyle.find(s => s.index === i) || {};
+    const style = styleByIndex.get(i) || {};
     const currentX = style.x ?? x;
     const currentY = style.y ?? y;
 
@@ -2684,7 +2755,7 @@ container.prototype.labels = function (label, show = true, options = {}) {
     .style("font-style", fontStyle)
     .style("font-family", fontFamily)
     .style("cursor", cursor)
-    .text((d, i) => itemStyle.find(s => s.index === i)?.text ?? d[label])
+    .text((d, i) => styleByIndex.get(i)?.text ?? d[label])
     // One label per gene: a gene with a link label gets it as a second line.
     // Done for all labels before the overlap check, which measures them all at once
     .each(function (d) {
@@ -2710,13 +2781,16 @@ container.prototype.labels = function (label, show = true, options = {}) {
       // Set additional options as attributes
       setStyleFromOptions(currentElement, additionalOptions);
       // Override with itemStyle based on the index
-      applyStyleToElement(currentElement, itemStyle, i);
-      labelAdjuster.refresh(this);
+      applyStyleToElement(currentElement, styleByIndex.has(i) ? [styleByIndex.get(i)] : [], i);
+      // Measured again only when it may have changed size since adjust()
+      if (this.childElementCount || changesSize(additionalOptions) || changesSize(styleByIndex.get(i))) {
+        labelAdjuster.refresh(this);
+      }
 
     });
 
   g.selectAll("text.label").each(function(d, i) {
-    positionText(d3.select(this), itemStyle.find(style => style.index === i) ?? {});
+    applyMove(d3.select(this), styleByIndex.get(i) ?? {});
   });
 
   //Make markers available to tooltip
@@ -3513,8 +3587,8 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
         })
 
       // Dragged labels and markers move on their own (GC_element_style)
-      positionText(textLabel, labelStyle);
-      positionText(rect, ownMarkerStyle);
+      applyMove(textLabel, labelStyle);
+      applyMove(rect, ownMarkerStyle);
 
       itemExtents.push({ node: nodes[i], row: currentY, start: currentX,
                          end: currentX + legendSize + legendPadding + textLength });
@@ -3744,7 +3818,7 @@ container.prototype.links = function (links, clusterKey, options = {}) {
       const currentElement = d3.select(this);
       labelAdjuster.adjust(this, labelAdjustmentOptions);
       setStyleFromOptions(currentElement, additionalOptionsLabelStyle);
-      labelAdjuster.refresh(this);
+      if (changesSize(additionalOptionsLabelStyle)) labelAdjuster.refresh(this);
     });
   }
 

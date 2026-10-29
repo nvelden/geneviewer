@@ -92,7 +92,7 @@ test_that("selection and legend toggles remain independent across redraws", {
       });
       click(el.querySelector('.legend-marker'));
       click(gene());
-      x.data.name[0] = 'Replacement';
+      Object.values(x.series)[0].data.name[0] = 'Replacement';
       widget.renderValue(x);
       const replaced = el.querySelectorAll('.geneviewer-selected').length;
       x.events = { click: true };
@@ -507,8 +507,7 @@ test_that("selection reports final label styles and clears when data changes dur
       pointer(window, 'pointermove', 120, 110);
       // Drop any deferred settings redraw before replacing the dataset.
       widget.renderValue(input);
-      input.data.name = ['new alpha', 'new beta', 'new gamma'];
-      Object.values(input.series)[0].data.name = input.data.name;
+      Object.values(input.series)[0].data.name = ['new alpha', 'new beta', 'new gamma'];
       widget.renderValue(input);
       pointer(window, 'pointerup', 120, 110);
       return JSON.stringify({ rotation, transform, reset,

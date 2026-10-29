@@ -137,7 +137,7 @@ Charts react to the mouse only when you ask for it with `GC_events()`. Each kind
 | `highlight` | Outlines the part of the chart under the mouse. |
 | `legend_click` | `FALSE` leaves legend clicks out of `click`. Hiding and showing groups in the legend always works. |
 
-The payload of a selected element also has `style`: how it is drawn (its colour, size, font, ...), for example to show the current values in an editor. In the app below a click on a gene shows its row of the data.
+The payload of a selected element also has `style`: how it is drawn (its colour, size, font, ...), for example to show the current values in an editor. In the app below a click on a gene shows its row of the data. Protein sequences (the `translation` and `sequence` columns) are left out of it, as they are not sent to the browser unless the chart shows them (see [Tooltip](#tooltip)); `click$data$rowID` finds them in the data.
 
 ```{r echo=TRUE, eval = FALSE}
 library(shiny)
@@ -1756,6 +1756,8 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "150px") 
 ## Tooltip
 
 By default, the tooltip in the gene chart displays the start and end positions of a gene when hovering over it. These positions are dynamically replaced by the actual start and end data values for each gene. You can customize the text of the tooltip using the `formatter` variable. In the example below, the tooltip is customized to not only include the gene's start and end positions but also its name. The gene name is pulled from the 'name' column in the data set.
+
+To keep charts small, protein sequences (the `translation` and `sequence` columns, e.g. from GenBank files) are only sent to the browser when an option names them, such as `{translation}` in the formatter.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, group = "class", height = "150px") %>%

@@ -1175,8 +1175,24 @@ HTMLWidgets.widget({
       makeColorBar(graphContainer, links, theme);
     };
 
+    // The rows of all clusters in the columns of the chart data (dataColumns),
+    // in the order of the data in R: the order of the groups sets the colours
+    var chartData = function (input) {
+        if (input.data) return HTMLWidgets.dataframeToD3(input.data);
+        var columns = input.dataColumns ?? [];
+        var rows = [];
+        Object.values(input.series ?? {}).forEach(function (cluster) {
+          HTMLWidgets.dataframeToD3(cluster.data).forEach(function (row) {
+            var picked = {};
+            columns.forEach(function (column) { picked[column] = row[column]; });
+            rows.push(picked);
+          });
+        });
+        return rows.sort(function (a, b) { return a.rowID - b.rowID; });
+    };
     var renderValue = function (input) {
-        var nextSignature = JSON.stringify([input.data, input.group, input.cluster, input.legend?.group]);
+        var nextData = chartData(input);
+        var nextSignature = JSON.stringify([nextData, input.group, input.cluster, input.legend?.group]);
         // A settings response must not remove the text under an active pointer.
         // Data changes and disabling drag still redraw immediately and cancel it.
         if (dragState && nextSignature === dataSignature && input.events?.drag === true) {
@@ -1197,7 +1213,7 @@ HTMLWidgets.widget({
         dataSignature = nextSignature;
         graphContainer = input.graphContainer;
         style = input.style;
-        data = HTMLWidgets.dataframeToD3(input.data);
+        data = nextData;
         links = input.links;
         series = input.series;
         saveButton = input.saveButton;

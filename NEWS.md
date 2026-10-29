@@ -34,6 +34,7 @@
 
 ### Enhancements:
 - `read_fasta()` is about 4-5 times faster on large FASTA files.
+- Charts are drawn faster and are much smaller in HTML pages, Shiny apps and R Markdown documents. Gene labels are placed without laying out the page again for each label, and are only checked against the labels near them: a cluster of 4,000 labelled genes is drawn about 10 times faster, also on resize. The gene data is sent to the browser once instead of twice, and protein sequences (the `translation` and `sequence` columns) are left out unless an option names them, e.g. a tooltip `formatter` with `{translation}`, so a chart of the erythromycin BlastP example is 32 KB instead of 261 KB. They stay in the chart in R, and the row data of Shiny events no longer includes them unless they are shown.
 - `protein_blast()` is about 3 to 9 times faster and gives the same results. The aligned sequences are now read from all alignments at once and identity and similarity are counted for all pairs at once, so parallel processing is no longer needed: the `parallel` argument is ignored and the `parallel` package is no longer a dependency.
 
 ### Changes:

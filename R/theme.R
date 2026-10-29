@@ -679,7 +679,48 @@ render_theme <- function(widget) {
   widget$x$size <- list(width = widget$width)
   widget$x$theme <- theme_to_js(widget$x$theme)
   widget$x <- resolve_palette_names(widget$x)
+  widget$x <- compact_data(widget$x)
   widget
+}
+
+# Columns sent to the browser only when an option names them, as in a tooltip
+# formatter "{translation}": they hold long sequences the chart does not draw
+sequence_columns <- c("translation", "sequence")
+
+# The rows of the chart are sent once, in the data of the clusters. The browser
+# joins them again for the legend and the colours, in the columns of
+# dataColumns, which are those of x$data.
+compact_data <- function(x) {
+  if (is.null(x$data)) {
+    return(x)
+  }
+  options <- x
+  options$data <- NULL
+  options$series <- lapply(options$series, function(s) { s$data <- NULL; s })
+  strings <- option_strings(options)
+  unused <- Filter(function(column) {
+    !any(grepl(column, strings, fixed = TRUE))
+  }, intersect(sequence_columns, names(x$data)))
+  x$dataColumns <- as.list(setdiff(names(x$data), unused))
+  x$data <- NULL
+  x$series <- lapply(x$series, function(s) {
+    if (is.data.frame(s$data)) {
+      s$data <- s$data[, setdiff(names(s$data), unused), drop = FALSE]
+    }
+    s
+  })
+  x
+}
+
+# All character values of the options, outside data frames
+option_strings <- function(x) {
+  if (is.data.frame(x)) {
+    return(character())
+  }
+  if (is.list(x)) {
+    return(unlist(lapply(x, option_strings), use.names = FALSE))
+  }
+  if (is.character(x)) x else character()
 }
 
 # Replaces each colorScheme that is the name of a geneviewer palette by its

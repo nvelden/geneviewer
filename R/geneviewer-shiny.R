@@ -65,3 +65,15 @@ renderGC_chart <- function(expr, env = parent.frame(), quoted = FALSE) {
   if (!quoted) { expr <- substitute(expr) } # force quoted
   htmlwidgets::shinyRenderWidget(expr, GC_chartOutput, env, quoted = TRUE)
 }
+
+# Lists of element payloads, such as input$<outputId>_selection, reach R as
+# lists. Without a handler, Shiny flattens an array of objects into one vector.
+register_input_handlers <- function(...) {
+  shiny::registerInputHandler("geneviewer.list", function(x, ...) if (is.null(x)) list() else x,
+                              force = TRUE)
+}
+
+.onLoad <- function(libname, pkgname) {
+  if (isNamespaceLoaded("shiny")) register_input_handlers()
+  else setHook(packageEvent("shiny", "onLoad"), register_input_handlers)
+}

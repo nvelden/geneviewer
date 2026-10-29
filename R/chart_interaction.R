@@ -210,9 +210,17 @@ GC_trackMouse <- function(
 #'
 #' With `select = TRUE`, a click selects an individual editable element and
 #' outlines it. Clicking it again, empty chart space or a noneditable part of
-#' the chart, or pressing Escape, clears selection.
-#' Selection reports the click payload (or `NULL` when cleared) to
-#' `input$<outputId>_select` and `geneviewer:select`. It survives redraws of the
+#' the chart, or pressing Escape, clears selection. Shift-, Ctrl- or
+#' Cmd-click adds an element to the selection or takes it out, and dragging on
+#' empty chart space draws a box that selects the elements entirely inside it
+#' (with Shift, Ctrl or Cmd, in addition to the selection). With `drag = TRUE`
+#' as well, dragging one of the selected elements moves all of them that can
+#' be moved, and the arrow keys move them together; such a move of several
+#' elements is one step to undo, reported as `input$<outputId>_moves`.
+#' Selection reports the payload of the element selected last (or `NULL` when
+#' cleared) to `input$<outputId>_select` and `geneviewer:select`, and a list of
+#' the payloads of all selected elements, in the order they were selected, to
+#' `input$<outputId>_selection` and `geneviewer:selection`. It survives redraws of the
 #' same data and resize. When a redraw changes the selected element's style,
 #' its updated payload is reported again. Selected items can be opened with Enter when
 #' `dblclick = TRUE`; items are keyboard focusable in selection mode.
@@ -280,7 +288,8 @@ GC_trackMouse <- function(
 #' @param dblclick Logical, whether to report double-clicks for editing.
 #' @param select Logical, whether to enable individual element selection.
 #' @param drag Logical, enable dragging gene labels, chart titles and cluster
-#'   titles, footers, labels, whole scale bars and axes. Off by default. Releasing a drag reports
+#'   titles, footers, labels, whole scale bars and axes, and legend labels and
+#'   markers, each on its own. Off by default. Releasing a drag reports
 #'   `input$<outputId>_drag` and `geneviewer:drag`, with `position` containing
 #'   `moveX` and `moveY` offsets in whole SVG pixels and `action` set to `"drag"`.
 #'   Apply them with [GC_element_style()] to preserve the position on redraw.
@@ -344,6 +353,131 @@ GC_events <- function(GC_chart, click = TRUE, highlight = FALSE,
     GC_chart$x$events$renderId <- render_id
   }
   GC_chart
+}
+
+
+#' Set the Toolbar of a GC Chart
+#'
+#' The toolbar holds the chart's own controls, in a corner of the chart: undo,
+#' redo and reset of moves, with [GC_events()]`(drag = TRUE)`, and the save
+#' button of [GC_chart()]`(save_button = TRUE)`. `GC_toolbar()` sets when and
+#' where it shows, which buttons it has, its colours and size, and the icons
+#' of its buttons. Colours and size can also be set for all charts of a theme,
+#' with [GC_theme()]`(toolbar = list(...))`; `GC_toolbar()` takes precedence.
+#'
+#' Icons are [Font Awesome](https://fontawesome.com/search?ic=free) icons,
+#' by name, e.g. `"arrow-rotate-left"` for a solid icon, or by their classes,
+#' e.g. `"fa-regular fa-floppy-disk"` for another style.
+#'
+#' @param GC_chart A GC chart object.
+#' @param show When the toolbar shows: `"hover"` (default) while the mouse is
+#'   over the chart or one of its buttons has keyboard focus, `"always"` (e.g.
+#'   on touch screens), or `"never"`. Keyboard shortcuts work also when it
+#'   does not show.
+#' @param position The corner of the chart: `"topright"` (default),
+#'   `"topleft"`, `"bottomright"` or `"bottomleft"`.
+#' @param buttons The buttons, of `"undo"`, `"redo"`, `"reset"` and `"save"`
+#'   (default: all). Undo, redo and reset show with [GC_events()]`(drag =
+#'   TRUE)`, the save button unless [GC_chart()]`(save_button = FALSE)`.
+#' @param size Size of the icons in pixels (default 20).
+#' @param color Colour of the icons (default `"#D3D3D3"`).
+#' @param hoverColor Colour of an icon under the mouse (default `"#555555"`).
+#' @param tooltipBackground Background colour of the tooltips and of the
+#'   menu of the save button (default `"#333333"`).
+#' @param tooltipColor Text colour of the tooltips and the menu (default
+#'   `"white"`).
+#' @param tooltipBorder CSS border of the tooltips and the menu, e.g.
+#'   `"1px solid #b7b9be"` (default none).
+#' @param tooltipRadius Corner radius of the tooltips and the menu: pixels,
+#'   or a CSS length (default 3).
+#' @param tooltipShadow CSS box shadow of the tooltips and the menu, e.g.
+#'   `"1px 2px 10px rgba(0, 0, 0, 0.2)"` (default none).
+#' @param fontFamily Font of the tooltips and the menu (default Arial).
+#' @param icons Icons of the buttons: a named list or character vector, with
+#'   names of `buttons`, e.g. `list(reset = "arrows-to-circle", save =
+#'   "camera")`. Buttons that are not named keep their icon.
+#'
+#' @return The GC chart object with the toolbar settings.
+#'
+#' @examples
+#' genes_data <- data.frame(
+#'   start = c(10, 50, 90),
+#'   end = c(40, 80, 120),
+#'   name = c("Gene 1", "Gene 2", "Gene 3")
+#' )
+#' GC_chart(genes_data, height = "150px") %>%
+#'   GC_labels("name") %>%
+#'   GC_events(select = TRUE, drag = TRUE) %>%
+#'   GC_toolbar(show = "always", position = "topleft", size = 16,
+#'              color = "#9e9e9e", hoverColor = "black",
+#'              icons = list(reset = "arrows-to-circle", save = "camera"))
+#'
+#' @export
+GC_toolbar <- function(GC_chart, show = NULL, position = NULL, buttons = NULL, size = NULL,
+                       color = NULL, hoverColor = NULL, tooltipBackground = NULL,
+                       tooltipColor = NULL, tooltipBorder = NULL, tooltipRadius = NULL,
+                       tooltipShadow = NULL, fontFamily = NULL, icons = NULL) {
+  options <- Filter(Negate(is.null), list(
+    show = show, position = position, buttons = buttons, size = size, color = color,
+    hoverColor = hoverColor, tooltipBackground = tooltipBackground,
+    tooltipColor = tooltipColor, tooltipBorder = tooltipBorder, tooltipRadius = tooltipRadius,
+    tooltipShadow = tooltipShadow, fontFamily = fontFamily, icons = icons))
+  check_toolbar(options)
+  if (!is.null(options$buttons)) options$buttons <- as.list(options$buttons)
+  if (!is.null(options$icons)) options$icons <- as.list(options$icons)
+  GC_chart$x$toolbar <- utils::modifyList(if (is.null(GC_chart$x$toolbar)) list() else GC_chart$x$toolbar,
+                                          options)
+  # Custom icons and the undo and redo icons are Font Awesome icons
+  GC_chart$dependencies <- c(GC_chart$dependencies, list(fontawesome::fa_html_dependency()))
+  GC_chart
+}
+
+toolbar_buttons <- c("undo", "redo", "reset", "save")
+
+check_toolbar <- function(options) {
+  one_of <- function(name, choices) {
+    value <- options[[name]]
+    if (!is.null(value) && !(is.character(value) && length(value) == 1 && value %in% choices)) {
+      stop("'", name, "' must be one of ", paste0('"', choices, '"', collapse = ", "), ".")
+    }
+  }
+  one_of("show", c("hover", "always", "never"))
+  one_of("position", c("topright", "topleft", "bottomright", "bottomleft"))
+  if (!is.null(options$buttons) && (!is.character(options$buttons) ||
+                                    !all(options$buttons %in% toolbar_buttons))) {
+    stop("'buttons' must be of ", paste0('"', toolbar_buttons, '"', collapse = ", "), ".")
+  }
+  if (!is.null(options$size) && (!is.numeric(options$size) || length(options$size) != 1 ||
+                                 is.na(options$size) || options$size <= 0)) {
+    stop("'size' must be a single positive number of pixels.")
+  }
+  for (name in c("color", "hoverColor", "tooltipBackground", "tooltipColor")) {
+    value <- options[[name]]
+    if (!is.null(value) && !(is.character(value) && length(value) == 1 && !is.na(value))) {
+      stop("'", name, "' must be a single colour.")
+    }
+  }
+  for (name in c("tooltipBorder", "tooltipShadow", "fontFamily")) {
+    value <- options[[name]]
+    if (!is.null(value) && !(is.character(value) && length(value) == 1 && !is.na(value))) {
+      stop("'", name, "' must be a single character string.")
+    }
+  }
+  radius <- options$tooltipRadius
+  if (!is.null(radius) && !(length(radius) == 1 && !is.na(radius) &&
+                            (is.character(radius) || (is.numeric(radius) && radius >= 0)))) {
+    stop("'tooltipRadius' must be a number of pixels or a CSS length.")
+  }
+  icons <- options$icons
+  if (!is.null(icons)) {
+    if (is.list(icons)) icons <- unlist(icons)
+    if (!is.character(icons) || is.null(names(icons)) || !all(names(icons) %in% toolbar_buttons) ||
+        anyNA(icons) || any(!nzchar(icons))) {
+      stop("'icons' must name Font Awesome icons for ", paste0('"', toolbar_buttons, '"', collapse = ", "),
+           ", e.g. list(reset = \"arrows-to-circle\").")
+    }
+  }
+  invisible()
 }
 
 

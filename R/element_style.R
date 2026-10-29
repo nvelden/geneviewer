@@ -15,8 +15,9 @@
 #' @param ... Named element options, using JavaScript names, e.g. `fill`,
 #'   `stroke`, `strokeWidth`, `marker`, `markerSize`, `fontSize`, `dx`, `dy`
 #'   or `rotate`. Labels, titles and subtitles also accept `text` to override
-#'   their displayed text. Gene labels, chart titles, cluster text and whole scale bars and axes accept
-#'   `moveX` and `moveY`, pixel offsets from their configured position. Coordinates accept `show = FALSE` to leave them out
+#'   their displayed text. Gene labels, chart titles, cluster text, whole scale bars and axes, and
+#'   legend labels and markers (each on its own) accept `moveX` and `moveY`, pixel offsets from
+#'   their configured position. Coordinates accept `show = FALSE` to leave them out
 #'   and `tick`, a list of options for their tick.
 #' @param cluster For cluster titles, footers, labels, scale bars and axes: the name or number of
 #'   the cluster.

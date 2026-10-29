@@ -37,6 +37,7 @@
 #' | `links` | [GC_links()] | `list(normal_color = "grey", curve = FALSE)` |
 #' | `tooltip` | [GC_tooltip()] | `list(backgroundColor = "black", color = "white")` |
 #' | `trackMouse` | [GC_trackMouse()] | `list(cursor = "cell")` |
+#' | `toolbar` | [GC_toolbar()] | `list(color = "#9e9e9e", hoverColor = "black")` |
 #' | `annotations` | [GC_annotation()] | `list(text = list(style = list(fontSize = "14px")))` |
 #'
 #' `annotations` takes a list per annotation type: `text`, `line`, `arrow`,
@@ -270,6 +271,17 @@ publication_tooltip <- list(backgroundColor = "white", color = "black",
                             border = "1px solid black", borderRadius = "0",
                             boxShadow = "none", fontSize = "9.33px", padding = "8px")
 
+# The toolbar of a theme (GC_toolbar()): its tooltips and save menu in the
+# style of the theme's tooltip, and icons in two colours, at rest and under
+# the mouse
+toolbar_style <- function(tooltip, color, hoverColor) {
+  c(list(color = color, hoverColor = hoverColor),
+    Filter(Negate(is.null), list(
+      tooltipBackground = tooltip$backgroundColor, tooltipColor = tooltip$color,
+      tooltipBorder = tooltip$border, tooltipRadius = tooltip$borderRadius,
+      tooltipShadow = tooltip$boxShadow, fontFamily = tooltip$fontFamily)))
+}
+
 # Flat, rounded genes and exons without keylines
 flat_genes <- list(stroke = "none", corner_radius = 3)
 flat_transcript <- list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
@@ -314,7 +326,9 @@ builtin_themes <- list(
                    linkStyle = list(fillOpacity = 0.6),
                    colorBarOptions = echarts_color_bar),
       tooltip = echarts_tooltip,
-      trackMouse = echarts_tooltip
+      trackMouse = echarts_tooltip,
+      # The grey and emphasis blue of the ECharts toolbox
+      toolbar = toolbar_style(echarts_tooltip, "#999999", "#3E98C5")
     )
   ),
   # The ECharts dark theme (ECharts 4) on the ECharts defaults: #eee for all
@@ -342,7 +356,9 @@ builtin_themes <- list(
                    low_color = "#333333", linkStyle = list(fillOpacity = 0.6),
                    colorBarOptions = echarts_color_bar),
       tooltip = echarts_tooltip,
-      trackMouse = echarts_tooltip
+      trackMouse = echarts_tooltip,
+      # Muted icons that light up on the dark background, and the light tooltip
+      toolbar = toolbar_style(echarts_tooltip, "#999999", "#eeeeee")
     )
   ),
   # The colours and flat style of the ECharts vintage theme: its palette and
@@ -364,7 +380,9 @@ builtin_themes <- list(
                  low_color = "#fef8ef", linkStyle = list(fillOpacity = 0.6),
                  colorBarOptions = list(barOptions = list(stroke = "none"))),
     tooltip = echarts_tooltip,
-    trackMouse = echarts_tooltip
+    trackMouse = echarts_tooltip,
+    # Icons in the colour of its sequence line, red under the mouse
+    toolbar = toolbar_style(echarts_tooltip, "#c9c2b5", "#d87c7c")
   ),
   # The ECharts infographic theme on the ECharts defaults: only the genes and
   # links are coloured. The title colour (#464646) for titles, cluster labels and the
@@ -391,7 +409,9 @@ builtin_themes <- list(
                    linkStyle = list(fillOpacity = 0.6),
                    colorBarOptions = echarts_color_bar),
       tooltip = infographic_tooltip,
-      trackMouse = infographic_tooltip
+      trackMouse = infographic_tooltip,
+      # The red and orange of the ECharts infographic toolbox
+      toolbar = toolbar_style(infographic_tooltip, "#C1232B", "#E87C25")
     )
   ),
   # Figures for journals, after common journal figure guidelines, in the style
@@ -433,7 +453,8 @@ builtin_themes <- list(
                        textMarker = list(textStyle = list(fontSize = "9.33px")),
                        arc = list(textStyle = list(fontSize = "9.33px"))),
     tooltip = publication_tooltip,
-    trackMouse = publication_tooltip
+    trackMouse = publication_tooltip,
+    toolbar = toolbar_style(publication_tooltip, "#999999", "black")
   ),
   # Black and white, in the style of the other themes: black for titles,
   # cluster labels and the legend, grey (#555555) for the other text and all
@@ -462,7 +483,8 @@ builtin_themes <- list(
                                           labelOptions = list(fontSize = 12),
                                           titleOptions = list(fontSize = 12))),
       tooltip = echarts_tooltip,
-      trackMouse = echarts_tooltip
+      trackMouse = echarts_tooltip,
+      toolbar = toolbar_style(echarts_tooltip, "#bdbdbd", "black")
     )
   )
 )
@@ -489,7 +511,8 @@ theme_components <- c(
   legend = "legendOptions",
   links = "linkOptions",
   tooltip = "tooltipOptions",
-  trackMouse = "trackMouseOptions"
+  trackMouse = "trackMouseOptions",
+  toolbar = "toolbarOptions"
 )
 
 theme_annotation_types <- c(
@@ -557,6 +580,7 @@ check_theme <- function(settings) {
     }
     pattern_to_js(settings$pattern)
   }
+  if (!is.null(settings$toolbar)) check_toolbar(camel_case_names(settings$toolbar))
   unknown <- setdiff(names(settings$annotations), names(theme_annotation_types))
   if (length(unknown) > 0) {
     stop("Unknown annotation type in theme: ", paste(unknown, collapse = ", "),
@@ -631,6 +655,7 @@ theme_global_options <- function(theme) {
                  colorBarOptions = list(labelOptions = text, titleOptions = text)),
     tooltip = html_text,
     trackMouse = html_text,
+    toolbar = font,
     annotations = list(text = list(style = text), textMarker = list(textStyle = text),
                        arc = list(textStyle = text))
   )

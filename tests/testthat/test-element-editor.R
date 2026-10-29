@@ -735,3 +735,243 @@ test_that("drags on a scaled chart move by whole pixels", {
   expect_equal(value$drag, list(moveX = 33, moveY = 23))
   expect_equal(value$drawn[c("moveX", "moveY")], list(moveX = 33, moveY = 23))
 })
+
+test_that("legend labels and markers drag on their own and keep their offsets", {
+  data <- data.frame(start = c(10, 60), end = c(40, 90), group = c("A", "B"))
+  chart <- GC_chart(data, group = "group", height = "250px") %>%
+    GC_legend(TRUE) %>%
+    GC_element_style("legend", group = "B", part = "marker", moveX = 4, moveY = -3) %>%
+    GC_events(click = FALSE, drag = TRUE)
+  expect_mapequal(chart$x$legend$itemStyle[[1]], list(group = "B", part = "marker", moveX = 4, moveY = -3))
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const part = (group, name) => Array.from(el.querySelectorAll('.legend-' + name))
+        .find(n => n.__data__ === group);
+      const drags = [];
+      el.addEventListener('geneviewer:drag', event => drags.push(event.detail));
+      const pointer = (target, type, x, y) => target.dispatchEvent(new PointerEvent(type, {
+        pointerId: 1, isPrimary: true, button: 0, bubbles: true, clientX: x, clientY: y
+      }));
+      const drag = (node, dx, dy) => {
+        const r = node.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+        pointer(node, 'pointerdown', x, y);
+        pointer(window, 'pointermove', x + dx, y + dy);
+        pointer(window, 'pointerup', x + dx, y + dy);
+        // The click a browser sends after the pointer is released
+        node.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+      };
+      const label = part('A', 'label'), marker = part('A', 'marker');
+      const labelBefore = label.getBoundingClientRect().toJSON();
+      drag(marker, 30, 20);
+      const markerMoved = marker.__drawn__, labelStays = label.getBoundingClientRect().toJSON();
+      drag(label, -10, 15);
+      const fromR = part('B', 'marker').__drawn__;
+      const shown = el.querySelectorAll('.legend.unselected').length === 0 &&
+        Array.from(el.querySelectorAll('.gene')).every(n => n.style.display !== 'none');
+      // A click that is not the end of a drag still toggles the group, also
+      // on a moved part, which is dimmed with the rest of its item
+      part('A', 'label').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+      const dimmed = getComputedStyle(part('A', 'marker')).opacity;
+      return JSON.stringify({ dimmed, markerMoved, labelSame: labelBefore.x === labelStays.x && labelBefore.y === labelStays.y,
+        labelMoved: label.__drawn__, fromR, shown, toggled: el.querySelectorAll('.legend.unselected').length,
+        drags: drags.map(d => ({ part: d.part, group: d.data, position: d.position })) });
+    })()
+  ")
+  expect_null(result$exceptionDetails)
+  value <- jsonlite::fromJSON(result$result$value, simplifyVector = FALSE)
+  expect_equal(value$markerMoved[c("moveX", "moveY")], list(moveX = 30, moveY = 20))
+  expect_true(value$labelSame)
+  expect_equal(value$labelMoved[c("moveX", "moveY")], list(moveX = -10, moveY = 15))
+  expect_equal(value$fromR[c("moveX", "moveY")], list(moveX = 4, moveY = -3))
+  expect_true(value$shown)
+  expect_equal(value$toggled, 1)
+  expect_equal(value$dimmed, "0.5")
+  expect_equal(value$drags, list(
+    list(part = "marker", group = "A", position = list(moveX = 30, moveY = 20)),
+    list(part = "label", group = "A", position = list(moveX = -10, moveY = 15))))
+})
+
+test_that("several elements are selected, moved together and undone as one step", {
+  data <- data.frame(start = c(10, 100), end = c(50, 140), name = c("Gene", "Other"), group = c("A", "B"))
+  chart <- GC_chart(data, group = "group", height = "300px") %>%
+    GC_labels("name", adjustLabels = FALSE) %>%
+    GC_legend(TRUE) %>%
+    GC_events(click = FALSE, select = TRUE, drag = TRUE)
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const label = row => el.querySelector('text.label[rowID=\"' + row + '\"]');
+      const at = row => label(row).__drawn__.moveX + ',' + label(row).__drawn__.moveY;
+      const selections = [], selects = [], moves = [];
+      el.addEventListener('geneviewer:selection', e => selections.push(e.detail.map(d => d.component + ':' + (d.data?.rowID ?? d.data) + ':' + (d.part ?? ''))));
+      el.addEventListener('geneviewer:select', e => selects.push(e.detail && (e.detail.data?.rowID ?? e.detail.data)));
+      el.addEventListener('geneviewer:moves', e => moves.push({ action: e.detail.action, n: e.detail.moves.length }));
+      const click = (node, mods = {}) => node.dispatchEvent(new MouseEvent('click', Object.assign({ bubbles: true, detail: 1 }, mods)));
+      const pointer = (target, type, x, y, mods = {}) => target.dispatchEvent(new PointerEvent(type, Object.assign({
+        pointerId: 1, isPrimary: true, button: 0, bubbles: true, clientX: x, clientY: y }, mods)));
+      const key = (k, mods = {}) => document.body.dispatchEvent(new KeyboardEvent('keydown',
+        Object.assign({ key: k, bubbles: true, cancelable: true }, mods)));
+      el.dispatchEvent(new Event('focusin'));
+      click(label(1));
+      click(label(2), { shiftKey: true });
+      const two = selections.at(-1), primary = selects.at(-1);
+      const outlined = el.querySelectorAll('.geneviewer-selected').length;
+      // Dragging one of them moves both
+      const r = label(1).getBoundingClientRect(), x = r.left + 2, y = r.top + 2;
+      pointer(label(1), 'pointerdown', x, y);
+      pointer(window, 'pointermove', x + 10, y + 5);
+      pointer(window, 'pointerup', x + 10, y + 5);
+      click(label(1));
+      const dragged = [at(1), at(2)], stillTwo = selections.at(-1).length;
+      key('z', { ctrlKey: true });
+      const undone = [at(1), at(2)];
+      key('ArrowRight'); key('ArrowRight');
+      const nudged = [at(1), at(2)];
+      key('z', { ctrlKey: true });
+      const nudgeUndone = [at(1), at(2)];
+      // Shift-click takes one out again
+      click(label(2), { shiftKey: true });
+      const one = selections.at(-1);
+      // A box around the legend selects its labels and markers, not the genes
+      const legend = el.querySelector('[data-component=\"legend\"]').getBoundingClientRect();
+      const x0 = legend.left - 6, y0 = legend.top - 6, x1 = legend.right + 6, y1 = legend.bottom + 6;
+      const start = document.elementFromPoint(x0, y0);
+      pointer(start, 'pointerdown', x0, y0);
+      pointer(window, 'pointermove', (x0 + x1) / 2, (y0 + y1) / 2);
+      const box = !!el.querySelector('.geneviewer-marquee');
+      pointer(window, 'pointermove', x1, y1);
+      pointer(window, 'pointerup', x1, y1);
+      click(start);
+      const boxed = selections.at(-1);
+      const boxGone = !el.querySelector('.geneviewer-marquee');
+      el.querySelector('.geneviewer-selected').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      return JSON.stringify({ two, primary, outlined, dragged, stillTwo, undone, nudged, nudgeUndone, one,
+        box, boxed, boxGone, cleared: selections.at(-1), moves });
+    })()
+  ")
+  expect_null(result$exceptionDetails)
+  value <- jsonlite::fromJSON(result$result$value, simplifyVector = FALSE)
+  expect_equal(unlist(value$two), c("labels:1:", "labels:2:"))
+  expect_equal(value$primary, 2)
+  expect_equal(value$outlined, 2)
+  expect_equal(unlist(value$dragged), c("10,5", "10,5"))
+  expect_equal(value$stillTwo, 2)
+  expect_equal(unlist(value$undone), c("0,0", "0,0"))
+  expect_equal(unlist(value$nudged), c("2,0", "2,0"))
+  expect_equal(unlist(value$nudgeUndone), c("0,0", "0,0"))
+  expect_equal(unlist(value$one), "labels:1:")
+  expect_true(value$box)
+  expect_setequal(unlist(value$boxed), c("legend:A:label", "legend:A:marker", "legend:B:label", "legend:B:marker"))
+  expect_true(value$boxGone)
+  expect_length(value$cleared, 0)
+  expect_equal(value$moves[[1]], list(action = "drag", n = 2L))
+  expect_equal(value$moves[[2]], list(action = "undo", n = 2L))
+})
+
+test_that("lists of selected elements reach Shiny as lists", {
+  skip_if_not_installed("shiny")
+  loadNamespace("shiny")
+  inputs <- shiny:::applyInputHandlers(list(
+    "chart_selection:geneviewer.list" = list(list(component = "labels", data = list(rowID = 1)),
+                                            list(component = "labels", data = list(rowID = 2))),
+    "empty_selection:geneviewer.list" = NULL))
+  expect_equal(names(inputs), c("chart_selection", "empty_selection"))
+  expect_length(inputs$chart_selection, 2)
+  expect_equal(inputs$chart_selection[[2]]$data$rowID, 2)
+  expect_identical(inputs$empty_selection, list())
+})
+
+test_that("GC_toolbar() checks and keeps its options", {
+  chart <- GC_chart(data.frame(start = 10, end = 50), height = "200px")
+  expect_error(GC_toolbar(chart, show = "sometimes"), "'show' must be one of")
+  expect_error(GC_toolbar(chart, position = "top"), "'position' must be one of")
+  expect_error(GC_toolbar(chart, buttons = c("undo", "zoom")), "'buttons' must be")
+  expect_error(GC_toolbar(chart, size = -1), "positive number")
+  expect_error(GC_toolbar(chart, color = c("red", "blue")), "single colour")
+  expect_error(GC_toolbar(chart, icons = list(zoom = "magnifying-glass")), "'icons' must name")
+  expect_error(GC_toolbar(chart, icons = "camera"), "'icons' must name")
+  expect_error(GC_theme(chart, toolbar = list(show = "sometimes")), "'show' must be one of")
+  chart <- chart %>%
+    GC_toolbar(show = "always", buttons = "save", icons = c(save = "camera")) %>%
+    GC_toolbar(size = 16)
+  expect_equal(chart$x$toolbar, list(show = "always", buttons = list("save"), icons = list(save = "camera"), size = 16))
+  expect_true("font-awesome" %in% vapply(chart$dependencies, `[[`, "", "name"))
+  # The built-in themes keep the icons visible on their background
+  expect_equal(geneviewer_theme("dark")$toolbar$hoverColor, "#eeeeee")
+  expect_equal(theme_to_js(geneviewer_theme("dark"))$toolbarOptions$color, "#999999")
+  # In the style of each theme's tooltip, and with its font
+  publication <- theme_to_js(geneviewer_theme("publication"))$toolbarOptions
+  expect_equal(publication[c("tooltipBorder", "tooltipRadius", "fontFamily")],
+               list(tooltipBorder = "1px solid black", tooltipRadius = "0",
+                    fontFamily = "Arial, Helvetica, sans-serif"))
+  for (theme in c("classic", "dark", "vintage", "infographic", "publication", "bw")) {
+    expect_named(geneviewer_theme(theme)$toolbar[c("color", "hoverColor", "tooltipBackground")])
+  }
+  expect_error(GC_toolbar(chart, tooltipRadius = -2), "tooltipRadius")
+})
+
+test_that("the toolbar takes its buttons, icons, corner and colours from GC_toolbar() and the theme", {
+  data <- data.frame(start = c(10, 60), end = c(40, 90), name = c("A", "B"))
+  page <- function(chart) {
+    file <- tempfile(fileext = ".html")
+    htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+    file
+  }
+  inspect <- "
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const bar = el.querySelector('.geneviewer-toolbar');
+      if (!bar) return JSON.stringify({ bar: false });
+      const style = getComputedStyle(bar), box = bar.getBoundingClientRect(), chart = el.getBoundingClientRect();
+      const save = el.querySelector('.geneviewer-save-icon');
+      return JSON.stringify({ bar: true, classes: bar.className, opacity: style.opacity,
+        buttons: Array.from(bar.querySelectorAll('button'), b => b.className.replace('geneviewer-toolbar-button ', '')),
+        icons: Array.from(bar.querySelectorAll('button > i, .geneviewer-save-icon'), i => i.className.replace(' geneviewer-save-icon', '')),
+        divider: !!bar.querySelector('.geneviewer-toolbar-divider'),
+        saveColor: save && getComputedStyle(save).color, saveSize: save && getComputedStyle(save).fontSize,
+        tip: getComputedStyle(bar).getPropertyValue('--gv-toolbar-tip-background').trim(),
+        left: Math.round(box.left - chart.left), bottom: Math.round(chart.bottom - box.bottom) });
+    })()"
+  run <- function(chart) {
+    session <- chrome_page(page(chart), env = parent.frame(2))
+    result <- session$Runtime$evaluate(inspect)
+    expect_null(result$exceptionDetails)
+    jsonlite::fromJSON(result$result$value, simplifyVector = FALSE)
+  }
+  chart <- GC_chart(data, height = "200px") %>% GC_labels("name") %>% GC_events(select = TRUE, drag = TRUE)
+
+  custom <- run(chart %>% GC_theme("dark") %>%
+    GC_toolbar(show = "always", position = "bottomleft", buttons = c("undo", "save"), size = 16,
+               color = "rgb(1, 2, 3)", tooltipBackground = "rgb(4, 5, 6)",
+               icons = list(undo = "fa-regular fa-circle-left", save = "camera")))
+  expect_match(custom$classes, "geneviewer-toolbar-bottomleft")
+  expect_match(custom$classes, "geneviewer-toolbar-always")
+  expect_equal(custom$opacity, "1")
+  expect_equal(unlist(custom$buttons), "geneviewer-undo")
+  expect_equal(unlist(custom$icons), c("fa-regular fa-circle-left", "fa-solid fa-camera"))
+  expect_true(custom$divider)
+  # GC_toolbar() over the dark theme
+  expect_equal(custom$saveColor, "rgb(1, 2, 3)")
+  expect_equal(custom$saveSize, "16px")
+  expect_equal(custom$tip, "rgb(4, 5, 6)")
+  expect_equal(c(custom$left, custom$bottom), c(10, 10))
+
+  themed <- run(chart %>% GC_theme("dark"))
+  expect_equal(unlist(themed$buttons), c("geneviewer-undo", "geneviewer-redo", "geneviewer-reset"))
+  expect_equal(themed$icons[[4]], "fa-solid fa-download")
+  expect_equal(themed$saveColor, "rgb(153, 153, 153)")
+  expect_equal(themed$opacity, "0")
+
+  expect_false(run(chart %>% GC_toolbar(show = "never"))$bar)
+  # Only the save button, without moves: no undo, redo or reset
+  plain <- run(GC_chart(data, height = "200px") %>% GC_toolbar(buttons = c("undo", "save")))
+  expect_length(plain$buttons, 0)
+  expect_false(plain$divider)
+})

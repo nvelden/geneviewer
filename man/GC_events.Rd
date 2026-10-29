@@ -38,7 +38,8 @@ element ID; the event's \code{chartId} identifies the chart itself.}
 \item{legend_click}{Logical, whether legend clicks are reported to Shiny.}
 
 \item{drag}{Logical, enable dragging gene labels, chart titles and cluster
-titles, footers, labels, whole scale bars and axes. Off by default. Releasing a drag reports
+titles, footers, labels, whole scale bars and axes, and legend labels and
+markers, each on its own. Off by default. Releasing a drag reports
 \verb{input$<outputId>_drag} and \code{geneviewer:drag}, with \code{position} containing
 \code{moveX} and \code{moveY} offsets in whole SVG pixels and \code{action} set to \code{"drag"}.
 Apply them with \code{\link[=GC_element_style]{GC_element_style()}} to preserve the position on redraw.
@@ -81,9 +82,17 @@ rather than opening different settings panels on each event.
 
 With \code{select = TRUE}, a click selects an individual editable element and
 outlines it. Clicking it again, empty chart space or a noneditable part of
-the chart, or pressing Escape, clears selection.
-Selection reports the click payload (or \code{NULL} when cleared) to
-\verb{input$<outputId>_select} and \code{geneviewer:select}. It survives redraws of the
+the chart, or pressing Escape, clears selection. Shift-, Ctrl- or
+Cmd-click adds an element to the selection or takes it out, and dragging on
+empty chart space draws a box that selects the elements entirely inside it
+(with Shift, Ctrl or Cmd, in addition to the selection). With \code{drag = TRUE}
+as well, dragging one of the selected elements moves all of them that can
+be moved, and the arrow keys move them together; such a move of several
+elements is one step to undo, reported as \verb{input$<outputId>_moves}.
+Selection reports the payload of the element selected last (or \code{NULL} when
+cleared) to \verb{input$<outputId>_select} and \code{geneviewer:select}, and a list of
+the payloads of all selected elements, in the order they were selected, to
+\verb{input$<outputId>_selection} and \code{geneviewer:selection}. It survives redraws of the
 same data and resize. When a redraw changes the selected element's style,
 its updated payload is reported again. Selected items can be opened with Enter when
 \code{dblclick = TRUE}; items are keyboard focusable in selection mode.

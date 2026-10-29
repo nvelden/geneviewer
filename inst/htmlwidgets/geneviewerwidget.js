@@ -20,6 +20,7 @@ HTMLWidgets.widget({
       legendOptions,
       theme,
       saveButton,
+      toolbarOptions,
       size = {},
       events = {};
 
@@ -44,7 +45,14 @@ HTMLWidgets.widget({
     // one by one: they can be styled with GC_element_style()
     var selectable = ["genes", "labels", "coordinates", "clusterTitle", "clusterFooter", "clusterLabel", "legend", "title", "scaleBar", "scale"];
     var selectableNodes = '.gene, text.label, text.coordinate, [data-part], [data-component="scaleBar"], [data-component="scale"]';
+    // The selected elements, in the order they were selected; the last one is
+    // the primary selection, reported as select
+    var selection = [];
     var selected = null;
+    var setSelection = function (list) {
+      selection = list;
+      selected = list[list.length - 1] ?? null;
+    };
     var dataSignature = null;
     var preserveLegend = true;
     // The element under the mouse. Links are drawn in their own SVG below the
@@ -141,7 +149,9 @@ HTMLWidgets.widget({
 
     var report = function (name, detail) {
       if (HTMLWidgets.shinyMode) {
-        Shiny.setInputValue(el.id + "_" + name, detail, { priority: "event" });
+        // A list of elements keeps its elements in R (see geneviewer-shiny.R)
+        var type = Array.isArray(detail) ? ":geneviewer.list" : "";
+        Shiny.setInputValue(el.id + "_" + name + type, detail, { priority: "event" });
       }
       el.dispatchEvent(new CustomEvent("geneviewer:" + name, { bubbles: true, detail: detail }));
     };
@@ -149,13 +159,22 @@ HTMLWidgets.widget({
     var sameSelection = function (a, b) {
       return keyOf(a) !== null && keyOf(a) === keyOf(b);
     };
+    var isSelected = function (detail) {
+      var key = keyOf(detail);
+      return key !== null && selection.some(function (item) { return keyOf(item) === key; });
+    };
+    var reportSelection = function () {
+      report("select", selected);
+      report("selection", selection);
+    };
     var applySelection = function (refresh) {
-      var previousStyle = JSON.stringify(selected?.style);
-      var found = false;
+      var previous = JSON.stringify(selection.map(function (item) { return item.style; }));
+      var fresh = {};
       el.querySelectorAll(selectableNodes).forEach(function (node) {
         var detail = eventData({ target: node });
-        if (keyOf(detail) === null) return;
-        var active = !!sameSelection(selected, detail);
+        var key = keyOf(detail);
+        if (key === null) return;
+        var active = isSelected(detail);
         node.classList.toggle("geneviewer-selected", active);
         if (events.select === true) {
           node.setAttribute("tabindex", "0");
@@ -165,32 +184,50 @@ HTMLWidgets.widget({
             (detail.component === "legend" ? String(detail.data) + " " + detail.part :
               detail.data?.name ?? node.__text__ ?? node.textContent));
         }
-        if (active) { selected = eventData({ target: node }, true); found = true; }
+        if (active && !fresh[key]) fresh[key] = eventData({ target: node }, true);
       });
-      if (selected && !found) { selected = null; report("select", null); }
-      else if (refresh && selected && JSON.stringify(selected.style) !== previousStyle) {
-        report("select", selected);
+      var next = selection.map(function (item) { return fresh[keyOf(item)]; }).filter(Boolean);
+      var lost = next.length !== selection.length;
+      setSelection(next);
+      if (lost || (refresh && selection.length &&
+          JSON.stringify(selection.map(function (item) { return item.style; })) !== previous)) {
+        reportSelection();
       }
     };
     // Only the selectable elements can be selected: any other part of the
-    // chart ends the selection, as empty space does
-    var selectElement = function (detail) {
-      if (keyOf(detail) === null) detail = null;
-      if ((!selected && !detail) || sameSelection(selected, detail)) return;
-      selected = detail;
+    // chart ends the selection, as empty space does. mode: "replace" the
+    // selection, "toggle" the elements in it, or "add" them to it.
+    var changeSelection = function (details, mode, quiet) {
+      details = details.filter(function (detail) { return keyOf(detail) !== null; });
+      var next = mode === "replace" ? [] : selection.slice();
+      details.forEach(function (detail) {
+        var at = next.findIndex(function (item) { return keyOf(item) === keyOf(detail); });
+        if (at >= 0 && mode === "toggle") next.splice(at, 1);
+        else if (at < 0) next.push(detail);
+      });
+      var keys = function (list) { return JSON.stringify(list.map(keyOf)); };
+      if (keys(next) === keys(selection)) return;
+      setSelection(next);
       applySelection();
-      // The clicked element's payload, with how it is drawn
-      report("select", selected && detail);
+      if (!quiet) reportSelection();
+    };
+    var selectElement = function (detail) {
+      changeSelection(detail ? [detail] : [], "replace");
     };
     var suppressClickUntil = 0;
     var onClick = function (event) {
       if (performance.now() < suppressClickUntil) { event.preventDefault(); event.stopPropagation(); return; }
       var detail = eventData(event, true);
       if (events.select === true && event.detail < 2) {
-        // Controls such as the save button are not empty chart space. A click
-        // on the selected element ends its selection.
-        if (detail || event.target.closest("svg") || event.target === el) {
-          selectElement(sameSelection(selected, detail) ? null : detail ?? null);
+        // Controls such as the save button are not empty chart space. Shift,
+        // Ctrl or Cmd adds an element to the selection or takes it out; a
+        // click on the only selected element ends its selection.
+        var adds = event.shiftKey || event.metaKey || event.ctrlKey;
+        if (adds) {
+          if (keyOf(detail) !== null) changeSelection([detail], "toggle");
+        } else if (detail || event.target.closest("svg") || event.target === el) {
+          var only = selection.length === 1 && sameSelection(selected, detail);
+          selectElement(only ? null : detail ?? null);
         }
       }
       if (!detail || (detail.component === "legend" && events.legendClick === false)) return;
@@ -205,7 +242,13 @@ HTMLWidgets.widget({
       if (events.select === true) selectElement(detail);
       report("dblclick", detail);
     };
-    var draggable = ["labels", "title", "clusterTitle", "clusterFooter", "clusterLabel", "scaleBar", "scale"];
+    var draggable = ["labels", "title", "clusterTitle", "clusterFooter", "clusterLabel", "scaleBar", "scale", "legend"];
+    // The node a drag moves: a whole scale, a legend label or marker on its
+    // own, or the text of a label or title
+    var movableOf = function (target, component) {
+      if (["scale", "scaleBar"].includes(component)) return target.closest('[data-component="' + component + '"]');
+      return target.closest(component === "legend" ? "[data-part]" : "text");
+    };
     // Moved text and scale bars share one chart-wide viewport, above the cluster SVGs.
     // Keep the original parent's coordinate system and logical component.
     var liftText = function (node, detail) {
@@ -226,6 +269,8 @@ HTMLWidgets.widget({
         el.appendChild(overlay);
       }
       var placement = { parent: parent, next: node.nextSibling };
+      // A legend label or marker keeps its legend item, which toggles its group
+      if (detail.component === "legend") node.__home__ = parent.closest(".legend");
       var style = getComputedStyle(node);
       ["fill", "fill-opacity", "stroke", "stroke-width", "stroke-opacity", "font-family",
         "font-size", "font-weight", "font-style", "text-anchor", "dominant-baseline"].forEach(function (name) {
@@ -240,10 +285,17 @@ HTMLWidgets.widget({
       frame.appendChild(node);
       node.style.pointerEvents = "visiblePainted";
       placement.frame = frame;
+      syncLegendFrames();
       return placement;
     };
+    // Moved legend parts are dimmed with the rest of a hidden group
+    var syncLegendFrames = function () {
+      el.querySelectorAll(".geneviewer-text-overlay [data-part]").forEach(function (node) {
+        if (node.__home__) node.parentNode.classList.toggle("unselected", node.__home__.classList.contains("unselected"));
+      });
+    };
     var liftMovedText = function () {
-      el.querySelectorAll('text.label, text[data-part], [data-component="scaleBar"], [data-component="scale"]').forEach(function (node) {
+      el.querySelectorAll('text.label, [data-part], [data-component="scaleBar"], [data-component="scale"]').forEach(function (node) {
         if (!(node.__drawn__?.moveX || node.__drawn__?.moveY)) return;
         var detail = eventData({ target: node });
         if (detail && draggable.includes(detail.component)) liftText(node, detail);
@@ -256,6 +308,8 @@ HTMLWidgets.widget({
       queuedRender = null;
       if (input) renderValue(input);
     };
+    // A drag moves one element, or all movable selected elements when it
+    // starts on one of them. Each keeps its own coordinate system.
     var finishDrag = function (commit) {
       if (!dragState) return;
       var state = dragState;
@@ -269,30 +323,36 @@ HTMLWidgets.widget({
       if (!state.moved) { flushQueuedRender(); return; }
       suppressClickUntil = performance.now() + 350;
       if (!commit) {
-        state.node.setAttribute("transform", state.transform);
-        if (state.placement) {
-          var place = state.placement;
-          place.parent.insertBefore(state.node, place.next && place.next.parentNode === place.parent ? place.next : null);
-          var overlay = place.frame.parentNode;
-          place.frame.remove();
-          if (!overlay.firstChild) overlay.remove();
-        }
-        selected = state.selection;
+        state.items.forEach(function (item) {
+          item.node.setAttribute("transform", item.transform);
+          if (item.placement) {
+            var place = item.placement;
+            place.parent.insertBefore(item.node, place.next && place.next.parentNode === place.parent ? place.next : null);
+            var overlay = place.frame.parentNode;
+            place.frame.remove();
+            if (!overlay.firstChild) overlay.remove();
+          }
+          el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
+            detail: Object.assign({}, item.detail, { position: { moveX: item.moveX, moveY: item.moveY } }) }));
+        });
+        setSelection(state.selection);
         applySelection();
-        el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
-          detail: Object.assign({}, state.detail, { position: { moveX: state.moveX, moveY: state.moveY } }) }));
         flushQueuedRender();
         return;
       }
-      state.node.__drawn__ = Object.assign({}, state.node.__drawn__, state.position);
-      var detail = eventData({ target: state.node }, true);
-      detail.position = state.position;
-      detail.action = "drag";
+      var details = state.items.map(function (item) {
+        item.node.__drawn__ = Object.assign({}, item.node.__drawn__, item.position);
+        var detail = eventData({ target: item.node }, true);
+        detail.position = item.position;
+        detail.action = "drag";
+        return detail;
+      });
       flushQueuedRender();
-      record([{ key: keyOf(state.detail), before: { moveX: state.moveX, moveY: state.moveY },
-                after: state.position }], false);
+      record(state.items.map(function (item) {
+        return { key: keyOf(item.detail), before: { moveX: item.moveX, moveY: item.moveY }, after: item.position };
+      }), false);
       updateToolbar();
-      announce([detail], false);
+      announce(details, false);
     };
     var cancelDrag = function () { finishDrag(false); };
     var escapeDrag = function (event) {
@@ -307,49 +367,155 @@ HTMLWidgets.widget({
       if (!state.moved && Math.hypot(event.clientX - state.x, event.clientY - state.y) < 4) return;
       if (!state.moved) {
         state.moved = true;
-        state.placement = liftText(state.node, state.detail);
-        if (events.select === true) {
-          // Keep server redraws until release; moving the pointer is a preview.
-          selected = state.detail;
+        state.items.forEach(function (item) { item.placement = liftText(item.node, item.detail); });
+        // Dragging an element that is not selected selects it alone. Server
+        // redraws wait until release; moving the pointer is a preview.
+        if (events.select === true && state.items.length === 1 && !isSelected(state.items[0].detail)) {
+          setSelection([state.items[0].detail]);
           applySelection();
         }
         el.classList.add("geneviewer-dragging");
       }
       event.preventDefault();
-      var point = new DOMPoint(event.clientX, event.clientY).matrixTransform(state.inverse);
-      var dx = point.x - state.start.x, dy = point.y - state.start.y;
-      // Whole pixels: a scaled chart makes fractions of a pixel that no one
-      // means, and the offsets stay readable in code
-      state.position = {
-        moveX: Math.round(state.moveX + dx),
-        moveY: Math.round(state.moveY + dy)
+      state.items.forEach(function (item) {
+        var point = new DOMPoint(event.clientX, event.clientY).matrixTransform(item.inverse);
+        // Whole pixels: a scaled chart makes fractions of a pixel that no one
+        // means, and the offsets stay readable in code
+        item.position = {
+          moveX: Math.round(item.moveX + point.x - item.start.x),
+          moveY: Math.round(item.moveY + point.y - item.start.y)
+        };
+        var dx = item.position.moveX - item.moveX, dy = item.position.moveY - item.moveY;
+        item.node.setAttribute("transform", `translate(${dx}, ${dy}) ${item.transform}`);
+        el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
+          detail: Object.assign({}, item.detail, { position: item.position }) }));
+      });
+    };
+    // What a drag would move, for each element: its node and where it starts
+    var dragItem = function (node, detail, event) {
+      var matrix = node.parentNode.getScreenCTM();
+      if (!matrix) return null;
+      var inverse = matrix.inverse();
+      return {
+        node: node, detail: detail, inverse: inverse,
+        start: new DOMPoint(event.clientX, event.clientY).matrixTransform(inverse),
+        transform: node.getAttribute("transform") || "",
+        moveX: detail.style?.moveX ?? positionOf(node).moveX, moveY: detail.style?.moveY ?? positionOf(node).moveY
       };
-      dx = state.position.moveX - state.moveX;
-      dy = state.position.moveY - state.moveY;
-      state.node.setAttribute("transform", `translate(${dx}, ${dy}) ${state.transform}`);
-      el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
-        detail: Object.assign({}, state.detail, { position: state.position }) }));
     };
     var startDrag = function (event) {
       if (event.button !== 0 || event.isPrimary === false) return;
       var detail = eventData(event, true);
-      if (!detail || !draggable.includes(detail.component) || keyOf(detail) === null) return;
-      var node = event.target.closest(["scale", "scaleBar"].includes(detail.component) ? '[data-component="' + detail.component + '"]' : "text");
+      if (!detail || !draggable.includes(detail.component) || keyOf(detail) === null) {
+        startMarquee(event, detail);
+        return;
+      }
+      if (events.drag !== true) return;
+      var node = movableOf(event.target, detail.component);
       if (!node) return;
-      var matrix = node.parentNode.getScreenCTM();
-      if (!matrix) return;
-      var inverse = matrix.inverse();
+      var first = dragItem(node, detail, event);
+      if (!first) return;
+      var items = [first];
+      // On a selected element: all selected elements that can move
+      if (events.select === true && isSelected(detail) && selection.length > 1) {
+        var nodes = movableNodes();
+        selection.forEach(function (item) {
+          var key = keyOf(item);
+          if (key === keyOf(detail) || !nodes[key]) return;
+          var other = dragItem(nodes[key], eventData({ target: nodes[key] }, true), event);
+          if (other) items.push(other);
+        });
+      }
       dragState = {
-        id: event.pointerId, node: node, detail: detail, inverse: inverse, selection: selected,
-        start: new DOMPoint(event.clientX, event.clientY).matrixTransform(inverse),
-        x: event.clientX, y: event.clientY, transform: node.getAttribute("transform") || "",
-        moveX: detail.style.moveX ?? 0, moveY: detail.style.moveY ?? 0, moved: false
+        id: event.pointerId, items: items, selection: selection.slice(),
+        x: event.clientX, y: event.clientY, moved: false
       };
       window.addEventListener("pointermove", moveDrag, { passive: false });
       window.addEventListener("pointerup", endDrag);
       window.addEventListener("pointercancel", cancelDrag);
       window.addEventListener("blur", cancelDrag);
       window.addEventListener("keydown", escapeDrag);
+    };
+
+    // Box select (GC_events(select = TRUE)): dragging on empty space selects
+    // the elements entirely inside the box; Shift, Ctrl or Cmd adds them
+    var marquee = null;
+    var startMarquee = function (event, detail) {
+      if (events.select !== true || keyOf(detail) !== null ||
+          event.target.closest(".geneviewer-toolbar") || !el.contains(event.target)) return;
+      var box = el.getBoundingClientRect();
+      marquee = { id: event.pointerId, x: event.clientX, y: event.clientY, box: box, node: null,
+                  mode: event.shiftKey || event.metaKey || event.ctrlKey ? "add" : "replace",
+                  selection: selection.slice() };
+      window.addEventListener("pointermove", moveMarquee, { passive: false });
+      window.addEventListener("pointerup", endMarquee);
+      window.addEventListener("pointercancel", cancelMarquee);
+      window.addEventListener("blur", cancelMarquee);
+      window.addEventListener("keydown", escapeMarquee);
+    };
+    var marqueeHits = function (rect) {
+      var hits = {};
+      el.querySelectorAll(selectableNodes).forEach(function (node) {
+        var detail = eventData({ target: node });
+        var key = keyOf(detail);
+        if (key === null || hits[key]) return;
+        var r = node.getBoundingClientRect();
+        if ((r.width || r.height) && r.left >= rect.left && r.right <= rect.right &&
+            r.top >= rect.top && r.bottom <= rect.bottom) hits[key] = eventData({ target: node }, true);
+      });
+      return Object.values(hits);
+    };
+    var moveMarquee = function (event) {
+      if (!marquee || event.pointerId !== marquee.id) return;
+      if (!marquee.node && Math.hypot(event.clientX - marquee.x, event.clientY - marquee.y) < 4) return;
+      event.preventDefault();
+      var rect = { left: Math.min(marquee.x, event.clientX), right: Math.max(marquee.x, event.clientX),
+                   top: Math.min(marquee.y, event.clientY), bottom: Math.max(marquee.y, event.clientY) };
+      if (!marquee.node) {
+        marquee.node = document.createElement("div");
+        marquee.node.className = "geneviewer-marquee";
+        el.appendChild(marquee.node);
+      }
+      // In the chart's own pixels, also when the chart is scaled
+      var box = el.getBoundingClientRect(), sx = box.width / el.offsetWidth || 1, sy = box.height / el.offsetHeight || 1;
+      Object.assign(marquee.node.style, {
+        left: (rect.left - box.left) / sx + "px", top: (rect.top - box.top) / sy + "px",
+        width: (rect.right - rect.left) / sx + "px", height: (rect.bottom - rect.top) / sy + "px"
+      });
+      // The selection follows the box while it is drawn, and is reported once
+      var hits = marqueeHits(rect);
+      setSelection(marquee.mode === "add" ? marquee.selection.concat(hits.filter(function (hit) {
+        return !marquee.selection.some(function (item) { return keyOf(item) === keyOf(hit); });
+      })) : hits);
+      applySelection();
+    };
+    var finishMarquee = function (commit) {
+      if (!marquee) return;
+      var state = marquee;
+      marquee = null;
+      window.removeEventListener("pointermove", moveMarquee);
+      window.removeEventListener("pointerup", endMarquee);
+      window.removeEventListener("pointercancel", cancelMarquee);
+      window.removeEventListener("blur", cancelMarquee);
+      window.removeEventListener("keydown", escapeMarquee);
+      if (!state.node) return;
+      state.node.remove();
+      // The click that ends the box does not clear what it selected
+      suppressClickUntil = performance.now() + 350;
+      if (!commit) {
+        setSelection(state.selection);
+        applySelection();
+        return;
+      }
+      var keys = function (list) { return JSON.stringify(list.map(keyOf)); };
+      if (keys(selection) !== keys(state.selection)) reportSelection();
+    };
+    var endMarquee = function (event) {
+      if (marquee && event.pointerId === marquee.id) finishMarquee(true);
+    };
+    var cancelMarquee = function () { finishMarquee(false); };
+    var escapeMarquee = function (event) {
+      if (event.key === "Escape" && marquee) { event.preventDefault(); cancelMarquee(); }
     };
 
     // Undo, redo and reset of moves (GC_events(drag = TRUE)). Each drag is
@@ -381,8 +547,7 @@ HTMLWidgets.widget({
         var detail = eventData({ target: node });
         var key = detail && draggable.includes(detail.component) ? keyOf(detail) : null;
         if (key === null || nodes[key]) return;
-        nodes[key] = node.closest(["scale", "scaleBar"].includes(detail.component) ?
-          '[data-component="' + detail.component + '"]' : "text");
+        nodes[key] = movableOf(node, detail.component);
       });
       return nodes;
     };
@@ -411,16 +576,15 @@ HTMLWidgets.widget({
         if (HTMLWidgets.shinyMode) awaiting[key] = detail.position;
         else localMoves[key] = detail.position;
       });
-      if (details.length === 1) {
-        var detail = details[0];
-        if (events.select === true) {
-          if (outline) { selected = detail; applySelection(); }
-          report("select", detail);
-        }
-        report("drag", detail);
-      } else if (details.length) {
-        report("moves", { action: details[0].action, moves: details });
+      if (!details.length) return;
+      if (events.select === true) {
+        // Undo and redo of one element select it, to show what changed
+        if (outline && details.length === 1) setSelection([details[0]]);
+        applySelection();
+        reportSelection();
       }
+      if (details.length === 1) report("drag", details[0]);
+      else report("moves", { action: details[0].action, moves: details });
     };
     // Elements that are not where they were first drawn
     var movedAway = function (nodes) {
@@ -446,9 +610,9 @@ HTMLWidgets.widget({
       });
       if (!items.length) return;
       var last = moves.past[moves.past.length - 1], now = performance.now();
-      if (merge && last && last.merge && last.items.length === 1 && items.length === 1 &&
-          last.items[0].key === items[0].key && now - last.time < 1000) {
-        last.items[0].after = items[0].after;
+      var keys = function (list) { return list.map(function (item) { return item.key; }).join("\n"); };
+      if (merge && last && last.merge && keys(last.items) === keys(items) && now - last.time < 1000) {
+        last.items.forEach(function (item, i) { item.after = items[i].after; });
         last.time = now;
       } else {
         moves.past.push({ items: items, merge: merge, time: now });
@@ -533,26 +697,30 @@ HTMLWidgets.widget({
         if (nodes[key]) placeAt(nodes[key], localMoves[key]);
       });
     };
-    // Arrow keys move the selected text or scale, reported once they stop
+    // Arrow keys move the selected texts and scales, reported once they stop
     var nudge = function (dx, dy) {
-      var key = keyOf(selected);
-      if (key === null || !draggable.includes(selected.component)) return false;
-      var node = movableNodes()[key];
-      if (!node) return false;
-      var before = positionOf(node);
-      var after = { moveX: Math.round((before.moveX + dx) * 100) / 100,
-                    moveY: Math.round((before.moveY + dy) * 100) / 100 };
-      placeAt(node, after);
-      record([{ key: key, before: before, after: after }], true);
+      var nodes = movableNodes();
+      var items = selection.map(function (item) { return keyOf(item); }).filter(function (key) {
+        return key !== null && nodes[key];
+      }).map(function (key) {
+        var before = positionOf(nodes[key]);
+        var after = { moveX: Math.round((before.moveX + dx) * 100) / 100,
+                      moveY: Math.round((before.moveY + dy) * 100) / 100 };
+        placeAt(nodes[key], after);
+        el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
+          detail: Object.assign({}, eventData({ target: nodes[key] }), { position: after }) }));
+        return { key: key, before: before, after: after };
+      });
+      if (!items.length) return false;
+      record(items, true);
       updateToolbar();
-      el.dispatchEvent(new CustomEvent("geneviewer:dragmove", { bubbles: true,
-        detail: Object.assign({}, selected, { position: after }) }));
       clearTimeout(nudgeTimer);
       nudgeTimer = setTimeout(function () {
         nudgeTimer = null;
-        var current = movableNodes()[key];
-        var detail = current && detailOf(current, "nudge");
-        if (detail) announce([detail], true);
+        var current = movableNodes();
+        announce(items.map(function (item) {
+          return current[item.key] && detailOf(current[item.key], "nudge");
+        }).filter(Boolean), false);
       }, 300);
       return true;
     };
@@ -578,22 +746,66 @@ HTMLWidgets.widget({
       if (nudge(arrow[0] * size, arrow[1] * size)) event.preventDefault();
     });
     var markActive = function () { activeChart = el; };
+    // A drag ends with a click, which must not also select, open or toggle
+    // what it ends on, e.g. hide the genes of a legend group. Only that one
+    // click: the chart's own buttons, and later clicks, work as usual.
+    el.addEventListener("click", function (event) {
+      if (performance.now() < suppressClickUntil && !event.target.closest(".geneviewer-toolbar")) {
+        suppressClickUntil = 0;
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      // A moved legend part toggles its group like the rest of its item,
+      // unless legend clicks edit
+      var home = event.target.closest && event.target.closest(".geneviewer-text-overlay [data-part]")?.__home__;
+      var legendEdits = events.select === true || events.dblclick === true ||
+        (events.click === true && events.legendClick !== false);
+      if (home && !legendEdits && home.isConnected) {
+        event.stopPropagation();
+        home.dispatchEvent(new MouseEvent("click", { bubbles: false, detail: event.detail }));
+        syncLegendFrames();
+      }
+    }, true);
+    el.addEventListener("click", syncLegendFrames);
     el.addEventListener("pointerdown", markActive, true);
     el.addEventListener("focusin", markActive);
 
-    // The chart's controls, top right: undo, redo and reset of moves, then
-    // the save button. They show while the mouse is over the chart or a control
-    // has keyboard focus, and hide during a drag; undo, redo and reset once
-    // there is a move. Gaps between them do not take clicks from the chart.
+    // The chart's controls, in a corner (GC_toolbar()): undo, redo and reset
+    // of moves, then the save button. By default they show while the mouse is
+    // over the chart or a control has keyboard focus, and hide during a drag;
+    // undo, redo and reset once there is a move. Gaps between them do not
+    // take clicks from the chart.
+    // A Font Awesome icon by name ("camera"), or by its classes
+    var iconClass = function (icon) {
+      return /(^|\s)fa-/.test(icon) ? icon : "fa-solid fa-" + icon;
+    };
     var addToolbar = function () {
       toolbar = null;
-      if (events.drag !== true && !saveButton) return;
+      var opts = mergeOptions({ show: "hover", position: "topright",
+                                buttons: ["undo", "redo", "reset", "save"], icons: {} },
+                              "toolbarOptions", toolbarOptions, theme);
+      // One button from R arrives as a string
+      var buttons = [].concat(opts.buttons);
+      var wanted = function (name) { return buttons.includes(name); };
+      var movable = events.drag === true && ["undo", "redo", "reset"].some(wanted);
+      var save = saveButton && wanted("save");
+      if (opts.show === "never" || (!movable && !save)) return;
+      var icon = function (name, fallback) { return iconClass(opts.icons[name] ?? fallback); };
       toolbar = d3.select(el).append("div")
-        .attr("class", "geneviewer-toolbar")
+        .attr("class", `geneviewer-toolbar geneviewer-toolbar-${opts.position}` +
+                       (opts.show === "always" ? " geneviewer-toolbar-always" : ""))
         .attr("id", `geneviewer-toolbar-${widgetId}`)
         .attr("role", "toolbar")
         .attr("aria-label", "Chart");
-      if (events.drag === true) {
+      // Colours and size, over those of the stylesheet
+      var px = function (value) { return typeof value === "number" ? value + "px" : value; };
+      [["color", "--gv-toolbar-color"], ["hoverColor", "--gv-toolbar-hover"],
+       ["tooltipBackground", "--gv-toolbar-tip-background"], ["tooltipColor", "--gv-toolbar-tip-color"],
+       ["tooltipBorder", "--gv-toolbar-tip-border"], ["tooltipRadius", "--gv-toolbar-tip-radius"],
+       ["tooltipShadow", "--gv-toolbar-tip-shadow"], ["fontFamily", "--gv-toolbar-font"], ["size", "--gv-toolbar-size"]]
+        .forEach(function (v) { if (opts[v[0]] != null) toolbar.style(v[1], px(opts[v[0]])); });
+      if (movable) {
         var history = toolbar.append("div")
           .attr("class", "geneviewer-history")
           .attr("role", "group")
@@ -602,7 +814,8 @@ HTMLWidgets.widget({
         [["undo", "Undo", "rotate-left", onMac ? "\u2318Z" : "Ctrl+Z", "Control+Z Meta+Z", function () { step(true); }],
          ["redo", "Redo", "rotate-right", onMac ? "\u21e7\u2318Z" : "Ctrl+Y",
           "Control+Shift+Z Meta+Shift+Z Control+Y", function () { step(false); }],
-         ["reset", "Reset positions", "house", null, null, resetMoves]].forEach(function (b) {
+         ["reset", "Reset positions", "house", null, null, resetMoves]].filter(function (b) { return wanted(b[0]); })
+         .forEach(function (b) {
           var button = history.append("button")
             .attr("type", "button")
             .attr("class", "geneviewer-toolbar-button geneviewer-" + b[0])
@@ -610,16 +823,16 @@ HTMLWidgets.widget({
             .attr("aria-keyshortcuts", b[4])
             .property("disabled", true)
             .on("click", b[5]);
-          button.append("i").attr("class", "fa-solid fa-" + b[2]).attr("aria-hidden", "true");
+          button.append("i").attr("class", icon(b[0], b[2])).attr("aria-hidden", "true");
           var tip = button.append("span").attr("class", "geneviewer-toolbar-tip").attr("aria-hidden", "true");
           tip.append("span").text(b[1]);
           if (b[3]) tip.append("kbd").text(b[3]);
         });
         // Moving elements and saving the chart are apart, so a click that
         // misses one does not do the other
-        if (saveButton) history.append("span").attr("class", "geneviewer-toolbar-divider");
+        if (save) history.append("span").attr("class", "geneviewer-toolbar-divider");
       }
-      createSaveIcon(widgetId, el, saveButton, toolbar.node());
+      createSaveIcon(widgetId, el, save, toolbar.node(), icon("save", "download"));
     };
 
     // A link below a cluster SVG gets no :hover, so it is highlighted here
@@ -654,6 +867,7 @@ HTMLWidgets.widget({
       el.removeEventListener("dblclick", onDoubleClick);
       el.removeEventListener("keydown", onKeyDown);
       el.removeEventListener("pointerdown", startDrag);
+      finishMarquee(false);
       el.removeEventListener("mousemove", onMouseMove);
       el.removeEventListener("mouseleave", onMouseLeave);
       // A redraw removed the hovered link
@@ -667,9 +881,10 @@ HTMLWidgets.widget({
       if (click || events.select === true) el.addEventListener("click", onClick);
       if (events.dblclick === true) el.addEventListener("dblclick", onDoubleClick);
       if (events.select === true || events.drag === true) el.addEventListener("keydown", onKeyDown);
-      if (events.drag === true) el.addEventListener("pointerdown", startDrag);
+      // Dragging moves elements, or on empty space draws a selection box
+      if (events.drag === true || events.select === true) el.addEventListener("pointerdown", startDrag);
       el.classList.toggle("geneviewer-draggable", events.drag === true);
-      if (events.select !== true && selected) { selected = null; report("select", null); }
+      if (events.select !== true && selection.length) { setSelection([]); reportSelection(); }
       el.classList.toggle("geneviewer-selectable", events.select === true);
       el.classList.toggle("geneviewer-highlight", highlight);
       applySelection(true);
@@ -909,7 +1124,7 @@ HTMLWidgets.widget({
         cancelDrag();
         if (dataSignature !== null && nextSignature !== dataSignature) {
           preserveLegend = false;
-          if (selected) { selected = null; report("select", null); }
+          if (selection.length) { setSelection([]); reportSelection(); }
           moves = { past: [], future: [] };
           awaiting = {};
           origin = {};
@@ -923,6 +1138,7 @@ HTMLWidgets.widget({
         links = input.links;
         series = input.series;
         saveButton = input.saveButton;
+        toolbarOptions = input.toolbar ?? {};
         titleOptions = input.title;
         legendOptions = input.legend;
         theme = input.theme ?? {};

@@ -898,9 +898,11 @@ function chartToPNG(el, exclude = null) {
 
 // In a toolbar (container), the toolbar shows and places the icon; on its
 // own it shows in the top right corner while the mouse is over the chart
-function createSaveIcon(widgetId, el, show = true, container = null) {
+function createSaveIcon(widgetId, el, show = true, container = null, iconClass = "fa-solid fa-download") {
 
   if (show) {
+    // In a toolbar the stylesheet sets its colours (GC_toolbar(), GC_theme())
+    const styled = !container;
     var saveMenu = d3.select(container ?? el).append("div")
         .attr("id", `saveMenu-${widgetId}`)
         .style("position", container ? "relative" : "absolute")
@@ -910,12 +912,12 @@ function createSaveIcon(widgetId, el, show = true, container = null) {
         .style("display", container ? "block" : "none");
 
     var icon = saveMenu.append("i")
-        .attr("class", "fa-solid fa-download")
+        .attr("class", iconClass + (container ? " geneviewer-save-icon" : ""))
         .attr("id", `saveIcon-${widgetId}`)
         .style("display", "block")
         .style("text-align", "right")
-        .style("font-size", "20px")
-        .style("color", "#D3D3D3")
+        .style("font-size", styled ? "20px" : null)
+        .style("color", styled ? "#D3D3D3" : null)
         .style("padding", "5px")
         .style("cursor", "pointer");
 
@@ -924,14 +926,10 @@ function createSaveIcon(widgetId, el, show = true, container = null) {
         .attr("id", `saveIconTooltip-${widgetId}`)
         .attr("class", "save-tooltip")
         .style("display", "none")
-        // Below the icon, without widening the toolbar
-        .style("position", container ? "absolute" : null)
-        .style("top", container ? "100%" : null)
-        .style("right", container ? "0" : null)
-        .style("background-color", "#333")
-        .style("border-radius", "3px")
+        .style("background-color", styled ? "#333" : null)
+        .style("border-radius", styled ? "3px" : null)
         .style("font-size", "12px")
-        .style("font-family", "Arial, sans-serif")
+        .style("font-family", styled ? "Arial, sans-serif" : null)
         .style("overflow", "hidden")
         .style("white-space", "nowrap");
 
@@ -939,7 +937,7 @@ function createSaveIcon(widgetId, el, show = true, container = null) {
     var hideMenu = function () {
         if (!container) saveMenu.style("display", "none");
         options.style("display", "none");
-        icon.style("color", "#D3D3D3");
+        if (styled) icon.style("color", "#D3D3D3");
     };
 
     var formats = [
@@ -962,11 +960,11 @@ function createSaveIcon(widgetId, el, show = true, container = null) {
       options.append("div")
         .attr("class", "save-option")
         .text(format.label)
-        .style("color", "#fff")
+        .style("color", styled ? "#fff" : null)
         .style("padding", "5px 8px")
         .style("cursor", "pointer")
-        .on("mouseenter", function () { d3.select(this).style("background-color", "#555"); })
-        .on("mouseleave", function () { d3.select(this).style("background-color", null); })
+        .on("mouseenter", function () { if (styled) d3.select(this).style("background-color", "#555"); })
+        .on("mouseleave", function () { if (styled) d3.select(this).style("background-color", null); })
         .on("click", function () {
           hideMenu();
           format.save();
@@ -990,11 +988,9 @@ function createSaveIcon(widgetId, el, show = true, container = null) {
           }
         });
       saveMenu.on("focusin", function () {
-        icon.style("color", "#555555");
         options.style("display", "block");
       }).on("focusout", function (event) {
         if (saveMenu.node().contains(event.relatedTarget)) return;
-        icon.style("color", "#D3D3D3");
         options.style("display", "none");
       });
     }
@@ -1007,10 +1003,10 @@ function createSaveIcon(widgetId, el, show = true, container = null) {
 
     // Change icon color on hover and display the format options
     saveMenu.on("mouseenter", function() {
-        icon.style("color", "#555555");
+        if (styled) icon.style("color", "#555555");
         options.style("display", "block");
     }).on("mouseleave", function() {
-        icon.style("color", "#D3D3D3");
+        if (styled) icon.style("color", "#D3D3D3");
         options.style("display", "none");
     });
   }
@@ -3515,6 +3511,10 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
           setStyleFromOptions(currentElement, markerStyle);
           setStyleFromOptions(currentElement, ownMarkerStyle);
         })
+
+      // Dragged labels and markers move on their own (GC_element_style)
+      positionText(textLabel, labelStyle);
+      positionText(rect, ownMarkerStyle);
 
       itemExtents.push({ node: nodes[i], row: currentY, start: currentX,
                          end: currentX + legendSize + legendPadding + textLength });

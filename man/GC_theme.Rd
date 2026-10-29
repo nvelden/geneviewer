@@ -98,6 +98,7 @@ argument name (e.g. \code{normal_color}) or their name in the browser (e.g.
    \code{links} \tab \code{\link[=GC_links]{GC_links()}} \tab \code{list(normal_color = "grey", curve = FALSE)} \cr
    \code{tooltip} \tab \code{\link[=GC_tooltip]{GC_tooltip()}} \tab \code{list(backgroundColor = "black", color = "white")} \cr
    \code{trackMouse} \tab \code{\link[=GC_trackMouse]{GC_trackMouse()}} \tab \code{list(cursor = "cell")} \cr
+   \code{toolbar} \tab \code{\link[=GC_toolbar]{GC_toolbar()}} \tab \code{list(color = "#9e9e9e", hoverColor = "black")} \cr
    \code{annotations} \tab \code{\link[=GC_annotation]{GC_annotation()}} \tab \code{list(text = list(style = list(fontSize = "14px")))} \cr
 }
 

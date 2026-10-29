@@ -30,8 +30,9 @@ and double-click event data.}
 \item{...}{Named element options, using JavaScript names, e.g. \code{fill},
 \code{stroke}, \code{strokeWidth}, \code{marker}, \code{markerSize}, \code{fontSize}, \code{dx}, \code{dy}
 or \code{rotate}. Labels, titles and subtitles also accept \code{text} to override
-their displayed text. Gene labels, chart titles, cluster text and whole scale bars and axes accept
-\code{moveX} and \code{moveY}, pixel offsets from their configured position. Coordinates accept \code{show = FALSE} to leave them out
+their displayed text. Gene labels, chart titles, cluster text, whole scale bars and axes, and
+legend labels and markers (each on its own) accept \code{moveX} and \code{moveY}, pixel offsets from
+their configured position. Coordinates accept \code{show = FALSE} to leave them out
 and \code{tick}, a list of options for their tick.}
 
 \item{cluster}{For cluster titles, footers, labels, scale bars and axes: the name or number of

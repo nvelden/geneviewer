@@ -131,7 +131,8 @@ Charts react to the mouse only when you ask for it with `GC_events()`. Each kind
 | Argument | What it does |
 |---|---|
 | `click` | Reports a click to Shiny in `input$<outputId>_click`: the part of the chart (`"genes"`, `"labels"`, `"links"`, `"scale"`, `"clusterTitle"`, ...), its cluster and the data of the clicked gene, link or legend group. On by default. |
-| `select` | A click selects one gene, label, coordinate, or the title or subtitle of a cluster title, footer or label, and outlines it. A click elsewhere or Escape ends the selection. Reported in `input$<outputId>_select`. |
+| `select` | A click selects a gene, label, coordinate, legend label or marker, the scale, or the title or subtitle of a cluster title, footer or label, and outlines it. Shift-, Ctrl- or Cmd-click and a box drawn on empty space select several (see [Moving elements](#moving-elements)). A click elsewhere or Escape ends the selection. Reported in `input$<outputId>_select` (the element selected last) and `input$<outputId>_selection` (all of them). |
+| `drag` | Elements can be moved with the mouse and the arrow keys, and moves undone (see [Moving elements](#moving-elements)). Reported in `input$<outputId>_drag` and `input$<outputId>_moves`. |
 | `dblclick` | Reports double-clicks in `input$<outputId>_dblclick`; Enter opens a selected element. |
 | `highlight` | Outlines the part of the chart under the mouse. |
 | `legend_click` | `FALSE` leaves legend clicks out of `click`. Hiding and showing groups in the legend always works. |
@@ -171,6 +172,101 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "250px") 
   GC_clusterLabel(title = c("O. olearius", "D. bispora")) %>%
   GC_events(select = TRUE, highlight = TRUE)
 ```
+
+## Moving elements {#moving-elements}
+
+> **Note:** Dragging, multi-select, undo and the toolbar are only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
+
+With `GC_events(drag = TRUE)` you can arrange a chart with the mouse, e.g. to move a label away from a gene or the legend to an empty corner before saving a figure. Gene labels, the chart title and subtitle, the titles, footers and labels of the clusters, the scale axis and scale bar (each as a whole) and the labels and markers of the legend (each on its own) can be moved. It works in the browser, also outside Shiny. Try it in the chart below:
+
+- **Drag** an element to move it. A press without moving is still a click.
+- **Shift-, Ctrl- or Cmd-click** adds an element to the selection, or takes it out again. **Drag on empty space** to draw a box: the elements entirely inside it are selected, e.g. all items of the legend. Dragging one of the selected elements moves them all.
+- **Arrow keys** move the selected elements by a pixel, or 10 pixels with Shift.
+- **Undo, redo and reset** appear next to the download icon once something has moved. Reset moves everything back to where it was first drawn. After clicking the chart, Ctrl+Z (Cmd+Z on a Mac) undoes and Ctrl+Shift+Z or Ctrl+Y redoes.
+- **Escape** cancels a drag, or ends the selection.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "350px") %>%
+  GC_title("ophA gene clusters", subtitle = "Drag me") %>%
+  GC_labels("name") %>%
+  GC_clusterLabel(title = c("O. olearius", "D. bispora")) %>%
+  GC_scaleBar() %>%
+  GC_events(select = TRUE, drag = TRUE)
+```
+
+Moved elements are part of the SVG and PNG of the save button. A move is kept until the page is loaded again; to keep it in the chart, give its offset in pixels, `moveX` (right) and `moveY` (down), to `GC_element_style()`. Elements are identified as they are for styling (see [Individual Items](#individual-items)): a gene label by its row, a cluster title, footer or label by its cluster and part, the scale and scale bar by their cluster, and a legend label or marker by its group and part.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "350px") %>%
+  GC_labels("name") %>%
+  GC_clusterLabel(title = c("O. olearius", "D. bispora")) %>%
+  GC_scaleBar() %>%
+  GC_element_style("labels", row_id = 3, moveY = -12) %>%
+  GC_element_style("clusterLabel", cluster = 2, part = "title", moveX = 10) %>%
+  GC_element_style("scaleBar", cluster = 1, moveX = -40) %>%
+  GC_element_style("legend", group = "Methyltransferase", part = "marker", moveY = 4) %>%
+  GC_events(select = TRUE, drag = TRUE)
+```
+
+In Shiny, each move is reported, so an app can keep it: a drag of one element in `input$<outputId>_drag`, with the element, its new `position` (`moveX` and `moveY`) and the `action` (`"drag"`, `"nudge"`, `"undo"` or `"redo"`), and a move of several elements at once, such as a reset or a drag of a selection, once in `input$<outputId>_moves`, with the `action` and a list of `moves`. The app below keeps the positions of gene labels and applies them when the chart is drawn again, e.g. with other settings.
+
+```{r echo=TRUE, eval = FALSE}
+library(shiny)
+library(geneviewer)
+
+ui <- fluidPage(
+  checkboxInput("italic", "Italic labels"),
+  GC_chartOutput("gcChart", height = "300px")
+)
+
+server <- function(input, output) {
+  # The position of each moved label, by its row
+  positions <- reactiveVal(list())
+  keep <- function(moves) {
+    all <- positions()
+    for (move in moves) {
+      if (move$component == "labels") all[[as.character(move$data$rowID)]] <- move$position
+    }
+    positions(all)
+  }
+  observeEvent(input$gcChart_drag, keep(list(input$gcChart_drag)))
+  observeEvent(input$gcChart_moves, keep(input$gcChart_moves$moves))
+
+  output$gcChart <- renderGC_chart({
+    chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class") %>%
+      GC_labels("name", fontStyle = if (input$italic) "italic" else "normal") %>%
+      GC_events(select = TRUE, drag = TRUE)
+    for (row in names(positions())) {
+      chart <- GC_element_style(chart, "labels", row_id = as.numeric(row),
+                                moveX = positions()[[row]]$moveX,
+                                moveY = positions()[[row]]$moveY)
+    }
+    chart
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+### Toolbar
+
+The undo, redo and reset icons and the save button make up the toolbar of the chart. `GC_toolbar()` sets when it shows (`"hover"`, `"always"`, e.g. for touch screens, or `"never"`), its corner, which buttons it has, the size and colours of its icons and the look of its tooltips. The icons are [Font Awesome](https://fontawesome.com/search?ic=free) icons, by name, e.g. `"camera"`, or by their classes for another style, e.g. `"fa-regular fa-floppy-disk"`.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "180px") %>%
+  GC_labels("name") %>%
+  GC_events(select = TRUE, drag = TRUE) %>%
+  GC_toolbar(show = "always",
+             position = "topleft",
+             size = 16,
+             color = "#9e9e9e",
+             hoverColor = "#1f77b4",
+             tooltipBackground = "#1f77b4",
+             icons = list(undo = "arrow-left", redo = "arrow-right",
+                          reset = "arrows-to-circle", save = "camera"))
+```
+
+The built-in themes style the toolbar to fit (see [Themes](#themes)), and a theme of your own can set it as a component: `GC_theme(toolbar = list(color = "grey", hoverColor = "black"))`. `GC_toolbar()` takes precedence over the theme.
 
 ## Selections
 
@@ -216,7 +312,7 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "300px") 
 
 > **Note:** `GC_element_style()` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
 
-`GC_element_style()` styles one element at a time, without the index: a gene, label or coordinate by its row in the data (`row_id`, the `rowID` column of the chart), or the title or subtitle of a cluster title, footer or label by its `cluster` and `part`. Its options add to the other styles of the chart, so it is called after them. These are also the calls an editor records, e.g. one built with the selection of `GC_events()` (see [Click interactions](#click-interactions)).
+`GC_element_style()` styles one element at a time, without the index: a gene, label or coordinate by its row in the data (`row_id`, the `rowID` column of the chart), or the title or subtitle of a cluster title, footer or label by its `cluster` and `part`. Its options add to the other styles of the chart, so it is called after them. These are also the calls an editor records, e.g. one built with the selection of `GC_events()` (see [Click interactions](#click-interactions)). Legend labels and markers are styled by their `group` and `part`, and `moveX` and `moveY` move an element (see [Moving elements](#moving-elements)).
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "300px") %>%
@@ -1323,6 +1419,15 @@ GC_chart(ophA_cluster, group = "class", height = "150px") %>%
 
 A theme only changes how things look. It does not add components to the chart: a scale still needs `GC_scale()` and labels `GC_labels()`.
 
+Each built-in theme also styles the toolbar of the chart (see [Toolbar](#toolbar)): its icons in colours of the theme and its tooltips in the style of the theme's tooltip. Hover the chart below and drag a label to see the undo icon in the dark theme.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, group = "class", height = "150px") %>%
+  GC_labels("name") %>%
+  GC_events(select = TRUE, drag = TRUE) %>%
+  GC_theme("dark")
+```
+
 ### Global settings
 
 Next to `theme`, `GC_theme()` takes settings that apply to all components: `fontFamily`, `textColor`, `lineColor` (the sequence line, axis, coordinates and scale bar), `background`, `palette` (the gene colours) and `pattern`. Use them to change a built-in theme, or call `GC_theme()` without a theme to change the current one.
@@ -1662,7 +1767,7 @@ GC_chart(ophA_cluster, group = "class", height = "150px") %>%
 
 ## Saving Plots
 
-You can save plots directly in the browser using the save button that appears when hovering over the graph. Hover the download icon and choose "Save as SVG" for a vector image that can be edited in e.g. Inkscape or Illustrator and scaled for publications, or "Save as PNG" for an image at screen resolution (make the chart larger for a larger PNG). This option can be disabled by setting the `save_button` parameter to `FALSE` in the `GC_chart` function.
+You can save plots directly in the browser using the save button that appears when hovering over the graph. Hover the download icon and choose "Save as SVG" for a vector image that can be edited in e.g. Inkscape or Illustrator and scaled for publications, or "Save as PNG" for an image at screen resolution (make the chart larger for a larger PNG). This option can be disabled by setting the `save_button` parameter to `FALSE` in the `GC_chart` function, and its icon and look changed with `GC_toolbar()` (see [Toolbar](#toolbar)). Elements moved in the chart (see [Moving elements](#moving-elements)) are saved where they are.
 
 > **Note:** Saving as SVG is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
 

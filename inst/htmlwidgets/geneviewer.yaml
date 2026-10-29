@@ -1,10 +1,10 @@
 dependencies:
   - name: geneviewerwidget
-    version: 0.2.0.4
+    version: 0.2.0.9
     src: htmlwidgets
     script: geneviewerwidget.js
   - name: geneviewer
-    version: 0.2.0.4
+    version: 0.2.0.9
     src: htmlwidgets
     script: ./lib/geneviewer-0.2.0/geneviewer.js
     stylesheet: ./lib/styles.css

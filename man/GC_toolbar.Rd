@@ -32,8 +32,10 @@ does not show.}
 \item{position}{The corner of the chart: \code{"topright"} (default),
 \code{"topleft"}, \code{"bottomright"} or \code{"bottomleft"}.}
 
-\item{buttons}{The buttons, of \code{"undo"}, \code{"redo"}, \code{"reset"} and \code{"save"}
-(default: all). Undo, redo and reset show with \code{\link[=GC_events]{GC_events()}}\code{(drag = TRUE)}, the save button unless \code{\link[=GC_chart]{GC_chart()}}\code{(save_button = FALSE)}.}
+\item{buttons}{The buttons, of \code{"undo"}, \code{"redo"}, \code{"reset"}, \code{"zoom"} and
+\code{"save"} (default: all). Undo, redo and reset show with
+\code{\link[=GC_events]{GC_events()}}\code{(drag = TRUE)}, the zoom button (reset zoom) with \code{\link[=GC_zoom]{GC_zoom()}}
+while zoomed in, the save button unless \code{\link[=GC_chart]{GC_chart()}}\code{(save_button = FALSE)}.}
 
 \item{size}{Size of the icons in pixels (default 20).}
 

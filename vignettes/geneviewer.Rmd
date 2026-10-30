@@ -133,6 +133,7 @@ Charts react to the mouse only when you ask for it with `GC_events()`. Each kind
 | `click` | Reports a click to Shiny in `input$<outputId>_click`: the part of the chart (`"genes"`, `"labels"`, `"links"`, `"scale"`, `"clusterTitle"`, ...), its cluster and the data of the clicked gene, link or legend group. On by default. |
 | `select` | A click selects a gene, label, coordinate, legend label or marker, the scale, or the title or subtitle of a cluster title, footer or label, and outlines it. Shift-, Ctrl- or Cmd-click and a box drawn on empty space select several (see [Moving elements](#moving-elements)). A click elsewhere or Escape ends the selection. Reported in `input$<outputId>_select` (the element selected last) and `input$<outputId>_selection` (all of them). |
 | `drag` | Elements can be moved with the mouse and the arrow keys, and moves undone (see [Moving elements](#moving-elements)). Reported in `input$<outputId>_drag` and `input$<outputId>_moves`. |
+| `zoom` | Reports the window of the zoom slider in `input$<outputId>_zoom` (see [Zoom](#zoom)). |
 | `dblclick` | Reports double-clicks in `input$<outputId>_dblclick`; Enter opens a selected element. |
 | `highlight` | Outlines the part of the chart under the mouse. |
 | `legend_click` | `FALSE` leaves legend clicks out of `click`. Hiding and showing groups in the legend always works. |
@@ -250,7 +251,7 @@ shinyApp(ui = ui, server = server)
 
 ### Toolbar
 
-The undo, redo and reset icons and the save button make up the toolbar of the chart. `GC_toolbar()` sets when it shows (`"hover"`, `"always"`, e.g. for touch screens, or `"never"`), its corner, which buttons it has, the size and colours of its icons and the look of its tooltips. The icons are [Font Awesome](https://fontawesome.com/search?ic=free) icons, by name, e.g. `"camera"`, or by their classes for another style, e.g. `"fa-regular fa-floppy-disk"`.
+The undo, redo and reset icons, the reset zoom icon of the zoom slider (see [Zoom](#zoom)) and the save button make up the toolbar of the chart. `GC_toolbar()` sets when it shows (`"hover"`, `"always"`, e.g. for touch screens, or `"never"`), its corner, which buttons it has, the size and colours of its icons and the look of its tooltips. The icons are [Font Awesome](https://fontawesome.com/search?ic=free) icons, by name, e.g. `"camera"`, or by their classes for another style, e.g. `"fa-regular fa-floppy-disk"`.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_cluster, group = "class", height = "180px") %>%
@@ -1666,6 +1667,58 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
   GC_legend(FALSE)
 ```
 
+## Zoom {#zoom}
+
+> **Note:** `GC_zoom()` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
+
+`GC_zoom()` adds a slider below the clusters to zoom in on part of them. Drag a handle to change the window, drag the window to move it and click the track to move the window there. Double-click the slider, or use the reset zoom icon in the toolbar, to show everything again. With the keyboard, the arrow keys move a focused handle or the window (Shift: in bigger steps). The slider shows the genes of each cluster in their colours, and genes, labels, links and the axis follow the window. `range` sets the window shown first:
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "350px") %>%
+  GC_labels("name") %>%
+  GC_links("class") %>%
+  GC_scale(hidden = FALSE) %>%
+  GC_zoom(range = c(0.2, 0.6))
+```
+
+By default every cluster zooms to the same share of its own range, which suits clusters of different genomes. With `mode = "absolute"` the window is in base pairs and every cluster shows the same positions. `update = "release"` draws the chart only when the slider is let go, for large charts, and `height`, `overview`, `color`, `style`, `windowStyle` and `handleStyle` set the look of the slider:
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "300px") %>%
+  GC_labels("name") %>%
+  GC_scale(hidden = FALSE) %>%
+  GC_zoom(mode = "absolute", range = c(10000, 20000), update = "release", height = 30,
+          handleStyle = list(backgroundColor = "#d9d9d9"))
+```
+
+In Shiny, `GC_events(zoom = TRUE)` reports the window in `input$<outputId>_zoom`: its `range`, which goes back into `GC_zoom(range = )`, and the base pairs each cluster shows. It is reported on the first render and after every change. `GC_zoom_to()` moves the window from the server. A chart drawn again with the same data, e.g. after another setting changed, keeps the window the user picked.
+
+```{r echo=TRUE, eval = FALSE}
+library(shiny)
+library(geneviewer)
+
+ui <- fluidPage(
+  actionButton("first", "First half"),
+  actionButton("all", "Everything"),
+  GC_chartOutput("gcChart", height = "300px"),
+  verbatimTextOutput("window")
+)
+
+server <- function(input, output, session) {
+  output$gcChart <- renderGC_chart({
+    GC_chart(ophA_clusters, cluster = "cluster", group = "class") %>%
+      GC_labels("name") %>%
+      GC_zoom() %>%
+      GC_events(zoom = TRUE)
+  })
+  observeEvent(input$first, GC_zoom_to("gcChart", c(0, 0.5)))
+  observeEvent(input$all, GC_zoom_to("gcChart", NULL))
+  output$window <- renderPrint(str(input$gcChart_zoom[c("range", "clusters")]))
+}
+
+shinyApp(ui = ui, server = server)
+```
+
 ## Coordinates
 
 Gene coordinates can be displayed with the `GC_coordinates()` function. When overlapping coordinates occur, they are, by default, shifted to the top axis for clearer visualization. By default the `overlapThreshold` parameter is set to 20.
@@ -1769,7 +1822,7 @@ GC_chart(ophA_cluster, group = "class", height = "150px") %>%
 
 ## Saving Plots
 
-You can save plots directly in the browser using the save button that appears when hovering over the graph. Hover the download icon and choose "Save as SVG" for a vector image that can be edited in e.g. Inkscape or Illustrator and scaled for publications, or "Save as PNG" for an image at screen resolution (make the chart larger for a larger PNG). This option can be disabled by setting the `save_button` parameter to `FALSE` in the `GC_chart` function, and its icon and look changed with `GC_toolbar()` (see [Toolbar](#toolbar)). Elements moved in the chart (see [Moving elements](#moving-elements)) are saved where they are.
+You can save plots directly in the browser using the save button that appears when hovering over the graph. Hover the download icon and choose "Save as SVG" for a vector image that can be edited in e.g. Inkscape or Illustrator and scaled for publications, or "Save as PNG" for an image at screen resolution (make the chart larger for a larger PNG). This option can be disabled by setting the `save_button` parameter to `FALSE` in the `GC_chart` function, and its icon and look changed with `GC_toolbar()` (see [Toolbar](#toolbar)). Elements moved in the chart (see [Moving elements](#moving-elements)) are saved where they are. A zoomed chart is saved as it shows, without the zoom slider (see [Zoom](#zoom)).
 
 > **Note:** Saving as SVG is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
 

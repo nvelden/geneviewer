@@ -13,7 +13,8 @@ GC_events(
   dblclick = FALSE,
   select = FALSE,
   legend_click = TRUE,
-  drag = FALSE
+  drag = FALSE,
+  zoom = FALSE
 )
 }
 \arguments{
@@ -44,6 +45,17 @@ markers, each on its own. Off by default. Releasing a drag reports
 \code{moveX} and \code{moveY} offsets in whole SVG pixels and \code{action} set to \code{"drag"}.
 Apply them with \code{\link[=GC_element_style]{GC_element_style()}} to preserve the position on redraw.
 Escape cancels an active drag. Moves can be undone and redone, see Details.}
+
+\item{zoom}{Logical, whether to report the window of the zoom slider of
+\code{\link[=GC_zoom]{GC_zoom()}} as \verb{input$<outputId>_zoom} and \code{geneviewer:zoom}: \code{mode},
+\code{start} and \code{end} of the window in the units of the mode (whole base
+pairs, or shares to 0.0001), \code{zoomed} (\code{FALSE} when everything shows),
+\code{range}, the window to pass to \code{GC_zoom(range = )} (\code{NULL} when
+everything shows), \code{clusters}, the cluster and the first and last base
+pair it shows, and \code{action}: \code{"drag"}, \code{"keyboard"} or \code{"reset"} by the
+user, \code{"set"} by \code{\link[=GC_zoom_to]{GC_zoom_to()}}, or \code{"render"} when a render changed the
+window, e.g. new data. It is reported on the first render and after
+every change, so an app always knows the window.}
 }
 \value{
 The GC chart object with the event settings.

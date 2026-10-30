@@ -954,10 +954,10 @@ test_that("GC_toolbar() checks and keeps its options", {
   chart <- GC_chart(data.frame(start = 10, end = 50), height = "200px")
   expect_error(GC_toolbar(chart, show = "sometimes"), "'show' must be one of")
   expect_error(GC_toolbar(chart, position = "top"), "'position' must be one of")
-  expect_error(GC_toolbar(chart, buttons = c("undo", "zoom")), "'buttons' must be")
+  expect_error(GC_toolbar(chart, buttons = c("undo", "print")), "'buttons' must be")
   expect_error(GC_toolbar(chart, size = -1), "positive number")
   expect_error(GC_toolbar(chart, color = c("red", "blue")), "single colour")
-  expect_error(GC_toolbar(chart, icons = list(zoom = "magnifying-glass")), "'icons' must name")
+  expect_error(GC_toolbar(chart, icons = list(print = "print")), "'icons' must name")
   expect_error(GC_toolbar(chart, icons = "camera"), "'icons' must name")
   expect_error(GC_theme(chart, toolbar = list(show = "sometimes")), "'show' must be one of")
   chart <- chart %>%

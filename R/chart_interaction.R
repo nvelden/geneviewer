@@ -304,6 +304,16 @@ GC_trackMouse <- function(
 #'   Apply them with [GC_element_style()] to preserve the position on redraw.
 #'   Escape cancels an active drag. Moves can be undone and redone, see Details.
 #' @param legend_click Logical, whether legend clicks are reported to Shiny.
+#' @param zoom Logical, whether to report the window of the zoom slider of
+#'   [GC_zoom()] as `input$<outputId>_zoom` and `geneviewer:zoom`: `mode`,
+#'   `start` and `end` of the window in the units of the mode (whole base
+#'   pairs, or shares to 0.0001), `zoomed` (`FALSE` when everything shows),
+#'   `range`, the window to pass to `GC_zoom(range = )` (`NULL` when
+#'   everything shows), `clusters`, the cluster and the first and last base
+#'   pair it shows, and `action`: `"drag"`, `"keyboard"` or `"reset"` by the
+#'   user, `"set"` by [GC_zoom_to()], or `"render"` when a render changed the
+#'   window, e.g. new data. It is reported on the first render and after
+#'   every change, so an app always knows the window.
 #'
 #' @return The GC chart object with the event settings.
 #'
@@ -335,8 +345,8 @@ GC_trackMouse <- function(
 #' @export
 GC_events <- function(GC_chart, click = TRUE, highlight = FALSE,
                       rendered = FALSE, render_id = NULL, dblclick = FALSE,
-                      select = FALSE, legend_click = TRUE, drag = FALSE) {
-  for (arg in list(click, highlight, rendered, dblclick, select, legend_click, drag)) {
+                      select = FALSE, legend_click = TRUE, drag = FALSE, zoom = FALSE) {
+  for (arg in list(click, highlight, rendered, dblclick, select, legend_click, drag, zoom)) {
     if (!is.logical(arg) || length(arg) != 1 || is.na(arg)) {
       stop("Event options must be TRUE or FALSE.")
     }
@@ -357,6 +367,7 @@ GC_events <- function(GC_chart, click = TRUE, highlight = FALSE,
     GC_chart <- add_fontawesome(GC_chart)
   }
   if (!legend_click) GC_chart$x$events$legendClick <- FALSE
+  if (zoom) GC_chart$x$events$zoom <- TRUE
   if (rendered) {
     GC_chart$x$events$rendered <- TRUE
     GC_chart$x$events$renderId <- render_id
@@ -385,9 +396,11 @@ GC_events <- function(GC_chart, click = TRUE, highlight = FALSE,
 #'   does not show.
 #' @param position The corner of the chart: `"topright"` (default),
 #'   `"topleft"`, `"bottomright"` or `"bottomleft"`.
-#' @param buttons The buttons, of `"undo"`, `"redo"`, `"reset"` and `"save"`
-#'   (default: all). Undo, redo and reset show with [GC_events()]`(drag =
-#'   TRUE)`, the save button unless [GC_chart()]`(save_button = FALSE)`.
+#' @param buttons The buttons, of `"undo"`, `"redo"`, `"reset"`, `"zoom"` and
+#'   `"save"` (default: all). Undo, redo and reset show with
+#'   [GC_events()]`(drag = TRUE)`, the zoom button (reset zoom) with [GC_zoom()]
+#'   while zoomed in, the save button unless [GC_chart()]`(save_button =
+#'   FALSE)`.
 #' @param size Size of the icons in pixels (default 20).
 #' @param color Colour of the icons (default `"#D3D3D3"`).
 #' @param hoverColor Colour of an icon under the mouse (default `"#555555"`).
@@ -442,7 +455,7 @@ GC_toolbar <- function(GC_chart, show = NULL, position = NULL, buttons = NULL, s
 }
 
 # The buttons of the toolbar, in their order (also in geneviewerwidget.js)
-toolbar_buttons <- c("undo", "redo", "reset", "save")
+toolbar_buttons <- c("undo", "redo", "reset", "zoom", "save")
 
 # The Font Awesome stylesheet, once, for the save, undo and redo icons
 add_fontawesome <- function(GC_chart) {
@@ -493,6 +506,192 @@ check_toolbar <- function(options) {
            ", e.g. list(reset = \"arrows-to-circle\").")
     }
   }
+  invisible()
+}
+
+
+#' Add a Zoom Slider to a GC Chart
+#'
+#' `GC_zoom()` adds a slider below the clusters to zoom in on part of them.
+#' Drag a handle to change the window, drag the window to move it, click the
+#' track to move the window there, and double-click the slider or use the
+#' reset zoom button of the toolbar ([GC_toolbar()]) to show everything again.
+#' With the keyboard, the arrow keys move a handle or the window by 1% of the
+#' slider (Shift: 10%), Home and End to the ends.
+#'
+#' The chart is drawn again for each window: genes, labels, links,
+#' coordinates and annotations follow the window, and parts outside it are
+#' cut off at the edges of the plot area. The axis shows the ticks of the
+#' window. The window of [GC_scale()]`(start, end)` is the whole range the
+#' slider covers. Text moved by dragging ([GC_events()]`(drag = TRUE)`) keeps
+#' its offset. Saved images leave out the slider and the room it takes.
+#'
+#' In Shiny, [GC_events()]`(zoom = TRUE)` reports the window, and
+#' [GC_zoom_to()] sets it from the server.
+#'
+#' @param GC_chart A GC chart object.
+#' @param show Logical, whether to show the slider. `FALSE` removes it.
+#' @param range The window shown first, as `c(start, end)` in the units of
+#'   `mode`. `NULL` (default) shows everything. A Shiny app can keep the
+#'   window the user picked with `range = input$<outputId>_zoom$range` (see
+#'   [GC_events()]`(zoom = TRUE)`). The chart keeps the window the user picked
+#'   when it is drawn again with the same data and the same `range` and
+#'   `mode`.
+#' @param mode How the window applies to the clusters: `"relative"` (default)
+#'   zooms every cluster to the same share of its own range, e.g.
+#'   `range = c(0.25, 0.5)` for its second quarter, which suits clusters of
+#'   different genomes. `"absolute"` shows the same base pairs in every
+#'   cluster, e.g. `range = c(12000, 18000)`, and the slider spans the range
+#'   of all clusters.
+#' @param min The narrowest window, in the units of `mode` (default 1% of the
+#'   slider).
+#' @param update `"live"` (default) draws the chart while the slider moves,
+#'   `"release"` when it is let go, for large charts.
+#' @param height Height of the slider in pixels (default 24). The clusters
+#'   make room for it.
+#' @param overview Logical, whether the slider shows the genes of each
+#'   cluster, one row per cluster, in the colours of their group (default
+#'   `TRUE`).
+#' @param color One colour for the genes of the overview instead of their
+#'   group colours.
+#' @param style,windowStyle,handleStyle Named lists of CSS styles of the
+#'   slider track, the window and the two handles, e.g.
+#'   `style = list(backgroundColor = "#eeeeee")`.
+#'
+#' @return The GC chart object with the zoom slider.
+#'
+#' @examples
+#' GC_chart(ophA_clusters, cluster = "cluster", group = "class",
+#'          height = "300px") %>%
+#'   GC_labels("name") %>%
+#'   GC_zoom(range = c(0.2, 0.6))
+#'
+#' # The same base pairs in every cluster
+#' GC_chart(ophA_clusters, cluster = "cluster", group = "class",
+#'          height = "300px") %>%
+#'   GC_zoom(mode = "absolute", update = "release", height = 30,
+#'           handleStyle = list(backgroundColor = "#d9d9d9"))
+#'
+#' @seealso [GC_zoom_to()], [GC_events()], [GC_scale()]
+#' @export
+GC_zoom <- function(GC_chart, show = TRUE, range = NULL, mode = NULL, min = NULL,
+                    update = NULL, height = NULL, overview = NULL, color = NULL,
+                    style = NULL, windowStyle = NULL, handleStyle = NULL) {
+  # A range from Shiny, e.g. input$chart_zoom$range, arrives as a list
+  if (is.list(range)) range <- unlist(range)
+  options <- Filter(Negate(is.null), list(
+    show = show, range = range, mode = mode, min = min, update = update,
+    height = height, overview = overview, color = color, style = style,
+    windowStyle = windowStyle, handleStyle = handleStyle))
+  check_zoom(options)
+  old <- if (is.null(GC_chart$x$zoom)) list() else GC_chart$x$zoom
+  # A new mode does not keep a range or minimum of the old one
+  if (!is.null(options$mode) && !identical(options$mode, old$mode)) old$range <- old$min <- NULL
+  if (!is.null(options$range)) options$range <- as.numeric(sort(options$range))
+  GC_chart$x$zoom <- utils::modifyList(old, options)
+  # The icon of the reset zoom button
+  add_fontawesome(GC_chart)
+}
+
+check_zoom <- function(options) {
+  flag <- function(name) {
+    value <- options[[name]]
+    if (!is.null(value) && !(is.logical(value) && length(value) == 1 && !is.na(value))) {
+      stop("'", name, "' must be TRUE or FALSE.")
+    }
+  }
+  flag("show")
+  flag("overview")
+  one_of <- function(name, choices) {
+    value <- options[[name]]
+    if (!is.null(value) && !(is.character(value) && length(value) == 1 && value %in% choices)) {
+      stop("'", name, "' must be one of ", quoted(choices), ".")
+    }
+  }
+  one_of("mode", c("relative", "absolute"))
+  one_of("update", c("live", "release"))
+  range <- options$range
+  if (!is.null(range)) {
+    if (!is.numeric(range) || length(range) != 2 || anyNA(range) || any(!is.finite(range)) ||
+        range[1] == range[2]) {
+      stop("'range' must be two different numbers: c(start, end).")
+    }
+    if (!identical(options$mode, "absolute") && (min(range) < 0 || max(range) > 1)) {
+      stop("A relative 'range' is shares of the clusters, between 0 and 1, e.g. c(0.25, 0.5). ",
+           "Use mode = \"absolute\" for base pairs.")
+    }
+  }
+  for (name in c("min", "height")) {
+    value <- options[[name]]
+    if (!is.null(value) && !(is.numeric(value) && length(value) == 1 && !is.na(value) && value > 0)) {
+      stop("'", name, "' must be a single positive number.")
+    }
+  }
+  if (!is.null(options$min) && !identical(options$mode, "absolute") && options$min > 1) {
+    stop("A relative 'min' is a share of the slider, between 0 and 1.")
+  }
+  color <- options$color
+  if (!is.null(color) && !(is.character(color) && length(color) == 1 && !is.na(color))) {
+    stop("'color' must be a single colour.")
+  }
+  for (name in c("style", "windowStyle", "handleStyle")) {
+    value <- options[[name]]
+    if (!is.null(value) && !(is.list(value) && (length(value) == 0 || !is.null(names(value))))) {
+      stop("'", name, "' must be a named list of CSS styles.")
+    }
+  }
+  invisible()
+}
+
+#' Set the Zoom of a GC Chart in Shiny
+#'
+#' Moves the zoom slider of [GC_zoom()] in a running Shiny app, without
+#' drawing the chart again from R.
+#'
+#' @param outputId The output ID of the chart, as in [GC_chartOutput()].
+#' @param range The window, as `c(start, end)` in the units of the `mode` of
+#'   [GC_zoom()]: shares of the clusters (`"relative"`) or base pairs
+#'   (`"absolute"`). `NULL` shows everything.
+#' @param session The Shiny session.
+#'
+#' @return Nothing; called for its effect.
+#'
+#' @examples
+#' if (interactive()) {
+#'   library(shiny)
+#'   ui <- fluidPage(
+#'     actionButton("first", "First half"),
+#'     actionButton("all", "Everything"),
+#'     GC_chartOutput("chart", height = "300px")
+#'   )
+#'   server <- function(input, output, session) {
+#'     output$chart <- renderGC_chart(
+#'       GC_chart(ophA_clusters, cluster = "cluster", group = "class") %>%
+#'         GC_zoom() %>%
+#'         GC_events(zoom = TRUE)
+#'     )
+#'     observeEvent(input$first, GC_zoom_to("chart", c(0, 0.5)))
+#'     observeEvent(input$all, GC_zoom_to("chart", NULL))
+#'     observeEvent(input$chart_zoom, str(input$chart_zoom))
+#'   }
+#'   shinyApp(ui, server)
+#' }
+#'
+#' @seealso [GC_zoom()]
+#' @export
+GC_zoom_to <- function(outputId, range = NULL, session = shiny::getDefaultReactiveDomain()) {
+  if (is.list(range)) range <- unlist(range)
+  if (!is.character(outputId) || length(outputId) != 1 || is.na(outputId)) {
+    stop("'outputId' must be the output ID of the chart.")
+  }
+  if (!is.null(range) && (!is.numeric(range) || length(range) != 2 || anyNA(range) ||
+                          any(!is.finite(range)))) {
+    stop("'range' must be NULL or two numbers: c(start, end).")
+  }
+  if (is.null(session)) stop("GC_zoom_to() works in a Shiny session.")
+  session$sendCustomMessage("geneviewer-zoom", list(
+    id = session$ns(outputId),
+    range = if (is.null(range)) NULL else as.list(as.numeric(sort(range)))))
   invisible()
 }
 

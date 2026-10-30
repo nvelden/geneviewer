@@ -150,7 +150,11 @@ function computeSize(inputSize, containerSize) {
 // container's SVG. Call adjust(label, options) for each label in turn (it
 // returns true when it rotated the label) and refresh(label) after restyling a label. Label sizes are measured once and
 // measured again only when a label changes, instead of on every comparison.
-function createLabelAdjuster(container, labelSelector) {
+// With options.hide, a label that overlaps is hidden instead (adjust() returns
+// false). bounds, { left, right, top, bottom } in the coordinates of the
+// labels, is the area the labels are drawn in: a label that would turn out of
+// it is hidden rather than cut off.
+function createLabelAdjuster(container, labelSelector, bounds = null) {
   // Default options
   const defaultOptions = {
     rotation: -65, // Rotation angle (in degrees)
@@ -247,7 +251,7 @@ function createLabelAdjuster(container, labelSelector) {
       labels.forEach(label => place(label, measure(label)));
     }
 
-    const { rotation, offsetX, offsetY, dx, dy } = { ...defaultOptions, ...options };
+    const { rotation, offsetX, offsetY, dx, dy, hide = false } = { ...defaultOptions, ...options };
 
     // Calculate the label's original center position. Its box is as measured:
     // only other labels have changed since.
@@ -265,10 +269,40 @@ function createLabelAdjuster(container, labelSelector) {
     for (const label of neighbours(specificLabel)) {
       // If the specific label overlaps with another label
       if (overlapPercentage(specificLabelRect, rects.get(label)) > 0) {
+        if (hide) {
+          // Hidden, it no longer stands in the way of the labels after it
+          d3.select(specificLabel).style("display", "none");
+          columnsOf(specificLabelRect).forEach(c => columns.get(c)?.delete(specificLabel));
+          rects.delete(specificLabel);
+          return false;
+        }
         const oldY = parseFloat(specificLabel.getAttribute("y"));
         const oldDy = pixels(specificLabel, specificLabel.getAttribute("dy"));
         const newDx = pixels(specificLabel, dx);
         const newDy = pixels(specificLabel, dy);
+
+        // Turned up (rotation < 0) the text rises width * sin + height * cos
+        // above its anchor; turned down, it drops that far below it
+        const radians = degrees => Math.abs(degrees) * Math.PI / 180;
+        const reach = degrees => bbox.width * Math.sin(radians(degrees)) +
+                                 bbox.height * Math.cos(radians(degrees));
+        const anchorY = centerY + (newDy ?? 0);
+        const fitsVertically = degrees => !bounds ||
+          (degrees < 0 ? anchorY - reach(degrees) >= bounds.top
+                       : anchorY + reach(degrees) <= bounds.bottom);
+        // The turned text also runs width * cos(rotation) to the right of its
+        // anchor. A label that would leave the area is hidden rather than cut
+        // off: turned less steeply, or the other way, it would run into its
+        // neighbours, which are turned too
+        const run = bbox.width * Math.cos(radians(rotation));
+        const anchorX = centerX + offsetX + (newDx ?? 0);
+        if (!fitsVertically(rotation) || (bounds && anchorX + run > bounds.right)) {
+          d3.select(specificLabel).style("display", "none");
+          columnsOf(specificLabelRect).forEach(c => columns.get(c)?.delete(specificLabel));
+          rects.delete(specificLabel);
+          return false;
+        }
+        const angle = rotation;
 
         // Adjust the label rotation and position
         d3.select(specificLabel)
@@ -277,9 +311,9 @@ function createLabelAdjuster(container, labelSelector) {
           .attr("dy", dy)
           .attr("x", centerX + offsetX)
           .attr("y", centerY)
-          .attr("transform", `rotate(${rotation}, ${centerX}, ${centerY})`);
+          .attr("transform", `rotate(${angle}, ${centerX}, ${centerY})`);
 
-        specificLabel.__drawn__ = { ...specificLabel.__drawn__, rotate: rotation };
+        specificLabel.__drawn__ = { ...specificLabel.__drawn__, rotate: angle };
         // The text keeps its size and now starts at x + dx, with its baseline
         // moved from y + dy to the new y + dy. Measuring it instead would lay
         // out the page again for every label that turns.
@@ -1195,6 +1229,9 @@ function makeLinks(graphContainer, links, themeOptions = {}) {
       color: "lightgrey",
       measure: "identity",
       label: true,
+      // Where the measure is written: "gene", with the label of the gene, or
+      // "link", in the middle of the link where it fits
+      labelPosition: "gene",
       linkStyle: {
         stroke: "none",
         fillOpacity: 0.8
@@ -1224,6 +1261,10 @@ function makeLinks(graphContainer, links, themeOptions = {}) {
       .classed("GeneLink", true)
       .style("position", "absolute")
       .style("z-index", 1);
+
+    // Measures written on the links, drawn above all of them; boxes of those
+    // placed, so two never overlap
+    const linkLabels = [];
 
     links.forEach(function(link) {
 
@@ -1260,8 +1301,66 @@ function makeLinks(graphContainer, links, themeOptions = {}) {
                     setStyleFromOptions(currentElement, additionalOptionsLinkStyle);
                 });
 
+            const value = link.data?.[measure]?.[index];
+            if (combinedOptions.label && combinedOptions.labelPosition === "link" &&
+                measure !== "none" && value != null && Number.isFinite(+value)) {
+              // Halfway down, the edges of the link are halfway between their
+              // ends, for curves as for straight links
+              const left = (coordinate[0].startPoint.x + coordinate[0].endPoint.x) / 2;
+              const right = (coordinate[1].startPoint.x + coordinate[1].endPoint.x) / 2;
+              linkLabels.push({
+                x: (left + right) / 2,
+                y: (coordinate[0].startPoint.y + coordinate[0].endPoint.y) / 2,
+                width: Math.abs(right - left),
+                text: `${parseFloat((+value).toFixed(1))}%`,
+                // Dark text on a light link, white on a dark one
+                fill: d3.hsl(d3.color(linkColor) ?? "#ffffff").l < 0.55 ? "#ffffff" : "#333333",
+                datum: linkData[index],
+                labelStyle: combinedOptions.labelStyle,
+                defaults: defaultOptions.labelStyle
+              });
+            }
+
     });
   });
+
+  // The measures, each where it fits within its link and clear of the others;
+  // zoomed in, links widen and more of them fit
+  const labelGroup = lineSvg.append("g").attr("class", "link-measure-labels");
+  const placed = [];
+  linkLabels
+    .sort((a, b) => b.width - a.width)
+    .forEach(item => {
+      const { labelStyle } = item;
+      const text = labelGroup.append("text")
+        .attr("class", "link-measure")
+        .attr("data-component", "links")
+        .datum(item.datum)
+        .attr("x", item.x)
+        .attr("y", item.y)
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "central")
+        .style("font-size", labelStyle.fontSize)
+        .style("font-style", labelStyle.fontStyle)
+        .style("font-family", labelStyle.fontFamily)
+        .style("fill", item.fill)
+        .style("pointer-events", "none")
+        .text(item.text)
+        .each(function () {
+          const extra = extractAdditionalOptions(labelStyle, item.defaults);
+          delete extra.labelPosition;
+          setStyleFromOptions(d3.select(this), extra);
+        });
+      const box = text.node().getBBox();
+      const clear = placed.every(other =>
+        box.x + box.width < other.x || other.x + other.width < box.x ||
+        box.y + box.height < other.y || other.y + other.height < box.y);
+      if (box.width + 4 > item.width || !clear) {
+        text.remove();
+      } else {
+        placed.push(box);
+      }
+    });
 
 }
 
@@ -1326,7 +1425,8 @@ function linkColorTypes(links) {
     return { normal, inverted };
 }
 
-function makeColorBar(graphContainer, links, themeOptions = {}) {
+// The settings of the colour bar of a chart's links, or null when it has none
+function colorBarSettings(links, themeOptions = {}) {
 
     // Default options for the color bars (both normal and inverted)
     const defaultOptions = {
@@ -1335,11 +1435,24 @@ function makeColorBar(graphContainer, links, themeOptions = {}) {
         measure: "identity",
         margin: { top: 5, right: 25, bottom: 0, left: 50 },
         colorBarOptions: {
+            // Where the bar goes: a corner of the plot area or "legend", and
+            // whether it stands up or lies down
+            position: "bottomright",
+            orientation: "vertical",
+            // Labels of a lying bar: "inline", on one line with it, or "below",
+            // under it with ticks; always inline in the legend
+            labels: "inline",
+            // In the legend: before the groups ("left") or after them ("right")
+            legendSide: "left",
+            // From the corner; null: 24 pixels up from the bottom for a
+            // standing bar, otherwise 0
             x: 0,
-            y: 24,
+            y: null,
             title: true,
-            width: 10,
-            height: 60,
+            // null: 10 by 60 pixels standing, 80 by 8 lying inline, 120 by 8
+            // lying with the labels below
+            width: null,
+            height: null,
             labelOptions: {
               fontSize: 8,
               fontFamily: "sans-serif",
@@ -1363,7 +1476,6 @@ function makeColorBar(graphContainer, links, themeOptions = {}) {
     // Theme link options under the user options, as in makeLinks()
     const linkOptions = mergeOptions(defaultOptions, "linkOptions", links[0].options, themeOptions);
     const { colorBarOptions } = linkOptions;
-    const { labelOptions, titleOptions, barOptions } = colorBarOptions;
 
     if (linkOptions.colorBar === false || linkOptions.measure === 'none') {
       return null;
@@ -1378,11 +1490,206 @@ function makeColorBar(graphContainer, links, themeOptions = {}) {
       return null;
     }
 
-    // Assuming `extractAdditionalOptions` is a function that extracts non-default options
-    const additionalOptionsLabel = extractAdditionalOptions(labelOptions, defaultOptions.colorBarOptions.labelOptions);
-    const additionalOptionsTitle = extractAdditionalOptions(titleOptions, defaultOptions.colorBarOptions.titleOptions);
-    const additionalOptionsBar = extractAdditionalOptions(barOptions, defaultOptions.colorBarOptions.barOptions);
+    const defaults = defaultOptions.colorBarOptions;
+    return {
+      linkOptions,
+      colorBarOptions,
+      // In the legend the bar always lies down
+      horizontal: colorBarOptions.position === "legend" || colorBarOptions.orientation === "horizontal",
+      hasNormal,
+      hasInverted,
+      additional: {
+        label: extractAdditionalOptions(colorBarOptions.labelOptions, defaults.labelOptions),
+        title: extractAdditionalOptions(colorBarOptions.titleOptions, defaults.titleOptions),
+        bar: extractAdditionalOptions(colorBarOptions.barOptions, defaults.barOptions)
+      }
+    };
+}
 
+// Draws the colour bar of colorBarSettings() into g. A standing bar has the
+// normal bar's top left corner at (0, 0), with the inverted bar left of it and
+// the labels and title right of it. A lying bar is one line: the title, the
+// lowest measure, the bars (the inverted below the normal) and the highest.
+// `size` overrides the width, height and font of the settings, as for the
+// legend. Returns the width and height of the bar itself.
+function drawColorBar(g, settings, size = {}) {
+    const { linkOptions, colorBarOptions, horizontal, hasNormal, hasInverted, additional } = settings;
+    const { labelOptions, titleOptions, barOptions } = colorBarOptions;
+    const labelsBelow = horizontal && (size.labels ?? colorBarOptions.labels) === "below";
+    const width = parseFloat(size.width ?? colorBarOptions.width ?? (horizontal ? (labelsBelow ? 120 : 80) : 10));
+    const height = parseFloat(size.height ?? colorBarOptions.height ?? (horizontal ? 8 : 60));
+    const labelFont = size.fontSize ?? labelOptions.fontSize;
+    const titleFont = size.fontSize ?? titleOptions.fontSize;
+    const fontFamily = size.fontFamily;
+    // An outline for a bar without one, as the legend gives white markers
+    const stroke = size.outline && (!barOptions.stroke || barOptions.stroke === "none")
+      ? size.outline : barOptions.stroke;
+    const strokeWidth = stroke === barOptions.stroke ? barOptions.strokeWidth : 0.5;
+
+    const defs = g.append("defs");
+    const minValue = linkOptions.vmin;
+    const maxValue = linkOptions.vmax;
+
+    // A gradient bar from lowColor to color: maxValue at the top of a standing
+    // bar, at the right of a lying one
+    const drawBar = (baseId, color, x, y) => {
+        const gradientId = getUniqueId(baseId);
+        const gradient = defs.append("linearGradient")
+            .attr("id", gradientId)
+            .attr("gradientTransform", horizontal ? null : "rotate(90)");
+        const colorScale = linkColorScale(linkOptions.lowColor, color, minValue, maxValue);
+        gradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", colorScale(horizontal ? minValue : maxValue));
+        gradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", colorScale(horizontal ? maxValue : minValue));
+
+        g.append("rect")
+            .attr("x", x)
+            .attr("y", y)
+            .attr("width", width)
+            .attr("height", height)
+            .style("fill", `url(#${gradientId})`)
+            .style("stroke", stroke)
+            .style("stroke-width", strokeWidth)
+            .style("opacity", barOptions.opacity)
+            .each(function () {
+                setStyleFromOptions(d3.select(this), additional.bar);
+            });
+    };
+
+    const addText = (text, options, fontSize, style) => g.append("text")
+        .attr("font-size", fontSize)
+        .style("font-family", fontFamily ?? options.fontFamily)
+        .text(text)
+        .each(function () {
+            setStyleFromOptions(d3.select(this), style);
+        });
+
+    if (!horizontal) {
+      // The title, turned, right of the labels
+      if (colorBarOptions.title !== false) {
+        addText(linkOptions.measure, titleOptions, titleFont, additional.title)
+          .attr("x", width + titleOptions.xOffset)
+          .attr("y", height / 2 + titleOptions.yOffset + 10)
+          .attr("transform", `rotate(-90, ${width + titleOptions.xOffset}, ${height / 2 + titleOptions.yOffset})`)
+          .attr("alignment-baseline", "bottom")
+          .attr("text-anchor", "middle");
+      }
+
+      // The normal bar sits next to the labels, the inverted bar left of it;
+      // with only inverted links, the inverted bar takes the normal bar's place
+      if (hasNormal) {
+        drawBar("linear-gradient", linkOptions.normalColor, 0, 0);
+      }
+      if (hasInverted) {
+        drawBar("reverse-gradient", linkOptions.invertedColor, hasNormal ? -width : 0, 0);
+      }
+
+      addText(maxValue + '%', labelOptions, labelFont, additional.label)
+        .attr("x", width + labelOptions.xOffset)
+        .attr("y", -labelOptions.yOffset)
+        .attr("alignment-baseline", "middle");
+      addText(minValue + '%', labelOptions, labelFont, additional.label)
+        .attr("x", width + labelOptions.xOffset)
+        .attr("y", height + labelOptions.yOffset)
+        .attr("alignment-baseline", "middle");
+      return { width: (hasNormal && hasInverted ? 2 : 1) * width, height };
+    }
+
+    // Lying down, the title stands out from the labels
+    const barsHeight = (hasNormal && hasInverted ? 2 : 1) * height;
+    const addTitle = () => addText(linkOptions.measure, titleOptions, titleFont, {
+      fontWeight: "bold", ...additional.title
+    });
+    const drawBars = (x, y) => {
+      if (hasNormal) {
+        drawBar("linear-gradient", linkOptions.normalColor, x, y);
+      }
+      if (hasInverted) {
+        drawBar("reverse-gradient", linkOptions.invertedColor, x, y + (hasNormal ? height : 0));
+      }
+    };
+
+    if (labelsBelow) {
+      // The title above the bars, and ticks with their measures below them
+      let top = 0;
+      if (colorBarOptions.title !== false) {
+        const title = addTitle()
+          .attr("x", 0)
+          .attr("y", titleOptions.yOffset)
+          .attr("dominant-baseline", "hanging");
+        top = title.node().getBBox().height + 3;
+      }
+      drawBars(0, top);
+      const scale = d3.scaleLinear().domain([minValue, maxValue]).range([0, width]);
+      const tickLength = 3;
+      const tickColor = stroke && stroke !== "none" ? stroke : "#555555";
+      // The most ticks whose measures fit side by side, at least the two ends
+      const textWidth = text => {
+        const node = addText(text, labelOptions, labelFont, additional.label);
+        const textLength = node.node().getComputedTextLength();
+        node.remove();
+        return textLength;
+      };
+      const fits = values => values.length > 1 && values.every((value, i) => i === 0 ||
+        scale(value) - scale(values[i - 1]) >
+          (textWidth(values[i - 1] + '%') + textWidth(value + '%')) / 2 + 4);
+      const ticks = [5, 4, 3, 2].map(count => scale.ticks(count)).find(fits) ?? [minValue, maxValue];
+      ticks.forEach(value => {
+        g.append("line")
+          .attr("x1", scale(value)).attr("x2", scale(value))
+          .attr("y1", top + barsHeight).attr("y2", top + barsHeight + tickLength)
+          .style("stroke", tickColor)
+          .style("stroke-width", 0.5);
+        addText(value + '%', labelOptions, labelFont, additional.label)
+          .attr("x", scale(value))
+          .attr("y", top + barsHeight + tickLength + 1 + labelOptions.yOffset)
+          .attr("dominant-baseline", "hanging")
+          .attr("text-anchor", "middle");
+      });
+      return { width, height: barsHeight };
+    }
+
+    // Inline: everything on one line through the middle of the bars
+    const middle = barsHeight / 2;
+    const gap = 4;
+    let x = 0;
+    const placeOnLine = (node, yOffset) => {
+      node.attr("x", x)
+        .attr("y", middle + yOffset)
+        .attr("dominant-baseline", "central");
+      x += node.node().getComputedTextLength() + gap;
+    };
+
+    if (colorBarOptions.title !== false) {
+      placeOnLine(addTitle(), titleOptions.yOffset);
+      x += gap;
+    }
+    placeOnLine(addText(minValue + '%', labelOptions, labelFont, additional.label), labelOptions.yOffset);
+    drawBars(x, 0);
+    x += width + gap;
+    placeOnLine(addText(maxValue + '%', labelOptions, labelFont, additional.label), labelOptions.yOffset);
+    return { width, height: barsHeight };
+}
+
+// Draws the colour bar of the links in a corner of the plot area, unless it
+// goes in the legend and the legend has drawn it (inLegend)
+function makeColorBar(graphContainer, links, themeOptions = {}, inLegend = false) {
+
+    const settings = colorBarSettings(links, themeOptions);
+    if (!settings) {
+      return null;
+    }
+    const { linkOptions, colorBarOptions } = settings;
+    if (colorBarOptions.position === "legend" && inLegend) {
+      return null;
+    }
+    // Without a legend, a bar meant for it goes in the default corner, standing
+    // unless it is set to lie
+    const position = colorBarOptions.position === "legend" ? "bottomright" : colorBarOptions.position;
+    const horizontal = colorBarOptions.orientation === "horizontal";
 
     const graphRect = graphContainer.node().getBoundingClientRect();
 
@@ -1404,102 +1711,30 @@ function makeColorBar(graphContainer, links, themeOptions = {}) {
     const g = svg.append("g")
         .attr("transform", `translate(${linkOptions.margin.left}, ${linkOptions.margin.top})`);
 
-    const defs = g.append("defs");
-
-    // The bar runs from vmin to vmax, like the colours of the links
-    const minValue = linkOptions.vmin;
-    const maxValue = linkOptions.vmax;
-
-    // Calculate dimensions for drawing the color bar
     const contentWidth = graphRect.width - linkOptions.margin.left - linkOptions.margin.right;
     const contentHeight = graphRect.height - linkOptions.margin.top - linkOptions.margin.bottom;
 
-    const width = parseFloat(colorBarOptions.width);
-    const height = parseFloat(colorBarOptions.height);
+    const top = position === "topleft" || position === "topright";
+    const left = position === "topleft" || position === "bottomleft";
+    // A standing bar keeps clear of the bottom row's labels; a lying bar is
+    // low enough to sit at the edge
+    const x = colorBarOptions.x ?? 0;
+    const y = colorBarOptions.y ?? (top || horizontal ? 0 : 24);
 
-    const xPosition = contentWidth - width - colorBarOptions.x;
-    const yPosition = contentHeight - height - colorBarOptions.y;
+    const bar = g.append("g");
+    const { width, height } = drawColorBar(bar, { ...settings, horizontal });
 
-    // Draw a gradient bar from lowColor to color (maxValue at the top) at x
-    const drawBar = (baseId, color, x) => {
-        const gradientId = getUniqueId(baseId);
-        const gradient = defs.append("linearGradient")
-            .attr("id", gradientId)
-            .attr("gradientTransform", "rotate(90)");
-
-        const colorScale = linkColorScale(linkOptions.lowColor, color, minValue, maxValue);
-
-        gradient.append("stop")
-            .attr("offset", "0%")
-            .attr("stop-color", colorScale(maxValue));
-
-        gradient.append("stop")
-            .attr("offset", "100%")
-            .attr("stop-color", colorScale(minValue));
-
-        g.append("rect")
-            .attr("x", x)
-            .attr("y", yPosition)
-            .attr("width", width)
-            .attr("height", height)
-            .style("fill", `url(#${gradientId})`)
-            .style("stroke", barOptions.stroke)
-            .style("stroke-width", barOptions.strokeWidth)
-            .style("opacity", barOptions.opacity)
-            .each(function () {
-                const currentElement = d3.select(this);
-                setStyleFromOptions(currentElement, additionalOptionsBar);
-            });
-    };
-
-     // Add the title text with rotation
-    g.append("text")
-        .attr("x", xPosition + width + titleOptions.xOffset)
-        .attr("y", yPosition + height / 2 + titleOptions.yOffset + 10)
-        .attr("transform", `rotate(-90, ${xPosition + width + titleOptions.xOffset}, ${yPosition + height / 2 + titleOptions.yOffset})`)
-        .attr("alignment-baseline", "bottom")
-        .attr("text-anchor", "middle")
-        .attr("font-size", titleOptions.fontSize)
-        .style("font-family", titleOptions.fontFamily)
-        .text(linkOptions.measure)
-        .each(function () {
-            const currentElement = d3.select(this);
-            setStyleFromOptions(currentElement, additionalOptionsTitle);
-        });
-
-    // The normal bar sits next to the labels, the inverted bar left of it;
-    // with only inverted links, the inverted bar takes the normal bar's place
-    if (hasNormal) {
-        drawBar("linear-gradient", linkOptions.normalColor, xPosition);
+    if (position === "bottomright" && !horizontal) {
+      // The bar itself x and y in from the corner, its labels and title right of it
+      bar.attr("transform", `translate(${contentWidth - width - x}, ${contentHeight - height - y})`);
+    } else {
+      // The whole bar, with its labels and title, x and y in from the corner
+      const box = bar.node().getBBox();
+      const tx = left ? x - box.x : contentWidth - x - (box.x + box.width);
+      const ty = top ? y - box.y : contentHeight - y - (box.y + box.height);
+      bar.attr("transform", `translate(${tx}, ${ty})`);
     }
-    if (hasInverted) {
-        drawBar("reverse-gradient", linkOptions.invertedColor, hasNormal ? xPosition - width : xPosition);
-    }
-
-    // Draw the min and max labels
-    g.append("text")
-        .attr("x", xPosition + width + labelOptions.xOffset)
-        .attr("y", yPosition - labelOptions.yOffset)
-        .attr("alignment-baseline", "middle")
-        .attr("font-size", labelOptions.fontSize)
-        .style("font-family", labelOptions.fontFamily)
-        .text(maxValue + '%')
-        .each(function () {
-            const currentElement = d3.select(this);
-            setStyleFromOptions(currentElement, additionalOptionsLabel);
-        });
-
-    g.append("text")
-        .attr("x", xPosition + width + labelOptions.xOffset)
-        .attr("y", yPosition + height + labelOptions.yOffset)
-        .attr("alignment-baseline", "middle")
-        .attr("font-size", labelOptions.fontSize)
-        .style("font-family", labelOptions.fontFamily)
-        .text(minValue + '%')
-        .each(function () {
-            const currentElement = d3.select(this);
-            setStyleFromOptions(currentElement, additionalOptionsLabel);
-        });
+    return svg;
 }
 
 // Cluster functions
@@ -2777,7 +3012,14 @@ container.prototype.labels = function (label, show = true, options = {}) {
   };
 
   const attributesByIndex = this.data.map((d, i) => getAttributesForIndex(d, i));
-  const labelAdjuster = createLabelAdjuster(this, "text.label");
+  // Turned labels stay in the plot area, where zoomed charts cut them off, and
+  // in the SVG of the cluster, which cuts off what runs out of it
+  const labelAdjuster = createLabelAdjuster(this, "text.label", {
+    left: 0,
+    right: this.width - this.margin.left - this.margin.right,
+    top: -this.margin.top,
+    bottom: this.height - this.margin.top
+  });
   // Link labels (e.g. identity %) drawn by links() for the genes of this cluster
   const linkLabelsByRow = new Map(
     this.svg.selectAll(".link-text").nodes().map(node => [node.getAttribute("rowID"), node])
@@ -2829,7 +3071,10 @@ container.prototype.labels = function (label, show = true, options = {}) {
       const currentElement = d3.select(this);
       const attributes = attributesByIndex[i];
 
-      if (attributes.adjustLabels && labelAdjuster.adjust(this, attributes.labelAdjustmentOptions)) {
+      // adjustLabels: TRUE turns labels that overlap, "hide" hides them
+      if (attributes.adjustLabels && labelAdjuster.adjust(this, {
+        ...attributes.labelAdjustmentOptions, hide: attributes.adjustLabels === "hide"
+      })) {
         linkLabelLineToInline(this);
       }
       // Set additional options as attributes
@@ -3497,7 +3742,9 @@ container.prototype.legendData = function (data) {
 
 };
 
-container.prototype.legend = function (group, show = true, parentId = null, options = {}) {
+// colorBar: the colorBarSettings() of the links when their colour bar goes in
+// the legend; it is drawn as the first item
+container.prototype.legend = function (group, show = true, parentId = null, options = {}, colorBar = null) {
   if (!show) {
     return this;
   }
@@ -3572,6 +3819,49 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
   var g = this.svg.append("g")
     .attr("data-component", "legend")
     .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+
+  // The colour bar of the links, lying down in the text of the legend, before
+  // the groups (legendSide "left") or after them ("right"), set apart from
+  // them by a wider gap; it hides no genes when clicked
+  const barSide = colorBar?.colorBarOptions.legendSide === "right" ? "right" : "left";
+  const addColorBar = () => {
+    const barItem = g.append("g")
+      .attr("class", "legend-color-bar")
+      .attr("data-component", "links");
+    const bar = barItem.append("g");
+    const both = colorBar.hasNormal && colorBar.hasInverted;
+    // As tall as the markers, outlined like a white marker, on one line
+    drawColorBar(bar, colorBar, {
+      height: colorBar.colorBarOptions.height ?? legendSize / (both ? 2 : 1),
+      fontSize: legendTextOptions.fontSize,
+      fontFamily: legendTextOptions.fontFamily,
+      outline: "#bdbdbd",
+      labels: "inline"
+    });
+    const box = bar.node().getBBox();
+    // The same gap on either side: a group ends with one padding after it
+    const gap = 2 * legendSize + legendPadding;
+    if (orientation === "horizontal" && barSide === "right" && currentX > x) {
+      // After the groups: on the same row when it fits, else on a new one
+      const availableWidth = this.width - this.margin.left - this.margin.right;
+      if (currentX + gap + box.width > availableWidth) {
+        currentX = x;
+        currentY += legendSize + legendPadding;
+      } else {
+        currentX += gap;
+      }
+    }
+    bar.attr("transform", `translate(${currentX - box.x}, ${currentY + legendSize / 2 - (box.y + box.height / 2)})`);
+    itemExtents.push({ node: barItem.node(), row: currentY, start: currentX, end: currentX + box.width });
+    if (orientation === "horizontal") {
+      currentX += box.width + gap + legendPadding;
+    } else {
+      currentY += Math.max(legendSize, box.height) + legendPadding;
+    }
+  };
+  if (colorBar && barSide === "left") {
+    addColorBar();
+  }
 
   g.selectAll(".legend")
     .data(uniqueGroups)
@@ -3701,6 +3991,10 @@ container.prototype.legend = function (group, show = true, parentId = null, opti
       });
 }
     });
+
+  if (colorBar && barSide === "right") {
+    addColorBar();
+  }
 
   // Align each row (or the whole column of a vertical legend) to the left,
   // centre or right of the available width
@@ -3835,7 +4129,8 @@ container.prototype.links = function (links, clusterKey, options = {}) {
     });
   }
 
-  if(label){
+  // Measures written on the links themselves are drawn by makeLinks()
+  if (label && combinedOptions.labelPosition !== "link") {
     const labelAdjuster = createLabelAdjuster(this, ".link-text");
     // Labels drawn by earlier link sets: a gene gets one label
     const labelled = this.svg.selectAll(".link-text").nodes();

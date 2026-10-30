@@ -113,7 +113,9 @@ mouse, to show what a click selects.</p></dd>
 <dd><p>Optional single character string or finite number returned
 with the rendered event, to identify the update. The default, <code>NULL</code>,
 generates a unique ID for each update in the browser. It is not a DOM
-element ID; the event's <code>chartId</code> identifies the chart itself.</p></dd>
+element ID; the event's <code>chartId</code> identifies the chart itself. A new
+<code>render_id</code> also marks a new load for <code><a href="GC_zoom.html">GC_zoom()</a></code>, which then starts at
+its <code>range</code> again, also when <code>rendered</code> is <code>FALSE</code>.</p></dd>
 
 
 <dt>dblclick</dt>

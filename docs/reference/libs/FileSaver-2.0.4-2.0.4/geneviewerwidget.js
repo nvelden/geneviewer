@@ -979,9 +979,13 @@ HTMLWidgets.widget({
     var zoomRange = null;
     // The range and mode last set in R: a new one replaces the window
     var zoomRequest = null;
+    // The render_id of the last draw: a new one is a new load
+    var zoomRenderId = null;
     // The clusters of the last draw, and the range of the slider track
     var zoomCharts = [];
     var zoomTrack = [0, 1];
+    // The colour bar settings of the links when the legend draws the bar
+    var legendColorBar = null;
     var zoomBar = null;
     var zoomDrag = null;
     var zoomFrame = null;
@@ -1306,6 +1310,7 @@ HTMLWidgets.widget({
     var draw = function (width, height) {
       cancelDrag();
       zoomCharts = [];
+      legendColorBar = null;
 
       // Keep legend visibility while editing or resizing the same chart.
       var hiddenGroups = preserveLegend ? Array.from(el.querySelectorAll(".legend.unselected"), function (node) { return node.__data__; }) : [];
@@ -1399,6 +1404,10 @@ HTMLWidgets.widget({
 
         // The width of the chart, as for the title: in a standalone page the width
         // htmlwidgets passes is that of the window, also for a chart of fixed width
+        // The colour bar of the links, when it goes in the legend
+        var barSettings = (Array.isArray(links) && links.length) ? colorBarSettings(links, theme) : null;
+        legendColorBar = barSettings && barSettings.colorBarOptions.position === "legend" ? barSettings : null;
+
         var legendOpts = { ...legendOptions, width: el.clientWidth,
                            height: computeSize(legendOptions.height, el.clientHeight),
                            editable: events.select === true || events.dblclick === true ||
@@ -1410,7 +1419,8 @@ HTMLWidgets.widget({
           legendOpts,
           theme)
           .legendData(data)
-          .legend(legendOpts.group ?? false, legendOpts.show ?? false, el.id, legendOpts);
+          .legend(legendOpts.group ?? false, legendOpts.show ?? false, el.id, legendOpts,
+                  legendColorBar);
 
         var legendElement = d3.select(`#geneviewer-legend-container-${widgetId}`).node();
         var legendDimensions = legendElement.getBoundingClientRect();
@@ -1533,7 +1543,7 @@ HTMLWidgets.widget({
       }
       const graphContainer = d3.select(`#geneviewer-graph-container-${widgetId}`);
       makeLinks(graphContainer, links, theme);
-      makeColorBar(graphContainer, links, theme);
+      makeColorBar(graphContainer, links, theme, legendColorBar !== null);
       clipZoomLinks();
     };
     // A redraw empties the chart for a moment, so a page or panel that
@@ -1598,10 +1608,15 @@ HTMLWidgets.widget({
         }
         queuedRender = null;
         cancelDrag();
-        // A new window from R, or new data, starts at the window set in R
+        // A new window from R, new data, or a new load (GC_events(render_id
+        // = )) starts at the window set in R. A load of the same data and
+        // window, e.g. a project opened again, puts its window back too.
         zoomOptions = input.zoom && input.zoom.show !== false ? input.zoom : null;
         var request = zoomOptions ? JSON.stringify([zoomOptions.range ?? null, zoomMode()]) : null;
-        if (nextSignature !== dataSignature || request !== zoomRequest) {
+        var nextRenderId = input.events?.renderId ?? null;
+        var newLoad = nextRenderId !== null && nextRenderId !== zoomRenderId;
+        zoomRenderId = nextRenderId;
+        if (nextSignature !== dataSignature || request !== zoomRequest || newLoad) {
           zoomRange = initialZoom();
           // An app may have reset what it knows of the window: report it
           lastZoom = null;

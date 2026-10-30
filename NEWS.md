@@ -62,6 +62,7 @@
 - The "Example charts" article has a new example for `GC_zoom()`: the genomes of eleven coronaviruses from the four genera, after Fig. 1 of Chazal (2021) and ordered by subgenus, with the ORFs that lie inside another gene on a lower track and links between homologous genes. Its data are in the new dataset `coronavirus_genomes`, with the homologous genes of closely related neighbouring genomes and their protein identity, made by `data-raw/coronavirus_genomes.R` from the GenBank records.
 
 ### Bug fixes:
+- `read_fasta()` reads the FASTA headers again with Biostrings 2.81 and later, which moved them out of the row names of `as.data.frame()`; it found no keys and returned no rows.
 - Labels turned to avoid overlap (`GC_labels(adjustLabels = TRUE)`) are no longer cut off: a label that would turn out of its cluster, e.g. above it or past the right end of the plot area, is now hidden, and comes back when there is room for it, e.g. when zoomed in.
 - `GC_annotation()` draws a text annotation by default, as documented; its default type was `"textAnnotation"`, which was not drawn. An unknown `type` is now an error that lists the types.
 - `GC_transcript()` keeps the `GC_events()` and `GC_toolbar()` settings of the chart; they were lost when they were set before it.

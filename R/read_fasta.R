@@ -66,11 +66,10 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
       # Read the AA sequence set from the file
       sequence_set <- Biostrings::readAAStringSet(file_path)
 
-      # Convert to data frame
-      sequence_data <- Biostrings::as.data.frame(sequence_set)
-
-      # Extract headers
-      fasta_headers <- row.names(sequence_data)
+      # Headers and sequences straight from the set: as.data.frame() puts the
+      # headers in the row names before Biostrings 2.81 and in a column after
+      fasta_headers <- names(sequence_set)
+      sequences <- unname(as.character(sequence_set))
 
       # Find matches
 
@@ -85,14 +84,14 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
 
       no_matches <- which(sapply(matches, function(x) any(x == -1)))
 
-      if (nrow(sequence_data) == length(no_matches)) {
+      if (length(sequences) == length(no_matches)) {
         warning(sprintf("No keys found in '%s'. Make sure the fasta headers are in the right format. Skipping file.", cluster_name))
         next
       }
 
       if(length(no_matches) > 0){
         warning(sprintf("No keys found in '%s' for seq(s) at index(es): %s. They will be removed.", cluster_name, toString(no_matches)))
-        sequence_data <- sequence_data[-no_matches, , drop = FALSE]
+        sequences <- sequences[-no_matches]
         fasta_headers <- fasta_headers[-no_matches]
         matches <- matches[-no_matches]
         bracketed <- bracketed[-no_matches]
@@ -122,7 +121,7 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
       df[df == "NA"] <- NA
 
       if (sequence) {
-        df$sequence <- sequence_data$x
+        df$sequence <- sequences
       }
 
       # Check if 'location' column exists and then extract start and end positions

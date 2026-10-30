@@ -22,7 +22,10 @@ var scaleComponents = ["scale", "scaleBar"];
 var isScale = function (component) { return scaleComponents.includes(component); };
 var scaleNodes = scaleComponents.map(function (c) { return '[data-component="' + c + '"]'; }).join(", ");
 // The buttons of the toolbar (GC_toolbar()), in their order
-var toolbarButtons = ["undo", "redo", "reset", "save"];
+var toolbarButtons = ["undo", "redo", "reset", "zoom", "save"];
+// GC_zoom_to() in Shiny: sets the zoom of the chart with that output ID
+var zoomTargets = {};
+var zoomHandlerAdded = false;
 
 // Positions of moved elements: moveX and moveY (GC_element_style())
 var samePosition = function (a, b) {
@@ -844,7 +847,8 @@ HTMLWidgets.widget({
       var wanted = function (name) { return buttons.includes(name); };
       var movable = events.drag === true && ["undo", "redo", "reset"].some(wanted);
       var save = saveButton && wanted("save");
-      if (opts.show === "never" || (!movable && !save)) return;
+      var zoomButton = !!zoomOptions && wanted("zoom");
+      if (opts.show === "never" || (!movable && !save && !zoomButton)) return;
       var icon = function (name, fallback) { return iconClass(opts.icons[name] ?? fallback); };
       toolbar = d3.select(el).append("div")
         .attr("class", `geneviewer-toolbar geneviewer-toolbar-${opts.position}` +
@@ -859,14 +863,27 @@ HTMLWidgets.widget({
        ["tooltipBorder", "--gv-toolbar-tip-border"], ["tooltipRadius", "--gv-toolbar-tip-radius"],
        ["tooltipShadow", "--gv-toolbar-tip-shadow"], ["fontFamily", "--gv-toolbar-font"], ["size", "--gv-toolbar-size"]]
         .forEach(function (v) { if (opts[v[0]] != null) toolbar.style(v[1], px(opts[v[0]])); });
+      // icon: the default icon; kbd: the shortcut shown in the tooltip;
+      // shortcuts: the same for assistive technology
+      var addButton = function (group, b) {
+        var button = group.append("button")
+          .attr("type", "button")
+          .attr("class", "geneviewer-toolbar-button geneviewer-" + b.name)
+          .attr("aria-label", b.label)
+          .attr("aria-keyshortcuts", b.shortcuts)
+          .property("disabled", !!b.disabled)
+          .on("click", b.onClick);
+        button.append("i").attr("class", icon(b.name, b.icon)).attr("aria-hidden", "true");
+        var tip = button.append("span").attr("class", "geneviewer-toolbar-tip").attr("aria-hidden", "true");
+        tip.append("span").text(b.label);
+        if (b.kbd) tip.append("kbd").text(b.kbd);
+      };
       if (movable) {
         var historyGroup = toolbar.append("div")
           .attr("class", "geneviewer-history")
           .attr("role", "group")
           .attr("aria-label", "Positions")
           .property("hidden", true);
-        // icon: the default icon; kbd: the shortcut shown in the tooltip;
-        // shortcuts: the same for assistive technology
         [{ name: "undo", label: "Undo", icon: "rotate-left", kbd: onMac ? "\u2318Z" : "Ctrl+Z",
            shortcuts: "Control+Z Meta+Z", onClick: function () { step(true); } },
          { name: "redo", label: "Redo", icon: "rotate-right", kbd: onMac ? "\u21e7\u2318Z" : "Ctrl+Y",
@@ -874,22 +891,21 @@ HTMLWidgets.widget({
          { name: "reset", label: "Reset positions", icon: "house", kbd: null, shortcuts: null,
            onClick: resetMoves }]
           .filter(function (b) { return wanted(b.name); })
-          .forEach(function (b) {
-            var button = historyGroup.append("button")
-              .attr("type", "button")
-              .attr("class", "geneviewer-toolbar-button geneviewer-" + b.name)
-              .attr("aria-label", b.label)
-              .attr("aria-keyshortcuts", b.shortcuts)
-              .property("disabled", true)
-              .on("click", b.onClick);
-            button.append("i").attr("class", icon(b.name, b.icon)).attr("aria-hidden", "true");
-            var tip = button.append("span").attr("class", "geneviewer-toolbar-tip").attr("aria-hidden", "true");
-            tip.append("span").text(b.label);
-            if (b.kbd) tip.append("kbd").text(b.kbd);
-          });
+          .forEach(function (b) { addButton(historyGroup, Object.assign({ disabled: true }, b)); });
         // Moving elements and saving the chart are apart, so a click that
         // misses one does not do the other
-        if (save) historyGroup.append("span").attr("class", "geneviewer-toolbar-divider");
+        if (save || zoomButton) historyGroup.append("span").attr("class", "geneviewer-toolbar-divider");
+      }
+      // Shows everything again (GC_zoom()), while zoomed in
+      if (zoomButton) {
+        var zoomGroup = toolbar.append("div")
+          .attr("class", "geneviewer-history geneviewer-zoom-buttons")
+          .attr("role", "group")
+          .attr("aria-label", "Zoom")
+          .property("hidden", zoomRange === null);
+        addButton(zoomGroup, { name: "zoom", label: "Reset zoom", icon: "magnifying-glass-minus",
+                               kbd: null, shortcuts: null, onClick: resetZoom });
+        if (save) zoomGroup.append("span").attr("class", "geneviewer-toolbar-divider");
       }
       if (save) createSaveIcon(widgetId, el, toolbar.node(), icon("save", "download"));
     };
@@ -953,8 +969,343 @@ HTMLWidgets.widget({
       applySelection(true);
     };
 
+    // Zoom slider (GC_zoom()): a window on the range of the clusters, below
+    // them. Dragging a handle resizes the window, dragging the window moves
+    // it, a click on the track centres it there and a double-click shows
+    // everything. The chart is drawn again for each window, as on resize.
+    var zoomOptions = null;
+    // The window in the units of its mode: shares of each cluster's width
+    // ("relative") or base pairs ("absolute"); null shows everything
+    var zoomRange = null;
+    // The range and mode last set in R: a new one replaces the window
+    var zoomRequest = null;
+    // The clusters of the last draw, and the range of the slider track
+    var zoomCharts = [];
+    var zoomTrack = [0, 1];
+    var zoomBar = null;
+    var zoomDrag = null;
+    var zoomFrame = null;
+    var zoomTimer = null;
+    var zoomMode = function () { return zoomOptions?.mode === "absolute" ? "absolute" : "relative"; };
+    var initialZoom = function () {
+      var range = zoomOptions?.range;
+      if (!Array.isArray(range) || range.length !== 2) return null;
+      range = range.slice().sort(function (a, b) { return a - b; });
+      return zoomMode() === "relative" && range[0] <= 0 && range[1] >= 1 ? null : range;
+    };
+    // Shares of the track of the window, and back
+    var toTrack = function (value) { return (value - zoomTrack[0]) / (zoomTrack[1] - zoomTrack[0]); };
+    var fromTrack = function (share) { return zoomTrack[0] + share * (zoomTrack[1] - zoomTrack[0]); };
+    var zoomShares = function () {
+      if (!zoomRange) return [0, 1];
+      return zoomMode() === "absolute" ? zoomRange.map(toTrack) : zoomRange.slice();
+    };
+    // The narrowest window, as a share of the track (default 1%)
+    var minShare = function () {
+      var min = zoomOptions?.min;
+      if (min == null) return 0.01;
+      return Math.min(1, zoomMode() === "absolute" ? min / (zoomTrack[1] - zoomTrack[0]) : min);
+    };
+    // Whole base pairs, or shares to 0.0001: values to write in code
+    var roundZoom = function (value) {
+      return zoomMode() === "absolute" ? Math.round(value) : Math.round(value * 10000) / 10000;
+    };
+    var setZoomShares = function (shares) {
+      zoomRange = shares[0] <= 1e-6 && shares[1] >= 1 - 1e-6 ? null
+        : shares.map(function (share) { return roundZoom(zoomMode() === "absolute" ? fromTrack(share) : share); });
+    };
+    // What the window shows: its range, and the base pairs of each cluster
+    var zoomDetail = function () {
+      var absolute = zoomMode() === "absolute";
+      var range = zoomRange || (absolute ? zoomTrack : [0, 1]);
+      return {
+        mode: zoomMode(),
+        start: roundZoom(range[0]),
+        end: roundZoom(range[1]),
+        zoomed: zoomRange !== null,
+        // For GC_zoom(range = ): NULL when everything shows
+        range: zoomRange ? zoomRange.slice() : null,
+        clusters: zoomCharts.map(function (item) {
+          var chart = item.chart;
+          var shown = [chart.xScale.invert(0), chart.xScale.invert(chart.width - chart.margin.left - chart.margin.right)]
+            .sort(function (a, b) { return a - b; });
+          return { cluster: item.key, start: Math.round(shown[0]), end: Math.round(shown[1]) };
+        })
+      };
+    };
+    // Every change of the window is reported, so an app always knows it:
+    // "drag", "keyboard" and "reset" by the user, "set" by GC_zoom_to(), and
+    // "render" when a render changes it (new data, or a range or mode from
+    // R). The last two only when the window changed.
+    var lastZoom = null;
+    var reportZoom = function (action) {
+      clearTimeout(zoomTimer);
+      zoomTimer = null;
+      if (events.zoom !== true || !zoomOptions) return;
+      var detail = zoomDetail();
+      var key = JSON.stringify([detail.mode, detail.range, detail.clusters]);
+      if ((action === "render" || action === "set") && key === lastZoom) return;
+      lastZoom = key;
+      detail.action = action;
+      report("zoom", detail);
+    };
+    // The window, shades and handles at the shares of the track
+    var positionZoomBar = function () {
+      if (!zoomBar) return;
+      var shares = zoomShares();
+      var pct = function (share) { return (share * 100) + "%"; };
+      zoomBar.querySelector('[data-side="start"]').style.width = pct(shares[0]);
+      zoomBar.querySelector('[data-side="end"]').style.left = pct(shares[1]);
+      var windowNode = zoomBar.querySelector('[data-zoom-part="window"]');
+      windowNode.style.left = pct(shares[0]);
+      windowNode.style.width = pct(shares[1] - shares[0]);
+      var values = zoomRange || (zoomMode() === "absolute" ? zoomTrack : [0, 1]);
+      var text = function (value) {
+        return zoomMode() === "absolute" ? d3.format(",.0f")(value) : d3.format(".0%")(value);
+      };
+      ["start", "end"].forEach(function (part, i) {
+        var handle = zoomBar.querySelector('[data-zoom-part="' + part + '"]');
+        handle.style.left = pct(shares[i]);
+        handle.setAttribute("aria-valuenow", Math.round(shares[i] * 100));
+        handle.setAttribute("aria-valuetext", text(values[i]));
+      });
+      windowNode.setAttribute("aria-valuenow", Math.round(shares[0] * 100));
+      windowNode.setAttribute("aria-valuetext", text(values[0]) + " to " + text(values[1]));
+      toolbar?.select(".geneviewer-zoom-buttons").property("hidden", zoomRange === null);
+    };
+    // Draw the chart again for the window, at most once a frame
+    var redrawZoom = function (now) {
+      positionZoomBar();
+      if (now) {
+        if (zoomFrame) cancelAnimationFrame(zoomFrame);
+        zoomFrame = null;
+        return redraw();
+      }
+      if (zoomFrame) return;
+      zoomFrame = requestAnimationFrame(function () { zoomFrame = null; redraw(); });
+    };
+    var changeZoom = function (shares, now) {
+      setZoomShares(shares);
+      if (zoomDrag && zoomOptions?.update === "release") positionZoomBar();
+      else redrawZoom(now);
+    };
+    var resetZoom = function () {
+      if (zoomRange === null) return;
+      changeZoom([0, 1], true);
+      reportZoom("reset");
+    };
+    var startZoomDrag = function (event) {
+      event.stopPropagation();
+      if (event.button !== 0 || zoomDrag) return;
+      event.preventDefault();
+      var rect = event.currentTarget.getBoundingClientRect();
+      var at = (event.clientX - rect.left) / rect.width;
+      var part = event.target.closest("[data-zoom-part]")?.getAttribute("data-zoom-part") ?? "track";
+      var shares = zoomShares();
+      zoomDrag = { id: event.pointerId, left: rect.left, width: rect.width, at: at, moved: false,
+                   stopListening: listenWindow({ pointermove: moveZoomDrag, pointerup: endZoomDrag,
+                                                 pointercancel: endZoomDrag, blur: endZoomDrag }) };
+      if (part === "track") {
+        // The window moves to centre on the click, then follows the pointer
+        var half = (shares[1] - shares[0]) / 2;
+        var centre = Math.max(half, Math.min(1 - half, at));
+        shares = [centre - half, centre + half];
+        zoomDrag.moved = true;
+        changeZoom(shares);
+        part = "window";
+      }
+      zoomDrag.part = part;
+      zoomDrag.shares = shares;
+    };
+    var moveZoomDrag = function (event) {
+      if (!zoomDrag || event.pointerId !== zoomDrag.id) return;
+      event.preventDefault();
+      var delta = (event.clientX - zoomDrag.left) / zoomDrag.width - zoomDrag.at;
+      var s = zoomDrag.shares, min = minShare();
+      var next = zoomDrag.part === "start" ? [Math.max(0, Math.min(s[1] - min, s[0] + delta)), s[1]]
+        : zoomDrag.part === "end" ? [s[0], Math.min(1, Math.max(s[0] + min, s[1] + delta))]
+        : (function () {
+          var shift = Math.max(-s[0], Math.min(1 - s[1], delta));
+          return [s[0] + shift, s[1] + shift];
+        })();
+      zoomDrag.moved = true;
+      changeZoom(next);
+    };
+    var endZoomDrag = function (event) {
+      if (!zoomDrag || (event.pointerId !== undefined && event.pointerId !== zoomDrag.id)) return;
+      var state = zoomDrag;
+      zoomDrag = null;
+      state.stopListening();
+      if (!state.moved) return;
+      redrawZoom(true);
+      reportZoom("drag");
+    };
+    // Arrow keys move a handle or the window by 1% of the track (Shift: 10%),
+    // Home and End to the ends
+    var onZoomKey = function (event) {
+      var part = event.target.getAttribute && event.target.getAttribute("data-zoom-part");
+      if (!part) return;
+      var s = zoomShares(), min = minShare();
+      var step = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[event.key];
+      var next = null;
+      if (step) {
+        var delta = step * (event.shiftKey ? 0.1 : 0.01);
+        next = part === "start" ? [Math.max(0, Math.min(s[1] - min, s[0] + delta)), s[1]]
+          : part === "end" ? [s[0], Math.min(1, Math.max(s[0] + min, s[1] + delta))]
+          : [s[0] + Math.max(-s[0], Math.min(1 - s[1], delta)), s[1] + Math.max(-s[0], Math.min(1 - s[1], delta))];
+      } else if (event.key === "Home") {
+        next = part === "end" ? [s[0], Math.min(1, s[0] + min)] : part === "start" ? [0, s[1]] : [0, s[1] - s[0]];
+      } else if (event.key === "End") {
+        next = part === "start" ? [Math.max(0, s[1] - min), s[1]] : part === "end" ? [s[0], 1] : [1 - (s[1] - s[0]), 1];
+      }
+      if (!next) return;
+      event.preventDefault();
+      event.stopPropagation();
+      changeZoom(next);
+      clearTimeout(zoomTimer);
+      zoomTimer = setTimeout(function () { reportZoom("keyboard"); }, 300);
+    };
+    var applyCss = function (node, css) {
+      Object.keys(css || {}).forEach(function (key) {
+        if (key.includes("-")) node.style.setProperty(key, css[key]);
+        else node.style[key] = css[key];
+      });
+    };
+    // The slider, below the clusters, as wide as the plot area of the first
+    var addZoomBar = function (height) {
+      zoomBar = null;
+      if (!zoomOptions || !zoomCharts.length) return;
+      var absolute = zoomMode() === "absolute";
+      zoomTrack = absolute
+        ? [d3.min(zoomCharts, function (item) { return item.chart.minStart; }),
+           d3.max(zoomCharts, function (item) { return item.chart.maxEnd; })]
+        : [0, 1];
+      var first = zoomCharts[0].chart;
+      var row = d3.select(el).append("div")
+        .attr("class", "geneviewer-zoom-row")
+        .style("height", height + "px");
+      // In the chart's own pixels, also when the chart is scaled
+      var elBox = el.getBoundingClientRect(), scale = elBox.width / el.offsetWidth || 1;
+      var svgBox = first.svg.node().getBoundingClientRect(), svgScale = svgBox.width / first.width || 1;
+      var plotWidth = first.width - first.margin.left - first.margin.right;
+      var rowBox = row.node().getBoundingClientRect();
+      var bar = row.append("div")
+        .attr("class", "geneviewer-zoom-slider")
+        .attr("role", "group")
+        .attr("aria-label", "Zoom")
+        .style("left", (svgBox.left + first.margin.left * svgScale - rowBox.left) / scale + "px")
+        .style("width", plotWidth * svgScale / scale + "px")
+        .on("pointerdown", startZoomDrag)
+        .on("click", function (event) { event.stopPropagation(); })
+        .on("dblclick", function (event) { event.stopPropagation(); resetZoom(); })
+        .on("keydown", onZoomKey);
+      applyCss(bar.node(), zoomOptions.style);
+
+      // A miniature of the genes of each cluster, one row per cluster
+      if (zoomOptions.overview !== false) {
+        var overview = bar.append("svg")
+          .attr("class", "geneviewer-zoom-overview")
+          .attr("viewBox", "0 0 1000 " + height)
+          .attr("preserveAspectRatio", "none")
+          .attr("aria-hidden", "true");
+        var rowHeight = (height - 6) / zoomCharts.length;
+        var geneHeight = Math.max(1, Math.min(rowHeight * 0.7, 8));
+        zoomCharts.forEach(function (item, i) {
+          var chart = item.chart;
+          var width = chart.width - chart.margin.left - chart.margin.right;
+          var share = function (value) {
+            if (absolute) return toTrack(value);
+            var x = chart.fullScale(value);
+            return x === null ? null : x / width;
+          };
+          var color = function (d) {
+            if (zoomOptions.color) return zoomOptions.color;
+            return item.group && chart.genesColorScale ? chart.genesColorScale(d[item.group]) : "#9e9e9e";
+          };
+          (chart.data || []).forEach(function (d) {
+            var a = share(d.start), b = share(d.end);
+            if (a === null || b === null) return;
+            overview.append("rect")
+              .attr("x", Math.min(a, b) * 1000)
+              .attr("width", Math.max(Math.abs(b - a) * 1000, 1))
+              .attr("y", 3 + rowHeight * i + (rowHeight - geneHeight) / 2)
+              .attr("height", geneHeight)
+              .attr("fill", color(d));
+          });
+        });
+      }
+      bar.append("div").attr("class", "geneviewer-zoom-shade").attr("data-side", "start");
+      bar.append("div").attr("class", "geneviewer-zoom-shade").attr("data-side", "end");
+      var windowNode = bar.append("div")
+        .attr("class", "geneviewer-zoom-window")
+        .attr("data-zoom-part", "window");
+      applyCss(windowNode.node(), zoomOptions.windowStyle);
+      [windowNode].concat(["start", "end"].map(function (part) {
+        var handle = bar.append("div")
+          .attr("class", "geneviewer-zoom-handle")
+          .attr("data-zoom-part", part);
+        applyCss(handle.node(), zoomOptions.handleStyle);
+        return handle;
+      })).forEach(function (node) {
+        var part = node.attr("data-zoom-part");
+        node.attr("tabindex", 0)
+          .attr("role", "slider")
+          .attr("aria-label", part === "window" ? "Zoom window" : part === "start" ? "Zoom start" : "Zoom end")
+          .attr("aria-valuemin", 0)
+          .attr("aria-valuemax", 100);
+      });
+      zoomBar = bar.node();
+      positionZoomBar();
+    };
+    // Zoomed, links between clusters are clipped to the plot areas
+    var clipZoomLinks = function () {
+      if (!zoomCharts.some(function (item) { return item.chart.zoom; })) return;
+      var ns = "http://www.w3.org/2000/svg";
+      el.querySelectorAll("svg.GeneLink").forEach(function (svg, index) {
+        var box = svg.getBoundingClientRect();
+        var scale = box.width / (+svg.getAttribute("width") || box.width) || 1;
+        var id = "geneviewer-zoom-links-" + widgetId + "-" + index;
+        var clipPath = document.createElementNS(ns, "clipPath");
+        clipPath.setAttribute("id", id);
+        zoomCharts.forEach(function (item) {
+          var chart = item.chart;
+          var svgBox = chart.svg.node().getBoundingClientRect(), svgScale = svgBox.width / chart.width || 1;
+          var rect = document.createElementNS(ns, "rect");
+          rect.setAttribute("x", (svgBox.left + chart.margin.left * svgScale - box.left) / scale);
+          rect.setAttribute("y", 0);
+          rect.setAttribute("width", (chart.width - chart.margin.left - chart.margin.right) * svgScale / scale);
+          rect.setAttribute("height", svg.getAttribute("height"));
+          clipPath.appendChild(rect);
+        });
+        var defs = document.createElementNS(ns, "defs");
+        defs.appendChild(clipPath);
+        var group = document.createElementNS(ns, "g");
+        group.setAttribute("clip-path", "url(#" + id + ")");
+        Array.from(svg.childNodes).forEach(function (node) { group.appendChild(node); });
+        svg.appendChild(defs);
+        svg.appendChild(group);
+      });
+    };
+    // GC_zoom_to(): a range in the units of the mode, or NULL for everything
+    zoomTargets[el.id] = function (range) {
+      if (!zoomOptions) return;
+      zoomRange = Array.isArray(range) && range.length === 2
+        ? range.slice().sort(function (a, b) { return a - b; }) : null;
+      if (zoomRange && zoomMode() === "relative" && zoomRange[0] <= 0 && zoomRange[1] >= 1) zoomRange = null;
+      redrawZoom(true);
+      reportZoom("set");
+    };
+    if (HTMLWidgets.shinyMode && !zoomHandlerAdded && window.Shiny?.addCustomMessageHandler) {
+      zoomHandlerAdded = true;
+      Shiny.addCustomMessageHandler("geneviewer-zoom", function (message) {
+        var target = zoomTargets[message.id];
+        if (target) target(message.range);
+      });
+    }
+
     var draw = function (width, height) {
       cancelDrag();
+      zoomCharts = [];
 
       // Keep legend visibility while editing or resizing the same chart.
       var hiddenGroups = preserveLegend ? Array.from(el.querySelectorAll(".legend.unselected"), function (node) { return node.__data__; }) : [];
@@ -1076,6 +1427,10 @@ HTMLWidgets.widget({
 
       // Add Clusters
       var clusters = Object.keys(series);
+      // Room for the zoom slider below the clusters, with a gap above it
+      var zoomBarHeight = zoomOptions ? (zoomOptions.height ?? 24) : 0;
+      var zoomHeight = zoomOptions ? zoomBarHeight + 8 : 0;
+      var zoom = zoomOptions && zoomRange ? { from: zoomRange[0], to: zoomRange[1], mode: zoomMode() } : null;
 
       // Add Links: each set from GC_links() keeps its own options
       var linkSets = (Array.isArray(links) ? links : []).map(entry => ({
@@ -1107,6 +1462,7 @@ HTMLWidgets.widget({
         clonedContainerOptions.height = computeSize(clonedContainerOptions.height, el.clientHeight);
         clonedContainerOptions.height -= titleHeight / clusters.length;
         clonedContainerOptions.height -= legendHeight ? (legendHeight / clusters.length) : 0;
+        clonedContainerOptions.height -= zoomHeight / clusters.length;
         // Percentage heights: take the top and bottom margins (padding) from the clusters
         if (typeof containerOptions.height === "string" && containerOptions.height.endsWith("%")) {
           var padding = (parseFloat(chartStyle.paddingTop) || 0) + (parseFloat(chartStyle.paddingBottom) || 0);
@@ -1128,7 +1484,7 @@ HTMLWidgets.widget({
           .footer(footerOptions?.title, footerOptions?.subtitle, footerOptions?.show ?? false, footerOptions)
           .clusterLabel(clusterLabelOptions?.title, clusterLabelOptions?.show ?? false, clusterLabelOptions)
           .geneData(data, clusterData)
-          .scale(scaleOptions)
+          .scale(zoom ? Object.assign({}, scaleOptions, { zoom: zoom }) : scaleOptions)
           .sequence(sequenceOptions?.show ?? false, sequenceOptions)
           .genes(geneOptions?.group, geneOptions?.show ?? false, geneOptions)
           .transcript(transcriptOptions?.group, transcriptOptions?.show ?? false, transcriptOptions);
@@ -1145,9 +1501,14 @@ HTMLWidgets.widget({
           .scaleBar(scaleBarOptions?.show ?? false, scaleBarOptions)
           .addAnnotations(annotationOptions)
           .trackMouse(trackMouse?.show ?? false, trackMouse)
-          .tooltip(tooltipOptions?.show ?? false, tooltipOptions);
+          .tooltip(tooltipOptions?.show ?? false, tooltipOptions)
+          .clipZoom();
+
+        zoomCharts.push({ key: clusterKey, chart: chart, group: geneOptions?.group });
 
       });
+
+      addZoomBar(zoomBarHeight);
 
       // Bottom legend: drawn above to measure its height, then moved below the clusters
       var legendPosition = mergeOptions({ position: "bottom" }, "legendOptions", legendOptions, theme).position;
@@ -1173,6 +1534,42 @@ HTMLWidgets.widget({
       const graphContainer = d3.select(`#geneviewer-graph-container-${widgetId}`);
       makeLinks(graphContainer, links, theme);
       makeColorBar(graphContainer, links, theme);
+      clipZoomLinks();
+    };
+    // A redraw empties the chart for a moment, so a page or panel that
+    // scrolls it would jump back: keep where they are scrolled to
+    var keepScroll = function (drawing) {
+      var scrolled = [];
+      for (var node = el.parentElement; node; node = node.parentElement) {
+        if (node.scrollTop || node.scrollLeft) scrolled.push([node, node.scrollTop, node.scrollLeft]);
+      }
+      var page = document.scrollingElement;
+      if (page && !scrolled.some(function (item) { return item[0] === page; })) {
+        scrolled.push([page, page.scrollTop, page.scrollLeft]);
+      }
+      try {
+        drawing();
+      } finally {
+        scrolled.forEach(function (item) {
+          if (item[0].scrollTop !== item[1]) item[0].scrollTop = item[1];
+          if (item[0].scrollLeft !== item[2]) item[0].scrollLeft = item[2];
+        });
+      }
+    };
+    // Draw again with the same settings, as on resize: moves kept here stay
+    var redraw = function () {
+      // A slider handle with keyboard focus keeps it
+      var focused = zoomBar && zoomBar.contains(document.activeElement)
+        ? document.activeElement.getAttribute("data-zoom-part") : null;
+      keepScroll(function () {
+        draw();
+        addLinks();
+        liftMovedElements();
+        restoreLocalMoves();
+        wireEvents();
+        checkMoves();
+      });
+      if (focused && zoomBar) zoomBar.querySelector('[data-zoom-part="' + focused + '"]')?.focus({ preventScroll: true });
     };
 
     // The rows of all clusters in the columns of the chart data (dataColumns),
@@ -1201,6 +1598,16 @@ HTMLWidgets.widget({
         }
         queuedRender = null;
         cancelDrag();
+        // A new window from R, or new data, starts at the window set in R
+        zoomOptions = input.zoom && input.zoom.show !== false ? input.zoom : null;
+        var request = zoomOptions ? JSON.stringify([zoomOptions.range ?? null, zoomMode()]) : null;
+        if (nextSignature !== dataSignature || request !== zoomRequest) {
+          zoomRange = initialZoom();
+          // An app may have reset what it knows of the window: report it
+          lastZoom = null;
+        }
+        if (!zoomOptions) lastZoom = null;
+        zoomRequest = request;
         if (dataSignature !== null && nextSignature !== dataSignature) {
           preserveLegend = false;
           if (selection.length) { setSelection([]); reportSelection(); }
@@ -1228,6 +1635,7 @@ HTMLWidgets.widget({
         liftMovedElements();
         wireEvents();
         checkMoves();
+        reportZoom("render");
         if (events.rendered === true) {
           var detail = {
             id: events.renderId ?? (el.id + "-render-" + (++renderSequence)),
@@ -1243,13 +1651,8 @@ HTMLWidgets.widget({
     };
     return {
       renderValue: renderValue,
-      resize: function (width, height) {
-        draw(width, height);
-        addLinks();
-        liftMovedElements();
-        restoreLocalMoves();
-        wireEvents();
-        checkMoves();
+      resize: function () {
+        redraw();
       }
     };
   }

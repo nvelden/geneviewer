@@ -85,7 +85,8 @@ click reporting has no effect outside Shiny.</p>
 <span>  dblclick <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  select <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  legend_click <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  drag <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  drag <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  zoom <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -135,6 +136,19 @@ markers, each on its own. Off by default. Releasing a drag reports
 <code>moveX</code> and <code>moveY</code> offsets in whole SVG pixels and <code>action</code> set to <code>"drag"</code>.
 Apply them with <code><a href="GC_element_style.html">GC_element_style()</a></code> to preserve the position on redraw.
 Escape cancels an active drag. Moves can be undone and redone, see Details.</p></dd>
+
+
+<dt>zoom</dt>
+<dd><p>Logical, whether to report the window of the zoom slider of
+<code><a href="GC_zoom.html">GC_zoom()</a></code> as <code>input$&lt;outputId&gt;_zoom</code> and <code>geneviewer:zoom</code>: <code>mode</code>,
+<code>start</code> and <code>end</code> of the window in the units of the mode (whole base
+pairs, or shares to 0.0001), <code>zoomed</code> (<code>FALSE</code> when everything shows),
+<code>range</code>, the window to pass to <code>GC_zoom(range = )</code> (<code>NULL</code> when
+everything shows), <code>clusters</code>, the cluster and the first and last base
+pair it shows, and <code>action</code>: <code>"drag"</code>, <code>"keyboard"</code> or <code>"reset"</code> by the
+user, <code>"set"</code> by <code><a href="GC_zoom_to.html">GC_zoom_to()</a></code>, or <code>"render"</code> when a render changed the
+window, e.g. new data. It is reported on the first render and after
+every change, so an app always knows the window.</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -878,7 +878,19 @@ function chartToSVG(el, exclude = null) {
   const ns = "http://www.w3.org/2000/svg";
   const elRect = el.getBoundingClientRect();
   const width = Math.ceil(elRect.width);
-  const height = Math.ceil(elRect.height);
+  // The zoom slider (GC_zoom()) is a control, not part of the figure: its
+  // band, with its margins, is left out, and what is below it moves up
+  const zoomRow = el.querySelector(".geneviewer-zoom-row");
+  let band = null;
+  if (zoomRow) {
+    const rowRect = zoomRow.getBoundingClientRect();
+    const rowStyle = getComputedStyle(zoomRow);
+    const top = rowRect.top - elRect.top - (parseFloat(rowStyle.marginTop) || 0);
+    const bottom = rowRect.bottom - elRect.top + (parseFloat(rowStyle.marginBottom) || 0);
+    if (bottom > top) band = { top, bottom, height: bottom - top };
+  }
+  const shiftOf = y => band && y >= band.bottom - 0.5 ? band.height : 0;
+  const height = Math.ceil(elRect.height - (band ? band.height : 0));
 
   const root = document.createElementNS(ns, "svg");
   root.setAttribute("xmlns", ns);
@@ -920,10 +932,12 @@ function chartToSVG(el, exclude = null) {
   };
 
   // Outermost SVGs only; nested ones are copied with their parent. Drawn in
-  // z-index order (e.g. links below clusters), as on the page
+  // z-index order (e.g. links below clusters), as on the page. The zoom
+  // slider is a control, not part of the figure.
   const zIndex = svg => parseInt(getComputedStyle(svg).zIndex, 10) || 0;
   const svgs = Array.from(el.querySelectorAll("svg"))
-    .filter(svg => !svg.parentElement.closest("svg") && !(exclude && exclude.contains(svg)))
+    .filter(svg => !svg.parentElement.closest("svg") && !(exclude && exclude.contains(svg)) &&
+                   !svg.closest(".geneviewer-zoom-slider"))
     .map((svg, order) => ({ svg, order, z: zIndex(svg) }))
     .sort((a, b) => a.z - b.z || a.order - b.order)
     .map(item => item.svg);
@@ -934,7 +948,8 @@ function chartToSVG(el, exclude = null) {
     const rect = svg.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
     const x = rect.left - elRect.left;
-    const y = rect.top - elRect.top;
+    const top = rect.top - elRect.top;
+    const y = top - shiftOf(top);
 
     addBackground(root, x, y, rect.width, rect.height, svgStyle.backgroundColor);
 
@@ -961,6 +976,19 @@ function chartToSVG(el, exclude = null) {
       target.removeAttribute("class");
       computedStyles.set(source, copyStyles(source, target, computedStyles.get(source.parentNode)));
     });
+
+    // An SVG over the slider band, such as the one of moved text, keeps
+    // its parts above the band and moves those below it up
+    if (band && top < band.bottom - 0.5) {
+      Array.from(svg.children).forEach((part, i) => {
+        if (part.tagName.toLowerCase() === "defs") return;
+        const partTop = part.getBoundingClientRect().top - elRect.top;
+        const shift = shiftOf(partTop);
+        if (!shift) return;
+        const target = clone.children[i];
+        target.setAttribute("transform", `translate(0, ${-shift}) ${target.getAttribute("transform") || ""}`.trim());
+      });
+    }
 
     // Hidden elements are left out of the file
     clone.querySelectorAll("[display='none']").forEach(node => node.remove());
@@ -1614,6 +1642,27 @@ container.prototype.scale = function (options = {}) {
 
   // Create scales
   this.xScale = createDiscontinuousScale(this.minStart, this.maxEnd, this.width, this.margin, breaks, reverse);
+  // The whole range, also when zoomed: the overview of the zoom slider
+  this.fullScale = createDiscontinuousScale(this.minStart, this.maxEnd, this.width, this.margin, breaks, reverse);
+  this.zoom = null;
+  // Zoom (GC_zoom()): the scale shows a window of its range, as shares of
+  // the width ("relative") or in base pairs ("absolute"). Everything placed
+  // with the scale moves with it; clipZoom() hides what falls outside.
+  if (options.zoom) {
+    const plotWidth = this.width - this.margin.left - this.margin.right;
+    const share = value => {
+      // A position in a scale break is drawn where the break is
+      const gap = breaks.find(gap => value >= gap.start && value <= gap.end);
+      return this.fullScale(gap ? gap.end + 1e-9 : value) / plotWidth;
+    };
+    const { from, to, mode } = options.zoom;
+    let [a, b] = (mode === "absolute" ? [share(from), share(to)] : [from, to]).sort((x, y) => x - y);
+    if (!(b - a > 1e-9)) b = a + 1e-9;
+    if (a > 1e-9 || b < 1 - 1e-9) {
+      this.zoom = [a, b];
+      this.xScale.range([-a * plotWidth / (b - a), (1 - a) * plotWidth / (b - a)]);
+    }
+  }
   this.yScale = d3.scaleLinear()
     .domain([0, 100])
     .range([this.height - this.margin.bottom - this.margin.top, 0]);
@@ -1630,9 +1679,14 @@ container.prototype.scale = function (options = {}) {
     .attr("data-component", "scale")
       .attr("transform", `translate(${this.margin.left},${this.margin.top + adjustedYOffset})`);
 
+    // Zoomed, the ticks are those of the window shown
+    const plotWidth = this.width - this.margin.left - this.margin.right;
+    const shown = this.zoom
+      ? [this.xScale.invert(0), this.xScale.invert(plotWidth)].sort((a, b) => a - b)
+      : [this.minStart, this.maxEnd];
     const linearScale = d3.scaleLinear()
-      .domain([this.minStart, this.maxEnd])
-      .range([0, this.width - this.margin.left - this.margin.right]);
+      .domain(shown)
+      .range([0, plotWidth]);
 
     const xAxis = d3.axisBottom(linearScale)
       .tickFormat(d3.format(ticksFormat));
@@ -1672,8 +1726,8 @@ container.prototype.scale = function (options = {}) {
       let tickValue = d3.select(this).data()[0];
       let newX = that.xScale(tickValue);
 
-      if (newX === null) {
-        // If the new X position is null, remove the tick
+      if (newX === null || newX < -0.5 || newX > plotWidth + 0.5) {
+        // Remove ticks in a scale break, or outside a zoomed window
         d3.select(this).remove();
       } else {
         // Otherwise, update the transform attribute
@@ -3884,6 +3938,29 @@ container.prototype.trackMouse = function(track = true, options = {}) {
     tooltip.style("visibility", "hidden");
   });
 
+  return this;
+};
+
+// Zoomed (GC_zoom()), the parts placed along the scale are clipped to the
+// plot area: they go into a nested SVG of its width, in the same coordinates
+const zoomClipped = ["sequence", "genes", "transcript", "links", "coordinates", "labels", "annotations"];
+container.prototype.clipZoom = function () {
+  if (!this.zoom) return this;
+  const svg = this.svg.node();
+  const parts = Array.from(svg.children).filter(node => zoomClipped.includes(node.getAttribute("data-component")));
+  if (!parts.length) return this;
+  const plotWidth = this.width - this.margin.left - this.margin.right;
+  const clip = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  clip.setAttribute("class", "geneviewer-zoom-clip");
+  clip.setAttribute("x", this.margin.left);
+  clip.setAttribute("y", 0);
+  clip.setAttribute("width", plotWidth);
+  clip.setAttribute("height", this.height);
+  clip.setAttribute("viewBox", `${this.margin.left} 0 ${plotWidth} ${this.height}`);
+  clip.setAttribute("preserveAspectRatio", "none");
+  clip.setAttribute("overflow", "hidden");
+  svg.insertBefore(clip, parts[0]);
+  parts.forEach(node => clip.appendChild(node));
   return this;
 };
 

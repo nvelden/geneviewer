@@ -151,6 +151,59 @@ test_that("redraws keep the window, and every change of it is reported", {
   expect_identical(GC_zoom(chart, range = list(0.4, 0.2))$x$zoom$range, c(0.2, 0.4))
 })
 
+test_that("a new render_id starts at the range again, also without rendered = TRUE", {
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class",
+                    height = "400px", width = "800px") %>%
+    GC_events(zoom = TRUE, render_id = "load-1") %>%
+    GC_zoom(range = c(0.25, 0.5))
+  expect_null(chart$x$events$rendered)
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file, width = 1000, height = 600)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const el = document.querySelector('.geneviewer');
+      const widget = HTMLWidgets.find('#' + el.id);
+      const x = JSON.parse(document.querySelector('script[data-for=\"' + el.id + '\"]').textContent).x;
+      const copy = renderId => {
+        const next = JSON.parse(JSON.stringify(x));
+        next.events.renderId = renderId;
+        return next;
+      };
+      const reports = [];
+      el.addEventListener('geneviewer:zoom', event => reports.push(event.detail));
+      const zoomWindow = () => {
+        const node = el.querySelector('[data-zoom-part=window]');
+        return { left: node.style.left, width: node.style.width };
+      };
+      const node = el.querySelector('[data-zoom-part=window]');
+      const box = node.getBoundingClientRect();
+      const x0 = box.left + box.width / 2, y = box.top + box.height / 2;
+      node.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: x0, clientY: y, pointerId: 1, button: 0 }));
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: x0 + box.width / 2, clientY: y, pointerId: 1 }));
+      window.dispatchEvent(new PointerEvent('pointerup', { clientX: x0 + box.width / 2, clientY: y, pointerId: 1 }));
+      const steps = { dragged: zoomWindow() };
+      reports.splice(0);
+      // The same load drawn again keeps the window the user picked
+      widget.renderValue(copy('load-1'));
+      steps.same = { ...zoomWindow(), reports: reports.splice(0) };
+      // A new load of the same data and range starts at the range again
+      widget.renderValue(copy('load-2'));
+      steps.load = { ...zoomWindow(), reports: reports.splice(0) };
+      return JSON.stringify(steps);
+    })()
+  ")
+  expect_null(result$exceptionDetails)
+  steps <- jsonlite::fromJSON(result$result$value, simplifyVector = FALSE)
+  expect_identical(steps$dragged$left, "37.5%")
+  expect_identical(steps$same$left, "37.5%")
+  expect_length(steps$same$reports, 0)
+  expect_identical(steps$load$left, "25%")
+  expect_identical(steps$load$width, "25%")
+  expect_identical(steps$load$reports[[1]]$action, "render")
+  expect_equal(unlist(steps$load$reports[[1]]$range), c(0.25, 0.5))
+})
+
 test_that("saved images leave out the slider and its room", {
   chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class",
                     height = "400px", width = "800px") %>%

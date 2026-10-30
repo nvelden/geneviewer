@@ -42,6 +42,10 @@ test_that("GC_cluster() checks prevent_gene_overlap and overlap_min", {
                "'overlap_min' must be")
   expect_error(GC_cluster(chart, prevent_gene_overlap = TRUE, overlap_min = "ten%"),
                "'overlap_min' must be")
+  for (value in c("1.2.3%", ".%", "5.%")) {
+    expect_error(GC_cluster(chart, prevent_gene_overlap = TRUE, overlap_min = value),
+                 "'overlap_min' must be")
+  }
   nested <- GC_cluster(chart, prevent_gene_overlap = "nested")
   data <- nested$x$series[[1]]$data
   expect_equal(stats::setNames(data$geneTrack, data$name)[track_genes$name],

@@ -1313,7 +1313,7 @@ GC_cluster <- function(
   if (!is.null(overlap_min) &&
       !(length(overlap_min) == 1 && !is.na(overlap_min) &&
         ((is.numeric(overlap_min) && overlap_min >= 0) ||
-         (is.character(overlap_min) && grepl("^[0-9.]+%$", overlap_min) &&
+         (is.character(overlap_min) && grepl("^[0-9]+(\\.[0-9]+)?%$", overlap_min) &&
           as.numeric(sub("%$", "", overlap_min)) <= 100)))) {
     stop("'overlap_min' must be a number of base pairs or a share such as \"10%\".")
   }

@@ -293,7 +293,9 @@ GC_trackMouse <- function(
 #' @param render_id Optional single character string or finite number returned
 #'   with the rendered event, to identify the update. The default, `NULL`,
 #'   generates a unique ID for each update in the browser. It is not a DOM
-#'   element ID; the event's `chartId` identifies the chart itself.
+#'   element ID; the event's `chartId` identifies the chart itself. A new
+#'   `render_id` also marks a new load for [GC_zoom()], which then starts at
+#'   its `range` again, also when `rendered` is `FALSE`.
 #' @param dblclick Logical, whether to report double-clicks for editing.
 #' @param select Logical, whether to enable individual element selection.
 #' @param drag Logical, enable dragging gene labels, chart titles and cluster
@@ -368,10 +370,9 @@ GC_events <- function(GC_chart, click = TRUE, highlight = FALSE,
   }
   if (!legend_click) GC_chart$x$events$legendClick <- FALSE
   if (zoom) GC_chart$x$events$zoom <- TRUE
-  if (rendered) {
-    GC_chart$x$events$rendered <- TRUE
-    GC_chart$x$events$renderId <- render_id
-  }
+  if (rendered) GC_chart$x$events$rendered <- TRUE
+  # Also without rendered: a new render_id makes GC_zoom() start at its range
+  GC_chart$x$events$renderId <- render_id
   GC_chart
 }
 

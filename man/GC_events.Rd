@@ -30,7 +30,9 @@ mouse, to show what a click selects.}
 \item{render_id}{Optional single character string or finite number returned
 with the rendered event, to identify the update. The default, \code{NULL},
 generates a unique ID for each update in the browser. It is not a DOM
-element ID; the event's \code{chartId} identifies the chart itself.}
+element ID; the event's \code{chartId} identifies the chart itself. A new
+\code{render_id} also marks a new load for \code{\link[=GC_zoom]{GC_zoom()}}, which then starts at
+its \code{range} again, also when \code{rendered} is \code{FALSE}.}
 
 \item{dblclick}{Logical, whether to report double-clicks for editing.}
 

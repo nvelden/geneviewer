@@ -1,8 +1,9 @@
 test_that("render events are opt-in and validate identifiers", {
   chart <- GC_chart(data.frame(start = 1, end = 10))
   expect_identical(GC_events(chart)$x$events, list(click = TRUE, highlight = FALSE))
-  expect_identical(GC_events(chart, rendered = FALSE, render_id = "unused")$x$events,
-                   list(click = TRUE, highlight = FALSE))
+  # Without rendered, render_id is still sent: it marks a new load for GC_zoom()
+  expect_identical(GC_events(chart, rendered = FALSE, render_id = "load-1")$x$events,
+                   list(click = TRUE, highlight = FALSE, renderId = "load-1"))
   for (id in list(NULL, "load-1", "", 0, 2L, 1.5)) {
     events <- GC_events(chart, click = FALSE, rendered = TRUE, render_id = id)$x$events
     expect_true(events$rendered)

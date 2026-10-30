@@ -35,10 +35,17 @@ options as \code{itemStyle}; the \code{itemStyle} of a label takes precedence ov
 the style of its group.}
 
 \item{style_by}{Column name or NULL; the column whose values \code{groupStyle} is
-matched against, e.g. the label column to style labels by their text.
-Default is NULL: the \code{group} of \code{\link[=GC_chart]{GC_chart()}}.}
+matched against, e.g. the label column to style labels by their text, or
+\code{"geneTrack"} for the track of a gene with
+\code{\link[=GC_cluster]{GC_cluster()}}\verb{(prevent_gene_overlap = )}, e.g. \code{groupStyle = list("2" = list(...))} for the labels of the second track. Default is NULL: the
+\code{group} of \code{\link[=GC_chart]{GC_chart()}}.}
 
-\item{...}{Additional arguments for further customization of the labels.}
+\item{...}{Additional arguments for further customization of the labels,
+e.g. \code{adjustLabels}: \code{TRUE} (default) turns labels that overlap another
+one, \code{"hide"} hides them instead, and \code{FALSE} leaves them as they are. A
+label that would turn out of the plot area, e.g. above its cluster or past
+the right end, is hidden rather than cut off. Hidden labels come back when
+there is room for them, e.g. when zoomed in with \code{\link[=GC_zoom]{GC_zoom()}}.}
 }
 \value{
 A \verb{GC chart} object with updated label settings for each specified cluster.
@@ -75,7 +82,7 @@ GC_labels(
  dy = "-1.2em",
  dx = "0em",
  rotate = 0,
- adjustLabels = TRUE, # Rotate labels to prevent overlap
+ adjustLabels = TRUE, # Rotate labels to prevent overlap; "hide" hides them
  fontSize = "12px",
  fontStyle = "italic",
  fill = "black",

@@ -57,7 +57,9 @@ the style of its group.}
 
 \item{style_by}{Column name or NULL; the column whose values \code{groupStyle} is
 matched against, to style genes by another column than the one that sets
-their colours. Default is NULL: \code{group}.}
+their colours, or \code{"geneTrack"} for the track of a gene with
+\code{\link[=GC_cluster]{GC_cluster()}}\verb{(prevent_gene_overlap = )}, e.g. \code{groupStyle = list("2" = list(markerHeight = 8))} to draw the genes of the second track smaller.
+Default is NULL: \code{group}.}
 
 \item{corner_radius}{Numeric or NULL, radius in pixels of the rounded corners
 of 'arrow', 'boxarrow', 'box' and 'rbox' markers, e.g. \code{3} for soft

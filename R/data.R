@@ -243,3 +243,92 @@
 #'   CRISPR-Cas systems by Tn7-like transposons. Proc Natl Acad Sci USA.
 #'   2017;114(35):E7358-E7366.
 "tn7_crispr_elements"
+
+#' Genes of eleven coronaviruses from the four genera
+#'
+#' The genes of eleven coronaviruses, the genomes of Fig. 1 of the reference:
+#' HCoV-229E and HCoV-NL63 (*Alphacoronavirus*), MHV, HCoV-OC43, HCoV-HKU1,
+#' MERS-CoV, SARS-CoV-1, SARS-CoV-2 and the bat coronavirus RaTG13
+#' (*Betacoronavirus*), IBV (*Gammacoronavirus*) and PDCoV
+#' (*Deltacoronavirus*). They are in that order, by genus and subgenus, so
+#' that each genome sits next to its closest relatives here. Made by
+#' `data-raw/coronavirus_genomes.R`.
+#'
+#' The genes are read from the GenBank records and named as in the
+#' literature, e.g. "3a" for the "Orf3" of SARS-CoV-1 and the "NS3" of
+#' RaTG13. ORF1ab is split at its -1 ribosomal frameshift into ORF1a and
+#' ORF1b. Fourteen accessory ORFs that the records do not annotate are added
+#' from their position in the genome (`product` ends in "(not annotated in the
+#' record)"): the ORFs that lie inside N in another reading frame (Ia and Ib of
+#' HCoV-229E and HCoV-NL63, 9b and 9c of RaTG13 and SARS-CoV-2, 8c of
+#' MERS-CoV), 3b, 3c and 3d inside ORF3a of SARS-CoV-2 and 3b of RaTG13 (the
+#' SARS-CoV-2 ORFs are described by Jungreis et al., 2021), and ORF10 of
+#' RaTG13, which matches ORF10 of SARS-CoV-2. Each runs from an ATG to its
+#' first stop codon. MHV is strain JHM, as the records of strain A59 leave out
+#' HE, 4 and 5a.
+#'
+#' Homologous genes of closely related neighbouring genomes share a
+#' `homolog`. Every gene is translated from the genome and aligned to the
+#' genes of the next genome with [protein_blast()]. Only neighbours whose
+#' ORF1b, which holds the polymerase and is the most conserved protein, is at
+#' least 70% identical are joined: the genomes of a subgenus and the two
+#' alphacoronaviruses (82%), but not the subgenera of the betacoronaviruses
+#' (62-66%) or the genera (50-56%), whose proteins are so far apart that their
+#' identity says little. The cut-off is chosen for these genomes, not an
+#' official one. Between close relatives, the core genes (ORF1a, ORF1b, S, HE,
+#' E, M and N) are homologous and are joined to the same gene of the next
+#' genome, however low their identity. Accessory genes are joined when each is
+#' the other's best hit, with at least 30% identity, or 50% when either protein
+#' is shorter than 50 amino acids, as short alignments reach a third identity
+#' by chance.
+#'
+#' Each genome also has a row for its 5' untranslated region, named "L" after
+#' the leader sequence it starts with, from the start of the genome to ORF1a,
+#' and one for its 3' untranslated region ("3'UTR"), from the last gene to the
+#' end of the genome.
+#'
+#' @format A data frame with 148 rows and 15 columns:
+#' \describe{
+#'   \item{cluster}{Short name of the virus, e.g. "SARS-CoV-2". A character vector.}
+#'   \item{genus}{Genus of the virus, e.g. "Betacoronavirus". A character vector.}
+#'   \item{subgenus}{Subgenus of the virus, e.g. "Sarbecovirus". A character
+#'   vector.}
+#'   \item{virus}{Name of the virus. A character vector.}
+#'   \item{strain}{Strain or isolate, as in the record. A character vector.}
+#'   \item{host}{Host of the virus, e.g. "human" or "bat". A character vector.}
+#'   \item{accession}{GenBank or RefSeq accession of the genome. A character vector.}
+#'   \item{gene}{Gene name, e.g. "ORF1a", "S", "3a" or "9b", or "L" and
+#'   "3'UTR" for the untranslated ends. A character vector.}
+#'   \item{product}{Description of the gene product, from the record. A
+#'   character vector.}
+#'   \item{category}{Role of the gene: "5' UTR", "ORF1a", "ORF1b", "spike",
+#'   "hemagglutinin-esterase", "envelope", "membrane", "nucleocapsid",
+#'   "accessory" or "3' UTR". A character vector.}
+#'   \item{start}{Start position of the gene in the genome. A numeric vector.}
+#'   \item{end}{End position of the gene in the genome. A numeric vector.}
+#'   \item{strand}{Strand of the gene; all are "forward". A character vector.}
+#'   \item{homolog}{Chain of homologous genes across neighbouring genomes of
+#'   the same genus, named after its first gene, e.g. "MHV 5a" for 5a of MHV,
+#'   ns12.9 of HCoV-OC43 and 4 of HCoV-HKU1, for
+#'   [GC_links()]`(group = "homolog")`; `NA` for a gene without a homolog
+#'   next to it. A character vector.}
+#'   \item{identity}{Protein identity, in percent, of the gene to its homolog
+#'   in the genome above; `NA` for the first gene of a chain. A numeric vector.}
+#' }
+#' @source GenBank accessions AF304460, AY567487, AY903460, AY597011,
+#'   MN996532 and AY274119 and RefSeq accessions AC_000192, NC_019843,
+#'   NC_045512, NC_001451 and NC_039208, read with [read_gbk()].
+#' @references Chazal N. Coronavirus, the King Who Wanted More Than a Crown:
+#'   From Common to the Highly Pathogenic SARS-CoV-2, Is the Key in the
+#'   Accessory Genes? Front Microbiol. 2021;12:682603.
+#'
+#'   Jungreis I, Sealfon R, Kellis M. SARS-CoV-2 gene content and COVID-19
+#'   mutation impact by comparing 44 Sarbecovirus genomes. Nat Commun.
+#'   2021;12:2642.
+#' @examples
+#' GC_chart(coronavirus_genomes, cluster = "cluster", group = "category",
+#'          height = "700px") %>%
+#'   GC_labels("gene") %>%
+#'   GC_clusterLabel() %>%
+#'   GC_zoom(range = c(0.75, 1))
+"coronavirus_genomes"

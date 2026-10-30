@@ -15,6 +15,7 @@ GC_links(
   measure = "identity",
   show_links = TRUE,
   label = TRUE,
+  label_position = "gene",
   normal_color = NULL,
   inverted_color = NULL,
   low_color = NULL,
@@ -54,6 +55,13 @@ When the genes also have labels from \code{\link[=GC_labels]{GC_labels()}}, the 
 below the gene name in the same label (or after it, when the label is
 rotated to avoid overlap).}
 
+\item{label_position}{Where the measure labels go: \code{"gene"} (default), with
+the label of the gene as described for \code{label}, or \code{"link"}, in the
+middle of each link, white on dark links. A measure is only written where
+it fits within its link and clear of the others, so narrow links stay
+clean; zoomed in with \code{\link[=GC_zoom]{GC_zoom()}}, links widen and more of them are
+written. With \code{"link"}, links from \code{data} have labels too.}
+
 \item{normal_color}{Color for the links in their normal state. Default is
 NULL: the color of the theme, otherwise "#969696".}
 
@@ -76,7 +84,30 @@ data, e.g. \code{vmin = floor(min(alignment$identity))}.}
 \item{color_bar}{Logical; if \code{TRUE}, the color bar is displayed. Default is
 NULL: as set by the theme, otherwise \code{TRUE}.}
 
-\item{colorBarOptions}{List of options to customize the color bar appearance.}
+\item{colorBarOptions}{List of options to customize the color bar appearance:
+\code{position}, where the bar goes: a corner of the plot area,
+\code{"bottomright"} (default), \code{"bottomleft"}, \code{"topright"} or \code{"topleft"},
+or \code{"legend"} for an item of the legend (\code{\link[=GC_legend]{GC_legend()}}), lying down, in
+the font of the legend; without a legend it goes bottom right.
+\code{legendSide} puts it before the groups of the legend, \code{"left"} (default),
+or after them, \code{"right"}.
+\code{orientation}, \code{"vertical"} (default) or \code{"horizontal"}. \code{labels}, for a
+horizontal bar: \code{"inline"}, one line with the title, the lowest measure,
+the bar and the highest, or \code{"below"}, the title above the bar and ticks
+with their measures below it, as many as fit. Default is \code{"inline"}; in
+the legend it is always inline, as its rows are one line. The title of a
+horizontal bar is bold. With the labels below, the bar is about three
+lines tall, so in a corner it is more likely to cover genes. In the
+legend the bar is as tall as the legend markers, with a light grey
+outline when the theme leaves it without one.
+\code{x} and \code{y} move the bar in from its corner (default 0, and 24 pixels up
+from a bottom corner for a vertical bar); \code{width} and \code{height} set the
+size of the bar (default 10 by 60 pixels standing, 80 by 8 lying inline,
+120 by 8 lying with the labels below); \code{title = FALSE} leaves
+out its title; \code{labelOptions}, \code{titleOptions} and \code{barOptions} style the
+labels, the title and the bar. The bar is drawn over the plot area, so in
+a corner it can cover genes or links: move it with \code{x} and \code{y}, or put it
+in the legend.}
 
 \item{linkWidth}{Numeric; specifies the width of the links. A value of \code{1}
 represents full width, and \code{0} represents no width.}
@@ -127,6 +158,13 @@ GC_chart(genes_data,
                    value2 = c("B", "A"),
                    label = FALSE,
                    cluster = c(1,2))
+
+# A horizontal color bar in the legend
+GC_chart(genes_data, cluster = "cluster", group = "group",
+         height = "220px") \%>\%
+  GC_links(group = "group", measure = "identity", label = FALSE,
+           colorBarOptions = list(position = "legend")) \%>\%
+  GC_legend(position = "top")
 
 # Style links and color bar
 GC_chart(genes_data,

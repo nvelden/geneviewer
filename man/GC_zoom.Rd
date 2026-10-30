@@ -28,8 +28,9 @@ GC_zoom(
 \code{mode}. \code{NULL} (default) shows everything. A Shiny app can keep the
 window the user picked with \verb{range = input$<outputId>_zoom$range} (see
 \code{\link[=GC_events]{GC_events()}}\code{(zoom = TRUE)}). The chart keeps the window the user picked
-when it is drawn again with the same data and the same \code{range} and
-\code{mode}.}
+when it is drawn again with the same data, the same \code{range} and \code{mode}
+and the same \code{\link[=GC_events]{GC_events()}}\code{(render_id = )}; a new \code{render_id} marks a new
+load, which starts at \code{range} again.}
 
 \item{mode}{How the window applies to the clusters: \code{"relative"} (default)
 zooms every cluster to the same share of its own range, e.g.

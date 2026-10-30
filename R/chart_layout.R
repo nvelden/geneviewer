@@ -1245,8 +1245,19 @@ GC_coordinates <- function(
 #' forward and reverse genes.
 #' @param strand_spacing Numeric, specifies the spacing between genes on
 #' different strands. Used only if `separate_strands` is TRUE.
-#' @param prevent_gene_overlap Logical, indicating whether to vertically separate
-#' overlapping genes.
+#' @param prevent_gene_overlap Whether to put overlapping genes on separate
+#' tracks, below each other: `TRUE` for all genes that overlap, or `"nested"`
+#' for only the genes that lie inside another gene (e.g. an ORF inside another
+#' reading frame), which go on the tracks below; the other genes stay on the
+#' first track, also where they overlap. A gene goes on the first track where
+#' it overlaps no gene placed before it. The track of each gene is in the
+#' `geneTrack` column, for the `style_by` of [GC_genes()] and [GC_labels()],
+#' e.g. to draw the genes of the second track smaller.
+#' @param overlap_min The overlap two genes need to go on separate tracks with
+#' `prevent_gene_overlap`: a number of base pairs, or a share of the shorter
+#' gene as a string, e.g. `"10%"`. Genes that overlap by no more, e.g. two
+#' genes that share a base or a stop codon, stay on the same track. Default
+#' NULL: any overlap.
 #' @param overlap_spacing Numeric, specifies the spacing between overlapping genes
 #' Used only if `prevent_gene_overlap` is TRUE.
 #' @param cluster Optional; used to specify which clusters in the chart should have tooltips.
@@ -1270,20 +1281,45 @@ GC_coordinates <- function(
 #'   GC_cluster(separate_strands=TRUE, strand_spacing = 0) %>%
 #'   GC_legend(FALSE)
 #'
+#' # Only the gene inside another one goes below, drawn smaller
+#' nested_genes <- data.frame(
+#'   start = c(1, 120, 300, 340), end = c(125, 400, 380, 600),
+#'   name = c("A", "B", "B2", "C")
+#' )
+#' GC_chart(nested_genes, height = "150px") %>%
+#'   GC_cluster(prevent_gene_overlap = "nested") %>%
+#'   GC_genes(style_by = "geneTrack",
+#'            groupStyle = list("2" = list(markerHeight = 8, arrowheadHeight = 8))) %>%
+#'   GC_labels("name")
+#'
 #' @export
 GC_cluster <- function(
     GC_chart,
     separate_strands = NULL,
     strand_spacing = NULL,
     prevent_gene_overlap = NULL,
+    overlap_min = NULL,
     overlap_spacing=NULL,
     cluster = NULL,
     style = list(),
     ...
 ) {
 
-  if (!is.null(separate_strands) && !is.null(prevent_gene_overlap) &&
-      separate_strands == TRUE && prevent_gene_overlap == TRUE) {
+  if (!is.null(prevent_gene_overlap) &&
+      !(length(prevent_gene_overlap) == 1 && !is.na(prevent_gene_overlap) &&
+        (is.logical(prevent_gene_overlap) || identical(prevent_gene_overlap, "nested")))) {
+    stop("'prevent_gene_overlap' must be TRUE, FALSE or \"nested\".")
+  }
+  if (!is.null(overlap_min) &&
+      !(length(overlap_min) == 1 && !is.na(overlap_min) &&
+        ((is.numeric(overlap_min) && overlap_min >= 0) ||
+         (is.character(overlap_min) && grepl("^[0-9.]+%$", overlap_min) &&
+          as.numeric(sub("%$", "", overlap_min)) <= 100)))) {
+    stop("'overlap_min' must be a number of base pairs or a share such as \"10%\".")
+  }
+
+  if (isTRUE(separate_strands) && !is.null(prevent_gene_overlap) &&
+      !isFALSE(prevent_gene_overlap)) {
     warning("Setting both 'separate_strands' and 'prevent_gene_overlap' to TRUE is not supported. Resetting to NULL.")
     separate_strands <- NULL
     prevent_gene_overlap <- NULL
@@ -1296,10 +1332,14 @@ GC_cluster <- function(
   for(i in seq_along(clusters)){
 
   # Add gene track
-  if(!is.null(prevent_gene_overlap) && prevent_gene_overlap){
+  if(!is.null(prevent_gene_overlap) && !isFALSE(prevent_gene_overlap)){
     subset_data <- GC_chart$x$series[[clusters[i]]]$data
     subset_data <- subset_data[with(subset_data, order(-pmax(start, end), abs(end - start))), ]
-    GC_chart$x$series[[clusters[i]]]$data <- add_gene_track(subset_data)
+    GC_chart$x$series[[clusters[i]]]$data <- add_gene_track(
+      subset_data,
+      nested = identical(prevent_gene_overlap, "nested"),
+      overlap_min = if (is.null(overlap_min)) 0 else overlap_min
+    )
   }
 
   # Update style options
@@ -1310,7 +1350,7 @@ GC_cluster <- function(
   clusterOptions <- compact(list(
     separateStrands = separate_strands,
     strandSpacing = strand_spacing,
-    preventGeneOverlap = prevent_gene_overlap,
+    preventGeneOverlap = if (!is.null(prevent_gene_overlap)) !isFALSE(prevent_gene_overlap),
     overlapSpacing = overlap_spacing,
     ...
   ))

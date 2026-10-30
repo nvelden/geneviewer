@@ -17,9 +17,17 @@
 #'   options as `itemStyle`; the `itemStyle` of a label takes precedence over
 #'   the style of its group.
 #' @param style_by Column name or NULL; the column whose values `groupStyle` is
-#'   matched against, e.g. the label column to style labels by their text.
-#'   Default is NULL: the `group` of [GC_chart()].
-#' @param ... Additional arguments for further customization of the labels.
+#'   matched against, e.g. the label column to style labels by their text, or
+#'   `"geneTrack"` for the track of a gene with
+#'   [GC_cluster()]`(prevent_gene_overlap = )`, e.g. `groupStyle = list("2" =
+#'   list(...))` for the labels of the second track. Default is NULL: the
+#'   `group` of [GC_chart()].
+#' @param ... Additional arguments for further customization of the labels,
+#'   e.g. `adjustLabels`: `TRUE` (default) turns labels that overlap another
+#'   one, `"hide"` hides them instead, and `FALSE` leaves them as they are. A
+#'   label that would turn out of the plot area, e.g. above its cluster or past
+#'   the right end, is hidden rather than cut off. Hidden labels come back when
+#'   there is room for them, e.g. when zoomed in with [GC_zoom()].
 #'
 #' @return A `GC chart` object with updated label settings for each specified cluster.
 #'
@@ -50,7 +58,7 @@
 #'  dy = "-1.2em",
 #'  dx = "0em",
 #'  rotate = 0,
-#'  adjustLabels = TRUE, # Rotate labels to prevent overlap
+#'  adjustLabels = TRUE, # Rotate labels to prevent overlap; "hide" hides them
 #'  fontSize = "12px",
 #'  fontStyle = "italic",
 #'  fill = "black",
@@ -83,6 +91,11 @@ GC_labels <- function(
 
   check_group_style(groupStyle)
   check_style_by(GC_chart, style_by)
+  adjust <- list(...)$adjustLabels
+  if (!is.null(adjust) && !(length(adjust) == 1 && !is.na(adjust) &&
+                            (isTRUE(adjust) || isFALSE(adjust) || identical(adjust, "hide")))) {
+    stop("'adjustLabels' must be TRUE, FALSE or \"hide\".")
+  }
 
   if (!any(show)) {
     return(GC_chart)
@@ -131,9 +144,11 @@ GC_labels <- function(
 #' Check that style_by is a single column of the data
 #' @noRd
 check_style_by <- function(GC_chart, style_by) {
+  # geneTrack: the track GC_cluster(prevent_gene_overlap = ) puts a gene on
   if (!is.null(style_by) &&
-      (length(style_by) != 1 || !style_by %in% names(GC_chart$x$data))) {
-    stop("style_by must be a single column name of the data")
+      (length(style_by) != 1 ||
+       !(style_by %in% names(GC_chart$x$data) || identical(style_by, "geneTrack")))) {
+    stop("style_by must be a single column name of the data, or \"geneTrack\"")
   }
 }
 
@@ -183,7 +198,10 @@ check_group_style <- function(groupStyle) {
 #'   the style of its group.
 #' @param style_by Column name or NULL; the column whose values `groupStyle` is
 #'   matched against, to style genes by another column than the one that sets
-#'   their colours. Default is NULL: `group`.
+#'   their colours, or `"geneTrack"` for the track of a gene with
+#'   [GC_cluster()]`(prevent_gene_overlap = )`, e.g. `groupStyle = list("2" =
+#'   list(markerHeight = 8))` to draw the genes of the second track smaller.
+#'   Default is NULL: `group`.
 #' @param ... Additional arguments to be passed to the gene options.
 #'
 #' @return Returns the modified gene chart object.

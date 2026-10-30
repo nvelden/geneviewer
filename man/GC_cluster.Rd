@@ -9,6 +9,7 @@ GC_cluster(
   separate_strands = NULL,
   strand_spacing = NULL,
   prevent_gene_overlap = NULL,
+  overlap_min = NULL,
   overlap_spacing = NULL,
   cluster = NULL,
   style = list(),
@@ -24,8 +25,20 @@ forward and reverse genes.}
 \item{strand_spacing}{Numeric, specifies the spacing between genes on
 different strands. Used only if \code{separate_strands} is TRUE.}
 
-\item{prevent_gene_overlap}{Logical, indicating whether to vertically separate
-overlapping genes.}
+\item{prevent_gene_overlap}{Whether to put overlapping genes on separate
+tracks, below each other: \code{TRUE} for all genes that overlap, or \code{"nested"}
+for only the genes that lie inside another gene (e.g. an ORF inside another
+reading frame), which go on the tracks below; the other genes stay on the
+first track, also where they overlap. A gene goes on the first track where
+it overlaps no gene placed before it. The track of each gene is in the
+\code{geneTrack} column, for the \code{style_by} of \code{\link[=GC_genes]{GC_genes()}} and \code{\link[=GC_labels]{GC_labels()}},
+e.g. to draw the genes of the second track smaller.}
+
+\item{overlap_min}{The overlap two genes need to go on separate tracks with
+\code{prevent_gene_overlap}: a number of base pairs, or a share of the shorter
+gene as a string, e.g. \code{"10\%"}. Genes that overlap by no more, e.g. two
+genes that share a base or a stop codon, stay on the same track. Default
+NULL: any overlap.}
 
 \item{overlap_spacing}{Numeric, specifies the spacing between overlapping genes
 Used only if \code{prevent_gene_overlap} is TRUE.}
@@ -57,5 +70,16 @@ genes_data <- data.frame(
 GC_chart(genes_data, group = "group", height = "150px") \%>\%
   GC_cluster(separate_strands=TRUE, strand_spacing = 0) \%>\%
   GC_legend(FALSE)
+
+# Only the gene inside another one goes below, drawn smaller
+nested_genes <- data.frame(
+  start = c(1, 120, 300, 340), end = c(125, 400, 380, 600),
+  name = c("A", "B", "B2", "C")
+)
+GC_chart(nested_genes, height = "150px") \%>\%
+  GC_cluster(prevent_gene_overlap = "nested") \%>\%
+  GC_genes(style_by = "geneTrack",
+           groupStyle = list("2" = list(markerHeight = 8, arrowheadHeight = 8))) \%>\%
+  GC_labels("name")
 
 }

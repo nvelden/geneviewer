@@ -16,8 +16,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-> **Note:** Most examples below use `GC_theme()`, and some use `GC_pattern()`, the `groupStyle` and `style_by` options, the `subtitle` of `GC_clusterLabel()` and the `pQEB1_plasmids`, `pQEB1_alignment` and `tn7_crispr_elements` data sets. These are only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
-
 ### *E.coli* Lac operon
 
 <details>
@@ -878,5 +876,166 @@ chart <- GC_chart(genes, cluster = "cluster", group = "category",
             groupStyle = legend_styles) %>%
   GC_theme("publication")
 
+chart
+```
+
+### Genomes of the four coronavirus genera
+
+After Figure 1 of Chazal (2021). Drag the slider below the genomes to zoom in on the accessory genes.
+
+> **Note:** The `coronavirus_genomes` data set and `GC_zoom()` are only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
+
+<details>
+<summary>Click to see the code</summary>
+```{r echo=TRUE, eval=FALSE, warning=FALSE}
+genomes <- distinct(coronavirus_genomes, cluster, genus, subgenus, host)
+# Name the genus above its first genome; the others get no title, nor room
+# for one
+first_of_genus <- genomes[!duplicated(genomes$genus), ]
+
+colors <- list(
+  "5' UTR" = "#1A1A1A", ORF1a = "#4E79A7", ORF1b = "#A0CBE8", spike = "#E15759",
+  "hemagglutinin-esterase" = "#F28E2B", envelope = "#EDC948",
+  membrane = "#59A14F", nucleocapsid = "#2F4B7C", accessory = "#B07AA1",
+  "3' UTR" = "#BDBDBD"
+)
+
+# The ORFs on the tracks below: smaller boxes, with their label inside
+nested <- list(markerHeight = 13, arrowheadHeight = 13, fill = "#E8DCE6",
+               stroke = "#B07AA1")
+nested_label <- list(dy = "-1.6em", fontSize = "8px")
+
+chart <- GC_chart(coronavirus_genomes, cluster = "cluster", group = "category",
+                  height = "700px") %>%
+  GC_color(customColors = colors) %>%
+  # Every gene a box; ORFs that lie inside another gene, e.g. 9b inside N,
+  # go on the tracks below. 3c and 3d of SARS-CoV-2 overlap by less than
+  # half, so they share a track
+  GC_cluster(prevent_gene_overlap = "nested", overlap_min = "50%",
+             overlap_spacing = -4) %>%
+  GC_genes(marker = "box", markerHeight = 18, arrowheadHeight = 18,
+           style_by = "geneTrack",
+           groupStyle = list("2" = nested, "3" = nested)) %>%
+  GC_labels("gene", style_by = "geneTrack",
+            groupStyle = list("2" = nested_label, "3" = nested_label)) %>%
+  # Homologous genes of neighbouring genomes, coloured by the protein
+  # identity, written on each link where it fits
+  GC_links(group = "homolog", measure = "identity", label = TRUE,
+           label_position = "link", vmin = 20, curve = TRUE,
+           labelStyle = list(fontSize = "9px"),
+           colorBarOptions = list(position = "legend", legendSide = "right")) %>%
+  # Room above the first genome of each genus for its name: 22 pixels more
+  # height, taken up by a margin
+  GC_grid(margin = list(top = 22), height = 700 / 11 + 22,
+          cluster = first_of_genus$cluster) %>%
+  GC_clusterLabel(title = genomes$cluster,
+                  subtitle = paste0("<i>", genomes$subgenus, "</i>, ", genomes$host),
+                  width = "170px", fontSize = "13px",
+                  subtitleFont = list(fontSize = "11px"),
+                  align = "right", x = -10) %>%
+  GC_clusterTitle(title = first_of_genus$genus, cluster = first_of_genus$cluster,
+                  align = "left", height = "0px", x = -165, y = -16,
+                  titleFont = list(fontSize = "13px", fontWeight = "bold")) %>%
+  GC_title("Conserved core, variable accessory genes: coronaviruses of the four genera",
+           subtitle = paste("Homologous proteins of close relatives linked by identity;",
+                            "after Fig. 1 of Chazal (2021)"),
+           height = "55px",
+           titleFont = list(fontSize = "16px", fontWeight = "bold"),
+           subtitleFont = list(fontSize = "12px", fontStyle = "italic")) %>%
+  GC_tooltip(formatter = "<b>{gene}</b> {product}<br>{virus} {strain}<br>{start} - {end}") %>%
+  # The legend names each category with its gene
+  GC_legend(position = "top", align = "center", order = names(colors),
+            legendTextOptions = list(fontSize = "12px"),
+            groupStyle = list(
+              "5' UTR" = list(text = "5' UTR (L)"),
+              spike = list(text = "spike (S)"),
+              "hemagglutinin-esterase" = list(text = "hemagglutinin-esterase (HE)"),
+              envelope = list(text = "envelope (E)"),
+              membrane = list(text = "membrane (M)"),
+              nucleocapsid = list(text = "nucleocapsid (N)")
+            )) %>%
+  # The untranslated ends share a pattern, in a shade that shows on each
+  GC_pattern(patterns = list("5' UTR" = "diagonal", "3' UTR" = "diagonal"),
+             color = list("5' UTR" = "#8C8C8C", "3' UTR" = "#6E6E6E"),
+             background = NULL, size = 4, strokeWidth = 1) %>%
+  GC_zoom(height = 44) %>%
+  GC_theme("publication")
+chart
+```
+</details>
+
+```{r echo = FALSE, results='asis'}
+genomes <- distinct(coronavirus_genomes, cluster, genus, subgenus, host)
+# Name the genus above its first genome; the others get no title, nor room
+# for one
+first_of_genus <- genomes[!duplicated(genomes$genus), ]
+
+colors <- list(
+  "5' UTR" = "#1A1A1A", ORF1a = "#4E79A7", ORF1b = "#A0CBE8", spike = "#E15759",
+  "hemagglutinin-esterase" = "#F28E2B", envelope = "#EDC948",
+  membrane = "#59A14F", nucleocapsid = "#2F4B7C", accessory = "#B07AA1",
+  "3' UTR" = "#BDBDBD"
+)
+
+# The ORFs on the tracks below: smaller boxes, with their label inside
+nested <- list(markerHeight = 13, arrowheadHeight = 13, fill = "#E8DCE6",
+               stroke = "#B07AA1")
+nested_label <- list(dy = "-1.6em", fontSize = "8px")
+
+chart <- GC_chart(coronavirus_genomes, cluster = "cluster", group = "category",
+                  height = "700px") %>%
+  GC_color(customColors = colors) %>%
+  # Every gene a box; ORFs that lie inside another gene, e.g. 9b inside N,
+  # go on the tracks below. 3c and 3d of SARS-CoV-2 overlap by less than
+  # half, so they share a track
+  GC_cluster(prevent_gene_overlap = "nested", overlap_min = "50%",
+             overlap_spacing = -4) %>%
+  GC_genes(marker = "box", markerHeight = 18, arrowheadHeight = 18,
+           style_by = "geneTrack",
+           groupStyle = list("2" = nested, "3" = nested)) %>%
+  GC_labels("gene", style_by = "geneTrack",
+            groupStyle = list("2" = nested_label, "3" = nested_label)) %>%
+  # Homologous genes of neighbouring genomes, coloured by the protein
+  # identity, written on each link where it fits
+  GC_links(group = "homolog", measure = "identity", label = TRUE,
+           label_position = "link", vmin = 20, curve = TRUE,
+           labelStyle = list(fontSize = "9px"),
+           colorBarOptions = list(position = "legend", legendSide = "right")) %>%
+  # Room above the first genome of each genus for its name: 22 pixels more
+  # height, taken up by a margin
+  GC_grid(margin = list(top = 22), height = 700 / 11 + 22,
+          cluster = first_of_genus$cluster) %>%
+  GC_clusterLabel(title = genomes$cluster,
+                  subtitle = paste0("<i>", genomes$subgenus, "</i>, ", genomes$host),
+                  width = "170px", fontSize = "13px",
+                  subtitleFont = list(fontSize = "11px"),
+                  align = "right", x = -10) %>%
+  GC_clusterTitle(title = first_of_genus$genus, cluster = first_of_genus$cluster,
+                  align = "left", height = "0px", x = -165, y = -16,
+                  titleFont = list(fontSize = "13px", fontWeight = "bold")) %>%
+  GC_title("Conserved core, variable accessory genes: coronaviruses of the four genera",
+           subtitle = paste("Homologous proteins of close relatives linked by identity;",
+                            "after Fig. 1 of Chazal (2021)"),
+           height = "55px",
+           titleFont = list(fontSize = "16px", fontWeight = "bold"),
+           subtitleFont = list(fontSize = "12px", fontStyle = "italic")) %>%
+  GC_tooltip(formatter = "<b>{gene}</b> {product}<br>{virus} {strain}<br>{start} - {end}") %>%
+  # The legend names each category with its gene
+  GC_legend(position = "top", align = "center", order = names(colors),
+            legendTextOptions = list(fontSize = "12px"),
+            groupStyle = list(
+              "5' UTR" = list(text = "5' UTR (L)"),
+              spike = list(text = "spike (S)"),
+              "hemagglutinin-esterase" = list(text = "hemagglutinin-esterase (HE)"),
+              envelope = list(text = "envelope (E)"),
+              membrane = list(text = "membrane (M)"),
+              nucleocapsid = list(text = "nucleocapsid (N)")
+            )) %>%
+  # The untranslated ends share a pattern, in a shade that shows on each
+  GC_pattern(patterns = list("5' UTR" = "diagonal", "3' UTR" = "diagonal"),
+             color = list("5' UTR" = "#8C8C8C", "3' UTR" = "#6E6E6E"),
+             background = NULL, size = 4, strokeWidth = 1) %>%
+  GC_zoom(height = 44) %>%
+  GC_theme("publication")
 chart
 ```

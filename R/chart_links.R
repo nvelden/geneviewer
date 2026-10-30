@@ -142,6 +142,12 @@ get_links <-
 #'   When the genes also have labels from [GC_labels()], the measure is shown
 #'   below the gene name in the same label (or after it, when the label is
 #'   rotated to avoid overlap).
+#' @param label_position Where the measure labels go: `"gene"` (default), with
+#'   the label of the gene as described for `label`, or `"link"`, in the
+#'   middle of each link, white on dark links. A measure is only written where
+#'   it fits within its link and clear of the others, so narrow links stay
+#'   clean; zoomed in with [GC_zoom()], links widen and more of them are
+#'   written. With `"link"`, links from `data` have labels too.
 #' @param normal_color Color for the links in their normal state. Default is
 #'   NULL: the color of the theme, otherwise "#969696".
 #' @param inverted_color Color for inverted links. Default is NULL: the color
@@ -158,7 +164,30 @@ get_links <-
 #' @param use_group_colors Logical; if `TRUE`, color links by group.
 #' @param color_bar Logical; if `TRUE`, the color bar is displayed. Default is
 #'   NULL: as set by the theme, otherwise `TRUE`.
-#' @param colorBarOptions List of options to customize the color bar appearance.
+#' @param colorBarOptions List of options to customize the color bar appearance:
+#'   `position`, where the bar goes: a corner of the plot area,
+#'   `"bottomright"` (default), `"bottomleft"`, `"topright"` or `"topleft"`,
+#'   or `"legend"` for an item of the legend ([GC_legend()]), lying down, in
+#'   the font of the legend; without a legend it goes bottom right.
+#'   `legendSide` puts it before the groups of the legend, `"left"` (default),
+#'   or after them, `"right"`.
+#'   `orientation`, `"vertical"` (default) or `"horizontal"`. `labels`, for a
+#'   horizontal bar: `"inline"`, one line with the title, the lowest measure,
+#'   the bar and the highest, or `"below"`, the title above the bar and ticks
+#'   with their measures below it, as many as fit. Default is `"inline"`; in
+#'   the legend it is always inline, as its rows are one line. The title of a
+#'   horizontal bar is bold. With the labels below, the bar is about three
+#'   lines tall, so in a corner it is more likely to cover genes. In the
+#'   legend the bar is as tall as the legend markers, with a light grey
+#'   outline when the theme leaves it without one.
+#'   `x` and `y` move the bar in from its corner (default 0, and 24 pixels up
+#'   from a bottom corner for a vertical bar); `width` and `height` set the
+#'   size of the bar (default 10 by 60 pixels standing, 80 by 8 lying inline,
+#'   120 by 8 lying with the labels below); `title = FALSE` leaves
+#'   out its title; `labelOptions`, `titleOptions` and `barOptions` style the
+#'   labels, the title and the bar. The bar is drawn over the plot area, so in
+#'   a corner it can cover genes or links: move it with `x` and `y`, or put it
+#'   in the legend.
 #' @param linkWidth Numeric; specifies the width of the links. A value of `1`
 #' represents full width, and `0` represents no width.
 #' @param linkStyle A list of CSS styles to apply to the links.
@@ -198,6 +227,13 @@ get_links <-
 #'                    value2 = c("B", "A"),
 #'                    label = FALSE,
 #'                    cluster = c(1,2))
+#'
+#' # A horizontal color bar in the legend
+#' GC_chart(genes_data, cluster = "cluster", group = "group",
+#'          height = "220px") %>%
+#'   GC_links(group = "group", measure = "identity", label = FALSE,
+#'            colorBarOptions = list(position = "legend")) %>%
+#'   GC_legend(position = "top")
 #'
 #' # Style links and color bar
 #' GC_chart(genes_data,
@@ -265,6 +301,7 @@ GC_links <- function(
     measure = "identity",
     show_links = TRUE,
     label = TRUE,
+    label_position = "gene",
     normal_color = NULL,
     inverted_color = NULL,
     low_color = NULL,
@@ -282,6 +319,26 @@ GC_links <- function(
   # Validate measure
   if (!measure %in% c("identity", "similarity", "none")) {
     stop("Invalid measure specified. Choose 'identity', 'similarity', or 'none'.")
+  }
+
+  if (!(is.character(label_position) && length(label_position) == 1 &&
+        label_position %in% c("gene", "link"))) {
+    stop("'label_position' must be one of ", quoted(c("gene", "link")), ".")
+  }
+
+  # Validate where the color bar goes
+  color_bar_choices <- list(
+    position = c("bottomright", "bottomleft", "topright", "topleft", "legend"),
+    orientation = c("vertical", "horizontal"),
+    labels = c("inline", "below"),
+    legendSide = c("left", "right")
+  )
+  for (name in names(color_bar_choices)) {
+    value <- colorBarOptions[[name]]
+    choices <- color_bar_choices[[name]]
+    if (!is.null(value) && !(is.character(value) && length(value) == 1 && value %in% choices)) {
+      stop("'colorBarOptions$", name, "' must be one of ", quoted(choices), ".")
+    }
   }
 
   # Validate the measures of the link colors
@@ -305,7 +362,9 @@ GC_links <- function(
   if (!is.null(data)) {
     links_data <- data
     group <- NULL
-    label <- FALSE
+    # Links from data are not tied to genes, so their measures can only go on
+    # the links
+    if (label_position == "gene") label <- FALSE
   } else {
     links_data <- get_links(GC_chart, group, value1 = value1, value2 = value2, cluster = cluster)
   }
@@ -350,6 +409,7 @@ GC_links <- function(
     measure = measure,
     showLinks = show_links,
     label = label,
+    labelPosition = label_position,
     normalColor = normal_color,
     invertedColor = inverted_color,
     lowColor = low_color,

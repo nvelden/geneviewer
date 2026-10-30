@@ -281,60 +281,74 @@ add_strand <- function(data, strand = NULL){
 
 #' Assign Tracks to Genes Based on Start and End Positions
 #'
-#' This function assigns tracks to genes in a dataset based on their start
-#' and end positions. It ensures that overlapping genes are assigned to
-#' different tracks. The function operates by iterating over each gene and
-#' finding a suitable track where it can be placed without overlapping.
+#' Assigns each gene a track (`geneTrack`) so that genes that overlap go on
+#' different tracks: a gene goes on the first track where it overlaps no gene
+#' placed before it.
 #'
-#' @param data A dataframe containing gene data with at least two columns:
-#'   start and end. Each row in the dataframe should represent a gene with
-#'   its start and end positions.
+#' @param data A dataframe with `start` and `end` columns, one gene per row, in
+#'   the order the genes are placed.
+#' @param nested Logical; if `TRUE`, only genes that lie inside another gene
+#'   leave the first track: all other genes stay on it, also where they
+#'   overlap. The nested genes are placed from the second track on, apart from
+#'   each other.
+#' @param overlap_min The overlap two genes need to go on different tracks:
+#'   a number of base pairs, or a string with a share of the shorter gene,
+#'   e.g. `"10%"`. Genes that overlap by no more than this share a track.
+#'   Default 0: any overlap.
 #'
-#' @return A modified version of the input dataframe that includes an additional
-#'   column named 'geneTrack'. This column contains the track number assigned to
-#'   each gene, ensuring no overlap in tracks.
+#' @return `data` with a `geneTrack` column: the track of each gene, from 1.
 #' @examples
 #' gene_data <- data.frame(start = c(1, 5, 10), end = c(4, 9, 15))
-#' peptides_data <- add_gene_track(gene_data)
-#' print(gene_data)
+#' add_gene_track(gene_data)
 #' @noRd
-add_gene_track <- function(data) {
+add_gene_track <- function(data, nested = FALSE, overlap_min = 0) {
   if (is.null(data) || nrow(data) == 0) {
     return(NULL)
   }
-  # Initialize a list to keep track of the start and end positions in each track
-  track_ranges <- list()
+  low <- pmin(data$start, data$end)
+  high <- pmax(data$start, data$end)
+  share <- is.character(overlap_min)
+  limit <- if (share) as.numeric(sub("%$", "", overlap_min)) / 100 else overlap_min
 
-  # Function to find an appropriate track
-  find_track <- function(start, end) {
-
-    if (start > end) {
-      temp <- start
-      start <- end
-      end <- temp
+  # Two genes clash when they overlap by more than overlap_min
+  clash <- function(i, j) {
+    overlap <- min(high[i], high[j]) - max(low[i], low[j]) + 1
+    if (overlap <= 0) return(FALSE)
+    threshold <- if (share) {
+      limit * min(high[i] - low[i] + 1, high[j] - low[j] + 1)
+    } else {
+      limit
     }
-
-    for (i in seq_along(track_ranges)) {
-      overlaps <- any(sapply(track_ranges[[i]], function(range) {
-        range_start <- range[1]
-        range_end <- range[2]
-        (start <= range_end && end >= range_start)
-      }))
-      if (!overlaps) {
-        track_ranges[[i]] <<- c(track_ranges[[i]], list(c(start, end)))
-        return(i)
-      }
-    }
-    track_ranges <<- c(track_ranges, list(list(c(start, end))))
-    return(length(track_ranges))
+    overlap > threshold
   }
 
-  # Assign tracks to each peptide
-  data$geneTrack <-
-    sapply(1:nrow(data), function(i)
-      find_track(data$start[i], data$end[i]))
+  # A gene inside another one; of two equal genes, the second
+  inside <- vapply(seq_along(low), function(i) {
+    any(vapply(seq_along(low), function(j) {
+      j != i && low[j] <= low[i] && high[j] >= high[i] &&
+        (low[j] < low[i] || high[j] > high[i] || j < i)
+    }, logical(1)))
+  }, logical(1))
 
-  return(data)
+  track <- integer(length(low))
+  placed <- list()
+  for (i in seq_along(low)) {
+    if (nested && !inside[i]) {
+      track[i] <- 1L
+      next
+    }
+    candidate <- if (nested) 2L else 1L
+    repeat {
+      on_track <- placed[[as.character(candidate)]]
+      if (is.null(on_track) ||
+          !any(vapply(on_track, function(j) clash(i, j), logical(1)))) break
+      candidate <- candidate + 1L
+    }
+    track[i] <- candidate
+    placed[[as.character(candidate)]] <- c(placed[[as.character(candidate)]], i)
+  }
+  data$geneTrack <- track
+  data
 }
 
 #' Update Start and End Columns Based on Merged Data

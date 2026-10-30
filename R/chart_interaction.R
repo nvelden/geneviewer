@@ -535,8 +535,9 @@ check_toolbar <- function(options) {
 #'   `mode`. `NULL` (default) shows everything. A Shiny app can keep the
 #'   window the user picked with `range = input$<outputId>_zoom$range` (see
 #'   [GC_events()]`(zoom = TRUE)`). The chart keeps the window the user picked
-#'   when it is drawn again with the same data and the same `range` and
-#'   `mode`.
+#'   when it is drawn again with the same data, the same `range` and `mode`
+#'   and the same [GC_events()]`(render_id = )`; a new `render_id` marks a new
+#'   load, which starts at `range` again.
 #' @param mode How the window applies to the clusters: `"relative"` (default)
 #'   zooms every cluster to the same share of its own range, e.g.
 #'   `range = c(0.25, 0.5)` for its second quarter, which suits clusters of

@@ -478,8 +478,9 @@ test_that("dragging works without selection and Escape cancels before reporting"
 test_that("selection reports final label styles and clears when data changes during a drag", {
   chart <- GC_chart(data.frame(start = c(10, 30, 50), end = c(25, 45, 65),
                                name = c("long gene label alpha", "long gene label beta", "long gene label gamma")),
-                    width = "450px", height = "300px") %>%
-    GC_labels("name", fontSize = "30px") %>%
+                    width = "450px", height = "400px") %>%
+    # Labels that overlap and fit in the chart when turned
+    GC_labels("name", fontSize = "16px") %>%
     GC_element_style("labels", 1, fill = "red", moveX = 25, moveY = 10) %>%
     GC_events(click = FALSE, select = TRUE, drag = TRUE)
   file <- tempfile(fileext = ".html")

@@ -137,7 +137,6 @@ Charts react to the mouse only when you ask for it with `GC_events()`. Each kind
 | `dblclick` | Reports double-clicks in `input$<outputId>_dblclick`; Enter opens a selected element. |
 | `highlight` | Outlines the part of the chart under the mouse. |
 | `legend_click` | `FALSE` leaves legend clicks out of `click`. Hiding and showing groups in the legend always works. |
-
 The payload of a selected element also has `style`: how it is drawn (its colour, size, font, ...), for example to show the current values in an editor. In the app below a click on a gene shows its row of the data. Protein sequences (the `translation` and `sequence` columns) are left out of it, as they are not sent to the browser unless the chart shows them (see [Tooltip](#tooltip)); `click$data$rowID` finds them in the data.
 
 ```{r echo=TRUE, eval = FALSE}
@@ -366,9 +365,9 @@ GC_chart(
 
 ### Prevent Gene Overlap
 
-To prevent gene overlaps, genes are automatically separated into distinct tracks. With the `GC_cluster` function the track-based separation can be switched off or the spacing between tracks can be adjusted.
+With `prevent_gene_overlap = TRUE`, genes that overlap are put on separate tracks, below each other. A gene goes on the first track where it overlaps no gene placed before it, and `overlap_spacing` sets the vertical spacing between the tracks.
 
-In the below example the track is switched off for the first cluster and the spacing for the second cluster is increased from 40 to 50.
+In the below example the overlapping HOX genes are put on separate tracks, 30 pixels apart.
 
 **Note**: Setting both separate_strands and prevent_gene_overlap to TRUE is not supported at the moment.
 
@@ -386,6 +385,25 @@ GC_chart(
             ) %>%
   GC_cluster(prevent_gene_overlap = TRUE, overlap_spacing = 30) %>%
   GC_legend(FALSE)
+```
+
+> **Note:** `prevent_gene_overlap = "nested"` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
+
+With `prevent_gene_overlap = "nested"` only the genes that lie inside another gene, e.g. an ORF in another reading frame, go on the tracks below; all other genes stay on the first track, also where they overlap. `style_by = "geneTrack"` styles the genes of each track, here to draw the nested ORFs of SARS-CoV-2 smaller.
+
+```{r echo=TRUE, results='asis'}
+nested <- list(markerHeight = 8, arrowheadHeight = 8)
+
+GC_chart(
+  subset(coronavirus_genomes, cluster == "SARS-CoV-2"),
+  group = "category",
+  cluster = "cluster",
+  height = "230px"
+  ) %>%
+  GC_cluster(prevent_gene_overlap = "nested") %>%
+  GC_genes(style_by = "geneTrack", groupStyle = list("2" = nested, "3" = nested)) %>%
+  GC_labels("gene") %>%
+  GC_zoom(range = c(0.83, 1))
 ```
 
 ## Grid {#grid}
@@ -487,7 +505,22 @@ GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "100px") %
     arrowheadHeight = 15,
     arrowheadWidth = 15
     ) %>%
-  GC_clusterLabel("customized arrows") %>% 
+  GC_clusterLabel("customized arrows") %>%
+  GC_legend(FALSE)
+```
+
+> **Note:** `groupStyle` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
+
+`groupStyle` styles all genes of a group at once, with the same options as `itemStyle`.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "100px") %>%
+  GC_genes(
+    groupStyle = list(
+      Methyltransferase = list(stroke = "black", strokeWidth = 2),
+      Prolyloligopeptidase = list(markerHeight = 8, arrowheadHeight = 8)
+    )
+  ) %>%
   GC_legend(FALSE)
 ```
 
@@ -797,6 +830,25 @@ GC_chart(
     )
 ```
 
+> **Note:** `label_position` and the `position` of `colorBarOptions` are only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
+
+With `label_position = "link"` the measure is written in the middle of each link where it fits, also for links from `data`. The `position` of `colorBarOptions` moves the color bar to another corner or, with `"legend"`, into the legend.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(
+  ophA_clusters,
+  cluster = "cluster",
+  group = "class",
+  height = "300px") %>%
+  GC_links(
+    data = links_data,
+    measure = "identity",
+    label_position = "link",
+    colorBarOptions = list(position = "legend")
+    ) %>%
+  GC_legend(position = "top")
+```
+
 
 ## Sequence
 
@@ -891,6 +943,8 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") 
               )
             )
 ```
+
+Labels that overlap another label are turned by default; in the development version, `adjustLabels = "hide"` hides them instead, until there is room for them, e.g. when zoomed in with [`GC_zoom()`](#zoom).
 
 ## Annotations
 
@@ -1555,7 +1609,7 @@ GC_chart(
       fontSize = "14px"
     ),
     legendOptions = list(stroke = "black", strokeWidth = "2px")
-  ) %>% 
+  ) %>%
   GC_color(colorScheme = "schemePaired")
 ```
 

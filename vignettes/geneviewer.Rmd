@@ -946,6 +946,23 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") 
 
 Labels that overlap another label are turned by default; in the development version, `adjustLabels = "hide"` hides them instead, until there is room for them, e.g. when zoomed in with [`GC_zoom()`](#zoom).
 
+### Spread labels
+
+In the development version, `adjustLabels = "spread"` puts the labels on one line below the lowest gene, as in gene order figures. Labels that would overlap are moved apart, and a line goes from each label to its gene.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "400px") %>%
+  GC_labels("name", adjustLabels = "spread")
+```
+
+`spreadPosition = "top"` puts the labels above the highest gene instead. `leaderLine` sets the distance from the genes to the labels (`length`, in pixels, default 20) and the style of the lines; `leaderLine = FALSE` spreads the labels without lines. A label dragged to the other side of the genes with [`GC_events(drag = TRUE)`](#moving-elements) takes its line along.
+
+```{r echo=TRUE, results='asis'}
+GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "400px") %>%
+  GC_labels("name", adjustLabels = "spread", spreadPosition = "top",
+            leaderLine = list(length = 30, stroke = "grey", strokeDasharray = "2,2"))
+```
+
 ## Annotations
 
 The `GC_annotation` function can be used to add annotations to specified clusters within a GC chart. The types of annotations available are: text, textMarker, line, arrow, symbol, rectangle, promoter, and terminator.

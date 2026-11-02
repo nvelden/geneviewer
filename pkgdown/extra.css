@@ -37,9 +37,15 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Long headings wrap in the sidebar instead of running out of it */
+/* Long headings wrap in the sidebar instead of running out of it. A long
+   sidebar still scrolls, without showing a scrollbar. */
 #toc {
   overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+#toc::-webkit-scrollbar {
+  display: none;
 }
 
 #toc .nav-link {

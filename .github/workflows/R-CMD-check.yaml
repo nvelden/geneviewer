@@ -23,7 +23,8 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macos-latest,   r: 'release'}
+          # Avoid the macOS ARM runner capacity constraints.
+          - {os: macos-15-intel, r: 'release'}
           - {os: windows-latest, r: 'release'}
           - {os: ubuntu-latest,  r: 'release'}
 

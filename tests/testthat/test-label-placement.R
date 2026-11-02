@@ -260,7 +260,7 @@ test_that("the lines of spread labels are drawn in the style of the theme, under
 # labels of the first cluster: how many are shown and hidden, whether they
 # overlap, are turned, lie on one line, fit in the SVG of the cluster, and the
 # style of the first line
-spread_fit <- function(page, before = "") {
+spread_fit <- function(page, before = "", ready = "true") {
   file <- tempfile(fileext = ".html")
   if (inherits(page, "htmlwidget")) {
     htmlwidgets::saveWidget(page, file, selfcontained = FALSE)
@@ -269,9 +269,14 @@ spread_fit <- function(page, before = "") {
   }
   session <- chrome_page(file, width = 800, height = 400, env = environment())
   result <- session$Runtime$evaluate(paste0("
-    new Promise(resolve => {", before, "
-      setTimeout(() => {
+    new Promise((resolve, reject) => {", before, "
+      const deadline = performance.now() + 5000;
+      setTimeout(function measure() {
         const el = document.querySelector('.geneviewer');
+        if (!(", ready, ")) {
+          if (performance.now() >= deadline) return reject(new Error('Label layout did not finish'));
+          return setTimeout(measure, 25);
+        }
         const all = Array.from(el.querySelectorAll('text.label'));
         const shown = all.filter(t => getComputedStyle(t).display !== 'none');
         const boxes = shown.map(t => t.getBoundingClientRect());
@@ -335,7 +340,13 @@ test_that("labels of a chart drawn while hidden are spread once it is shown", {
     id = "tab", style = "display: none;",
     turning_chart(adjustLabels = "spread")
   ))
-  drawn <- spread_fit(page, before = "document.getElementById('tab').style.display = 'block';")
+  # ResizeObserver runs asynchronously after the tab becomes visible. Wait
+  # for its leader lines instead of assuming it runs within 200 ms on CI.
+  drawn <- spread_fit(page,
+    before = "document.getElementById('tab').style.display = 'block';",
+    ready = "el.querySelectorAll('.leader-lines line').length === 5")
+  expect_equal(drawn$shown, 5)
+  expect_equal(drawn$hidden, 0)
   expect_equal(drawn$overlapping, 0)
   expect_true(drawn$oneLine)
   expect_true(drawn$inside)

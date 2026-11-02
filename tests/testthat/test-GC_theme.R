@@ -239,3 +239,23 @@ test_that("the publication theme keeps all general text at 7 pt", {
   expect_equal(js$titleOptions$titleFont$fontSize, "9.33px")
   expect_equal(geneviewer_theme("publication")$palette, "okabeIto")
 })
+
+test_that("the lines of spread labels take the line colour and their own options of the theme", {
+  # The global line colour, with the options of the component on top
+  js <- theme_to_js(list(lineColor = "grey", labels = list(leaderLine = list(strokeWidth = 2))))
+  expect_equal(js$labelsOptions$leaderLine, list(stroke = "grey", strokeWidth = 2))
+  js <- theme_to_js(list(lineColor = "grey", labels = list(leader_line = list(stroke = "red"))))
+  expect_equal(js$labelsOptions$leaderLine$stroke, "red")
+  # FALSE in the theme leaves the lines out
+  expect_false(theme_to_js(list(lineColor = "grey", labels = list(leaderLine = FALSE)))$labelsOptions$leaderLine)
+
+  # Each built-in theme styles them
+  line_of <- function(name) theme_to_js(geneviewer_theme(name))$labelsOptions$leaderLine
+  expect_null(line_of("default"))
+  expect_equal(line_of("classic"), list(stroke = "#6E7079", strokeWidth = 1))
+  expect_equal(line_of("dark"), list(stroke = "#eeeeee", strokeWidth = 1))
+  expect_equal(line_of("vintage"), list(stroke = "#c9c2b5", strokeWidth = 1))
+  expect_equal(line_of("infographic"), list(stroke = "#6E7079", strokeWidth = 1))
+  expect_equal(line_of("publication"), list(stroke = "black", strokeWidth = 0.75))
+  expect_equal(line_of("bw"), list(stroke = "#555555", strokeWidth = 1))
+})

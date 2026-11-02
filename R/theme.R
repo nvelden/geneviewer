@@ -29,7 +29,7 @@
 #' | `sequence` | [GC_sequence()] | `list(sequenceStyle = list(stroke = "black"))` |
 #' | `genes` | [GC_genes()] | `list(marker = "rbox", stroke = "none")` |
 #' | `transcript` | [GC_transcript()] | `list(styleExons = list(stroke = "black"))` |
-#' | `labels` | [GC_labels()] | `list(fontSize = "10px", fontStyle = "normal")` |
+#' | `labels` | [GC_labels()] | `list(fontSize = "10px", leaderLine = list(stroke = "grey"))` |
 #' | `coordinates` | [GC_coordinates()] | `list(textStyle = list(fontSize = "8px"))` |
 #' | `scale` | [GC_scale()] | `list(axis_position = "top", ticksCount = 5)` |
 #' | `scaleBar` | [GC_scaleBar()] | `list(labelStyle = list(fontSize = "12px"))` |
@@ -70,8 +70,9 @@
 #'   title and its default height grow with the text.
 #' @param fontFamily Font family of all text, e.g. `"Arial"`.
 #' @param textColor Colour of all text.
-#' @param lineColor Colour of the sequence line, the axis, the coordinates and
-#'   the scale bar.
+#' @param lineColor Colour of the sequence line, the axis, the coordinates,
+#'   the scale bar and the lines from spread labels to their genes
+#'   ([GC_labels()]`(adjustLabels = "spread")`).
 #' @param background Background colour of the chart, also the fill of the
 #'   UTRs of transcripts.
 #' @param palette Gene colours: the name of a d3 colour scheme (e.g.
@@ -289,7 +290,8 @@ flat_transcript <- list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
 
 # 12px gene labels and axis text with 5px ticks, as in ECharts
 echarts_axes <- list(
-  labels = list(fontStyle = "normal", fontSize = "12px"),
+  # Lines to spread labels 1px wide, as the ECharts axis and label guide lines
+  labels = list(fontStyle = "normal", fontSize = "12px", leaderLine = list(strokeWidth = 1)),
   # Coordinates keep 10px: at 12px the numbers of adjacent genes overlap
   coordinates = list(tickStyle = list(lineLength = 5)),
   scale = list(textStyle = list(fontSize = "12px"), tickStyle = list(lineLength = 5)),
@@ -374,7 +376,9 @@ builtin_themes <- list(
     sequence = list(sequenceStyle = list(stroke = "#c9c2b5")),
     genes = flat_genes,
     transcript = flat_transcript,
-    labels = list(fontStyle = "normal", fontSize = "11px"),
+    # Lines to spread labels in the colour of the sequence line
+    labels = list(fontStyle = "normal", fontSize = "11px",
+                  leaderLine = list(stroke = "#c9c2b5", strokeWidth = 1)),
     legend = list(corner_radius = 3),
     links = list(normal_color = "#61a0a8", inverted_color = "#d87c7c",
                  low_color = "#fef8ef", linkStyle = list(fillOpacity = 0.6),
@@ -436,8 +440,10 @@ builtin_themes <- list(
     transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
                       styleUTRs = list(cornerRadius = 3, fontSize = "9.33px"),
                       labelOptions = list(fontSize = "9.33px")),
-    # Gene symbols are italic in journals
-    labels = list(fontStyle = "italic", fontSize = "9.33px"),
+    # Gene symbols are italic in journals; lines to spread labels as thick as
+    # the keylines, above the 0.5 pt minimum of most journals
+    labels = list(fontStyle = "italic", fontSize = "9.33px",
+                  leaderLine = list(strokeWidth = 0.75)),
     coordinates = list(textStyle = list(fontSize = "9.33px"), tickStyle = list(lineLength = 4)),
     scale = list(textStyle = list(fontSize = "9.33px"), tickStyle = list(lineLength = 4)),
     scaleBar = list(labelStyle = list(fontSize = "9.33px")),
@@ -646,7 +652,7 @@ theme_global_options <- function(theme) {
     # UTRs are open boxes, filled with the background
     transcript = c(colors, pattern, list(labelOptions = html_text),
                    list(styleUTRs = Filter(Negate(is.null), list(fill = theme$background)))),
-    labels = text,
+    labels = c(text, list(leaderLine = line)),
     coordinates = list(textStyle = text, tickStyle = line),
     scale = list(textStyle = text, tickStyle = line, lineStyle = line),
     scaleBar = list(labelStyle = text, scaleBarLineStyle = line, scaleBarTickStyle = line),

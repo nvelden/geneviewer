@@ -28,6 +28,16 @@
 #'   label that would turn out of the plot area, e.g. above its cluster or past
 #'   the right end, is hidden rather than cut off. Hidden labels come back when
 #'   there is room for them, e.g. when zoomed in with [GC_zoom()].
+#'   `adjustLabels = "spread"` puts the labels on one line below the lowest
+#'   gene, moved apart where they would overlap, with a line from each label to
+#'   its gene. `leaderLine` sets the distance from the lowest gene to the
+#'   labels (`length`, in pixels, default 20) and the style of the lines, e.g.
+#'   `leaderLine = list(length = 30, stroke = "grey", strokeWidth = 1)`;
+#'   `leaderLine = FALSE` spreads the labels without lines.
+#'   `spreadPosition = "top"` puts the spread labels on one line above the
+#'   highest gene instead (default `"bottom"`). The lines start at the side of
+#'   the gene that faces its label, also when a label is dragged to the other
+#'   side.
 #'
 #' @return A `GC chart` object with updated label settings for each specified cluster.
 #'
@@ -93,8 +103,21 @@ GC_labels <- function(
   check_style_by(GC_chart, style_by)
   adjust <- list(...)$adjustLabels
   if (!is.null(adjust) && !(length(adjust) == 1 && !is.na(adjust) &&
-                            (isTRUE(adjust) || isFALSE(adjust) || identical(adjust, "hide")))) {
-    stop("'adjustLabels' must be TRUE, FALSE or \"hide\".")
+                            (isTRUE(adjust) || isFALSE(adjust) ||
+                             identical(adjust, "hide") || identical(adjust, "spread")))) {
+    stop("'adjustLabels' must be TRUE, FALSE, \"hide\" or \"spread\".")
+  }
+  position <- list(...)$spreadPosition
+  if (!is.null(position) && !(length(position) == 1 && position %in% c("bottom", "top"))) {
+    stop("'spreadPosition' must be \"bottom\" or \"top\".")
+  }
+  leader <- list(...)$leaderLine
+  if (!is.null(leader) && !isFALSE(leader) && !(is.list(leader) && !is.null(names(leader)))) {
+    stop("'leaderLine' must be FALSE or a named list, e.g. list(stroke = \"grey\").")
+  }
+  if (is.list(leader) && !is.null(leader$length) &&
+      !(is.numeric(leader$length) && length(leader$length) == 1 && is.finite(leader$length))) {
+    stop("'leaderLine$length' must be a single number of pixels, e.g. 30.")
   }
 
   if (!any(show)) {

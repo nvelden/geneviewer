@@ -36,8 +36,9 @@ title and its default height grow with the text.}
 
 \item{textColor}{Colour of all text.}
 
-\item{lineColor}{Colour of the sequence line, the axis, the coordinates and
-the scale bar.}
+\item{lineColor}{Colour of the sequence line, the axis, the coordinates,
+the scale bar and the lines from spread labels to their genes
+(\code{\link[=GC_labels]{GC_labels()}}\code{(adjustLabels = "spread")}).}
 
 \item{background}{Background colour of the chart, also the fill of the
 UTRs of transcripts.}
@@ -90,7 +91,7 @@ argument name (e.g. \code{normal_color}) or their name in the browser (e.g.
    \code{sequence} \tab \code{\link[=GC_sequence]{GC_sequence()}} \tab \code{list(sequenceStyle = list(stroke = "black"))} \cr
    \code{genes} \tab \code{\link[=GC_genes]{GC_genes()}} \tab \code{list(marker = "rbox", stroke = "none")} \cr
    \code{transcript} \tab \code{\link[=GC_transcript]{GC_transcript()}} \tab \code{list(styleExons = list(stroke = "black"))} \cr
-   \code{labels} \tab \code{\link[=GC_labels]{GC_labels()}} \tab \code{list(fontSize = "10px", fontStyle = "normal")} \cr
+   \code{labels} \tab \code{\link[=GC_labels]{GC_labels()}} \tab \code{list(fontSize = "10px", leaderLine = list(stroke = "grey"))} \cr
    \code{coordinates} \tab \code{\link[=GC_coordinates]{GC_coordinates()}} \tab \code{list(textStyle = list(fontSize = "8px"))} \cr
    \code{scale} \tab \code{\link[=GC_scale]{GC_scale()}} \tab \code{list(axis_position = "top", ticksCount = 5)} \cr
    \code{scaleBar} \tab \code{\link[=GC_scaleBar]{GC_scaleBar()}} \tab \code{list(labelStyle = list(fontSize = "12px"))} \cr

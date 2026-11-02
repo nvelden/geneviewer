@@ -45,7 +45,17 @@ e.g. \code{adjustLabels}: \code{TRUE} (default) turns labels that overlap anothe
 one, \code{"hide"} hides them instead, and \code{FALSE} leaves them as they are. A
 label that would turn out of the plot area, e.g. above its cluster or past
 the right end, is hidden rather than cut off. Hidden labels come back when
-there is room for them, e.g. when zoomed in with \code{\link[=GC_zoom]{GC_zoom()}}.}
+there is room for them, e.g. when zoomed in with \code{\link[=GC_zoom]{GC_zoom()}}.
+\code{adjustLabels = "spread"} puts the labels on one line below the lowest
+gene, moved apart where they would overlap, with a line from each label to
+its gene. \code{leaderLine} sets the distance from the lowest gene to the
+labels (\code{length}, in pixels, default 20) and the style of the lines, e.g.
+\code{leaderLine = list(length = 30, stroke = "grey", strokeWidth = 1)};
+\code{leaderLine = FALSE} spreads the labels without lines.
+\code{spreadPosition = "top"} puts the spread labels on one line above the
+highest gene instead (default \code{"bottom"}). The lines start at the side of
+the gene that faces its label, also when a label is dragged to the other
+side.}
 }
 \value{
 A \verb{GC chart} object with updated label settings for each specified cluster.

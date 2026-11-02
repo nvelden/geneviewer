@@ -1039,3 +1039,107 @@ chart <- GC_chart(coronavirus_genomes, cluster = "cluster", group = "category",
   GC_theme("publication")
 chart
 ```
+
+
+### Mitochondrial gene order: locust and human
+
+<details>
+<summary>Click to see the code</summary>
+```{r echo=TRUE, eval=FALSE}
+# Rotate each circular genome to start at COX1, preserving genomic spacing,
+# and label reverse-strand genes with a leading minus, as in the published
+# figure. The original coordinates are kept for the tooltips.
+genes <- mitochondrial_gene_order %>%
+  group_by(cluster) %>%
+  mutate(genomic_start = start, genomic_end = end,
+         plot_start = (start - start[gene == "COX1"]) %% genome_length + 1,
+         plot_end = plot_start + end - start,
+         label = ifelse(strand == "complement", paste0("-", gene), gene)) %>%
+  ungroup()
+
+genomes <- distinct(genes, cluster, genome_length)
+colors <- list("Conserved flanks" = "#D9D5D2",
+               "ND4L / ND4 / ND5" = "#F22228", ND6 = "#FFF000",
+               CYTB = "#00AC52", "RNS / RNL / ND1" = "#36328C")
+
+chart <- GC_chart(genes, start = "plot_start", end = "plot_end",
+                  cluster = "cluster", group = "block", strand = "strand",
+                  height = "320px") %>%
+  GC_genes(marker = "box", markerHeight = 18, arrowheadHeight = 18,
+           cornerRadius = 0) %>%
+  # A negative spacing puts reverse-strand genes above the baseline and
+  # forward-strand genes below it, as in the published figure.
+  GC_cluster(separate_strands = TRUE, strand_spacing = -18) %>%
+  # The labels go on one line below the genes, with a line to each gene
+  GC_labels("label", fontStyle = "normal", adjustLabels = "spread",
+            leaderLine = list(length = 12)) %>%
+  GC_color(customColors = colors) %>%
+  GC_scale(axis_type = "range", hidden = TRUE) %>%
+  GC_grid(margin = list(top = 0, bottom = 0)) %>%
+  GC_clusterFooter(
+    title = genomes$cluster,
+    subtitle = paste0("13 proteins; 2 rRNAs; ",
+                      format(genomes$genome_length, big.mark = ","), " bp"),
+    align = "left", y = 10
+  ) %>%
+  GC_title("Mitochondrial gene order: locust and human",
+           subtitle = paste("Redrawn from Fig. 3 of Jameson et al. (2003),",
+                            "Nucleic Acids Res 31:202-206"),
+           titleFont = list(fontSize = "19px")) %>%
+  GC_tooltip(formatter = paste0("<b>{gene}</b>: {product}<br>{cluster}<br>",
+                                "RefSeq: {accession}<br>",
+                                "Original coordinates: {genomic_start} - {genomic_end} ({strand})")) %>%
+  GC_legend(FALSE) %>%
+  GC_theme("publication", fontFamily = "Courier New, Courier, monospace")
+chart
+```
+</details>
+
+```{r echo=FALSE, results='asis'}
+# Rotate each circular genome to start at COX1, preserving genomic spacing,
+# and label reverse-strand genes with a leading minus, as in the published
+# figure. The original coordinates are kept for the tooltips.
+genes <- mitochondrial_gene_order %>%
+  group_by(cluster) %>%
+  mutate(genomic_start = start, genomic_end = end,
+         plot_start = (start - start[gene == "COX1"]) %% genome_length + 1,
+         plot_end = plot_start + end - start,
+         label = ifelse(strand == "complement", paste0("-", gene), gene)) %>%
+  ungroup()
+
+genomes <- distinct(genes, cluster, genome_length)
+colors <- list("Conserved flanks" = "#D9D5D2",
+               "ND4L / ND4 / ND5" = "#F22228", ND6 = "#FFF000",
+               CYTB = "#00AC52", "RNS / RNL / ND1" = "#36328C")
+
+chart <- GC_chart(genes, start = "plot_start", end = "plot_end",
+                  cluster = "cluster", group = "block", strand = "strand",
+                  height = "320px") %>%
+  GC_genes(marker = "box", markerHeight = 18, arrowheadHeight = 18,
+           cornerRadius = 0) %>%
+  # A negative spacing puts reverse-strand genes above the baseline and
+  # forward-strand genes below it, as in the published figure.
+  GC_cluster(separate_strands = TRUE, strand_spacing = -18) %>%
+  # The labels go on one line below the genes, with a line to each gene
+  GC_labels("label", fontStyle = "normal", adjustLabels = "spread",
+            leaderLine = list(length = 12)) %>%
+  GC_color(customColors = colors) %>%
+  GC_scale(axis_type = "range", hidden = TRUE) %>%
+  GC_grid(margin = list(top = 0, bottom = 0)) %>%
+  GC_clusterFooter(
+    title = genomes$cluster,
+    subtitle = paste0("13 proteins; 2 rRNAs; ",
+                      format(genomes$genome_length, big.mark = ","), " bp"),
+    align = "left", y = 10
+  ) %>%
+  GC_title("Mitochondrial gene order: locust and human",
+           subtitle = paste("Redrawn from Fig. 3 of Jameson et al. (2003),",
+                            "Nucleic Acids Res 31:202-206"),
+           titleFont = list(fontSize = "19px")) %>%
+  GC_tooltip(formatter = paste0("<b>{gene}</b>: {product}<br>{cluster}<br>",
+                                "RefSeq: {accession}<br>",
+                                "Original coordinates: {genomic_start} - {genomic_end} ({strand})")) %>%
+  GC_legend(FALSE) %>%
+  GC_theme("publication", fontFamily = "Courier New, Courier, monospace")
+chart
+```

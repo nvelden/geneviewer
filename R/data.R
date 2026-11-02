@@ -332,3 +332,42 @@
 #'   GC_clusterLabel() %>%
 #'   GC_zoom(range = c(0.75, 1))
 "coronavirus_genomes"
+
+
+#' Human and Locust Mitochondrial Gene Order
+#'
+#' The 13 protein-coding genes and two ribosomal RNAs of each mitochondrial
+#' genome compared in Figure 3 of Jameson et al. (2003). Rows follow circular
+#' gene order, starting at COX1, with the locust first. tRNAs are excluded.
+#' Coordinates remain those of the original RefSeq records, before rotation.
+#' Blocks reproduce the colours of the published comparison; they do not
+#' imply a reconstructed sequence of evolutionary events.
+#'
+#' @format A data frame with 30 rows and 9 columns:
+#' \describe{
+#'   \item{cluster}{Species name.}
+#'   \item{accession}{Versioned RefSeq accession.}
+#'   \item{genome_length}{Complete mitochondrial genome length in base pairs.}
+#'   \item{gene}{Gene name; RNS and RNL denote the small and large rRNAs.}
+#'   \item{product}{Gene product from the RefSeq annotation.}
+#'   \item{block}{Gene block coloured in the published comparison.}
+#'   \item{start, end}{Original 1-based inclusive genomic coordinates.}
+#'   \item{strand}{Either "forward" or "complement".}
+#' }
+#' @source RefSeq NC_001712.1 and NC_012920.1, read with [read_gbk()].
+#' @references Jameson D, Gibson AP, Hudelot C, Higgs PG. OGRe: a relational
+#'   database for comparative analysis of mitochondrial genomes.
+#'   Nucleic Acids Res. 2003;31:202-206. doi:10.1093/nar/gkg077.
+#' @examples
+#' # Rotate each circular genome to start at COX1
+#' cox1 <- with(subset(mitochondrial_gene_order, gene == "COX1"),
+#'              setNames(start, cluster))
+#' genes <- within(mitochondrial_gene_order, {
+#'   plot_start <- (start - cox1[cluster]) %% genome_length + 1
+#'   plot_end <- plot_start + end - start
+#' })
+#' GC_chart(genes, start = "plot_start", end = "plot_end", cluster = "cluster",
+#'          group = "block", strand = "strand") %>%
+#'   GC_labels("gene") %>%
+#'   GC_clusterLabel()
+"mitochondrial_gene_order"

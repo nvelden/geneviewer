@@ -22,15 +22,16 @@ number of bugs in the file readers and charts. See NEWS.md for details.
 ## Test environments
 
 * Local macOS 15 (arm64), R 4.4.0
-* win-builder, R-devel (TODO: run on the final tarball and record the result)
-* win-builder, R-release (TODO: run on the final tarball and record the result)
+* win-builder, R-devel (2026-11-02 r90827, Windows Server 2022)
+* win-builder, R-release (R 4.6.2, Windows Server 2022)
 
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note (local)
+0 errors | 0 warnings | 1 note
 
-* checking for future file timestamps ... NOTE: unable to verify current time.
-  This comes from the time server being unreachable during the local check.
+* Possibly misspelled words in DESCRIPTION: Needleman, Wunsch.
+  These are the surnames of the authors of the cited alignment method
+  (Needleman and Wunsch, 1970) and are spelled correctly.
 
 ## Reverse dependencies
 

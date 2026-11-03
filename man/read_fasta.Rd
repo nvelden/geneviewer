@@ -32,16 +32,15 @@ example, from the header '>protein1 [gene=scnD] [protein=ScnD]', it extracts
 pairs.
 }
 \details{
-The Biostrings package is required to run this function.
+The files are read with base R, so no Bioconductor packages are needed.
+Gzip-compressed files are read as well.
 }
 \examples{
-if (requireNamespace("Biostrings", quietly = TRUE)) {
-  fasta_file <- system.file("extdata", "BGC0000108.fasta", package = "geneviewer")
+fasta_file <- system.file("extdata", "BGC0000108.fasta", package = "geneviewer")
 
-  # Read sequences from a single FASTA file
-  sequences_df <- read_fasta(fasta_file)
+# Read sequences from a single FASTA file
+sequences_df <- read_fasta(fasta_file)
 
-  # Read all FASTA files in a directory, without the sequences
-  sequences_df <- read_fasta(dirname(fasta_file), sequence = FALSE)
-}
+# Read all FASTA files in a directory, without the sequences
+sequences_df <- read_fasta(dirname(fasta_file), sequence = FALSE)
 }

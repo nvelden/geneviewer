@@ -45,6 +45,7 @@
 
 ### Changes:
 - The documentation of `protein_blast()` now describes what it does: a global (Needleman-Wunsch) pairwise alignment of every protein pair, not BLASTP. Identity and similarity are counted over the full alignment, gaps included, so they can be lower than BLASTP values. The package description cites Needleman and Wunsch (1970) instead of the BLAST paper, and tooltips of its results say "Best hit" instead of "BlastP hit with". The function, its `BlastP` column and the `erythromycin_BlastP` data keep their names.
+- `read_fasta()` no longer needs Biostrings: it reads FASTA files with base R and gives the same result, including gzip-compressed files. It now also reads files with old Mac (`\r`) line endings.
 - `genbank_to_fasta()` now writes to `tempdir()` by default instead of next to the input file (use `output_dir = NULL` for the old behaviour), and returns the path of the FASTA file invisibly.
 - knitr, rmarkdown, tidyr and biomaRt are no longer suggested: they are only used by the articles of the package website, which are not part of the package.
 - MUMmer is now listed under `SystemRequirements`, and the examples of `read_fasta()`, `read_gff()`, `read_bed()`, `gbk_features_to_df()` and `protein_blast()` run on example data.

@@ -59,7 +59,6 @@ test_that("GFF attributes named id survive missing rows and field selection", {
 })
 
 test_that("FASTA metadata named id retains sequence order", {
-  skip_if_not_installed("Biostrings")
   file <- tempfile(fileext = ".fasta")
   on.exit(unlink(file))
   writeLines(c(">s1 [id=custom1] [gene=a]", "MKT",
@@ -86,7 +85,6 @@ test_that("GFF readers retain repeated attributes and rows without metadata", {
 })
 
 test_that("FASTA readers retain repeated keys, missing fields and sequences", {
-  skip_if_not_installed("Biostrings")
   file <- tempfile(fileext = ".fasta")
   on.exit(unlink(file))
   writeLines(c(

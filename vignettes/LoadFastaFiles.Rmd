@@ -35,15 +35,10 @@ The FASTA files uses for the tutorial were originally downloaded from the [NCBI]
 
 ### Loading FASTA files
 
-The example FASTA files used for this tutorial are each from a different organism and holds the genes of a cluster that produces a polyene antifungal agent. Download the files and place them under the same folder. We can read the files into R using the `read_fasta` function from `geneviewer`. The function uses the `Biostrings` library so we will need to load this as well. The function will parse all the FASTA headers and create a data.frame from the extracted information. We have set sequence to `FALSE` since we do not need the sequences to create the cluster visualization. 
+The example FASTA files used for this tutorial are each from a different organism and holds the genes of a cluster that produces a polyene antifungal agent. Download the files and place them under the same folder. We can read the files into R using the `read_fasta` function from `geneviewer`. The function will parse all the FASTA headers and create a data.frame from the extracted information. We have set sequence to `FALSE` since we do not need the sequences to create the cluster visualization. 
 
 ```{r eval=FALSE, results='hide'}
 library(geneviewer)
-# if (!require("BiocManager", quietly = TRUE))
-#     install.packages("BiocManager")
-# 
-# BiocManager::install("Biostrings")
-library(Biostrings)
 
 # change the path to the folder where you have saved the file
 file_path <- "~/path/to/folder/"

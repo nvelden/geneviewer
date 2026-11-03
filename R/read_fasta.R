@@ -7,8 +7,8 @@
 #''gene' as the key and 'scnD' as its value, and similarly for other key-value
 #'pairs.
 #'
-#'The Biostrings package is required to run this function.
-#'
+#'The files are read with base R, so no Bioconductor packages are needed.
+#'Gzip-compressed files are read as well.
 #'
 #'@param fasta_path Path to the FASTA file or directory containing FASTA files.
 #'@param keys An optional vector of strings representing specific keys within
@@ -25,22 +25,15 @@
 #'@importFrom tools file_path_sans_ext
 #'@importFrom rlang .data
 #' @examples
-#' if (requireNamespace("Biostrings", quietly = TRUE)) {
-#'   fasta_file <- system.file("extdata", "BGC0000108.fasta", package = "geneviewer")
+#' fasta_file <- system.file("extdata", "BGC0000108.fasta", package = "geneviewer")
 #'
-#'   # Read sequences from a single FASTA file
-#'   sequences_df <- read_fasta(fasta_file)
+#' # Read sequences from a single FASTA file
+#' sequences_df <- read_fasta(fasta_file)
 #'
-#'   # Read all FASTA files in a directory, without the sequences
-#'   sequences_df <- read_fasta(dirname(fasta_file), sequence = FALSE)
-#' }
+#' # Read all FASTA files in a directory, without the sequences
+#' sequences_df <- read_fasta(dirname(fasta_file), sequence = FALSE)
 #'@export
 read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension = "fasta") {
-
-  # Check if Biostrings package is installed
-  if (!requireNamespace("Biostrings", quietly = TRUE)) {
-    stop('Biostrings package is not installed. Please install it using BiocManager::install("Biostrings").')
-  }
 
   # Initialize an empty list to store data frames from each file
   all_dfs <- list()
@@ -63,13 +56,10 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
       # Extract the file name (without the path and extension)
       cluster_name <- tools::file_path_sans_ext(basename(file_path))
 
-      # Read the AA sequence set from the file
-      sequence_set <- Biostrings::readAAStringSet(file_path)
-
-      # Headers and sequences straight from the set: as.data.frame() puts the
-      # headers in the row names before Biostrings 2.81 and in a column after
-      fasta_headers <- names(sequence_set)
-      sequences <- unname(as.character(sequence_set))
+      # Read the headers and sequences from the file
+      records <- read_fasta_records(file_path)
+      fasta_headers <- records$headers
+      sequences <- records$sequences
 
       # Find matches
 
@@ -178,4 +168,46 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
   rownames(final_df) <- NULL
 
   return(final_df)
+}
+
+#' Read the headers and sequences of a FASTA file
+#'
+#' Reads the file like `Biostrings::readAAStringSet()`: lines starting with
+#' ";" are comments and blank lines are skipped, sequence letters are upper
+#' cased, and characters that are not one-letter amino acid codes (spaces,
+#' digits) are dropped with a warning.
+#'
+#' @param file_path Path to a FASTA file, which can be gzip compressed.
+#' @return A list with the character vectors `headers` and `sequences`.
+#' @noRd
+read_fasta_records <- function(file_path) {
+  lines <- readLines(file_path, warn = FALSE)
+  line_number <- seq_along(lines)
+
+  # Drop comment and empty lines
+  keep <- !startsWith(lines, ";") & nzchar(lines)
+  lines <- lines[keep]
+  line_number <- line_number[keep]
+
+  is_header <- startsWith(lines, ">")
+  record <- cumsum(is_header)
+  if (length(lines) > 0 && !is_header[1]) {
+    stop(sprintf('reading FASTA file %s: ">" expected at beginning of line %d',
+                 file_path, line_number[1]))
+  }
+
+  # Join the sequence lines of each record, keeping records without sequence
+  headers <- substring(lines[is_header], 2)
+  sequences <- split(lines[!is_header], factor(record[!is_header], levels = seq_along(headers)))
+  sequences <- vapply(sequences, paste, character(1), collapse = "", USE.NAMES = FALSE)
+
+  # Keep the one-letter amino acid codes of Biostrings::AA_ALPHABET
+  valid <- toupper(gsub("[^A-Za-z*+.-]", "", sequences, useBytes = TRUE))
+  invalid <- sum(nchar(sequences, type = "bytes") - nchar(valid, type = "bytes"))
+  if (invalid > 0) {
+    warning(sprintf("reading FASTA file %s: ignored %d invalid one-letter sequence codes",
+                    file_path, invalid))
+  }
+
+  list(headers = headers, sequences = valid)
 }

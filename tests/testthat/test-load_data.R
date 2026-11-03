@@ -12,8 +12,6 @@ test_that("Read .gbk file from file path", {
 })
 
 test_that("Read FASTA from file path", {
-  skip_if_not_installed("Biostrings")
-
   # Use the actual FASTA file
   file_path <- system.file("extdata", "BGC0000108.fasta", package = "geneviewer")
   fasta_df <- geneviewer::read_fasta(file_path, sequence = FALSE)
@@ -177,7 +175,6 @@ test_that("read_gff parses attributes robustly (B07)", {
 })
 
 test_that("read_fasta reads single sequences and values with spaces (B08)", {
-  skip_if_not_installed("Biostrings")
   fasta_file <- tempfile(fileext = ".fasta")
 
   # A single sequence with a location
@@ -209,7 +206,6 @@ test_that("read_fasta reads single sequences and values with spaces (B08)", {
 })
 
 test_that("read_fasta keeps square brackets inside values (B08)", {
-  skip_if_not_installed("Biostrings")
   fasta_file <- tempfile(fileext = ".fasta")
   writeLines(c(
     ">no keys in this header", "MKTAYIAKQR",
@@ -224,7 +220,6 @@ test_that("read_fasta keeps square brackets inside values (B08)", {
 })
 
 test_that("read_fasta uses the full span of join() locations (B08)", {
-  skip_if_not_installed("Biostrings")
   fasta_file <- tempfile(fileext = ".fasta")
   writeLines(c(
     ">X_1 [gene=ORF1ab] [location=join(266..13468,13468..21555)]", "MKTAYIAKQR",

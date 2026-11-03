@@ -1,5 +1,9 @@
 ## Submission comments
 
+This resubmission replaces the geneviewer 0.2.0 submission of 2026-11-03.
+The only change is that `read_fasta()` now reads FASTA files with base R
+instead of Biostrings.
+
 This is an update from 0.1.11 to 0.2.0. It adds new chart features (themes,
 patterns, SVG export, click events for Shiny, styling by group) and fixes a
 number of bugs in the file readers and charts. See NEWS.md for details.

@@ -31,7 +31,7 @@ The .gbk files and the additional gene info can be downloaded from the [geneview
 `protein_blast()` does not run BLAST. It aligns every protein of the query cluster with every protein of the other clusters using a global (Needleman-Wunsch) pairwise alignment and keeps the best hit of each gene. Identity and similarity are counted over the full length of the alignment, gaps included, so they are lower than BLASTP values for proteins that differ in length or share only part of their sequence.
 
 ```{r eval=FALSE, results='hide'}
-devtools::install_github("nvelden/geneviewer")
+install.packages("geneviewer")
 BiocManager::install("Biostrings")
 BiocManager::install("pwalign")
 

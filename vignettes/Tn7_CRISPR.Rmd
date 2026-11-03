@@ -25,8 +25,6 @@ Open [Figure 3](https://pmc.ncbi.nlm.nih.gov/articles/PMC5584455/figure/fig03/) 
 
 Step by step we will line the elements up, leave out long stretches of DNA with scale breaks, draw the ends of the elements as bars, write the gene names inside the genes and finish the chart for a publication. Unlike the published figure, the genes are drawn to scale.
 
-> **Note:** This tutorial needs the development version of geneviewer: the `tn7_crispr_elements` data set, `GC_pattern()`, `GC_theme()`, the `groupStyle` and `style_by` options, the `subtitle` of `GC_clusterLabel()`, the `groupStyle` and `align` of `GC_legend()` and a `scale_break_padding` in base pairs are only available there. Install it with `devtools::install_github("nvelden/geneviewer")`.
-
 ### Materials
 
 The data comes with `geneviewer` as the `tn7_crispr_elements` data set. It holds the genes of the sixteen elements of the figure, read from their GenBank records with `read_gbk()`, together with the positions of the ends of each element. The GenBank files of the sixteen regions, downloaded from [GenBank](https://www.ncbi.nlm.nih.gov/genbank/) (the accessions are in the `accession` column), and the data set as a .csv file can be downloaded from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Reproducing%20a%20published%20figure) repository. The script that made the data set from the GenBank files, `data-raw/tn7_crispr_elements.R`, is in the [geneviewer repository](https://github.com/nvelden/geneviewer).

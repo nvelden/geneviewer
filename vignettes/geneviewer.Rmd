@@ -124,8 +124,6 @@ shinyApp(ui = ui, server = server)
 
 ### Click interactions
 
-> **Note:** `GC_events()` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
-
 Charts react to the mouse only when you ask for it with `GC_events()`. Each kind of interaction has its own argument, and `FALSE` switches it off:
 
 | Argument | What it does |
@@ -174,8 +172,6 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "250px") 
 ```
 
 ## Moving elements {#moving-elements}
-
-> **Note:** Dragging, multi-select, undo and the toolbar are only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
 
 With `GC_events(drag = TRUE)` you can arrange a chart with the mouse, e.g. to move a label away from a gene or the legend to an empty corner before saving a figure. Gene labels, the chart title and subtitle, the titles, footers and labels of the clusters, the scale axis and scale bar (each as a whole) and the labels and markers of the legend (each on its own) can be moved. It works in the browser, also outside Shiny. Try it in the chart below:
 
@@ -310,8 +306,6 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "300px") 
     )
 ```
 
-> **Note:** `GC_element_style()` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
-
 `GC_element_style()` styles one element at a time, without the index: a gene, label or coordinate by its row in the data (`row_id`, the `rowID` column of the chart), or the title or subtitle of a cluster title, footer or label by its `cluster` and `part`. Its options add to the other styles of the chart, so it is called after them. These are also the calls an editor records, e.g. one built with the selection of `GC_events()` (see [Click interactions](#click-interactions)). Legend labels and markers are styled by their `group` and `part`, and `moveX` and `moveY` move an element (see [Moving elements](#moving-elements)).
 
 ```{r echo=TRUE, results='asis'}
@@ -386,8 +380,6 @@ GC_chart(
   GC_cluster(prevent_gene_overlap = TRUE, overlap_spacing = 30) %>%
   GC_legend(FALSE)
 ```
-
-> **Note:** `prevent_gene_overlap = "nested"` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
 
 With `prevent_gene_overlap = "nested"` only the genes that lie inside another gene, e.g. an ORF in another reading frame, go on the tracks below; all other genes stay on the first track, also where they overlap. `style_by = "geneTrack"` styles the genes of each track, here to draw the nested ORFs of SARS-CoV-2 smaller.
 
@@ -508,8 +500,6 @@ GC_chart(ophA_cluster, cluster = "cluster", group = "class", height = "100px") %
   GC_clusterLabel("customized arrows") %>%
   GC_legend(FALSE)
 ```
-
-> **Note:** `groupStyle` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
 
 `groupStyle` styles all genes of a group at once, with the same options as `itemStyle`.
 
@@ -803,8 +793,6 @@ chart
 
 The `data` parameter allows you to load a data frame that defines links between genomic regions by their start and end positions, rather than linking specific genes. You can include an "identity" or "similarity" column that will be used to set the color intensity of these links. Links run from nearly white at a measure of `vmin` to the full color at `vmax` (0 and 100 by default), which are also the ends of the color bar. Setting `vmin` to the lowest measure spreads the colors over the data; measures below `vmin` or above `vmax` get the color of that end.
 
-> **Note:** The `vmin` and `vmax` arguments of `GC_links()` are only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
-
 ```{r echo=TRUE, results='asis'}
 links_data <- data.frame(
   start1 = c(5000, 16000),
@@ -829,8 +817,6 @@ GC_chart(
     vmax = 100
     )
 ```
-
-> **Note:** `label_position` and the `position` of `colorBarOptions` are only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
 
 With `label_position = "link"` the measure is written in the middle of each link where it fits, also for links from `data`. The `position` of `colorBarOptions` moves the color bar to another corner or, with `"legend"`, into the legend.
 
@@ -944,11 +930,11 @@ GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "360px") 
             )
 ```
 
-Labels that overlap another label are turned by default; in the development version, `adjustLabels = "hide"` hides them instead, until there is room for them, e.g. when zoomed in with [`GC_zoom()`](#zoom).
+Labels that overlap another label are turned by default; `adjustLabels = "hide"` hides them instead, until there is room for them, e.g. when zoomed in with [`GC_zoom()`](#zoom).
 
 ### Spread labels
 
-In the development version, `adjustLabels = "spread"` puts the labels on one line below the lowest gene, as in gene order figures. Labels that would overlap are moved apart, and a line goes from each label to its gene.
+`adjustLabels = "spread"` puts the labels on one line below the lowest gene, as in gene order figures. Labels that would overlap are moved apart, and a line goes from each label to its gene.
 
 ```{r echo=TRUE, results='asis'}
 GC_chart(ophA_clusters, group = "class", cluster = "cluster", height = "400px") %>%
@@ -1367,8 +1353,6 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
 
 ## Patterns {#patterns}
 
-> **Note:** `GC_pattern()` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
-
 Journals sometimes ask for figures in black and white. The `GC_pattern()` function fills the genes, exons and legend markers with a pattern for each group instead of a colour. By default each group gets the next pattern from a fixed list, drawn in black on a white background.
 
 ```{r echo=TRUE, results='asis'}
@@ -1451,8 +1435,6 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
 Like `GC_color()`, place `GC_pattern()` after `GC_genes()` and `GC_transcript()`, as these functions reset the pattern settings.
 
 ## Themes {#themes}
-
-> **Note:** `GC_theme()`, `geneviewer_theme()` and `geneviewer_palette()` are only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
 
 The `GC_theme()` function sets the default look of the whole chart at once: fonts, text and line colours, the background, the gene colours and the options of each component. There are 7 built-in themes:
 
@@ -1740,8 +1722,6 @@ GC_chart(ophA_cluster, group = "class", height = "100px") %>%
 
 ## Zoom {#zoom}
 
-> **Note:** `GC_zoom()` is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
-
 `GC_zoom()` adds a slider below the clusters to zoom in on part of them. Drag a handle to change the window, drag the window to move it and click the track to move the window there. Double-click the slider, or use the reset zoom icon in the toolbar, to show everything again. With the keyboard, the arrow keys move a focused handle or the window (Shift: in bigger steps). The slider shows the genes of each cluster in their colours, and genes, labels, links and the axis follow the window. `range` sets the window shown first:
 
 ```{r echo=TRUE, results='asis'}
@@ -1894,8 +1874,6 @@ GC_chart(ophA_cluster, group = "class", height = "150px") %>%
 ## Saving Plots
 
 You can save plots directly in the browser using the save button that appears when hovering over the graph. Hover the download icon and choose "Save as SVG" for a vector image that can be edited in e.g. Inkscape or Illustrator and scaled for publications, or "Save as PNG" for an image at screen resolution (make the chart larger for a larger PNG). This option can be disabled by setting the `save_button` parameter to `FALSE` in the `GC_chart` function, and its icon and look changed with `GC_toolbar()` (see [Toolbar](#toolbar)). Elements moved in the chart (see [Moving elements](#moving-elements)) are saved where they are. A zoomed chart is saved as it shows, without the zoom slider (see [Zoom](#zoom)).
-
-> **Note:** Saving as SVG is only available in the development version of geneviewer. Install it with `devtools::install_github("nvelden/geneviewer")`.
 
 To save plots in different formats, you can use the `webshot2` package as illustrated below. If your plots contain complex elements like gene links, it is recommended to specify the width and height dimensions explicitly to ensure proper rendering.
 

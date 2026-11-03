@@ -270,7 +270,8 @@ test_that("genbank_to_fasta writes one FASTA record per GenBank record (B19)", {
   expect_equal(path, file.path(tempdir(), "AAA.fasta"))
   expect_true(file.exists(path))
   expect_false(file.exists(file.path(in_dir, "AAA.fasta")))
-  expect_equal(genbank_to_fasta(in_file, output_dir = NULL), file.path(in_dir, "AAA.fasta"))
+  expect_equal(normalizePath(genbank_to_fasta(in_file, output_dir = NULL), winslash = "/"),
+               normalizePath(file.path(in_dir, "AAA.fasta"), winslash = "/"))
   expect_true(file.exists(file.path(in_dir, "AAA.fasta")))
   unlink(c(in_dir, path), recursive = TRUE)
 })

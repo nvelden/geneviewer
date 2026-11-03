@@ -160,20 +160,28 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
   return(score)
 }
 
-#' Perform Protein BLAST Analysis Within Specified Clusters
+#' Find Homologous Proteins Between Clusters by Pairwise Alignment
 #'
-#' This function conducts a BLAST analysis for protein sequences within
-#' specified clusters. It generates all possible protein combinations between a
-#' query cluster and other clusters, performs pairwise alignments, calculates
-#' sequence identity and similarity, and filters results based on a minimum
-#' identity threshold.
+#' Compares the proteins of a query cluster with those of the other clusters. It
+#' generates all protein combinations between the query cluster and each other
+#' cluster, aligns each pair with a global (Needleman-Wunsch) pairwise alignment
+#' from [pwalign::pairwiseAlignment()], calculates sequence identity and
+#' similarity, and keeps the best hit of each gene above a minimum identity
+#' threshold.
+#'
+#' Despite its name, the function does not run BLAST: there is no seed search,
+#' local alignment, substitution matrix or E-value. Identity and similarity are
+#' percentages of the full length of the global alignment, gaps included, so
+#' proteins of very different length, or that share only one domain, get lower
+#' values than they would get from BLASTP. Set `identity` with this in mind.
 #'
 #' @param data A dataframe or a character vector specifying the path to .gbk
 #'   files. When a character vector is provided, it is interpreted as file paths
 #'   to .gbk files which are then read and processed. The dataframe must contain
 #'   columns for unique protein identifiers, cluster identifiers, protein
 #'   sequences, and the start and end positions of each gene.
-#' @param query The name of the query cluster to be used for BLAST comparisons.
+#' @param query The name of the query cluster the other clusters are compared
+#'   with.
 #' @param id The name of the column that contains the gene identifiers. Defaults
 #'   to "protein_id".
 #' @param start The name of the column specifying the start positions of genes.
@@ -184,13 +192,15 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #'   to "cluster".
 #' @param genes An optional vector of gene identifiers to include in the
 #'   analysis. Defaults to NULL.
-#' @param identity Minimum identity threshold for BLAST hits to be considered
-#'   significant. Defaults to 30.
+#' @param identity Minimum percentage identity of the global alignment for a hit
+#'   to be kept. Defaults to 30.
 #' @param parallel Deprecated and ignored. The alignments are now fast enough
 #'   without parallel processing. Kept so that existing code keeps working.
 #'
 #' @return A modified version of the input `data` dataframe, including
-#'   additional columns for BLAST results (identity, similarity).
+#'   additional columns `BlastP` (the protein of the query cluster that is the
+#'   best hit; the name is kept for compatibility), `identity`, `similarity` and
+#'   `score` (the synteny score of the cluster).
 #'
 #' @examples
 #' \donttest{
@@ -211,21 +221,22 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #' @importFrom dplyr bind_rows group_by slice_max ungroup left_join summarize arrange desc
 #' @importFrom stats setNames ave
 #' @importFrom rlang .data
-#' @note This function relies on the Biostrings and pwalign package for sequence
-#' alignment and the dplyr package for data manipulation. Ensure these packages
-#' are installed and loaded into your R session.
+#' @references Needleman, S. B. and Wunsch, C. D. (1970). A general method
+#'   applicable to the search for similarities in the amino acid sequence of two
+#'   proteins. Journal of Molecular Biology, 48(3), 443-453.
+#'   \doi{10.1016/0022-2836(70)90057-4}
+#' @note This function relies on the Biostrings and pwalign packages from
+#' Bioconductor for sequence alignment. Ensure these packages are installed.
 #'
 #' @export
 protein_blast <- function(data, query, id = "protein_id", start = "start", end = "end", cluster = "cluster", genes = NULL, identity = 30, parallel = TRUE) {
 
-  # Check if Biostrings package is installed
-  if (!requireNamespace("Biostrings", quietly = TRUE) || !"Biostrings" %in% loadedNamespaces()) {
-    stop('Biostrings package is not installed or not loaded. Install with BiocManager::install("Biostrings").')
+  # Check if the Biostrings and pwalign packages are installed
+  if (!requireNamespace("Biostrings", quietly = TRUE)) {
+    stop('Biostrings package is not installed. Install with BiocManager::install("Biostrings").')
   }
-
-  # Check if pwalign package is installed and loaded
-  if (!requireNamespace("pwalign", quietly = TRUE) || !"pwalign" %in% loadedNamespaces()) {
-    stop('pwalign package is not installed or not loaded. Install with BiocManager::install("pwalign").')
+  if (!requireNamespace("pwalign", quietly = TRUE)) {
+    stop('pwalign package is not installed. Install with BiocManager::install("pwalign").')
   }
 
   # Load from .gbk files

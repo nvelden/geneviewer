@@ -44,6 +44,9 @@
 - `protein_blast()` is about 3 to 9 times faster and gives the same results. The aligned sequences are now read from all alignments at once and identity and similarity are counted for all pairs at once, so parallel processing is no longer needed: the `parallel` argument is ignored and the `parallel` package is no longer a dependency.
 
 ### Changes:
+- The documentation of `protein_blast()` now describes what it does: a global (Needleman-Wunsch) pairwise alignment of every protein pair, not BLASTP. Identity and similarity are counted over the full alignment, gaps included, so they can be lower than BLASTP values. The package description cites Needleman and Wunsch (1970) instead of the BLAST paper, and tooltips of its results say "Best hit" instead of "BlastP hit with". The function, its `BlastP` column and the `erythromycin_BlastP` data keep their names.
+- `genbank_to_fasta()` now writes to `tempdir()` by default instead of next to the input file (use `output_dir = NULL` for the old behaviour), and returns the path of the FASTA file invisibly.
+- knitr, rmarkdown, tidyr and biomaRt are no longer suggested: they are only used by the articles of the package website, which are not part of the package.
 - MUMmer is now listed under `SystemRequirements`, and the examples of `read_fasta()`, `read_gff()`, `read_bed()`, `gbk_features_to_df()` and `protein_blast()` run on example data.
 - FASTA and GFF readers now spread metadata with an internal helper instead of tidyr. Removing the tidyr dependency also avoids its stringr, stringi and purrr dependencies when they are not required by other packages, reducing Shinylive startup downloads.
 - The padding around automatic scale breaks (`GC_scale(scale_breaks = TRUE, scale_break_padding = )`) is now a share of the region shown, without the breaks, so all breaks get the same room around them; long breaks used to get much more padding than short ones.

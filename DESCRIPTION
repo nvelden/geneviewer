@@ -12,11 +12,12 @@ Authors@R: c(person(given = "Niels",
                     comment = "Bundled FileSaver.js library"))
 Maintainer: Niels van der Velden <n.s.j.vandervelden@gmail.com>
 Description: Provides tools for plotting gene clusters and transcripts by 
-  importing data from GenBank, FASTA, and GFF files. It performs BLASTP and 
-  MUMmer alignments [Altschul et al. (1990) <doi:10.1016/S0022-2836(05)80360-2>;
-  Delcher et al. (1999) <doi:10.1093/nar/27.11.2369>] and displays results on 
-  gene arrow maps. Extensive customization options are available, including 
-  legends, labels, annotations, scales, colors, tooltips, and more.
+  importing data from GenBank, FASTA, and GFF files. It performs global 
+  pairwise protein alignments and 'MUMmer' alignments [Needleman and Wunsch (1970)
+  <doi:10.1016/0022-2836(70)90057-4>; Delcher et al. (1999)
+  <doi:10.1093/nar/27.11.2369>] and displays results on gene arrow maps.
+  Extensive customization options are available, including legends, labels,
+  annotations, scales, colors, tooltips, and more.
 License: MIT + file LICENSE
 SystemRequirements: MUMmer (optional, used by mummer_alignment())
 Encoding: UTF-8
@@ -38,11 +39,7 @@ Imports:
     tools,
     utils
 Suggests: 
-    knitr,
-    rmarkdown,
-    tidyr,
     shiny,
-    biomaRt,
     pwalign,
     Biostrings,
     chromote,
@@ -50,4 +47,5 @@ Suggests:
     jsonlite,
     testthat (>= 3.2.0)
 Config/testthat/edition: 3
+Config/Needs/website: knitr, rmarkdown, tidyr, biomaRt
 Config/roxygen2/version: 8.1.1

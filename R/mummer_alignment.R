@@ -132,7 +132,7 @@ mummer_alignment <- function(
 
     if (length(gbk_files) > 0) {
       sapply(gbk_files, function(file) {
-        genbank_to_fasta(file)
+        genbank_to_fasta(file, output_dir = path)
       })
     }
 
@@ -340,11 +340,11 @@ parse_procmer <- function(path, reference, query){
 #' for the header and sequences from the ORIGIN section.
 #'
 #' @param path Path to the GenBank file.
-#' @param output_dir Optional path for the output FASTA file. If NULL, the
-#'   output is saved in the same directory as the input file with the same base
-#'   name but with a .fasta extension.
+#' @param output_dir Directory for the output FASTA file, which gets the base
+#'   name of the input file with a .fasta extension. Defaults to
+#'   \code{tempdir()}. Use \code{NULL} to save it next to the input file.
 #'
-#' @return None explicitly, but writes the FASTA formatted data to a file.
+#' @return The path of the FASTA file, invisibly.
 #'
 #' @examples
 #' \donttest{
@@ -359,7 +359,7 @@ parse_procmer <- function(path, reference, query){
 #' @importFrom tools file_path_sans_ext
 #'
 #' @export
-genbank_to_fasta <- function(path, output_dir=NULL){
+genbank_to_fasta <- function(path, output_dir = tempdir()){
 
   # Check if the file exists
   if (!file.exists(path)) {
@@ -421,4 +421,5 @@ genbank_to_fasta <- function(path, output_dir=NULL){
   # Write the FASTA content to the specified file path
   writeLines(fasta_content, fasta_file_path)
 
+  invisible(fasta_file_path)
 }

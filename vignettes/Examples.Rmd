@@ -466,13 +466,13 @@ GC_chart(erythromycin_cluster,
   GC_theme("classic")
 ```
 
-### *Saccharopolyspora erythraea* Erythromycin BlastP
+### *Saccharopolyspora erythraea* Erythromycin protein alignment
 
 <details>
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
-### Erythromycin BlastP
-# Genes without a BlastP hit have no function: give them their own group
+### Erythromycin protein alignment
+# Genes without a hit have no function: give them their own group
 blastp <- erythromycin_BlastP
 blastp$Functions[is.na(blastp$Functions)] <- "No Hit"
 
@@ -482,7 +482,7 @@ GC_chart(blastp,
          group = "Functions",
          height = 700) %>%
   GC_title(
-    title = "BlastP Results"
+    title = "Protein Alignment Results"
   ) %>%
   GC_labels("Gene", cluster = 1) %>%
   GC_links(group = "Gene", 
@@ -499,8 +499,8 @@ GC_chart(blastp,
 </details>
 
 ```{r echo = FALSE, results='asis'}
-### Erythromycin BlastP
-# Genes without a BlastP hit have no function: give them their own group
+### Erythromycin protein alignment
+# Genes without a hit have no function: give them their own group
 blastp <- erythromycin_BlastP
 blastp$Functions[is.na(blastp$Functions)] <- "No Hit"
 
@@ -510,7 +510,7 @@ GC_chart(blastp,
          group = "Functions",
          height = 700) %>%
   GC_title(
-    title = "BlastP Results"
+    title = "Protein Alignment Results"
   ) %>%
   GC_labels("Gene", cluster = 1) %>%
   GC_links(group = "Gene", 
@@ -529,8 +529,8 @@ GC_chart(blastp,
 <summary>Click to see the code</summary>
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
 library(dplyr)
-### Erythromycin BlastP
-# Genes without a BlastP hit have no function: give them their own group
+### Erythromycin protein alignment
+# Genes without a hit have no function: give them their own group
 blastp <- erythromycin_BlastP %>% dplyr::filter(cluster %in% c("BGC0000055", "BGC0000054"))
 blastp$Functions[is.na(blastp$Functions)] <- "No Hit"
 
@@ -555,8 +555,8 @@ GC_chart(blastp,
 
 ```{r echo = FALSE, results='asis'}
 library(dplyr)
-### Erythromycin BlastP
-# Genes without a BlastP hit have no function: give them their own group
+### Erythromycin protein alignment
+# Genes without a hit have no function: give them their own group
 blastp <- erythromycin_BlastP %>% dplyr::filter(cluster %in% c("BGC0000055", "BGC0000054"))
 blastp$Functions[is.na(blastp$Functions)] <- "No Hit"
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/cluster_blast.R
 \name{protein_blast}
 \alias{protein_blast}
-\title{Perform Protein BLAST Analysis Within Specified Clusters}
+\title{Find Homologous Proteins Between Clusters by Pairwise Alignment}
 \usage{
 protein_blast(
   data,
@@ -23,7 +23,8 @@ to .gbk files which are then read and processed. The dataframe must contain
 columns for unique protein identifiers, cluster identifiers, protein
 sequences, and the start and end positions of each gene.}
 
-\item{query}{The name of the query cluster to be used for BLAST comparisons.}
+\item{query}{The name of the query cluster the other clusters are compared
+with.}
 
 \item{id}{The name of the column that contains the gene identifiers. Defaults
 to "protein_id".}
@@ -40,27 +41,36 @@ to "cluster".}
 \item{genes}{An optional vector of gene identifiers to include in the
 analysis. Defaults to NULL.}
 
-\item{identity}{Minimum identity threshold for BLAST hits to be considered
-significant. Defaults to 30.}
+\item{identity}{Minimum percentage identity of the global alignment for a hit
+to be kept. Defaults to 30.}
 
 \item{parallel}{Deprecated and ignored. The alignments are now fast enough
 without parallel processing. Kept so that existing code keeps working.}
 }
 \value{
 A modified version of the input \code{data} dataframe, including
-additional columns for BLAST results (identity, similarity).
+additional columns \code{BlastP} (the protein of the query cluster that is the
+best hit; the name is kept for compatibility), \code{identity}, \code{similarity} and
+\code{score} (the synteny score of the cluster).
 }
 \description{
-This function conducts a BLAST analysis for protein sequences within
-specified clusters. It generates all possible protein combinations between a
-query cluster and other clusters, performs pairwise alignments, calculates
-sequence identity and similarity, and filters results based on a minimum
-identity threshold.
+Compares the proteins of a query cluster with those of the other clusters. It
+generates all protein combinations between the query cluster and each other
+cluster, aligns each pair with a global (Needleman-Wunsch) pairwise alignment
+from \code{\link[pwalign:pairwiseAlignment]{pwalign::pairwiseAlignment()}}, calculates sequence identity and
+similarity, and keeps the best hit of each gene above a minimum identity
+threshold.
+}
+\details{
+Despite its name, the function does not run BLAST: there is no seed search,
+local alignment, substitution matrix or E-value. Identity and similarity are
+percentages of the full length of the global alignment, gaps included, so
+proteins of very different length, or that share only one domain, get lower
+values than they would get from BLASTP. Set \code{identity} with this in mind.
 }
 \note{
-This function relies on the Biostrings and pwalign package for sequence
-alignment and the dplyr package for data manipulation. Ensure these packages
-are installed and loaded into your R session.
+This function relies on the Biostrings and pwalign packages from
+Bioconductor for sequence alignment. Ensure these packages are installed.
 }
 \examples{
 \donttest{
@@ -78,4 +88,10 @@ if (requireNamespace("Biostrings", quietly = TRUE) &&
 }
 }
 
+}
+\references{
+Needleman, S. B. and Wunsch, C. D. (1970). A general method
+applicable to the search for similarities in the amino acid sequence of two
+proteins. Journal of Molecular Biology, 48(3), 443-453.
+\doi{10.1016/0022-2836(70)90057-4}
 }

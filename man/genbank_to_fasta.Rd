@@ -4,17 +4,17 @@
 \alias{genbank_to_fasta}
 \title{Convert GenBank to FASTA Format}
 \usage{
-genbank_to_fasta(path, output_dir = NULL)
+genbank_to_fasta(path, output_dir = tempdir())
 }
 \arguments{
 \item{path}{Path to the GenBank file.}
 
-\item{output_dir}{Optional path for the output FASTA file. If NULL, the
-output is saved in the same directory as the input file with the same base
-name but with a .fasta extension.}
+\item{output_dir}{Directory for the output FASTA file, which gets the base
+name of the input file with a .fasta extension. Defaults to
+\code{tempdir()}. Use \code{NULL} to save it next to the input file.}
 }
 \value{
-None explicitly, but writes the FASTA formatted data to a file.
+The path of the FASTA file, invisibly.
 }
 \description{
 This function reads a GenBank file, extracts the sequence and

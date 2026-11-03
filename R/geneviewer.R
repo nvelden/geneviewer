@@ -170,7 +170,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     x$series[[clust]]$annotations <- list()
     x$series[[clust]]$trackMouse <- list(show = FALSE)
 
-    # Blast specific settings
+    # protein_blast() specific settings
     if(all(c("BlastP", "protein_id") %in% colnames_data) &&
        any(subset_data$BlastP == subset_data$protein_id, na.rm = TRUE) &&
        all(subset_data$BlastP %in% c(subset_data$protein_id, "No Hit", NA))){
@@ -182,7 +182,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     } else if(all(c("BlastP", "protein_id") %in% colnames_data)){
       formatter <-
         "<b>{protein_id}</b><br>
-        <b>BlastP hit with:</b> {BlastP}<br>
+        <b>Best hit:</b> {BlastP}<br>
         <b>Identity:</b> {identity}%<br>
         <b>Similarity:</b> {similarity}%<br>
         <b>Location:</b> {start} - {end}<br>"

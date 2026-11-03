@@ -77,14 +77,15 @@
 #' }
 "erythromycin_cluster"
 
-#' Erythromycin BlastP results
+#' Erythromycin protein alignment results
 #'
 #' This dataset contains detailed information on genes involved in the
 #' biosynthesis of Erythromycin, an antibiotic produced by the bacterium
 #' Saccharopolyspora erythraea and several homologous gene clusters identified
 #' by antiSMASH. It includes gene identifiers, chromosomal positions,
 #' orientations, and annotations regarding their products and functions, as well
-#' as similarity and identity scores from BlastP analysis.
+#' as identity and similarity scores from [protein_blast()], which uses global
+#' pairwise protein alignments.
 #'
 #' @format A data frame with 148 observations and 16 variables:
 #' \describe{
@@ -96,16 +97,16 @@
 #'   \item{start}{The start position of the gene on the chromosome. A numeric vector.}
 #'   \item{end}{The end position of the gene on the chromosome. A numeric vector.}
 #'   \item{rowID}{A unique identifier for each row in the dataset. An integer vector.}
-#'   \item{identity}{The identity score from BlastP analysis, representing the percentage of identical matches. A numeric vector.}
-#'   \item{similarity}{The similarity score from BlastP analysis, often reflecting the functional or structural similarity. A numeric vector.}
-#'   \item{BlastP}{Reference to the protein_id after BlastP comparison, or NA if not applicable. A character vector.}
-#'   \item{score}{Score assigned based on the BlastP analysis, quantifying the match quality. A numeric vector.}
+#'   \item{identity}{The percentage of identical positions in the global alignment with the best hit. A numeric vector.}
+#'   \item{similarity}{The percentage of identical or similar amino acids in the global alignment with the best hit. A numeric vector.}
+#'   \item{BlastP}{The protein_id of the best hit in the query cluster, or NA if there is none. A character vector.}
+#'   \item{score}{Synteny score of the cluster with the query cluster, based on the hits. A numeric vector.}
 #'   \item{Gene}{Gene name or identifier if available, otherwise NA. A character vector.}
 #'   \item{Position}{Formatted string indicating the gene's position and orientation on the chromosome. A character vector.}
 #'   \item{Product}{Description of the gene product. A character vector.}
 #'   \item{Functions}{Functional categorization of the gene. A character vector.}
 #' }
-#' @source Derived from BlastP analysis of Saccharopolyspora erythraea genes
+#' @source Derived from [protein_blast()] alignments of Saccharopolyspora erythraea genes
 #'   involved in Erythromycin production.
 "erythromycin_BlastP"
 

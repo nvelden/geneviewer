@@ -580,20 +580,20 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "280px") 
   GC_legend(FALSE)
 ```
 
-## BlastP
+## Protein alignment
 
-The `protein_blast()` function can be used to perform a BlastP alignment between clusters. For more information see the [Cluster comparison using BlastP](https://nvelden.github.io/geneviewer/articles/BLASTP.html) tutorial.
+The `protein_blast()` function finds homologous genes between clusters with global pairwise protein alignments (not BLAST). For more information see the [Cluster comparison using protein alignments](https://nvelden.github.io/geneviewer/articles/BLASTP.html) tutorial.
 
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
 BlastP_results <- 
   protein_blast(
     data, # or path to folder containing .gbk files
-    query, # The name of the query cluster to be used for BLAST comparisons.
+    query, # The name of the query cluster the other clusters are compared with.
     id = "protein_id", # The name of the column that contains the gene identifiers.
     start = "start",
     end = "end",
     cluster = "cluster",
-    genes = NULL, #Vector of protein IDs to include for BlastP analysis.
+    genes = NULL, # Vector of protein IDs to include in the alignments.
     identity = 30
 )
 ```

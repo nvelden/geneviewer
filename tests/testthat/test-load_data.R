@@ -260,6 +260,19 @@ test_that("genbank_to_fasta writes one FASTA record per GenBank record (B19)", {
   genbank_to_fasta(gbk_file, output_dir = out_dir)
   expect_equal(readLines(file.path(out_dir, sub("\\.gbk$", ".fasta", basename(gbk_file)))),
                c(">AAA.1 Record AAA", "ACGTACGTACGTACGTACGT"))
+
+  # By default the file goes to tempdir(); output_dir = NULL puts it next to
+  # the input. The path is returned invisibly.
+  in_dir <- tempfile(); dir.create(in_dir)
+  in_file <- file.path(in_dir, "AAA.gbk")
+  writeLines(record("AAA", "acgtacgtac gtacgtacgt"), in_file)
+  expect_invisible(path <- genbank_to_fasta(in_file))
+  expect_equal(path, file.path(tempdir(), "AAA.fasta"))
+  expect_true(file.exists(path))
+  expect_false(file.exists(file.path(in_dir, "AAA.fasta")))
+  expect_equal(genbank_to_fasta(in_file, output_dir = NULL), file.path(in_dir, "AAA.fasta"))
+  expect_true(file.exists(file.path(in_dir, "AAA.fasta")))
+  unlink(c(in_dir, path), recursive = TRUE)
 })
 
 test_that("mummer_alignment matches files exactly and only removes its own files (B20)", {

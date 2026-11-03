@@ -14,13 +14,9 @@
 
 ## Interactive Shiny Dashboard
 
-Try the **[Gene Cluster Dashboard](https://nvelden.github.io/geneviewer-shinylive/)** - a web interface that provides point-and-click access to geneviewer's visualization features. *(Allow 1-2 minutes for loading)*
+Try the **[Gene Cluster Dashboard](https://nvelden.github.io/geneviewer-shinylive/)** - a web interface that provides point-and-click access to geneviewer's visualization features. *(Allow 1-2 minutes for loading)* Its source code is in the [geneviewer-shinylive](https://github.com/nvelden/geneviewer-shinylive) repository.
 
 <p align="center"><a href="https://nvelden.github.io/geneviewer-shinylive/"><img src="man/figures/geneviewer_promo.gif" width="100%" alt="geneviewer: load GenBank, FASTA or CSV files, add titles, labels and a legend, zoom, drag labels, switch the theme and export the SVG"/></a></p>
-
-**[Dashboard Repository](https://github.com/nvelden/geneviewer-shinylive)**
-
-
 
 ## Installation
 

@@ -16,7 +16,7 @@
 
 Try the **[Gene Cluster Dashboard](https://nvelden.github.io/geneviewer-shinylive/)** - a web interface that provides point-and-click access to geneviewer's visualization features. *(Allow 1-2 minutes for loading)*
 
-<a href="https://nvelden.github.io/geneviewer-shinylive/"><img src="man/figures/geneviewer_promo.gif" width="540" alt="The Gene Cluster Dashboard: pick a theme, click any gene, copy the R code and save as SVG"/></a>
+<p align="center"><a href="https://nvelden.github.io/geneviewer-shinylive/"><img src="man/figures/geneviewer_promo.gif" width="400" alt="geneviewer: load GenBank, FASTA or CSV files, add titles, labels and a legend, zoom, drag labels, switch the theme and export the SVG"/></a></p>
 
 **[Dashboard Repository](https://github.com/nvelden/geneviewer-shinylive)**
 

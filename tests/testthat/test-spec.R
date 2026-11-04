@@ -183,3 +183,18 @@ test_that("the spec validates against the schema of spec v1", {
   json <- htmlwidgets:::toJSON(sent_x(spec_chart())$spec)
   expect_true(jsonvalidate::json_validate(json, schema, engine = "ajv", error = TRUE))
 })
+
+test_that("options passed through ... keep their names", {
+  local_record_spec(TRUE)
+  spec <- sent_x(GC_chart(spec_genes, group = "group") %>%
+                   GC_genes(marker_size = "small", prevent_overlap = FALSE))$spec
+  expect_identical(spec$genes, list(markerSize = "small", prevent_overlap = FALSE))
+})
+
+test_that("NULL is kept where it replaces a default", {
+  local_record_spec(TRUE)
+  spec <- sent_x(GC_chart(spec_genes, group = "group") %>%
+                   GC_pattern(background = NULL, size = 4))$spec
+  expect_identical(spec$pattern, list(background = NULL, size = 4))
+  expect_match(as.character(htmlwidgets:::toJSON(spec$pattern)), '"background":null')
+})

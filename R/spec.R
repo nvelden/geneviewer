@@ -20,11 +20,14 @@ recording_spec <- function() {
 #'
 #' @param call The call, from `match.call()`.
 #' @param env The environment of the function, from `environment()`.
+#' @param fun The function, for the defaults of its arguments.
 #' @return A named list of the arguments given in the call, without the chart
-#'   and without NULL values or empty lists; NULL when the spec is not
-#'   recorded.
+#'   and without empty lists; NULL when the spec is not recorded. A NULL is
+#'   kept only where the argument's default is not NULL (e.g.
+#'   `GC_pattern(background = NULL)`). The attribute "dots" names the
+#'   arguments passed through `...`, which keep their names.
 #' @noRd
-spec_args <- function(call, env) {
+spec_args <- function(call, env, fun = sys.function(-1)) {
   if (!recording_spec()) {
     return(NULL)
   }
@@ -33,12 +36,25 @@ spec_args <- function(call, env) {
   given <- setdiff(names(call)[-1], c("", "GC_chart"))
   formal <- intersect(given, setdiff(ls(env, all.names = TRUE), "..."))
   args <- mget(formal, envir = env)
+  defaults <- formals(fun)
+  dot_names <- character()
   if (exists("...", envir = env, inherits = FALSE)) {
     dots <- eval(quote(list(...)), env)
-    args <- c(args, dots[nzchar(names(dots))])
+    dots <- dots[nzchar(names(dots))]
+    dot_names <- names(dots)
+    args <- c(args, dots)
   }
   args <- args[order(match(names(args), given))]
-  Filter(function(x) !is.null(x) && !(is.list(x) && length(x) == 0), args)
+  keep <- vapply(names(args), function(name) {
+    value <- args[[name]]
+    if (is.null(value)) {
+      return(name %in% formal && !is.null(defaults[[name]]))
+    }
+    !(is.list(value) && length(value) == 0)
+  }, logical(1))
+  args <- args[keep]
+  attr(args, "dots") <- intersect(dot_names, names(args))
+  args
 }
 
 #' An entry of the spec: a named list, also when empty
@@ -89,7 +105,11 @@ add_spec <- function(GC_chart, key, args, rename = character(),
   if (is.null(args) || is.null(GC_chart$x$spec)) {
     return(GC_chart)
   }
-  names(args) <- spec_names(names(args), rename, clusters)
+  # Options passed through ... keep their names, as R sends them
+  dot_names <- attr(args, "dots")
+  is_dot <- names(args) %in% dot_names
+  names(args)[!is_dot] <- spec_names(names(args)[!is_dot], rename, clusters)
+  attr(args, "dots") <- NULL
   for (name in intersect(c("clusters", "selection"), names(args))) {
     args[[name]] <- as.list(args[[name]])
   }
@@ -201,6 +221,7 @@ add_spec_theme <- function(GC_chart, args) {
   }
   base <- args$theme
   args$theme <- NULL
+  attr(args, "dots") <- NULL
   args <- spec_theme_names(args)
   if (is.list(base)) {
     # A list of theme settings is the theme object itself

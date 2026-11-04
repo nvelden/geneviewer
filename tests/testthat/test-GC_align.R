@@ -104,3 +104,22 @@ test_that("GC_align leaves the scale breaks out of the shared range", {
     expect_equal(unname(ranges(chart)[, "end"]), c(300 + 1100, 1500 + 1100))
   }
 })
+
+test_that("normalising each cluster keeps its original positions in the chart data (B63)", {
+  genes <- data.frame(
+    start = c(10, 50, 100, 1000, 1500, 2600),
+    end = c(40, 90, 140, 1200, 1700, 2900),
+    cluster = c("a", "a", "a", "b", "b", "b")
+  )
+  chart <- GC_chart(genes, cluster = "cluster") %>%
+    GC_normalize(preserve_gene_length = FALSE)
+
+  for (name in c("a", "b")) {
+    series <- chart$x$series[[name]]$data
+    rows <- match(series$rowID, chart$x$data$rowID)
+    expect_identical(chart$x$data$original_start[rows], series$original_start)
+    expect_identical(chart$x$data$original_end[rows], series$original_end)
+    expect_identical(chart$x$data$start[rows], series$start)
+  }
+  expect_false(anyNA(chart$x$data$original_start))
+})

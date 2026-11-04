@@ -354,17 +354,16 @@ add_gene_track <- function(data, nested = FALSE, overlap_min = 0) {
 #' Update Start and End Columns Based on Merged Data
 #'
 #' This function merges two data frames by a specified column (default is
-#' "rowID") and updates the 'start' and 'end' columns in the original data based
-#' on values in the updated data. If the updated data contains a non-missing
-#' value for 'start' or 'end', it keeps the corresponding value in the
-#' original data.
+#' "rowID") and updates the columns of the original data that the updated data
+#' also has, such as 'start' and 'end', where the updated data has a
+#' non-missing value. Columns only in the updated data are added.
 #'
 #' @param data A data frame containing the original data.
 #' @param updated_data A data frame containing the updated data with the same
 #'   'rowID' column.
 #' @param by_col A character string specifying the column name to merge the data
 #'   frames by. Default is "rowID".
-#' @return A data frame with updated 'start' and 'end' columns.
+#' @return A data frame with the updated columns.
 #' @noRd
 update_cluster_data <- function(data, updated_data, by_col = "rowID") {
   # Check if the 'rowID' column exists in both data frames
@@ -379,9 +378,13 @@ update_cluster_data <- function(data, updated_data, by_col = "rowID") {
   # Merge the data frames
   result <- merge(data, updated_data, by = by_col, all.x = TRUE, suffixes = c("", "_new"))
 
-  # Update the 'start' and 'end' columns with new values if available
-  result$start <- ifelse(!is.na(result$start_new), result$start_new, result$start)
-  result$end <- ifelse(!is.na(result$end_new), result$end_new, result$end)
+  # Update the columns of both, e.g. 'start', 'end' and the 'original_start'
+  # a cluster normalised before added, with the new values where available
+  for (column in sub("_new$", "", grep("_new$", names(result), value = TRUE))) {
+    new <- result[[paste0(column, "_new")]]
+    available <- !is.na(new)
+    result[[column]][available] <- new[available]
+  }
 
   # Remove the columns with the "_new" suffix
   result <- result[, !grepl("_new$", names(result))]

@@ -35,6 +35,7 @@ GC_align <- function(
     id_column,
     id,
     align = "left") {
+  spec <- spec_args(match.call(), environment())
   if (is.null(GC_chart$x$cluster)) {
     warning("Could not align selected gene. Please define cluster in the GC_chart function.")
     return(GC_chart)
@@ -55,6 +56,7 @@ GC_align <- function(
   }
 
   GC_chart$x$align <- list(id_column = id_column, id = id, align = align)
+  GC_chart <- add_spec(GC_chart, "align", spec, mode = "replace")
 
   apply_align(GC_chart)
 }
@@ -216,6 +218,17 @@ GC_normalize <-
 
     GC_chart$x$data <- update_cluster_data(GC_chart$x$data, cluster_data)
 
+  }
+
+  # The spec holds the shifted positions, also in the columns given as
+  # start and end
+  if (!is.null(GC_chart$x$spec)) {
+    data <- GC_chart$x$data
+    for (field in c("start", "end")) {
+      column <- GC_chart$x$params[[field]]
+      if (!is.null(column)) data[[column]] <- data[[field]]
+    }
+    GC_chart$x$spec$data <- data
   }
 
   return(GC_chart)

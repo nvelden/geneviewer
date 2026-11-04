@@ -69,6 +69,7 @@ GC_element_style <- function(GC_chart,
                                            "clusterFooter", "clusterLabel", "legend", "title", "scaleBar", "scale"),
                              row_id = NULL, ..., cluster = NULL, part = NULL, end = NULL,
                              reset = FALSE, group = NULL) {
+  spec <- spec_args(match.call(), environment())
   component <- match.arg(component)
   by_row <- component %in% row_components
   if (component == "title") {
@@ -142,7 +143,7 @@ GC_element_style <- function(GC_chart,
     }
     GC_chart$x[[component]]$itemStyle <- update_element_override(
       GC_chart$x[[component]]$itemStyle, same, id, style, reset)
-    return(GC_chart)
+    return(add_spec_element_style(GC_chart, spec, component, reset))
   }
 
   # The series entry of the component, and what identifies the element in it
@@ -165,7 +166,7 @@ GC_element_style <- function(GC_chart,
     GC_chart$x$series[[name]][[key]]$itemStyle <- update_element_override(
       series[[key]]$itemStyle, same, id, style, reset)
   }
-  GC_chart
+  add_spec_element_style(GC_chart, spec, component, reset)
 }
 
 

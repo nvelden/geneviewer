@@ -97,6 +97,7 @@ GC_title <- function(
     ...
 ) {
 
+  spec <- spec_args(match.call(), environment())
   if (!is.logical(show) || length(show) != 1) {
     stop("show must be a single TRUE or FALSE")
   }
@@ -124,7 +125,7 @@ GC_title <- function(
   # Merge new options with existing options
   GC_chart$x$title <- merge_options(GC_chart$x$title, options)
 
-  return(GC_chart)
+  add_spec(GC_chart, "title", spec, mode = "merge")
 }
 
 #' Update cluster Title of a GC Chart Cluster
@@ -216,6 +217,7 @@ GC_clusterTitle <- function(
     align = NULL,
     spacing = NULL,
     ...) {
+  spec <- spec_args(match.call(), environment())
   if (!any(show)) {
     return(GC_chart)
   }
@@ -249,7 +251,7 @@ GC_clusterTitle <- function(
     # Set title options for each cluster
     GC_chart$x$series[[clusters[i]]]$clusterTitle <- options
   }
-  return(GC_chart)
+  add_spec(GC_chart, "clusterTitle", spec)
 }
 
 #' Update Sequence Display of a GC Chart Cluster
@@ -317,11 +319,13 @@ GC_sequence <- function(
     ...
 ) {
 
+  spec <- spec_args(match.call(), environment())
+
   # Capture ... arguments
   dots <- list(...)
 
   # Set sequence options for each cluster
-  set_cluster_options(GC_chart, cluster, "sequence", function(i, series) {
+  GC_chart <- set_cluster_options(GC_chart, cluster, "sequence", function(i, series) {
     # Default options
     options <- list(
       show = recycle_at(show, i),
@@ -336,6 +340,7 @@ GC_sequence <- function(
     # A range axis has moved the genes of the cluster; move the line along
     shift_sequence(options, series$positionShift)
   })
+  add_spec(GC_chart, "sequence", spec, rename = c(sequenceStyle = "lineStyle"))
 }
 
 #' The scale breaks of one cluster
@@ -426,6 +431,8 @@ GC_grid <- function(
     direction = "column",
     cluster = NULL
 ) {
+
+  spec <- spec_args(match.call(), environment())
 
   all_clusters <- names(GC_chart$x$series)
   update_clusters <- getUpdatedClusters(GC_chart, cluster)
@@ -523,7 +530,7 @@ GC_grid <- function(
     }
   }
 
-  return(GC_chart)
+  add_spec(GC_chart, "grid", spec)
 }
 
 #' Update Scale of a GC Chart Cluster
@@ -649,6 +656,7 @@ GC_scale <- function(GC_chart,
                      textStyle = list(),
                      lineStyle = list(),
                      ...) {
+  spec <- spec_args(match.call(), environment())
   # Capture ... arguments
   dots <- list(...)
 
@@ -747,6 +755,11 @@ GC_scale <- function(GC_chart,
 
   }
 
+  GC_chart <- add_spec(GC_chart, "scale", spec,
+                       rename = c(scale_breaks = "autoBreaks",
+                                  scale_break_threshold = "autoBreakThreshold",
+                                  scale_break_padding = "breakPadding"))
+
   # Keep the clusters aligned on the gene chosen with GC_align()
   apply_align(GC_chart)
 }
@@ -819,6 +832,8 @@ GC_scaleBar <- function(
     ...
 ) {
 
+  spec <- spec_args(match.call(), environment())
+
   if (!any(show)) {
     return(GC_chart)
   }
@@ -827,7 +842,7 @@ GC_scaleBar <- function(
   dots <- list(...)
 
   # Set scaleBar options for each cluster
-  set_cluster_options(GC_chart, cluster, "scaleBar", function(i, series) {
+  GC_chart <- set_cluster_options(GC_chart, cluster, "scaleBar", function(i, series) {
     # Default options
     options <- list(
       show = recycle_at(show, i),
@@ -839,6 +854,8 @@ GC_scaleBar <- function(
     # Add ... arguments to options
     recycle_dots(options, dots, i)
   })
+  add_spec(GC_chart, "scaleBar", spec,
+           rename = c(scaleBarLineStyle = "lineStyle", scaleBarTickStyle = "tickStyle"))
 }
 
 #' Set or Update Cluster Labels for a GC Chart
@@ -948,6 +965,7 @@ GC_clusterLabel <- function(
     ...
 ) {
 
+  spec <- spec_args(match.call(), environment())
   if (!any(show)) {
     return(GC_chart)
   }
@@ -993,7 +1011,7 @@ GC_clusterLabel <- function(
     GC_chart$x$series[[clusters[i]]]$clusterLabel <- options
 
   }
-  return(GC_chart)
+  add_spec(GC_chart, "clusterLabel", spec)
 }
 
 #' Add a Footer to Each Cluster in a GC Chart
@@ -1080,6 +1098,7 @@ GC_clusterFooter <- function(
     ...
 ) {
 
+  spec <- spec_args(match.call(), environment())
   if (!any(show)) {
     return(GC_chart)
   }
@@ -1090,7 +1109,7 @@ GC_clusterFooter <- function(
   dots <- list(...)
 
   # Set footer options for each cluster
-  set_cluster_options(GC_chart, cluster, "footer", function(i, series) {
+  GC_chart <- set_cluster_options(GC_chart, cluster, "footer", function(i, series) {
     # Default options
     options <- list(
       title = recycle_at(title, i),
@@ -1105,6 +1124,7 @@ GC_clusterFooter <- function(
     # Add ... arguments to options
     recycle_dots(options, dots, i)
   })
+  add_spec(GC_chart, "clusterFooter", spec)
 }
 
 
@@ -1195,6 +1215,7 @@ GC_coordinates <- function(
     ...
 ) {
 
+  spec <- spec_args(match.call(), environment())
   check_group_style(groupStyle)
   check_style_by(GC_chart, style_by)
   # the column groupStyle is matched against
@@ -1211,7 +1232,7 @@ GC_coordinates <- function(
   dots <- list(...)
 
   # Set coordinates options for each cluster
-  set_cluster_options(GC_chart, cluster, "coordinates", function(i, series) {
+  GC_chart <- set_cluster_options(GC_chart, cluster, "coordinates", function(i, series) {
     # Default options
     options <- list(
       show = recycle_at(show, i),
@@ -1232,6 +1253,7 @@ GC_coordinates <- function(
     options$tickValuesBottom <- tickValuesBottom
     options
   })
+  add_spec(GC_chart, "coordinates", spec)
 }
 
 
@@ -1305,6 +1327,7 @@ GC_cluster <- function(
     ...
 ) {
 
+  spec <- spec_args(match.call(), environment())
   if (!is.null(prevent_gene_overlap) &&
       !(length(prevent_gene_overlap) == 1 && !is.na(prevent_gene_overlap) &&
         (is.logical(prevent_gene_overlap) || identical(prevent_gene_overlap, "nested")))) {
@@ -1366,5 +1389,5 @@ GC_cluster <- function(
 
   }
 
-  return(GC_chart)
+  add_spec(GC_chart, "cluster", spec)
 }

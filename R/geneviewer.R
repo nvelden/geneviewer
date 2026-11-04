@@ -55,10 +55,12 @@ magrittr::`%>%`
 #' @export
 GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, width = "100%", height = "400px", style = list(), elementId = NULL, save_button = TRUE) {
 
+  spec <- spec_args(match.call(), environment())
   x <- list()
   # Capture all arguments with their current values
   x$params <- as.list(environment())
   x$params$data <- NULL
+  x$params$spec <- NULL
   x$params <- Filter(function(y) !is.null(y) && !(is.list(y) && length(y) == 0), x$params)
 
 
@@ -67,7 +69,11 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     data <- read_gbk_cds(data, start, end)
     cluster <- "cluster"
     strand <- "strand"
+    if (!is.null(spec)) spec[c("cluster", "strand")] <- list(cluster, strand)
   }
+
+  # The spec holds the data as given (or as read)
+  x$spec <- start_spec(data, spec)
 
   # ensure that data is a data frame
   stopifnot(is.data.frame(data))

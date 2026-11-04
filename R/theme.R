@@ -140,6 +140,7 @@ GC_theme <- function(
     ...
 ) {
 
+  spec <- spec_args(match.call(), environment())
   if (is.null(theme)) {
     base <- if (is.null(GC_chart$x$theme)) list() else GC_chart$x$theme
   } else {
@@ -165,7 +166,7 @@ GC_theme <- function(
     GC_chart$x$theme$pattern <- NULL
   }
 
-  return(GC_chart)
+  add_spec_theme(GC_chart, spec)
 }
 
 #' Settings of a Built-in Theme
@@ -680,12 +681,16 @@ drop_empty <- function(x) {
 # preRenderHook of GC_chart(): the theme is kept as set with GC_theme() and sent
 # to the browser in its form there when the chart is drawn
 render_theme <- function(widget) {
+  # The spec is sent as recorded
+  spec <- widget$x$spec
+  widget$x$spec <- NULL
   # The widget width can change after GC_chart(), e.g. through GC_grid().
   # Shiny's output element otherwise keeps only GC_chartOutput()'s width.
   widget$x$size <- list(width = widget$width)
   widget$x$theme <- theme_to_js(widget$x$theme)
   widget$x <- resolve_palette_names(widget$x)
   widget$x <- compact_data(widget$x)
+  widget$x$spec <- spec
   widget
 }
 

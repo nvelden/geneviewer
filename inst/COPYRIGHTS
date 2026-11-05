@@ -1,15 +1,15 @@
 geneviewer includes the following JavaScript. Third-party components retain
 their upstream licenses; geneviewer's own code is MIT licensed.
 
-geneviewer JavaScript library 0.3.2
+geneviewer JavaScript library 0.3.3
   Copyright Niels van der Velden
   License: MIT
-  Source: https://github.com/nvelden/geneviewer-js/tree/v0.3.2
-  Bundled files: htmlwidgets/lib/geneviewer-0.3.2/geneviewer.core.js,
-    htmlwidgets/lib/geneviewer-0.3.2/geneviewer.css,
-    htmlwidgets/lib/geneviewer-0.3.2/themes.json,
+  Source: https://github.com/nvelden/geneviewer-js/tree/v0.3.3
+  Bundled files: htmlwidgets/lib/geneviewer-0.3.3/geneviewer.core.js,
+    htmlwidgets/lib/geneviewer-0.3.3/geneviewer.css,
+    htmlwidgets/lib/geneviewer-0.3.3/themes.json,
     htmlwidgets/geneviewerwidget.js
-  Checksums: htmlwidgets/lib/geneviewer-0.3.2/SHA256SUMS (from the release)
+  Checksums: htmlwidgets/lib/geneviewer-0.3.3/SHA256SUMS (from the release)
 
 Font Awesome Free 6.5.2 icons
   Copyright Fonticons, Inc.
@@ -18,7 +18,7 @@ Font Awesome Free 6.5.2 icons
   The toolbar's default icons (download, rotate-left, rotate-right, house,
   magnifying-glass-minus) are glyphs of Font Awesome Free 6.5.2 (solid),
   drawn as inline SVG paths.
-  Bundled file: htmlwidgets/lib/geneviewer-0.3.2/geneviewer.core.js
+  Bundled file: htmlwidgets/lib/geneviewer-0.3.3/geneviewer.core.js
 
 D3 7.8.5
   Copyright 2010-2023 Mike Bostock

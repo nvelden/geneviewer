@@ -100,8 +100,9 @@ GC_labels <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
+  state <- chart_state(GC_chart)
   check_group_style(groupStyle)
-  check_style_by(GC_chart, style_by)
+  check_style_by(state, style_by)
   adjust <- list(...)$adjustLabels
   if (!is.null(adjust) && !(length(adjust) == 1 && !is.na(adjust) &&
                             (isTRUE(adjust) || isFALSE(adjust) ||
@@ -126,52 +127,33 @@ GC_labels <- function(
   }
 
   if (is.logical(label) && length(label) == 1) {
-    show <- label
     label <- NULL
   }
 
-  if (is.null(label) && is.null(GC_chart$x$group)){
+  if (is.null(label) && is.null(state$group)){
     stop("Please define labels")
   }
 
-  if (is.null(label) && !is.null(GC_chart$x$group)) {
-    label <- GC_chart$x$group
+  if (is.null(label) && !is.null(state$group)) {
+    label <- state$group
   }
 
-  if (!all(label %in% names(GC_chart$x$data))) {
+  if (!all(label %in% names(state$data))) {
     stop("label column not found in data")
   }
 
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-
-  for(i in seq_along(clusters)){
-
-    # Default options
-    options <- compact(list(
-      label = recycle_at(label, i),
-      show = recycle_at(show, i),
-      itemStyle = itemStyle,
-      groupStyle = groupStyle,
-      styleBy = style_by,
-      ...
-    ))
-
-    # Merge new options with existing options
-    GC_chart$x$series[[clusters[i]]]$labels <-
-      merge_options(GC_chart$x$series[[clusters[i]]]$labels, options)
-  }
+  getUpdatedClusters(state$clusters, cluster)
 
   add_spec(GC_chart, "labels", spec_flag(spec, "label"))
 }
 
 #' Check that style_by is a single column of the data
 #' @noRd
-check_style_by <- function(GC_chart, style_by) {
+check_style_by <- function(state, style_by) {
   # geneTrack: the track GC_cluster(prevent_gene_overlap = ) puts a gene on
   if (!is.null(style_by) &&
       (length(style_by) != 1 ||
-       !(style_by %in% names(GC_chart$x$data) || identical(style_by, "geneTrack")))) {
+       !(style_by %in% names(state$data) || identical(style_by, "geneTrack")))) {
     stop("style_by must be a single column name of the data, or \"geneTrack\"")
   }
 }
@@ -293,51 +275,23 @@ GC_genes <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
+  state <- chart_state(GC_chart)
   check_group_style(groupStyle)
-  check_style_by(GC_chart, style_by)
+  check_style_by(state, style_by)
 
   if (is.logical(group) && length(group) == 1) {
-    show <- group
     group <- NULL
   }
 
-  if (is.null(group) && !is.null(GC_chart$x$group)){
-    group <- GC_chart$x$group
+  if (is.null(group) && !is.null(state$group)){
+    group <- state$group
   }
 
-  if (!is.null(group) && !all(group %in% names(GC_chart$x$data))) {
+  if (!is.null(group) && !all(group %in% names(state$data))) {
     stop("group column not found in data")
   }
 
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-
-  for(i in seq_along(clusters)){
-
-    # Default options
-    options <- compact(list(
-      group = recycle_at(group, i),
-      marker = recycle_at(marker, i),
-      cornerRadius = corner_radius,
-      markerSize = marker_size,
-      show = recycle_at(show, i),
-      colorScheme = colorScheme,
-      customColors = customColors,
-      itemStyle = itemStyle,
-      groupStyle = groupStyle,
-      styleBy = style_by,
-      ...
-    ))
-
-    GC_chart$x$series[[clusters[i]]]$genes <-
-      keep_color_options(options, GC_chart$x$series[[clusters[i]]]$genes)
-
-  }
-
-  # The legend shows all clusters, so it only follows colours set for all of them
-  if (is.null(cluster)) {
-    GC_chart <- set_legend_colors(GC_chart, colorScheme, customColors)
-  }
+  getUpdatedClusters(state$clusters, cluster)
 
   add_spec(GC_chart, "genes", spec_flag(spec, "group"))
 }
@@ -524,18 +478,18 @@ GC_transcript <- function(GC_chart,
                           ...) {
 
   spec <- spec_args(match.call(), environment())
+  state <- chart_state(GC_chart)
   check_group_style(groupStyleExons)
   check_group_style(groupStyleIntrons)
   check_group_style(groupStyleUTRs)
-  check_style_by(GC_chart, style_by)
+  check_style_by(state, style_by)
 
-  transcript_called <- GC_chart$x$transcript_called
+  # The first call adds the introns to the data and draws the transcripts as
+  # the clusters
+  if (is.null(GC_chart$x$spec$transcript)) {
 
-  # Update GC_chart object with new data
-  if (is.null(transcript_called)) {
-
-    data <- GC_chart$x$data
-    data_tmp <- GC_chart$x$data
+    data <- state$data
+    data_tmp <- state$data
     colnames_data <- colnames(data)
 
     if (!is.null(type) && length(type) != 1) {
@@ -562,82 +516,31 @@ GC_transcript <- function(GC_chart,
       data$transcript <- as.character(data_tmp[[transcript]])
     }
     data <- get_introns(data)
-    transcripts <- unique(as.character(data$transcript))
 
-    # Update chart object
-    new_params <- GC_chart$x$params
-    new_params$data <- data
+    # The data of the chart with the transcripts as clusters, checked as
+    # GC_chart() checks it
+    cluster <- if (is.null(transcript)) "transcript" else transcript
+    prepared <- prepare_data(data, state$start, state$end, cluster, state$group, strand)
+    state$data <- prepared
+    state$clusters <- state_clusters(prepared, cluster)
 
-    if (is.null(transcript)) {
-      new_params$cluster <- "transcript"
-    } else {
-      new_params$cluster <- transcript
-    }
-    new_params$strand <- strand
-
-    # The chart is made again with the transcripts as clusters; keep the
-    # settings of the whole chart
-    old_chart <- GC_chart
-    GC_chart <- do.call(geneviewer::GC_chart, new_params)
-    GC_chart <- keep_chart_settings(GC_chart, old_chart)
-    # The spec is kept, with the data and its introns
-    GC_chart$x$spec <- old_chart$x$spec
-    if (!is.null(GC_chart$x$spec)) GC_chart$x$spec$data <- data
-
-    for (trans in transcripts) {
-        GC_chart$x$series[[trans]]$genes <- list(group = NULL, show = FALSE)
-        GC_chart$x$series[[trans]]$sequence <- list(show = FALSE)
-        GC_chart$x$series[[trans]]$transcript <- list(group = NULL, show = TRUE)
-    }
+    # The spec holds the data and its introns
+    GC_chart$x$spec$data <- data
   }
 
   if (is.logical(group) && length(group) == 1) {
-    show <- group
     group <- NULL
   }
 
-  if (is.null(group) && !is.null(GC_chart$x$group)) {
-    group <- GC_chart$x$group
+  if (is.null(group) && !is.null(state$group)) {
+    group <- state$group
   }
 
-  if (!is.null(group) && !all(group %in% names(GC_chart$x$data))) {
+  if (!is.null(group) && !all(group %in% names(state$data))) {
     stop("group column not found in data")
   }
 
-  clusters <- getUpdatedClusters(GC_chart, selection)
-
-  for (i in seq_along(clusters)) {
-    # Default options
-    options <- compact(list(
-      group = recycle_at(group, i),
-      show = recycle_at(show, i),
-      colorScheme = colorScheme,
-      customColors = customColors,
-      styleExons = styleExons,
-      styleIntrons = styleIntrons,
-      styleUTRs = styleUTRs,
-      itemStyleExons = itemStyleExons,
-      itemStyleIntrons = itemStyleIntrons,
-      itemStyleUTRs = itemStyleUTRs,
-      groupStyleExons = groupStyleExons,
-      groupStyleIntrons = groupStyleIntrons,
-      groupStyleUTRs = groupStyleUTRs,
-      styleBy = style_by,
-      labelOptions = labelOptions,
-      ...
-    ))
-
-    GC_chart$x$series[[clusters[i]]]$transcript <-
-      keep_color_options(options, GC_chart$x$series[[clusters[i]]]$transcript)
-
-  }
-
-  # The legend shows all transcripts, so it only follows colours set for all of them
-  if (is.null(selection)) {
-    GC_chart <- set_legend_colors(GC_chart, colorScheme, customColors)
-  }
-
-  GC_chart$x$transcript_called <- TRUE
+  getUpdatedClusters(state$clusters, selection)
 
   add_spec(GC_chart, "transcript", spec_flag(spec, "group"))
 }
@@ -694,21 +597,6 @@ GC_color <- function(
   if (!is.null(colorScheme) && !is.null(customColors) && is.null(names(customColors))) {
     warning("Both colorScheme and customColors are selected. Use a named list of customColors to set the colours of some groups, or choose only one.")
     return(GC_chart)
-  }
-
-  # Update legend
-  GC_chart$x$legend$legendOptions$colorScheme <- colorScheme
-  GC_chart$x$legend$legendOptions$customColors <- customColors
-
-  # Capture clusters to update
-  clusters <- names(GC_chart$x$series)
-
-  # Update gene and transcript colors
-  for(cluster_name in clusters){
-    GC_chart$x$series[[cluster_name]]$genes$colorScheme <- colorScheme
-    GC_chart$x$series[[cluster_name]]$genes$customColors <- customColors
-    GC_chart$x$series[[cluster_name]]$transcript$colorScheme <- colorScheme
-    GC_chart$x$series[[cluster_name]]$transcript$customColors <- customColors
   }
 
   add_spec(GC_chart, "color", spec, mode = "replace")
@@ -786,7 +674,8 @@ GC_pattern <- function(
 
   spec <- spec_args(match.call(), environment())
 
-  pattern <- pattern_to_js(list(
+  # Checks the patterns
+  check_pattern(list(
     patterns = patterns,
     color = color,
     background = background,
@@ -794,19 +683,11 @@ GC_pattern <- function(
     strokeWidth = strokeWidth
   ))
 
-  GC_chart$x$legend$legendOptions$pattern <- pattern
-
-  for(cluster_name in names(GC_chart$x$series)){
-    GC_chart$x$series[[cluster_name]]$genes$pattern <- pattern
-    GC_chart$x$series[[cluster_name]]$transcript$pattern <- pattern
-  }
-
   add_spec(GC_chart, "pattern", spec, mode = "replace")
 }
 
-# Pattern settings of GC_pattern() and GC_theme(pattern = ) as sent to the
-# browser; NULL settings are dropped
-pattern_to_js <- function(pattern) {
+# Checks the patterns of GC_pattern() and GC_theme(pattern = )
+check_pattern <- function(pattern) {
   available <- c("none", "solid", "horizontal", "vertical", "diagonal",
                  "antidiagonal", "grid", "crosshatch", "dots", "zigzag",
                  "checkerboard", "rings", "bricks", "plus", "wideStripes",
@@ -816,39 +697,7 @@ pattern_to_js <- function(pattern) {
     stop("Unknown pattern(s): ", paste(unknown, collapse = ", "),
          ". Available patterns: ", paste(available, collapse = ", "))
   }
-
-  # R colour names such as "grey75" are not CSS colours; pass them as hex
-  as_css_color <- function(x) {
-    vapply(x, function(col) {
-      tryCatch({
-        rgba <- grDevices::col2rgb(col, alpha = TRUE)
-        grDevices::rgb(rgba[1], rgba[2], rgba[3],
-                       if (rgba[4] < 255) rgba[4], maxColorValue = 255)
-      }, error = function(e) col)
-    }, character(1), USE.NAMES = FALSE)
-  }
-  # Keeps the names of named vectors and lists
-  to_css <- function(x) {
-    if (is.null(x)) return(NULL)
-    x[] <- if (is.list(x)) lapply(x, as_css_color) else as_css_color(x)
-    x
-  }
-
-  # Named vectors become objects by group in JavaScript, unnamed ones arrays
-  as_js_values <- function(x) {
-    if (is.null(x)) return(NULL)
-    if (!is.null(names(x))) return(as.list(x))
-    if (length(x) == 1) return(x)
-    as.list(x)
-  }
-
-  Filter(Negate(is.null), list(
-    patterns = as_js_values(pattern$patterns),
-    color = as_js_values(to_css(pattern$color)),
-    background = as_js_values(to_css(pattern$background)),
-    size = pattern$size,
-    strokeWidth = pattern$strokeWidth
-  ))
+  invisible()
 }
 
 #' Set Legend for a Gene Chart
@@ -948,6 +797,7 @@ GC_legend <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
+  state <- chart_state(GC_chart)
   check_group_style(groupStyle)
 
   if (is.logical(group) && length(group) == 1) {
@@ -955,42 +805,19 @@ GC_legend <- function(
     group <- NULL
   }
 
-  if (isTRUE(show) && is.null(group) && is.null(GC_chart$x$group)){
+  if (isTRUE(show) && is.null(group) && is.null(state$group)){
     stop("Please define a group")
   }
 
-  if (is.null(group) && !is.null(GC_chart$x$group)){
-    group <- GC_chart$x$group
+  if (is.null(group) && !is.null(state$group)){
+    group <- state$group
   }
 
-  if (!is.null(group) && !(group %in% names(GC_chart$x$data))) {
+  if (!is.null(group) && !(group %in% names(state$data))) {
     stop("group column not found in data")
   }
 
   check_align(align)
-
-  # The legend container takes its background from style
-  if (!is.null(backgroundColor) && is.null(style$backgroundColor)) {
-    style$backgroundColor <- backgroundColor
-  }
-
-  # Capture arguments and filter out NULL or empty values
-  options <- compact(list(
-    group = group,
-    show = show,
-    order = order,
-    position = position,
-    align = align,
-    cornerRadius = corner_radius,
-    style = style,
-    legendOptions = legendOptions,
-    legendTextOptions = legendTextOptions,
-    groupStyle = groupStyle,
-    ...
-  ))
-
-  # Merge new options with existing options
-  GC_chart$x$legend <- merge_options(GC_chart$x$legend, options)
 
   add_spec(GC_chart, "legend", spec_flag(spec, "group"), mode = "merge",
            rename = c(legendOptions = "markerStyle", legendTextOptions = "textStyle"))

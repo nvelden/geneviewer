@@ -1,18 +1,12 @@
 # The chart spec
 #
-# With options(geneviewer.record_spec = TRUE), GC_chart() starts x$spec and
-# every GC_ function adds the arguments it was called with, under its key and
-# with the names of the spec (spec v1, schema/NAMING.md in geneviewer-js).
-# Arguments are recorded as given: no defaults are filled in and nothing is
-# recycled or expanded. Data processing (GC_links(group = ), GC_transcript(),
-# GC_normalize()) records its results as data. The option is off by default;
-# it does not change the chart.
-
-#' Whether the spec is recorded
-#' @noRd
-recording_spec <- function() {
-  isTRUE(getOption("geneviewer.record_spec", FALSE))
-}
+# GC_chart() starts the spec in x$spec, and every GC_ function adds the
+# arguments it was called with, under its key and with the names of the spec
+# (spec v1, schema/NAMING.md in geneviewer-js). Arguments are recorded as
+# given: no defaults are filled in and nothing is recycled or expanded. Data
+# processing (GC_links(group = ), GC_transcript(), GC_normalize()) records its
+# results as data. The spec is what the widget sends: x is list(spec = ),
+# drawn by the geneviewer JavaScript library.
 
 #' The arguments given in a call, for the spec
 #'
@@ -28,9 +22,6 @@ recording_spec <- function() {
 #'   arguments passed through `...`, which keep their names.
 #' @noRd
 spec_args <- function(call, env, fun = sys.function(-1)) {
-  if (!recording_spec()) {
-    return(NULL)
-  }
   # The chart first, as the function itself would
   if (exists("GC_chart", envir = env, inherits = FALSE)) get("GC_chart", envir = env)
   given <- setdiff(names(call)[-1], c("", "GC_chart"))
@@ -167,12 +158,9 @@ add_spec <- function(GC_chart, key, args, rename = character(),
 #'
 #' @param data The data of the chart, as given or as read from GenBank files.
 #' @param args The arguments of `GC_chart()`, from `spec_args()`.
-#' @return The spec, or NULL when it is not recorded.
+#' @return The spec.
 #' @noRd
 start_spec <- function(data, args) {
-  if (is.null(args)) {
-    return(NULL)
-  }
   field_names <- c("start", "end", "cluster", "group", "strand")
   spec <- list(version = 1L, data = data)
   fields <- args[intersect(field_names, names(args))]
@@ -292,4 +280,109 @@ spec_theme_names <- function(settings) {
     }
   }
   settings
+}
+
+#' The data of a chart as GC_chart() prepares it
+#'
+#' Checks the columns, leaves out rows without a start or end, and adds the
+#' columns `rowID`, `start`, `end` and `strand`; cluster names become
+#' character. The library does the same with the spec's data; R needs it to
+#' check arguments against the data and to process it (GC_links(group = ),
+#' GC_transcript(), GC_normalize(), GC_align()).
+#'
+#' @param data A data frame.
+#' @param start,end,cluster,group,strand Column names, as for `GC_chart()`.
+#' @param warn Logical, whether to warn about rows left out.
+#' @return The data frame.
+#' @noRd
+prepare_data <- function(data, start = "start", end = "end", cluster = NULL,
+                         group = NULL, strand = NULL, warn = TRUE) {
+  # ensure that data is a data frame
+  stopifnot(is.data.frame(data))
+
+  # Check if column names are in the data frame
+  colnames_data <- colnames(data)
+
+  if (!(start %in% colnames_data)) stop("start column not found in data")
+  if (!(end %in% colnames_data)) stop("end column not found in data")
+
+  if (!is.null(cluster) && !(cluster %in% colnames_data)) {
+    stop("cluster column not found in data")
+  }
+  if (!is.null(group) && !(group %in% colnames_data)) {
+    stop("group column not found in data")
+  }
+  if (!is.null(strand) && !(strand %in% colnames_data)) {
+    stop("strand column not found in data")
+  }
+
+  # Filter out rows with NA values in 'start' or 'end' columns
+  original_nrow <- nrow(data)
+  data <- data[!is.na(data[[start]]) & !is.na(data[[end]]), ]
+
+  # Check if any rows were filtered out and issue a warning
+  if (warn && nrow(data) < original_nrow) {
+    warning("Rows with NA values in 'start' or 'end' columns have been filtered out.")
+  }
+
+  # Add rowID to data
+  data$rowID <- seq_len(nrow(data))
+
+  # add start and end
+  data_tmp <- data
+  data$start <- data_tmp[[start]]
+  data$end <- data_tmp[[end]]
+
+  # Convert cluster to character
+  if (!is.null(cluster)) {
+    data[[cluster]] <- as.character(data[[cluster]])
+  }
+
+  # Add strand if specified
+  add_strand(data, strand)
+}
+
+#' The data, columns and clusters of a chart, from its spec
+#'
+#' After GC_transcript(), the clusters are the transcripts, as in the chart
+#' GC_transcript() draws.
+#'
+#' @param GC_chart The gene chart object.
+#' @return A list: `data` (from `prepare_data()`), the column names `start`,
+#'   `end`, `cluster`, `group` and `strand` (NULL when not given), and
+#'   `clusters`, the names of the clusters in order.
+#' @noRd
+chart_state <- function(GC_chart) {
+  spec <- GC_chart$x$spec
+  fields <- spec$fields
+  state <- list(
+    start = if (is.null(fields$start)) "start" else fields$start,
+    end = if (is.null(fields$end)) "end" else fields$end,
+    cluster = fields$cluster,
+    group = fields$group,
+    strand = fields$strand
+  )
+  if (!is.null(spec$transcript)) {
+    first <- if (is_spec_entry(spec$transcript)) spec$transcript else spec$transcript[[1]]
+    state$cluster <- if (is.null(first$transcript)) "transcript" else first$transcript
+    state["strand"] <- list(first$strand)
+  }
+  state$data <- prepare_data(spec$data, state$start, state$end, state$cluster,
+                             state$group, state$strand, warn = FALSE)
+  state$clusters <- state_clusters(state$data, state$cluster)
+  state
+}
+
+#' The names of the clusters of prepared data
+#' @noRd
+state_clusters <- function(data, cluster) {
+  if (is.null(cluster)) "cluster" else unique(as.character(data[[cluster]]))
+}
+
+#' The genes of one cluster, as the library splits the data
+#' @noRd
+cluster_rows <- function(state, name) {
+  data <- if (is.null(state$cluster)) state$data else state$data[state$data[[state$cluster]] == name, ]
+  data$cluster <- name
+  data
 }

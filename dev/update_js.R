@@ -3,6 +3,7 @@
 # Usage, from the package root:
 #
 #   Rscript dev/update_js.R 0.3.1
+#   Rscript dev/update_js.R --dist <geneviewer-js>/dist 0.3.1.9000
 #
 # Downloads the files the R package ships from the GitHub release
 # v<version> of nvelden/geneviewer-js, checks them against the release's
@@ -11,12 +12,23 @@
 # Then updates inst/htmlwidgets/geneviewer.yaml and removes the folder of the
 # version vendored before.
 #
+# With --dist, the files come from a build of geneviewer-js (`npm run build`,
+# which writes dist/SHA256SUMS) instead of a release, for development before
+# a release. Give a development version, e.g. 0.3.1.9000; vendor a release
+# before the package is released.
+#
 # tests/testthat/test-vendored-js.R checks the vendored files against the
 # vendored SHA256SUMS.
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 1 || !grepl("^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.]+)?$", args)) {
-  stop("Usage: Rscript dev/update_js.R <version>, e.g. 0.3.1", call. = FALSE)
+dist <- NULL
+if (length(args) == 3 && args[[1]] == "--dist") {
+  dist <- args[[2]]
+  args <- args[-(1:2)]
+  if (!dir.exists(dist)) stop("No such folder: ", dist, call. = FALSE)
+}
+if (length(args) != 1 || !grepl("^[0-9]+\\.[0-9]+\\.[0-9]+(\\.[0-9]+|-[0-9A-Za-z.]+)?$", args)) {
+  stop("Usage: Rscript dev/update_js.R [--dist <dir>] <version>, e.g. 0.3.1", call. = FALSE)
 }
 version <- args[[1]]
 if (!file.exists("DESCRIPTION") || !dir.exists("inst/htmlwidgets")) {
@@ -42,6 +54,13 @@ sha256 <- function(path) {
 download <- file.path(tempfile("geneviewer-js-"))
 dir.create(download)
 for (file in c(files, "SHA256SUMS")) {
+  if (!is.null(dist)) {
+    message("Copying ", file.path(dist, file))
+    if (!file.copy(file.path(dist, file), file.path(download, file))) {
+      stop("Not found: ", file.path(dist, file), call. = FALSE)
+    }
+    next
+  }
   url <- paste0(release, "/", file)
   message("Downloading ", url)
   status <- utils::download.file(url, file.path(download, file), mode = "wb", quiet = TRUE)
@@ -100,4 +119,4 @@ if (length(old) > 0) {
   unlink(old, recursive = TRUE)
   message("Removed ", paste(old, collapse = ", "))
 }
-message("Vendored geneviewer-js ", version, " in ", lib)
+message("Vendored geneviewer-js ", version, if (!is.null(dist)) paste0(" from ", dist), " in ", lib)

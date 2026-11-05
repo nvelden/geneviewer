@@ -73,30 +73,7 @@ GC_annotation <- function(
   if (!is.character(type) || length(type) != 1 || !type %in% annotation_types) {
     stop("'type' must be one of ", quoted(annotation_types), ".")
   }
-
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-
-  for(i in seq_along(clusters)){
-
-    # Capture arguments and filter out NULL or empty values
-    options <- compact(list(
-      type = type,
-      ...
-    ))
-
-    # A range axis has moved the genes of the cluster; move the annotation along
-    options <- shift_annotation(options, GC_chart$x$series[[clusters[i]]]$positionShift)
-
-    currentAnnotations <- GC_chart$x$series[[clusters[i]]]$annotations
-
-    if(is.null(currentAnnotations) || length(currentAnnotations) == 0){
-      GC_chart$x$series[[clusters[i]]]$annotations <- list(options)
-    } else {
-      GC_chart$x$series[[clusters[i]]]$annotations <- c(currentAnnotations, list(options))
-    }
-
-  }
+  check_clusters(GC_chart, cluster)
 
   add_spec(GC_chart, "annotation", spec, mode = "items")
 }
@@ -104,37 +81,6 @@ GC_annotation <- function(
 # The annotation types, as drawn by createAnnotation() in geneviewer.js
 annotation_types <- c("text", "textMarker", "line", "arrow", "symbol",
                       "rectangle", "promoter", "terminator", "arc")
-
-#' Move the x positions of an annotation
-#'
-#' Subtracts `shift` from the x positions of an annotation (`x`, `x1`, `x2`
-#' and `position`; for a rectangle the first value of each corner), so it stays
-#' on the genes when `GC_scale(axis_type = "range")` has moved them to start at 1.
-#' @noRd
-shift_annotation <- function(options, shift) {
-  if (is.null(shift) || shift == 0) {
-    return(options)
-  }
-  move <- function(x) if (is.numeric(x)) x - shift else x
-  for (name in intersect(c("x", "x1", "x2"), names(options))) {
-    options[[name]] <- if (is.list(options[[name]])) lapply(options[[name]], move) else move(options[[name]])
-  }
-  if (!is.null(options$position)) {
-    if (identical(options$type, "rectangle")) {
-      options$position <- lapply(options$position, function(corners) {
-        lapply(corners, function(point) {
-          point[1] <- point[1] - shift
-          point
-        })
-      })
-    } else if (is.list(options$position)) {
-      options$position <- lapply(options$position, move)
-    } else {
-      options$position <- move(options$position)
-    }
-  }
-  options
-}
 
 #' Track Mouse Movement in a GC_chart
 #'
@@ -174,15 +120,7 @@ GC_trackMouse <- function(
     ...
 ) {
   spec <- spec_args(match.call(), environment())
-
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-
-  for(i in seq_along(clusters)){
-
-      GC_chart$x$series[[clusters[i]]]$trackMouse <- c(list(show = recycle_at(show, i)), list(...))
-
-  }
+  check_clusters(GC_chart, cluster)
 
   add_spec(GC_chart, "trackMouse", spec)
 }
@@ -363,19 +301,8 @@ GC_events <- function(GC_chart, click = TRUE, highlight = FALSE,
     stop("'render_id' must be NULL, a single character string or a finite number.")
   }
 
-  GC_chart$x$events <- list(click = click, highlight = highlight)
-  if (dblclick) GC_chart$x$events$dblclick <- TRUE
-  if (select) GC_chart$x$events$select <- TRUE
-  if (drag) {
-    GC_chart$x$events$drag <- TRUE
-    # The undo and redo icons, like the save icon
-    GC_chart <- add_fontawesome(GC_chart)
-  }
-  if (!legend_click) GC_chart$x$events$legendClick <- FALSE
-  if (zoom) GC_chart$x$events$zoom <- TRUE
-  if (rendered) GC_chart$x$events$rendered <- TRUE
-  # Also without rendered: a new render_id makes GC_zoom() start at its range
-  GC_chart$x$events$renderId <- render_id
+  # Font Awesome for custom toolbar icons
+  if (drag) GC_chart <- add_fontawesome(GC_chart)
   add_spec(GC_chart, "events", spec, mode = "replace")
 }
 
@@ -450,21 +377,18 @@ GC_toolbar <- function(GC_chart, show = NULL, position = NULL, buttons = NULL, s
     tooltipColor = tooltipColor, tooltipBorder = tooltipBorder, tooltipRadius = tooltipRadius,
     tooltipShadow = tooltipShadow, fontFamily = fontFamily, icons = icons))
   check_toolbar(options)
-  if (!is.null(options$buttons)) options$buttons <- as.list(options$buttons)
-  if (!is.null(options$icons)) options$icons <- as.list(options$icons)
-  GC_chart$x$toolbar <- utils::modifyList(if (is.null(GC_chart$x$toolbar)) list() else GC_chart$x$toolbar,
-                                          options)
-  # Custom icons and the undo and redo icons are Font Awesome icons
+  # Custom icons are Font Awesome icons
   GC_chart <- add_fontawesome(GC_chart)
   if (!is.null(spec$buttons)) spec$buttons <- as.list(spec$buttons)
   if (!is.null(spec$icons)) spec$icons <- as.list(spec$icons)
   add_spec(GC_chart, "toolbar", spec, mode = "merge")
 }
 
-# The buttons of the toolbar, in their order (also in geneviewerwidget.js)
+# The buttons of the toolbar, in their order (as in the library)
 toolbar_buttons <- c("undo", "redo", "reset", "zoom", "save")
 
-# The Font Awesome stylesheet, once, for the save, undo and redo icons
+# The Font Awesome stylesheet, once: the default toolbar icons are inline SVG,
+# custom icons (GC_toolbar(icons = )) are Font Awesome icons
 add_fontawesome <- function(GC_chart) {
   fontawesome <- fontawesome::fa_html_dependency()
   known <- vapply(GC_chart$dependencies, function(dep) identical(dep$name, fontawesome$name), logical(1))
@@ -593,13 +517,8 @@ GC_zoom <- function(GC_chart, show = TRUE, range = NULL, mode = NULL, min = NULL
     height = height, overview = overview, color = color, style = style,
     windowStyle = windowStyle, handleStyle = handleStyle))
   check_zoom(options)
-  old <- if (is.null(GC_chart$x$zoom)) list() else GC_chart$x$zoom
-  # A new mode does not keep a range or minimum of the old one
-  if (!is.null(options$mode) && !identical(options$mode, old$mode)) old$range <- old$min <- NULL
-  if (!is.null(options$range)) options$range <- as.numeric(sort(options$range))
-  GC_chart$x$zoom <- utils::modifyList(old, options)
   GC_chart <- add_spec_zoom(GC_chart, spec)
-  # The icon of the reset zoom button
+  # Font Awesome for custom toolbar icons
   add_fontawesome(GC_chart)
 }
 
@@ -742,24 +661,7 @@ GC_tooltip <- function(
     ...
 ) {
   spec <- spec_args(match.call(), environment())
+  check_clusters(GC_chart, cluster)
 
-  if (is.logical(formatter) && length(formatter) == 1) {
-    show <- formatter
-  }
-
-  # Capture ... arguments
-  dots <- list(...)
-
-  # Set tooltip options for each cluster
-  GC_chart <- set_cluster_options(GC_chart, cluster, "tooltip", function(i, series) {
-    # Default options
-    options <- list(
-      formatter = formatter,
-      show = recycle_at(show, i)
-    )
-
-    # Add arguments to options
-    recycle_dots(options, dots, i)
-  })
   add_spec(GC_chart, "tooltip", spec_flag(spec, "formatter"))
 }

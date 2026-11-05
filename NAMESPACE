@@ -56,13 +56,10 @@ importFrom(dplyr,
   lead,
   left_join,
   mutate,
-  n,
   row_number,
   select,
   slice_max,
-  summarise,
   summarize,
-  sym,
   ungroup
 )
 importFrom(htmlwidgets,

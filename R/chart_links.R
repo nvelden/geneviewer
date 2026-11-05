@@ -23,7 +23,8 @@ get_links <-
            value2 = NULL,
            cluster = NULL) {
 
-    data <- GC_chart$x$data
+    state <- chart_state(GC_chart)
+    data <- state$data
 
     # Check if group column exists in the data
     if (!(group %in% names(data))) {
@@ -45,9 +46,9 @@ get_links <-
     if (!is.null(cluster) && length(cluster) < 2) {
       stop("At least two clusters need to be provided.")
     }
-    clusters <- getUpdatedClusters(GC_chart, cluster)
+    clusters <- getUpdatedClusters(state$clusters, cluster)
 
-    cluster_column <- GC_chart$x$cluster
+    cluster_column <- state$cluster
     if (is.null(cluster_column)) {
       stop("Please define cluster in the GC_chart function.")
     }
@@ -363,10 +364,6 @@ GC_links <- function(
   # Retrieve links data or use the provided data
   if (!is.null(data)) {
     links_data <- data
-    group <- NULL
-    # Links from data are not tied to genes, so their measures can only go on
-    # the links
-    if (label_position == "gene") label <- FALSE
   } else {
     links_data <- get_links(GC_chart, group, value1 = value1, value2 = value2, cluster = cluster)
   }
@@ -379,73 +376,8 @@ GC_links <- function(
 
   # The spec holds the links: given, or as get_links() made them. The group
   # (and value1, value2) also pick the genes labelled with the measure.
-  if (!is.null(spec)) {
-    if (!is.null(data)) spec$group <- NULL
-    spec$data <- links_data
-  }
-
-  # Rename relevant columns
-  if ("identity2" %in% names(links_data)) {
-    names(links_data)[names(links_data) == "identity2"] <- "identity"
-  }
-  if ("similarity2" %in% names(links_data)) {
-    names(links_data)[names(links_data) == "similarity2"] <- "similarity"
-  }
-  names(links_data)[names(links_data) == paste0(group, "1")] <- "group1"
-  names(links_data)[names(links_data) == paste0(group, "2")] <- "group2"
-
-  # Define relevant columns based on the measure
-  link_columns <- c("cluster1", "group1", "start1", "end1",
-                    "cluster2", "group2", "start2", "end2")
-  if (measure != "none") {
-    link_columns <- c(link_columns, measure)
-  }
-
-  if (use_group_colors) {
-    group_color <- if (!is.null(GC_chart$x$group)) GC_chart$x$group else group
-    links_data$groupColor <- links_data[[paste0(group_color, "2")]]
-    link_columns <- c(link_columns, "groupColor")
-    color_bar <- FALSE
-  }
-
-  links_data <- links_data[, link_columns[link_columns %in% names(links_data)], drop = FALSE]
-  links_data <- links_data[order(links_data$start2), ]
-
-  # Construct the links options with the new measure-related parameters
-  links_options <- compact(list(
-    group = group,
-    curve = curve,
-    measure = measure,
-    showLinks = show_links,
-    label = label,
-    labelPosition = label_position,
-    normalColor = normal_color,
-    invertedColor = inverted_color,
-    lowColor = low_color,
-    vmin = vmin,
-    vmax = vmax,
-    useGroupColors = use_group_colors,
-    value1 = value1,
-    value2 = value2,
-    colorBar = color_bar,
-    colorBarOptions = colorBarOptions,
-    linkWidth = linkWidth,
-    linkStyle = linkStyle,
-    labelStyle = labelStyle,
-    ...
-  ))
-
-  # Integrate the new links into the GC_chart object; link ids are numbered
-  # by set: "0-1", "0-2", ... for the first set
-  currentLinks <- GC_chart$x$links
-  links_data$linkID <- paste0(length(currentLinks), "-", seq_len(nrow(links_data)))
-
-  links <- list(
-    data = links_data,
-    options = links_options
-  )
-
-  GC_chart$x$links <- c(currentLinks, list(links))
+  if (!is.null(data)) spec$group <- NULL
+  spec$data <- links_data
 
   add_spec(GC_chart, "links", spec, rename = c(show_links = "show"))
 }

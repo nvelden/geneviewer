@@ -35,7 +35,6 @@ Imports:
     magrittr,
     dplyr (>= 1.0.0),
     rlang,
-    grDevices,
     stats,
     tools,
     utils

@@ -386,3 +386,46 @@ cluster_rows <- function(state, name) {
   data$cluster <- name
   data
 }
+
+#' preRenderHook of GC_chart(): the spec as it is sent
+#'
+#' Leaves out the columns of sequences the chart does not draw, as R did
+#' before the spec (decided 2026-11-05).
+#' @noRd
+send_spec <- function(widget) {
+  widget$x$spec <- drop_sequence_columns(widget$x$spec)
+  widget
+}
+
+# Columns sent to the browser only when an option names them, as in a tooltip
+# formatter "{translation}": they hold long sequences the chart does not draw
+sequence_columns <- c("translation", "sequence")
+
+#' The spec without the sequence columns of its data that no option names
+#' @noRd
+drop_sequence_columns <- function(spec) {
+  data <- spec$data
+  if (!is.data.frame(data)) {
+    return(spec)
+  }
+  strings <- option_strings(spec[setdiff(names(spec), "data")])
+  unused <- Filter(function(column) {
+    !any(grepl(column, strings, fixed = TRUE))
+  }, intersect(sequence_columns, names(data)))
+  if (length(unused) > 0) {
+    spec$data <- data[, setdiff(names(data), unused), drop = FALSE]
+  }
+  spec
+}
+
+#' All character values of the options, outside data frames
+#' @noRd
+option_strings <- function(x) {
+  if (is.data.frame(x)) {
+    return(character())
+  }
+  if (is.list(x)) {
+    return(unlist(lapply(x, option_strings), use.names = FALSE))
+  }
+  if (is.character(x)) x else character()
+}

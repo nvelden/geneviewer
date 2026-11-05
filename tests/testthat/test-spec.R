@@ -209,3 +209,15 @@ test_that("options passed through ... that spec v1 renames get the spec name", {
   expect_identical(spec$scaleBar, list(unit = "kb", title = "1 kb"))
   expect_identical(spec$labels, list(label = "name", labelAdjustment = list(offsetY = 2)))
 })
+
+test_that("sequence columns are sent only when an option names them", {
+  genes <- data.frame(start = c(10, 50), end = c(40, 80), name = c("a", "b"),
+                      translation = c("MKV", "MLL"), sequence = c("ATG", "ATG"))
+  sent <- function(chart) htmlwidgets:::createPayload(chart)$x$spec$data
+  chart <- GC_chart(genes, height = "100px")
+  expect_named(sent(chart), c("start", "end", "name"))
+  # The chart keeps its data as given
+  expect_true(all(c("translation", "sequence") %in% names(chart$x$spec$data)))
+  expect_named(sent(GC_tooltip(chart, formatter = "{name}: {translation}")),
+               c("start", "end", "name", "translation"))
+})

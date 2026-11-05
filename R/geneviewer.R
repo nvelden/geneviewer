@@ -85,6 +85,7 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     height = height,
     package = "geneviewer",
     dependencies = dependencies,
-    elementId = elementId
+    elementId = elementId,
+    preRenderHook = send_spec
   )
 }

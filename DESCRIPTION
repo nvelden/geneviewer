@@ -46,7 +46,8 @@ Suggests:
     digest,
     htmltools,
     jsonvalidate,
-    testthat (>= 3.2.0)
+    testthat (>= 3.2.0),
+    withr
 Config/testthat/edition: 3
 Config/Needs/website: knitr, rmarkdown, tidyr, biomaRt
 Config/roxygen2/version: 8.1.1

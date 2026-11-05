@@ -166,10 +166,10 @@ test_that("normalised positions are recorded in the data", {
 })
 
 test_that("the spec validates against the schema of spec v1", {
-  skip_if_not_installed("jsonvalidate")
+  skip_unless(requireNamespace("jsonvalidate", quietly = TRUE), "jsonvalidate cannot be loaded")
   schema <- Sys.getenv("GENEVIEWER_SPEC_SCHEMA")
-  skip_if(!nzchar(schema) || !file.exists(schema),
-          "GENEVIEWER_SPEC_SCHEMA is not set to spec-v1.schema.json")
+  skip_unless(nzchar(schema) && file.exists(schema),
+              "GENEVIEWER_SPEC_SCHEMA is not set to spec-v1.schema.json")
   json <- htmlwidgets:::toJSON(sent_x(spec_chart())$spec)
   expect_true(jsonvalidate::json_validate(json, schema, engine = "ajv", error = TRUE))
 })

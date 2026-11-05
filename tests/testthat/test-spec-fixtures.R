@@ -1,15 +1,15 @@
 # The spec of every fixture of the JavaScript library: its call.R, evaluated
 # with this package, gives the chart spec stored in its spec.json. The
 # fixtures are read from a checkout of geneviewer-js (GENEVIEWER_JS_DIR); the
-# test is skipped without it.
+# test is skipped without it, except in the contract job in CI.
 
 test_that("each fixture's call.R gives the fixture's spec", {
   js_dir <- Sys.getenv("GENEVIEWER_JS_DIR")
-  skip_if(!nzchar(js_dir), "GENEVIEWER_JS_DIR is not set")
+  skip_unless(nzchar(js_dir), "GENEVIEWER_JS_DIR is not set")
   fixtures <- file.path(js_dir, "test", "fixtures")
-  skip_if_not(dir.exists(fixtures), "GENEVIEWER_JS_DIR has no test/fixtures")
+  skip_unless(dir.exists(fixtures), "GENEVIEWER_JS_DIR has no test/fixtures")
   # The specs hold text such as "≥", written in UTF-8
-  skip_if_not(isTRUE(l10n_info()[["UTF-8"]]), "needs a UTF-8 locale")
+  skip_unless(l10n_info()[["UTF-8"]], "needs a UTF-8 locale")
 
   ids <- list.dirs(fixtures, full.names = FALSE, recursive = FALSE)
   ids <- ids[file.exists(file.path(fixtures, ids, "spec.json"))]

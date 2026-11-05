@@ -1,0 +1,806 @@
+{
+  "palettes": {
+    "okabeIto": [
+      "#E69F00",
+      "#56B4E9",
+      "#009E73",
+      "#F0E442",
+      "#0072B2",
+      "#D55E00",
+      "#CC79A7",
+      "#999999"
+    ],
+    "classic": [
+      "#5470c6",
+      "#91cc75",
+      "#fac858",
+      "#ee6666",
+      "#73c0de",
+      "#3ba272",
+      "#fc8452",
+      "#9a60b4",
+      "#ea7ccc"
+    ],
+    "vivid": [
+      "#4992ff",
+      "#7cffb2",
+      "#fddd60",
+      "#ff6e76",
+      "#58d9f9",
+      "#05c091",
+      "#ff8a45",
+      "#8d48e3",
+      "#dd79ff"
+    ],
+    "dark": [
+      "#dd6b66",
+      "#759aa0",
+      "#e69d87",
+      "#8dc1a9",
+      "#ea7e53",
+      "#eedd78",
+      "#73a373",
+      "#73b9bc",
+      "#7289ab",
+      "#91ca8c",
+      "#f49f42"
+    ],
+    "vintage": [
+      "#d87c7c",
+      "#919e8b",
+      "#d7ab82",
+      "#6e7074",
+      "#61a0a8",
+      "#efa18d",
+      "#787464",
+      "#cc7e63",
+      "#724e58",
+      "#4b565b"
+    ],
+    "infographic": [
+      "#C1232B",
+      "#27727B",
+      "#FCCE10",
+      "#E87C25",
+      "#B5C334",
+      "#FE8463",
+      "#9BCA63",
+      "#FAD860",
+      "#F3A43B",
+      "#60C0DD",
+      "#D7504B",
+      "#C6E579",
+      "#F4E001",
+      "#F0805A",
+      "#26C0C0"
+    ],
+    "greys": [
+      "#252525",
+      "#525252",
+      "#737373",
+      "#969696",
+      "#bdbdbd",
+      "#d9d9d9"
+    ],
+    "blues": [
+      "#08306b",
+      "#08519c",
+      "#2171b5",
+      "#4292c6",
+      "#6baed6",
+      "#9ecae1",
+      "#c6dbef"
+    ]
+  },
+  "themes": {
+    "default": {},
+    "classic": {
+      "fontFamily": "sans-serif",
+      "textColor": "#6E7079",
+      "lineColor": "#6E7079",
+      "palette": "classic",
+      "title": {
+        "titleFont": {
+          "fontSize": "18px",
+          "fill": "#464646"
+        },
+        "subtitleFont": {
+          "fontSize": "12px"
+        }
+      },
+      "clusterTitle": {
+        "titleFont": {
+          "fill": "#464646"
+        }
+      },
+      "clusterLabel": {
+        "fill": "#464646"
+      },
+      "genes": {
+        "stroke": "none",
+        "corner_radius": 3
+      },
+      "transcript": {
+        "styleExons": {
+          "strokeWidth": 0,
+          "cornerRadius": 3
+        },
+        "styleUTRs": {
+          "cornerRadius": 3
+        }
+      },
+      "labels": {
+        "fontStyle": "normal",
+        "fontSize": "12px",
+        "leaderLine": {
+          "strokeWidth": 1
+        }
+      },
+      "coordinates": {
+        "tickStyle": {
+          "lineLength": 5
+        }
+      },
+      "scale": {
+        "textStyle": {
+          "fontSize": "12px"
+        },
+        "tickStyle": {
+          "lineLength": 5
+        }
+      },
+      "scaleBar": {
+        "labelStyle": {
+          "fontSize": "12px"
+        }
+      },
+      "legend": {
+        "corner_radius": 3,
+        "legendTextOptions": {
+          "fill": "#464646"
+        }
+      },
+      "links": {
+        "normal_color": "#5470c6",
+        "inverted_color": "#ee6666",
+        "linkStyle": {
+          "fillOpacity": 0.6
+        },
+        "colorBarOptions": {
+          "barOptions": {
+            "stroke": "none"
+          },
+          "labelOptions": {
+            "fontSize": 12
+          },
+          "titleOptions": {
+            "fontSize": 12
+          }
+        }
+      },
+      "tooltip": {
+        "backgroundColor": "#ffffff",
+        "color": "#6d6e73",
+        "border": "1px solid #b7b9be",
+        "borderRadius": "4px",
+        "fontSize": "12px",
+        "fontFamily": "sans-serif",
+        "padding": "8px",
+        "boxShadow": "1px 2px 10px rgba(0, 0, 0, 0.2)"
+      },
+      "trackMouse": {
+        "backgroundColor": "#ffffff",
+        "color": "#6d6e73",
+        "border": "1px solid #b7b9be",
+        "borderRadius": "4px",
+        "fontSize": "12px",
+        "fontFamily": "sans-serif",
+        "padding": "8px",
+        "boxShadow": "1px 2px 10px rgba(0, 0, 0, 0.2)"
+      },
+      "toolbar": {
+        "color": "#999999",
+        "hoverColor": "#3E98C5",
+        "tooltipBackground": "#ffffff",
+        "tooltipColor": "#6d6e73",
+        "tooltipBorder": "1px solid #b7b9be",
+        "tooltipRadius": "4px",
+        "tooltipShadow": "1px 2px 10px rgba(0, 0, 0, 0.2)",
+        "fontFamily": "sans-serif"
+      }
+    },
+    "dark": {
+      "fontFamily": "sans-serif",
+      "background": "#333333",
+      "textColor": "#eeeeee",
+      "lineColor": "#eeeeee",
+      "palette": "dark",
+      "title": {
+        "titleFont": {
+          "fontSize": "18px"
+        },
+        "subtitleFont": {
+          "fontSize": "12px",
+          "fill": "#aaaaaa"
+        }
+      },
+      "clusterTitle": {
+        "subtitleFont": {
+          "fill": "#aaaaaa"
+        }
+      },
+      "clusterLabel": {
+        "subtitleFont": {
+          "fill": "#aaaaaa"
+        }
+      },
+      "genes": {
+        "stroke": "none",
+        "corner_radius": 3
+      },
+      "transcript": {
+        "styleExons": {
+          "strokeWidth": 0,
+          "cornerRadius": 3
+        },
+        "styleUTRs": {
+          "cornerRadius": 3
+        }
+      },
+      "labels": {
+        "fontStyle": "normal",
+        "fontSize": "12px",
+        "leaderLine": {
+          "strokeWidth": 1
+        }
+      },
+      "coordinates": {
+        "tickStyle": {
+          "lineLength": 5
+        }
+      },
+      "scale": {
+        "textStyle": {
+          "fontSize": "12px"
+        },
+        "tickStyle": {
+          "lineLength": 5
+        }
+      },
+      "scaleBar": {
+        "labelStyle": {
+          "fontSize": "12px"
+        }
+      },
+      "legend": {
+        "corner_radius": 3
+      },
+      "links": {
+        "normal_color": "#759aa0",
+        "inverted_color": "#dd6b66",
+        "low_color": "#333333",
+        "linkStyle": {
+          "fillOpacity": 0.6
+        },
+        "colorBarOptions": {
+          "barOptions": {
+            "stroke": "none"
+          },
+          "labelOptions": {
+            "fontSize": 12
+          },
+          "titleOptions": {
+            "fontSize": 12
+          }
+        }
+      },
+      "tooltip": {
+        "backgroundColor": "#ffffff",
+        "color": "#6d6e73",
+        "border": "1px solid #b7b9be",
+        "borderRadius": "4px",
+        "fontSize": "12px",
+        "fontFamily": "sans-serif",
+        "padding": "8px",
+        "boxShadow": "1px 2px 10px rgba(0, 0, 0, 0.2)"
+      },
+      "trackMouse": {
+        "backgroundColor": "#ffffff",
+        "color": "#6d6e73",
+        "border": "1px solid #b7b9be",
+        "borderRadius": "4px",
+        "fontSize": "12px",
+        "fontFamily": "sans-serif",
+        "padding": "8px",
+        "boxShadow": "1px 2px 10px rgba(0, 0, 0, 0.2)"
+      },
+      "toolbar": {
+        "color": "#999999",
+        "hoverColor": "#eeeeee",
+        "tooltipBackground": "#ffffff",
+        "tooltipColor": "#6d6e73",
+        "tooltipBorder": "1px solid #b7b9be",
+        "tooltipRadius": "4px",
+        "tooltipShadow": "1px 2px 10px rgba(0, 0, 0, 0.2)",
+        "fontFamily": "sans-serif"
+      }
+    },
+    "vintage": {
+      "background": "#fef8ef",
+      "textColor": "#3f3a33",
+      "lineColor": "#787464",
+      "palette": "vintage",
+      "title": {
+        "subtitleFont": {
+          "fill": "#787464"
+        }
+      },
+      "clusterTitle": {
+        "subtitleFont": {
+          "fill": "#787464"
+        }
+      },
+      "clusterLabel": {
+        "subtitleFont": {
+          "fill": "#787464"
+        }
+      },
+      "sequence": {
+        "sequenceStyle": {
+          "stroke": "#c9c2b5"
+        }
+      },
+      "genes": {
+        "stroke": "none",
+        "corner_radius": 3
+      },
+      "transcript": {
+        "styleExons": {
+          "strokeWidth": 0,
+          "cornerRadius": 3
+        },
+        "styleUTRs": {
+          "cornerRadius": 3
+        }
+      },
+      "labels": {
+        "fontStyle": "normal",
+        "fontSize": "11px",
+        "leaderLine": {
+          "stroke": "#c9c2b5",
+          "strokeWidth": 1
+        }
+      },
+      "legend": {
+        "corner_radius": 3
+      },
+      "links": {
+        "normal_color": "#61a0a8",
+        "inverted_color": "#d87c7c",
+        "low_color": "#fef8ef",
+        "linkStyle": {
+          "fillOpacity": 0.6
+        },
+        "colorBarOptions": {
+          "barOptions": {
+            "stroke": "none"
+          }
+        }
+      },
+      "tooltip": {
+        "backgroundColor": "#ffffff",
+        "color": "#6d6e73",
+        "border": "1px solid #b7b9be",
+        "borderRadius": "4px",
+        "fontSize": "12px",
+        "fontFamily": "sans-serif",
+        "padding": "8px",
+        "boxShadow": "1px 2px 10px rgba(0, 0, 0, 0.2)"
+      },
+      "trackMouse": {
+        "backgroundColor": "#ffffff",
+        "color": "#6d6e73",
+        "border": "1px solid #b7b9be",
+        "borderRadius": "4px",
+        "fontSize": "12px",
+        "fontFamily": "sans-serif",
+        "padding": "8px",
+        "boxShadow": "1px 2px 10px rgba(0, 0, 0, 0.2)"
+      },
+      "toolbar": {
+        "color": "#c9c2b5",
+        "hoverColor": "#d87c7c",
+        "tooltipBackground": "#ffffff",
+        "tooltipColor": "#6d6e73",
+        "tooltipBorder": "1px solid #b7b9be",
+        "tooltipRadius": "4px",
+        "tooltipShadow": "1px 2px 10px rgba(0, 0, 0, 0.2)",
+        "fontFamily": "sans-serif"
+      }
+    },
+    "infographic": {
+      "fontFamily": "sans-serif",
+      "textColor": "#6E7079",
+      "lineColor": "#6E7079",
+      "palette": "infographic",
+      "title": {
+        "titleFont": {
+          "fontSize": "18px",
+          "fill": "#464646"
+        },
+        "subtitleFont": {
+          "fontSize": "12px"
+        }
+      },
+      "clusterTitle": {
+        "titleFont": {
+          "fill": "#464646"
+        }
+      },
+      "clusterLabel": {
+        "fill": "#464646"
+      },
+      "genes": {
+        "stroke": "none",
+        "corner_radius": 3
+      },
+      "transcript": {
+        "styleExons": {
+          "strokeWidth": 0,
+          "cornerRadius": 3
+        },
+        "styleUTRs": {
+          "cornerRadius": 3
+        }
+      },
+      "labels": {
+        "fontStyle": "normal",
+        "fontSize": "12px",
+        "leaderLine": {
+          "strokeWidth": 1
+        }
+      },
+      "coordinates": {
+        "tickStyle": {
+          "lineLength": 5
+        }
+      },
+      "scale": {
+        "textStyle": {
+          "fontSize": "12px"
+        },
+        "tickStyle": {
+          "lineLength": 5
+        }
+      },
+      "scaleBar": {
+        "labelStyle": {
+          "fontSize": "12px"
+        }
+      },
+      "legend": {
+        "corner_radius": 3,
+        "legendTextOptions": {
+          "fill": "#464646"
+        }
+      },
+      "links": {
+        "normal_color": "#27727B",
+        "inverted_color": "#C1232B",
+        "linkStyle": {
+          "fillOpacity": 0.6
+        },
+        "colorBarOptions": {
+          "barOptions": {
+            "stroke": "none"
+          },
+          "labelOptions": {
+            "fontSize": 12
+          },
+          "titleOptions": {
+            "fontSize": 12
+          }
+        }
+      },
+      "tooltip": {
+        "backgroundColor": "rgba(50, 50, 50, 0.85)",
+        "color": "#ffffff",
+        "border": "none",
+        "borderRadius": "4px",
+        "fontSize": "12px"
+      },
+      "trackMouse": {
+        "backgroundColor": "rgba(50, 50, 50, 0.85)",
+        "color": "#ffffff",
+        "border": "none",
+        "borderRadius": "4px",
+        "fontSize": "12px"
+      },
+      "toolbar": {
+        "color": "#C1232B",
+        "hoverColor": "#E87C25",
+        "tooltipBackground": "rgba(50, 50, 50, 0.85)",
+        "tooltipColor": "#ffffff",
+        "tooltipBorder": "none",
+        "tooltipRadius": "4px"
+      }
+    },
+    "publication": {
+      "fontFamily": "Arial, Helvetica, sans-serif",
+      "textColor": "black",
+      "lineColor": "black",
+      "palette": "okabeIto",
+      "title": {
+        "titleFont": {
+          "fontSize": "9.33px",
+          "fill": "black"
+        },
+        "subtitleFont": {
+          "fontSize": "9.33px"
+        }
+      },
+      "clusterTitle": {
+        "titleFont": {
+          "fontSize": "9.33px"
+        },
+        "subtitleFont": {
+          "fontSize": "9.33px"
+        }
+      },
+      "clusterFooter": {
+        "titleFont": {
+          "fontSize": "9.33px"
+        },
+        "subtitleFont": {
+          "fontSize": "9.33px"
+        }
+      },
+      "clusterLabel": {
+        "fontSize": "9.33px",
+        "subtitleFont": {
+          "fontSize": "9.33px"
+        }
+      },
+      "genes": {
+        "stroke": "black",
+        "strokeWidth": 0.75,
+        "corner_radius": 3
+      },
+      "transcript": {
+        "styleExons": {
+          "strokeWidth": 0,
+          "cornerRadius": 3
+        },
+        "styleUTRs": {
+          "cornerRadius": 3,
+          "fontSize": "9.33px"
+        },
+        "labelOptions": {
+          "fontSize": "9.33px"
+        }
+      },
+      "labels": {
+        "fontStyle": "italic",
+        "fontSize": "9.33px",
+        "leaderLine": {
+          "strokeWidth": 0.75
+        }
+      },
+      "coordinates": {
+        "textStyle": {
+          "fontSize": "9.33px"
+        },
+        "tickStyle": {
+          "lineLength": 4
+        }
+      },
+      "scale": {
+        "textStyle": {
+          "fontSize": "9.33px"
+        },
+        "tickStyle": {
+          "lineLength": 4
+        }
+      },
+      "scaleBar": {
+        "labelStyle": {
+          "fontSize": "9.33px"
+        }
+      },
+      "legend": {
+        "corner_radius": 2,
+        "legendOptions": {
+          "stroke": "black",
+          "strokeWidth": 0.75
+        },
+        "legendTextOptions": {
+          "fontSize": "9.33px"
+        }
+      },
+      "links": {
+        "normal_color": "#0072B2",
+        "inverted_color": "#D55E00",
+        "linkStyle": {
+          "fillOpacity": 0.6
+        },
+        "labelStyle": {
+          "fontSize": "9.33px"
+        },
+        "colorBarOptions": {
+          "barOptions": {
+            "stroke": "none"
+          },
+          "labelOptions": {
+            "fontSize": 9.33
+          },
+          "titleOptions": {
+            "fontSize": 9.33
+          }
+        }
+      },
+      "annotations": {
+        "text": {
+          "style": {
+            "fontSize": "9.33px"
+          }
+        },
+        "textMarker": {
+          "textStyle": {
+            "fontSize": "9.33px"
+          }
+        },
+        "arc": {
+          "textStyle": {
+            "fontSize": "9.33px"
+          }
+        }
+      },
+      "tooltip": {
+        "backgroundColor": "white",
+        "color": "black",
+        "border": "1px solid black",
+        "borderRadius": "0",
+        "boxShadow": "none",
+        "fontSize": "9.33px",
+        "padding": "8px"
+      },
+      "trackMouse": {
+        "backgroundColor": "white",
+        "color": "black",
+        "border": "1px solid black",
+        "borderRadius": "0",
+        "boxShadow": "none",
+        "fontSize": "9.33px",
+        "padding": "8px"
+      },
+      "toolbar": {
+        "color": "#999999",
+        "hoverColor": "black",
+        "tooltipBackground": "white",
+        "tooltipColor": "black",
+        "tooltipBorder": "1px solid black",
+        "tooltipRadius": "0",
+        "tooltipShadow": "none"
+      }
+    },
+    "bw": {
+      "fontFamily": "sans-serif",
+      "textColor": "#555555",
+      "lineColor": "#555555",
+      "pattern": {
+        "color": "black",
+        "background": "white",
+        "size": 6,
+        "strokeWidth": 1
+      },
+      "title": {
+        "titleFont": {
+          "fontSize": "18px",
+          "fill": "black"
+        },
+        "subtitleFont": {
+          "fontSize": "12px"
+        }
+      },
+      "clusterTitle": {
+        "titleFont": {
+          "fill": "black"
+        }
+      },
+      "clusterLabel": {
+        "fill": "black"
+      },
+      "genes": {
+        "stroke": "black",
+        "strokeWidth": 0.75,
+        "corner_radius": 3
+      },
+      "transcript": {
+        "styleExons": {
+          "stroke": "black",
+          "strokeWidth": 0.75,
+          "cornerRadius": 3
+        },
+        "styleUTRs": {
+          "cornerRadius": 3
+        }
+      },
+      "labels": {
+        "fontStyle": "normal",
+        "fontSize": "12px",
+        "leaderLine": {
+          "strokeWidth": 1
+        }
+      },
+      "coordinates": {
+        "tickStyle": {
+          "lineLength": 5
+        }
+      },
+      "scale": {
+        "textStyle": {
+          "fontSize": "12px"
+        },
+        "tickStyle": {
+          "lineLength": 5
+        }
+      },
+      "scaleBar": {
+        "labelStyle": {
+          "fontSize": "12px"
+        }
+      },
+      "legend": {
+        "corner_radius": 3,
+        "legendTextOptions": {
+          "fill": "black"
+        }
+      },
+      "links": {
+        "normal_color": "#bdbdbd",
+        "inverted_color": "#525252",
+        "colorBarOptions": {
+          "barOptions": {
+            "stroke": "#555555"
+          },
+          "labelOptions": {
+            "fontSize": 12
+          },
+          "titleOptions": {
+            "fontSize": 12
+          }
+        }
+      },
+      "tooltip": {
+        "backgroundColor": "#ffffff",
+        "color": "#6d6e73",
+        "border": "1px solid #b7b9be",
+        "borderRadius": "4px",
+        "fontSize": "12px",
+        "fontFamily": "sans-serif",
+        "padding": "8px",
+        "boxShadow": "1px 2px 10px rgba(0, 0, 0, 0.2)"
+      },
+      "trackMouse": {
+        "backgroundColor": "#ffffff",
+        "color": "#6d6e73",
+        "border": "1px solid #b7b9be",
+        "borderRadius": "4px",
+        "fontSize": "12px",
+        "fontFamily": "sans-serif",
+        "padding": "8px",
+        "boxShadow": "1px 2px 10px rgba(0, 0, 0, 0.2)"
+      },
+      "toolbar": {
+        "color": "#bdbdbd",
+        "hoverColor": "black",
+        "tooltipBackground": "#ffffff",
+        "tooltipColor": "#6d6e73",
+        "tooltipBorder": "1px solid #b7b9be",
+        "tooltipRadius": "4px",
+        "tooltipShadow": "1px 2px 10px rgba(0, 0, 0, 0.2)",
+        "fontFamily": "sans-serif"
+      }
+    }
+  }
+}

@@ -99,6 +99,7 @@ GC_labels <- function(
     ...
 ) {
 
+  spec <- spec_args(match.call(), environment())
   check_group_style(groupStyle)
   check_style_by(GC_chart, style_by)
   adjust <- list(...)$adjustLabels
@@ -161,7 +162,7 @@ GC_labels <- function(
       merge_options(GC_chart$x$series[[clusters[i]]]$labels, options)
   }
 
-  return(GC_chart)
+  add_spec(GC_chart, "labels", spec_flag(spec, "label"))
 }
 
 #' Check that style_by is a single column of the data
@@ -291,6 +292,7 @@ GC_genes <- function(
     ...
 ) {
 
+  spec <- spec_args(match.call(), environment())
   check_group_style(groupStyle)
   check_style_by(GC_chart, style_by)
 
@@ -337,7 +339,7 @@ GC_genes <- function(
     GC_chart <- set_legend_colors(GC_chart, colorScheme, customColors)
   }
 
-  return(GC_chart)
+  add_spec(GC_chart, "genes", spec_flag(spec, "group"))
 }
 
 #'Modify Transcript Characteristics within a Chart
@@ -521,6 +523,7 @@ GC_transcript <- function(GC_chart,
                           labelOptions = list(),
                           ...) {
 
+  spec <- spec_args(match.call(), environment())
   check_group_style(groupStyleExons)
   check_group_style(groupStyleIntrons)
   check_group_style(groupStyleUTRs)
@@ -577,6 +580,9 @@ GC_transcript <- function(GC_chart,
     old_chart <- GC_chart
     GC_chart <- do.call(geneviewer::GC_chart, new_params)
     GC_chart <- keep_chart_settings(GC_chart, old_chart)
+    # The spec is kept, with the data and its introns
+    GC_chart$x$spec <- old_chart$x$spec
+    if (!is.null(GC_chart$x$spec)) GC_chart$x$spec$data <- data
 
     for (trans in transcripts) {
         GC_chart$x$series[[trans]]$genes <- list(group = NULL, show = FALSE)
@@ -633,7 +639,7 @@ GC_transcript <- function(GC_chart,
 
   GC_chart$x$transcript_called <- TRUE
 
-  return(GC_chart)
+  add_spec(GC_chart, "transcript", spec_flag(spec, "group"))
 }
 
 #' Update Color Scheme in Gene Chart
@@ -682,6 +688,8 @@ GC_color <- function(
     customColors = NULL
 ) {
 
+  spec <- spec_args(match.call(), environment())
+
   # colorScheme only colours the groups left out of a named list of customColors
   if (!is.null(colorScheme) && !is.null(customColors) && is.null(names(customColors))) {
     warning("Both colorScheme and customColors are selected. Use a named list of customColors to set the colours of some groups, or choose only one.")
@@ -703,7 +711,7 @@ GC_color <- function(
     GC_chart$x$series[[cluster_name]]$transcript$customColors <- customColors
   }
 
-  return(GC_chart)
+  add_spec(GC_chart, "color", spec, mode = "replace")
 }
 
 #' Fill Genes with Patterns
@@ -776,6 +784,8 @@ GC_pattern <- function(
     strokeWidth = 1
 ) {
 
+  spec <- spec_args(match.call(), environment())
+
   pattern <- pattern_to_js(list(
     patterns = patterns,
     color = color,
@@ -791,7 +801,7 @@ GC_pattern <- function(
     GC_chart$x$series[[cluster_name]]$transcript$pattern <- pattern
   }
 
-  return(GC_chart)
+  add_spec(GC_chart, "pattern", spec, mode = "replace")
 }
 
 # Pattern settings of GC_pattern() and GC_theme(pattern = ) as sent to the
@@ -937,6 +947,7 @@ GC_legend <- function(
     ...
 ) {
 
+  spec <- spec_args(match.call(), environment())
   check_group_style(groupStyle)
 
   if (is.logical(group) && length(group) == 1) {
@@ -981,5 +992,6 @@ GC_legend <- function(
   # Merge new options with existing options
   GC_chart$x$legend <- merge_options(GC_chart$x$legend, options)
 
-  return(GC_chart)
+  add_spec(GC_chart, "legend", spec_flag(spec, "group"), mode = "merge",
+           rename = c(legendOptions = "markerStyle", legendTextOptions = "textStyle"))
 }

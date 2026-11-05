@@ -316,6 +316,8 @@ GC_links <- function(
     ...
 ) {
 
+  spec <- spec_args(match.call(), environment())
+
   # Validate measure
   if (!measure %in% c("identity", "similarity", "none")) {
     stop("Invalid measure specified. Choose 'identity', 'similarity', or 'none'.")
@@ -373,6 +375,13 @@ GC_links <- function(
   # an empty link set to the renderer or its color bar.
   if (nrow(links_data) == 0) {
     return(GC_chart)
+  }
+
+  # The spec holds the links: given, or as get_links() made them. The group
+  # (and value1, value2) also pick the genes labelled with the measure.
+  if (!is.null(spec)) {
+    if (!is.null(data)) spec$group <- NULL
+    spec$data <- links_data
   }
 
   # Rename relevant columns
@@ -438,5 +447,5 @@ GC_links <- function(
 
   GC_chart$x$links <- c(currentLinks, list(links))
 
-  return(GC_chart)
+  add_spec(GC_chart, "links", spec, rename = c(show_links = "show"))
 }

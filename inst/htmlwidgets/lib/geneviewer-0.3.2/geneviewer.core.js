@@ -7326,7 +7326,7 @@ var geneviewer = (() => {
   }
 
   // src/lib/chart.js
-  var version = "0.3.1";
+  var version = "0.3.2";
   var renderSequence = 0;
   var chartCount = 0;
   var activeShortcuts = null;

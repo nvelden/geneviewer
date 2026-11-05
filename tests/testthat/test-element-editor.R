@@ -996,7 +996,9 @@ test_that("the toolbar takes its buttons, icons, corner and colours from GC_tool
       const save = el.querySelector('.geneviewer-save-icon');
       return JSON.stringify({ bar: true, classes: bar.className, opacity: style.opacity,
         buttons: Array.from(bar.querySelectorAll('button'), b => b.className.replace('geneviewer-toolbar-button ', '')),
-        icons: Array.from(bar.querySelectorAll('button > i, .geneviewer-save-icon'), i => i.className.replace(' geneviewer-save-icon', '')),
+        // A Font Awesome icon by its classes; a default icon drawn as inline SVG
+        icons: Array.from(bar.querySelectorAll('button > i, button > .geneviewer-icon, .geneviewer-save-icon'),
+                          i => i.tagName === 'I' ? i.className.replace(' geneviewer-save-icon', '') : 'svg'),
         divider: !!bar.querySelector('.geneviewer-toolbar-divider'),
         saveColor: save && getComputedStyle(save).color, saveSize: save && getComputedStyle(save).fontSize,
         tip: getComputedStyle(bar).getPropertyValue('--gv-toolbar-tip-background').trim(),
@@ -1028,7 +1030,8 @@ test_that("the toolbar takes its buttons, icons, corner and colours from GC_tool
 
   themed <- run(chart %>% GC_theme("dark"))
   expect_equal(unlist(themed$buttons), c("geneviewer-undo", "geneviewer-redo", "geneviewer-reset"))
-  expect_equal(themed$icons[[4]], "fa-solid fa-download")
+  # The default save icon: Font Awesome, or inline SVG from geneviewer-js 0.3.0
+  expect_true(themed$icons[[4]] %in% c("fa-solid fa-download", "svg"))
   expect_equal(themed$saveColor, "rgb(153, 153, 153)")
   expect_equal(themed$opacity, "0")
 

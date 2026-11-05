@@ -126,13 +126,15 @@ test_that("theme calls without a theme change the one set before", {
   local_record_spec(TRUE)
   spec <- sent_x(
     GC_chart(spec_genes, group = "group") %>%
-      GC_theme("dark", links = list(normal_color = "red")) %>%
-      GC_theme(links = list(low_color = "white"), pattern = FALSE)
+      GC_theme("dark", links = list(normal_color = "red", show_links = FALSE)) %>%
+      GC_theme(links = list(low_color = "white"), pattern = FALSE,
+               legend = list(legendTextOptions = list(fill = "red")))
   )$spec
   expect_identical(spec$theme, list(
     base = "dark",
-    links = list(normalColor = "red", lowColor = "white"),
-    pattern = FALSE
+    links = list(normalColor = "red", show = FALSE, lowColor = "white"),
+    pattern = FALSE,
+    legend = list(textStyle = list(fill = "red"))
   ))
 })
 
@@ -197,4 +199,13 @@ test_that("NULL is kept where it replaces a default", {
                    GC_pattern(background = NULL, size = 4))$spec
   expect_identical(spec$pattern, list(background = NULL, size = 4))
   expect_match(as.character(htmlwidgets:::toJSON(spec$pattern)), '"background":null')
+})
+
+test_that("options passed through ... that spec v1 renames get the spec name", {
+  local_record_spec(TRUE)
+  spec <- sent_x(GC_chart(spec_genes, group = "group") %>%
+                   GC_scaleBar(scaleBarUnit = "kb", title = "1 kb") %>%
+                   GC_labels("name", labelAdjustmentOptions = list(offsetY = 2)))$spec
+  expect_identical(spec$scaleBar, list(unit = "kb", title = "1 kb"))
+  expect_identical(spec$labels, list(label = "name", labelAdjustment = list(offsetY = 2)))
 })

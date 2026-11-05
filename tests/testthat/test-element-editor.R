@@ -7,15 +7,17 @@ test_that("element overrides target row IDs and merge without replacing neighbou
     GC_element_style("genes", 2, fill = "blue") %>%
     GC_element_style("genes", 1, marker = "box") %>%
     GC_element_style("labels", 1, text = "Changed", fontSize = "18px")
-  items <- compile_chart(chart)$series$A$genes$itemStyle
+  model <- compile_chart(chart)
+  items <- model$series$A$genes$itemStyle
   expect_length(items, 2)
   expect_equal(items[[2]], list(fill = "red", rowID = 1, marker = "box"))
-  expect_null(compile_chart(chart)$series$B$genes$itemStyle)
+  expect_null(model$series$B$genes$itemStyle)
   expect_null(compile_chart(base)$series$A$genes$itemStyle)
-  expect_equal(compile_chart(chart)$series$A$labels$itemStyle[[1]]$text, "Changed")
+  expect_equal(model$series$A$labels$itemStyle[[1]]$text, "Changed")
   reset <- GC_element_style(chart, "genes", 1, reset = TRUE)
-  expect_equal(compile_chart(reset)$series$A$genes$itemStyle, list(list(fill = "blue", rowID = 2)))
-  expect_identical(compile_chart(reset)$series$A$labels, compile_chart(chart)$series$A$labels)
+  reset_model <- compile_chart(reset)
+  expect_equal(reset_model$series$A$genes$itemStyle, list(list(fill = "blue", rowID = 2)))
+  expect_identical(reset_model$series$A$labels, model$series$A$labels)
   expect_error(GC_element_style(base, "genes", 99, fill = "red"), "row_id")
   expect_error(GC_element_style(base, "genes", 1, "red"), "names")
   expect_error(GC_element_style(base, "genes", 1, index = 0), "row_id")
@@ -232,8 +234,9 @@ test_that("cluster titles, footers, labels and coordinates are styled and select
     GC_element_style("coordinates", row_id = 1, end = "start", fill = "red") %>%
     GC_element_style("coordinates", row_id = 2, show = FALSE) %>%
     GC_events(click = FALSE, select = TRUE)
-  expect_equal(compile_chart(chart)$series$ophA$footer$itemStyle, list(list(text = "", part = "title")))
-  expect_equal(compile_chart(chart)$series$ophA$coordinates$itemStyle[[1]],
+  model <- compile_chart(chart)
+  expect_equal(model$series$ophA$footer$itemStyle, list(list(text = "", part = "title")))
+  expect_equal(model$series$ophA$coordinates$itemStyle[[1]],
                list(fill = "red", rowID = 1, end = "start"))
   expect_error(GC_element_style(chart, "clusterTitle", cluster = 1, part = "header"), "part")
   expect_error(GC_element_style(chart, "clusterTitle", cluster = "nope", part = "title"), "cluster")
@@ -310,14 +313,17 @@ test_that("legend overrides merge and reset each part independently", {
     GC_element_style("legend", group = "A", part = "marker", fill = "blue") %>%
     GC_element_style("legend", group = "B", part = "label", fontStyle = "italic") %>%
     GC_element_style("legend", group = "A", part = "label", fontSize = "20px")
-  expect_length(compile_chart(chart)$legend$itemStyle, 3)
-  label <- compile_chart(chart)$legend$itemStyle[[3]]
+  model <- compile_chart(chart)
+  expect_length(model$legend$itemStyle, 3)
+  label <- model$legend$itemStyle[[3]]
   expect_equal(label$text, "Edited")
   expect_equal(label$fontSize, "20px")
   reset <- GC_element_style(chart, "legend", group = "A", part = "label", reset = TRUE)
-  expect_length(compile_chart(reset)$legend$itemStyle, 2)
-  expect_equal(compile_chart(reset)$legend$groupStyle, compile_chart(base)$legend$groupStyle)
-  expect_null(compile_chart(base)$legend$itemStyle)
+  reset_model <- compile_chart(reset)
+  expect_length(reset_model$legend$itemStyle, 2)
+  base_model <- compile_chart(base)
+  expect_equal(reset_model$legend$groupStyle, base_model$legend$groupStyle)
+  expect_null(base_model$legend$itemStyle)
   expect_error(GC_element_style(base, "legend", group = "absent", part = "label"), "group")
   expect_error(GC_element_style(base, "legend", group = "A", part = "title"), "part")
   expect_error(GC_element_style(base, "legend", row_id = 1, group = "A", part = "label"), "group")

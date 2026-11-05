@@ -7,9 +7,10 @@ test_that("empty alignments leave charts and their existing links unchanged", {
 
   expect_identical(GC_links(chart, data = empty), chart)
   linked <- GC_links(chart, data = alignment)
-  expect_length(compile_chart(linked)$links, 1)
+  linked_model <- compile_chart(linked)
+  expect_length(linked_model$links, 1)
   expect_identical(GC_links(linked, data = empty), linked)
-  expect_identical(compile_chart(linked)$links[[1]]$data$linkID, "0-1")
+  expect_identical(linked_model$links[[1]]$data$linkID, "0-1")
 
   # Adding a later nonempty alignment still gives it the next link-set ID.
   linked <- GC_links(GC_links(linked, data = empty), data = alignment)

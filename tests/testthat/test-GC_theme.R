@@ -113,8 +113,10 @@ test_that("GC_transcript() keeps the events and toolbar of the chart", {
     GC_toolbar(show = "always", position = "bottomleft")
 
   transcripts <- GC_transcript(chart, transcript = "ensembl_transcript_id", type = "type")
-  expect_equal(compile_chart(transcripts)$events, compile_chart(chart)$events)
-  expect_equal(compile_chart(transcripts)$toolbar, compile_chart(chart)$toolbar)
+  model <- compile_chart(chart)
+  transcripts_model <- compile_chart(transcripts)
+  expect_equal(transcripts_model$events, model$events)
+  expect_equal(transcripts_model$toolbar, model$toolbar)
 })
 
 test_that("the theme is converted when the chart is drawn", {

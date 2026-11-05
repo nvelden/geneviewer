@@ -39,8 +39,9 @@ test_that("GC_legend stores and checks groupStyle", {
   chart <- GC_chart(group_genes, group = "class") %>%
     GC_legend(groupStyle = list(A = list(fontStyle = "italic",
                                          marker = list(stroke = "red"))))
-  expect_equal(compile_chart(chart)$legend$groupStyle$A$fontStyle, "italic")
-  expect_equal(compile_chart(chart)$legend$groupStyle$A$marker$stroke, "red")
+  model <- compile_chart(chart)
+  expect_equal(model$legend$groupStyle$A$fontStyle, "italic")
+  expect_equal(model$legend$groupStyle$A$marker$stroke, "red")
   expect_null(compile_chart((GC_chart(group_genes, group = "class") %>% GC_legend()))$legend$groupStyle)
   expect_error(GC_chart(group_genes, group = "class") %>% GC_legend(groupStyle = list("bold")),
                "named list")
@@ -62,8 +63,9 @@ test_that("GC_transcript stores and checks its group styles", {
   expect_equal(options$styleBy, "transcript")
   # left out when not given
   plain <- GC_chart(transcripts) %>% GC_transcript(transcript = "transcript", type = "type")
-  expect_null(compile_chart(plain)$series[["tx1"]]$transcript$groupStyleExons)
-  expect_null(compile_chart(plain)$series[["tx1"]]$transcript$styleBy)
+  plain_model <- compile_chart(plain)
+  expect_null(plain_model$series[["tx1"]]$transcript$groupStyleExons)
+  expect_null(plain_model$series[["tx1"]]$transcript$styleBy)
   expect_error(GC_chart(transcripts) %>%
                  GC_transcript(transcript = "transcript", type = "type",
                                groupStyleExons = list(tx1 = "red")), "named list")

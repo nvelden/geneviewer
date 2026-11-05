@@ -9,9 +9,10 @@ test_that("GC_zoom() checks and keeps its options", {
   zoomed <- chart %>%
     GC_zoom(range = c(0.6, 0.2), height = 30) %>%
     GC_zoom(update = "release")
-  expect_identical(compile_chart(zoomed)$zoom$range, c(0.2, 0.6))
-  expect_equal(compile_chart(zoomed)$zoom$height, 30)
-  expect_identical(compile_chart(zoomed)$zoom$update, "release")
+  zoomed_model <- compile_chart(zoomed)
+  expect_identical(zoomed_model$zoom$range, c(0.2, 0.6))
+  expect_equal(zoomed_model$zoom$height, 30)
+  expect_identical(zoomed_model$zoom$update, "release")
 
   # A new mode drops the range of the old one
   absolute <- GC_zoom(zoomed, mode = "absolute")
@@ -258,4 +259,39 @@ test_that("saved images leave out the slider and its room", {
   expect_true(value$titleKept)
   expect_equal(value$labelShift, value$band, tolerance = 0.5)
   expect_false(value$slider)
+})
+
+test_that("GC_zoom_to() reaches the chart of its output, found with the real htmlwidgets", {
+  chart <- GC_chart(ophA_clusters, cluster = "cluster", elementId = "first") %>% GC_zoom()
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file, width = 1000, height = 600)
+  result <- session$Runtime$evaluate("
+    (() => {
+      const handlers = {};
+      window.Shiny = { addCustomMessageHandler: (name, handler) => { handlers[name] = handler; },
+                       setInputValue: () => {} };
+      HTMLWidgets.shinyMode = true;
+      // A second output, drawn in Shiny mode, which adds the message handler
+      const data = document.querySelector('script[data-for=first]').textContent;
+      const el = document.createElement('div');
+      el.id = 'second';
+      el.className = 'geneviewer html-widget';
+      el.style.width = '800px';
+      el.style.height = '300px';
+      const script = document.createElement('script');
+      script.type = 'application/json';
+      script.setAttribute('data-for', 'second');
+      script.textContent = data;
+      document.body.append(el, script);
+      HTMLWidgets.staticRender();
+      const start = (id) => document.querySelector('#' + id + ' [data-zoom-part=window]').style.left;
+      handlers['geneviewer-zoom']({ id: 'second', range: [0.25, 0.5] });
+      handlers['geneviewer-zoom']({ id: 'missing', range: [0.25, 0.5] });
+      return JSON.stringify({ second: start('second'), first: start('first') });
+    })()")
+  expect_null(result$exceptionDetails)
+  value <- jsonlite::fromJSON(result$result$value)
+  expect_identical(value$second, "25%")
+  expect_identical(value$first, "0%")
 })

@@ -71,8 +71,9 @@ test_that("GC_scale takes breaks per cluster, in the positions of the data", {
     GC_scale(axis_type = "range",
              breaks = data.frame(cluster = 2, start = 1250, end = 1450))
   # cluster 2 starts at 1000, so on the range axis the break is at 251 - 451
-  expect_equal(compile_chart(chart)$series[["2"]]$scale$breaks, list(list(start = 251, end = 451)))
-  expect_equal(compile_chart(chart)$series[["1"]]$scale$breaks, list())
+  model <- compile_chart(chart)
+  expect_equal(model$series[["2"]]$scale$breaks, list(list(start = 251, end = 451)))
+  expect_equal(model$series[["1"]]$scale$breaks, list())
   # without a cluster column the breaks are for all clusters, as a list is
   all <- GC_chart(align_genes, cluster = "cluster", group = "name") %>%
     GC_scale(breaks = data.frame(start = 1250, end = 1450))
@@ -114,8 +115,9 @@ test_that("normalising each cluster keeps its original positions in the chart da
   chart <- GC_chart(genes, cluster = "cluster") %>%
     GC_normalize(preserve_gene_length = FALSE)
 
+  model <- compile_chart(chart)
   for (name in c("a", "b")) {
-    series <- compile_chart(chart)$series[[name]]$data
+    series <- model$series[[name]]$data
     data <- chart$x$spec$data
     rows <- match(series$rowID, data$rowID)
     expect_equal(data$original_start[rows], series$original_start)

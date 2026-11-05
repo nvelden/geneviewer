@@ -389,11 +389,12 @@ test_that("GC_clusterLabel updates cluster labels for specified clusters correct
   expect_s3_class(updated_chart, "htmlwidget")
 
   # Check if cluster label settings are applied to the specified clusters
-  expect_true("clusterLabel" %in% names(compile_chart(updated_chart)$series$ophA))
-  expect_true("clusterLabel" %in% names(compile_chart(updated_chart)$series$dbophA))
+  model <- compile_chart(updated_chart)
+  expect_true("clusterLabel" %in% names(model$series$ophA))
+  expect_true("clusterLabel" %in% names(model$series$dbophA))
 
   # Verify cluster label settings for `ophA` cluster
-  ophA_label <- compile_chart(updated_chart)$series$ophA$clusterLabel
+  ophA_label <- model$series$ophA$clusterLabel
   expect_equal(ophA_label$title, "Cluster A")
   expect_true(ophA_label$show)
   expect_equal(ophA_label$position, "left")
@@ -408,7 +409,7 @@ test_that("GC_clusterLabel updates cluster labels for specified clusters correct
   expect_equal(ophA_label$cursor, "pointer")
 
   # Verify cluster label settings for `dbophA` cluster
-  dbophA_label <- compile_chart(updated_chart)$series$dbophA$clusterLabel
+  dbophA_label <- model$series$dbophA$clusterLabel
   expect_equal(dbophA_label$title, "Cluster B")
   expect_true(dbophA_label$show)
   expect_equal(dbophA_label$position, "right")
@@ -468,7 +469,8 @@ test_that("GC_clusterFooter updates footers with all options correctly", {
   expect_s3_class(updated_chart, "htmlwidget")
 
   # Verify footer settings for cluster ophA
-  ophA_footer <- compile_chart(updated_chart)$series$ophA$footer
+  model <- compile_chart(updated_chart)
+  ophA_footer <- model$series$ophA$footer
   expect_equal(ophA_footer$title, "Footer for ophA")
   expect_equal(ophA_footer$subtitle, "Subtitle for ophA")
   expect_true(ophA_footer$show)
@@ -486,7 +488,7 @@ test_that("GC_clusterFooter updates footers with all options correctly", {
   expect_equal(ophA_footer$y, -20)
 
   # Verify footer settings for cluster dbophA
-  dbophA_footer <- compile_chart(updated_chart)$series$dbophA$footer
+  dbophA_footer <- model$series$dbophA$footer
   expect_equal(dbophA_footer$title, "Footer for dbophA")
   expect_equal(dbophA_footer$subtitle, "Subtitle for dbophA")
   expect_true(dbophA_footer$show)
@@ -539,7 +541,8 @@ test_that("GC_labels updates labels with all options correctly", {
   expect_s3_class(updated_chart, "htmlwidget")
 
   # Verify label settings for cluster ophA
-  ophA_label <- compile_chart(updated_chart)$series$ophA$labels
+  model <- compile_chart(updated_chart)
+  ophA_label <- model$series$ophA$labels
   expect_equal(ophA_label$label, "name")
   expect_true(ophA_label$show)
   expect_equal(ophA_label$itemStyle[[1]]$fill, "red")
@@ -549,7 +552,7 @@ test_that("GC_labels updates labels with all options correctly", {
   expect_equal(ophA_label$y, -5)
 
   # Verify label settings for cluster dbophA
-  dbophA_label <- compile_chart(updated_chart)$series$dbophA$labels
+  dbophA_label <- model$series$dbophA$labels
   expect_equal(dbophA_label$label, "name")
   expect_true(dbophA_label$show)
   expect_equal(dbophA_label$itemStyle[[2]]$fill, "blue")
@@ -651,7 +654,8 @@ test_that("GC_genes updates gene characteristics with all options correctly", {
   expect_s3_class(updated_chart, "htmlwidget")
 
   # Verify gene settings for cluster ophA
-  ophA_genes <- compile_chart(updated_chart)$series$ophA$genes
+  model <- compile_chart(updated_chart)
+  ophA_genes <- model$series$ophA$genes
   expect_equal(ophA_genes$group, "class")
   expect_true(ophA_genes$show)
   expect_equal(ophA_genes$marker, "arrow")
@@ -668,7 +672,7 @@ test_that("GC_genes updates gene characteristics with all options correctly", {
   expect_equal(ophA_genes$strokeWidth, 1)
 
   # Verify gene settings for cluster dbophA
-  dbophA_genes <- compile_chart(updated_chart)$series$dbophA$genes
+  dbophA_genes <- model$series$dbophA$genes
   expect_equal(dbophA_genes$group, "class")
   expect_true(dbophA_genes$show)
   expect_equal(dbophA_genes$marker, "arrow")
@@ -703,16 +707,17 @@ test_that("GC_color updates color scheme with all options correctly", {
 
   # Assertions for predefined color scheme
   expect_s3_class(updated_chart1, "htmlwidget")
-  expect_equal(compile_chart(updated_chart1)$legend$legendOptions$colorScheme, "schemeCategory10")
-  expect_null(compile_chart(updated_chart1)$legend$legendOptions$customColors)
+  model1 <- compile_chart(updated_chart1)
+  expect_equal(model1$legend$legendOptions$colorScheme, "schemeCategory10")
+  expect_null(model1$legend$legendOptions$customColors)
 
   # Validate series colorScheme
-  clusters <- names(compile_chart(updated_chart1)$series)
+  clusters <- names(model1$series)
   for (cluster_name in clusters) {
-    expect_equal(compile_chart(updated_chart1)$series[[cluster_name]]$genes$colorScheme, "schemeCategory10")
-    expect_null(compile_chart(updated_chart1)$series[[cluster_name]]$genes$customColors)
-    expect_equal(compile_chart(updated_chart1)$series[[cluster_name]]$transcript$colorScheme, "schemeCategory10")
-    expect_null(compile_chart(updated_chart1)$series[[cluster_name]]$transcript$customColors)
+    expect_equal(model1$series[[cluster_name]]$genes$colorScheme, "schemeCategory10")
+    expect_null(model1$series[[cluster_name]]$genes$customColors)
+    expect_equal(model1$series[[cluster_name]]$transcript$colorScheme, "schemeCategory10")
+    expect_null(model1$series[[cluster_name]]$transcript$customColors)
   }
 
   # Update color scheme with custom colors
@@ -723,15 +728,16 @@ test_that("GC_color updates color scheme with all options correctly", {
 
   # Assertions for custom colors
   expect_s3_class(updated_chart2, "htmlwidget")
-  expect_null(compile_chart(updated_chart2)$legend$legendOptions$colorScheme)
-  expect_equal(compile_chart(updated_chart2)$legend$legendOptions$customColors, c("red", "orange", "green"))
+  model2 <- compile_chart(updated_chart2)
+  expect_null(model2$legend$legendOptions$colorScheme)
+  expect_equal(model2$legend$legendOptions$customColors, c("red", "orange", "green"))
 
   # Validate series customColors
   for (cluster_name in clusters) {
-    expect_null(compile_chart(updated_chart2)$series[[cluster_name]]$genes$colorScheme)
-    expect_equal(compile_chart(updated_chart2)$series[[cluster_name]]$genes$customColors, c("red", "orange", "green"))
-    expect_null(compile_chart(updated_chart2)$series[[cluster_name]]$transcript$colorScheme)
-    expect_equal(compile_chart(updated_chart2)$series[[cluster_name]]$transcript$customColors, c("red", "orange", "green"))
+    expect_null(model2$series[[cluster_name]]$genes$colorScheme)
+    expect_equal(model2$series[[cluster_name]]$genes$customColors, c("red", "orange", "green"))
+    expect_null(model2$series[[cluster_name]]$transcript$colorScheme)
+    expect_equal(model2$series[[cluster_name]]$transcript$customColors, c("red", "orange", "green"))
   }
 
   # Update color scheme with named custom colors
@@ -742,15 +748,16 @@ test_that("GC_color updates color scheme with all options correctly", {
 
   # Assertions for named custom colors
   expect_s3_class(updated_chart3, "htmlwidget")
-  expect_null(compile_chart(updated_chart3)$legend$legendOptions$colorScheme)
-  expect_equal(compile_chart(updated_chart3)$legend$legendOptions$customColors, list(A = "yellow", B = "pink", C = "purple"))
+  model3 <- compile_chart(updated_chart3)
+  expect_null(model3$legend$legendOptions$colorScheme)
+  expect_equal(model3$legend$legendOptions$customColors, list(A = "yellow", B = "pink", C = "purple"))
 
   # Validate series named customColors
   for (cluster_name in clusters) {
-    expect_null(compile_chart(updated_chart3)$series[[cluster_name]]$genes$colorScheme)
-    expect_equal(compile_chart(updated_chart3)$series[[cluster_name]]$genes$customColors, list(A = "yellow", B = "pink", C = "purple"))
-    expect_null(compile_chart(updated_chart3)$series[[cluster_name]]$transcript$colorScheme)
-    expect_equal(compile_chart(updated_chart3)$series[[cluster_name]]$transcript$customColors, list(A = "yellow", B = "pink", C = "purple"))
+    expect_null(model3$series[[cluster_name]]$genes$colorScheme)
+    expect_equal(model3$series[[cluster_name]]$genes$customColors, list(A = "yellow", B = "pink", C = "purple"))
+    expect_null(model3$series[[cluster_name]]$transcript$colorScheme)
+    expect_equal(model3$series[[cluster_name]]$transcript$customColors, list(A = "yellow", B = "pink", C = "purple"))
   }
 
 })
@@ -765,10 +772,11 @@ test_that("GC_pattern sets patterns on genes, transcripts and legend", {
   updated_chart1 <- GC_pattern(chart)
   expected <- list(color = "#000000", background = "#FFFFFF", size = 6, strokeWidth = 1)
   expect_s3_class(updated_chart1, "htmlwidget")
-  expect_equal(compile_chart(updated_chart1)$legend$legendOptions$pattern, expected)
-  for (cluster_name in names(compile_chart(updated_chart1)$series)) {
-    expect_equal(compile_chart(updated_chart1)$series[[cluster_name]]$genes$pattern, expected)
-    expect_equal(compile_chart(updated_chart1)$series[[cluster_name]]$transcript$pattern, expected)
+  model1 <- compile_chart(updated_chart1)
+  expect_equal(model1$legend$legendOptions$pattern, expected)
+  for (cluster_name in names(model1$series)) {
+    expect_equal(model1$series[[cluster_name]]$genes$pattern, expected)
+    expect_equal(model1$series[[cluster_name]]$transcript$pattern, expected)
   }
 
   # Vectors become arrays, named vectors objects, R colour names hex colours
@@ -796,8 +804,9 @@ test_that("GC_pattern sets patterns on genes, transcripts and legend", {
 
   # background = NULL keeps the gene colours
   updated_chart3 <- GC_pattern(chart, patterns = list(A = "crosshatch"), background = NULL)
-  expect_null(compile_chart(updated_chart3)$legend$legendOptions$pattern$background)
-  expect_equal(compile_chart(updated_chart3)$legend$legendOptions$pattern$patterns, list(A = "crosshatch"))
+  model3 <- compile_chart(updated_chart3)
+  expect_null(model3$legend$legendOptions$pattern$background)
+  expect_equal(model3$legend$legendOptions$pattern$patterns, list(A = "crosshatch"))
 
   # Unknown patterns
   expect_error(GC_pattern(chart, patterns = "stripes"), "Unknown pattern")
@@ -845,27 +854,28 @@ test_that("GC_legend updates legend options with all options correctly", {
   expect_s3_class(updated_chart, "htmlwidget")
 
   # Verify legend settings
-  expect_equal(compile_chart(updated_chart)$legend$group, "class")
-  expect_true(compile_chart(updated_chart)$legend$show)
+  model <- compile_chart(updated_chart)
+  expect_equal(model$legend$group, "class")
+  expect_true(model$legend$show)
   # backgroundColor is sent as style$backgroundColor; style takes precedence
-  expect_null(compile_chart(updated_chart)$legend$backgroundColor)
+  expect_null(model$legend$backgroundColor)
   expect_equal(compile_chart(GC_legend(chart, backgroundColor = "yellow"))$legend$style$backgroundColor, "yellow")
-  expect_equal(compile_chart(updated_chart)$legend$order, rev(unique(ophA_clusters$class)))
-  expect_equal(compile_chart(updated_chart)$legend$position, "bottom")
-  expect_equal(compile_chart(updated_chart)$legend$orientation, "horizontal")
-  expect_equal(compile_chart(updated_chart)$legend$x, 0)
-  expect_equal(compile_chart(updated_chart)$legend$y, 0)
-  expect_true(compile_chart(updated_chart)$legend$adjustHeight)
-  expect_equal(compile_chart(updated_chart)$legend$style$backgroundColor, "red")
-  expect_equal(compile_chart(updated_chart)$legend$legendOptions$cursor, "pointer")
-  expect_null(compile_chart(updated_chart)$legend$legendOptions$colorScheme)
-  expect_null(compile_chart(updated_chart)$legend$legendOptions$customColors)
-  expect_equal(compile_chart(updated_chart)$legend$legendTextOptions$cursor, "pointer")
-  expect_equal(compile_chart(updated_chart)$legend$legendTextOptions$textAnchor, "start")
-  expect_equal(compile_chart(updated_chart)$legend$legendTextOptions$dy, ".35em")
-  expect_equal(compile_chart(updated_chart)$legend$legendTextOptions$fontSize, "14px")
-  expect_equal(compile_chart(updated_chart)$legend$legendTextOptions$fontFamily, "sans-serif")
-  expect_equal(compile_chart(updated_chart)$legend$legendTextOptions$fill, "blue")
+  expect_equal(model$legend$order, rev(unique(ophA_clusters$class)))
+  expect_equal(model$legend$position, "bottom")
+  expect_equal(model$legend$orientation, "horizontal")
+  expect_equal(model$legend$x, 0)
+  expect_equal(model$legend$y, 0)
+  expect_true(model$legend$adjustHeight)
+  expect_equal(model$legend$style$backgroundColor, "red")
+  expect_equal(model$legend$legendOptions$cursor, "pointer")
+  expect_null(model$legend$legendOptions$colorScheme)
+  expect_null(model$legend$legendOptions$customColors)
+  expect_equal(model$legend$legendTextOptions$cursor, "pointer")
+  expect_equal(model$legend$legendTextOptions$textAnchor, "start")
+  expect_equal(model$legend$legendTextOptions$dy, ".35em")
+  expect_equal(model$legend$legendTextOptions$fontSize, "14px")
+  expect_equal(model$legend$legendTextOptions$fontFamily, "sans-serif")
+  expect_equal(model$legend$legendTextOptions$fill, "blue")
 
 })
 
@@ -899,21 +909,22 @@ test_that("GC_annotation adds annotations to GC chart correctly", {
   expect_s3_class(updated_chart, "htmlwidget")
 
   # Verify textMarker annotation
-  text_marker <- compile_chart(updated_chart)$series[[1]]$annotations[[1]]
+  model <- compile_chart(updated_chart)
+  text_marker <- model$series[[1]]$annotations[[1]]
   expect_equal(text_marker$type, "textMarker")
   expect_equal(text_marker$position, 24)
   expect_equal(text_marker$text, "Gene 1")
   expect_equal(text_marker$arrowSize, 8)
 
   # Verify text annotation
-  text_annotation <- compile_chart(updated_chart)$series[[1]]$annotations[[2]]
+  text_annotation <- model$series[[1]]$annotations[[2]]
   expect_equal(text_annotation$type, "text")
   expect_equal(text_annotation$text, "feature 1")
   expect_equal(text_annotation$x, 91)
   expect_equal(text_annotation$y, 71)
 
   # Verify symbol annotation
-  symbol_annotation <- compile_chart(updated_chart)$series[[1]]$annotations[[3]]
+  symbol_annotation <- model$series[[1]]$annotations[[3]]
   expect_equal(symbol_annotation$type, "symbol")
   expect_equal(symbol_annotation$symbol, "triangle")
   expect_equal(symbol_annotation$x, 95)
@@ -922,12 +933,12 @@ test_that("GC_annotation adds annotations to GC chart correctly", {
   expect_equal(symbol_annotation$rotation, 180)
 
   # Verify terminator annotation
-  terminator_annotation <- compile_chart(updated_chart)$series[[1]]$annotations[[4]]
+  terminator_annotation <- model$series[[1]]$annotations[[4]]
   expect_equal(terminator_annotation$type, "terminator")
   expect_equal(terminator_annotation$x, 81)
 
   # Verify promoter annotation
-  promoter_annotation <- compile_chart(updated_chart)$series[[1]]$annotations[[5]]
+  promoter_annotation <- model$series[[1]]$annotations[[5]]
   expect_equal(promoter_annotation$type, "promoter")
   expect_equal(promoter_annotation$x, 49)
 
@@ -945,17 +956,19 @@ test_that("GC_trackMouse enables or disables mouse tracking correctly", {
 
   # Assertions
   expect_s3_class(updated_chart, "htmlwidget")
-  clusters <- names(compile_chart(updated_chart)$series)
+  model <- compile_chart(updated_chart)
+  clusters <- names(model$series)
   for (cluster_name in clusters) {
-    expect_true(compile_chart(updated_chart)$series[[cluster_name]]$trackMouse$show)
+    expect_true(model$series[[cluster_name]]$trackMouse$show)
   }
 
   # Disable mouse tracking on all clusters
   updated_chart <- GC_trackMouse(GC_chart = chart, show = FALSE)
 
   # Assertions
+  model <- compile_chart(updated_chart)
   for (cluster_name in clusters) {
-    expect_false(compile_chart(updated_chart)$series[[cluster_name]]$trackMouse$show)
+    expect_false(model$series[[cluster_name]]$trackMouse$show)
   }
 
 })
@@ -1054,7 +1067,8 @@ test_that("GC_transcript modifies transcript characteristics correctly", {
   expect_s3_class(updated_chart, "htmlwidget") # Verify object type
 
   # Check transcript settings for 'transcript1'
-  transcript1 <- compile_chart(updated_chart)$series$transcript1$transcript
+  model <- compile_chart(updated_chart)
+  transcript1 <- model$series$transcript1$transcript
 
   expect_equal(transcript1$group, "transcript") # Verify grouping column
   expect_true(transcript1$show) # Ensure show option is TRUE
@@ -1085,7 +1099,7 @@ test_that("GC_transcript modifies transcript characteristics correctly", {
   expect_equal(transcript1$labelOptions$xOffset, 2)
 
   # Verify strand information
-  expect_equal(compile_chart(updated_chart)$params$strand, "strand")
+  expect_equal(model$params$strand, "strand")
 })
 
 test_that("GC_chart accepts a percentage height (B01)", {
@@ -1096,8 +1110,9 @@ test_that("GC_chart accepts a percentage height (B01)", {
   )
 
   chart <- GC_chart(genes_data, cluster = "cluster", height = "100%")
-  expect_equal(compile_chart(chart)$series[["A"]]$container$height, "50%")
-  expect_equal(compile_chart(chart)$series[["B"]]$container$height, "50%")
+  model <- compile_chart(chart)
+  expect_equal(model$series[["A"]]$container$height, "50%")
+  expect_equal(model$series[["B"]]$container$height, "50%")
 
   # Pixel heights are still split into numbers
   chart <- GC_chart(genes_data, cluster = "cluster", height = "400px")
@@ -1114,10 +1129,11 @@ test_that("GC_cluster prevent_gene_overlap only changes the selected cluster (B0
   chart <- GC_chart(genes_data, cluster = "cluster") %>%
     GC_cluster(prevent_gene_overlap = TRUE, cluster = 2)
 
-  expect_null(compile_chart(chart)$series[["A"]]$data$geneTrack)
-  expect_setequal(compile_chart(chart)$series[["B"]]$data$geneTrack, c(1, 2))
-  expect_true(compile_chart(chart)$series[["B"]]$cluster$preventGeneOverlap)
-  expect_null(compile_chart(chart)$series[["B"]]$cluster$subset_data)
+  model <- compile_chart(chart)
+  expect_null(model$series[["A"]]$data$geneTrack)
+  expect_setequal(model$series[["B"]]$data$geneTrack, c(1, 2))
+  expect_true(model$series[["B"]]$cluster$preventGeneOverlap)
+  expect_null(model$series[["B"]]$cluster$subset_data)
 
   # More than two clusters, selected by index and by name
   genes_data <- data.frame(
@@ -1158,8 +1174,9 @@ test_that("scale breaks work with one gene or one merged region (B09)", {
 
   genes_data <- data.frame(start = c(100, 5000, 9000), end = c(400, 5600, 9500), cluster = c("A", "B", "B"))
   chart <- GC_chart(genes_data, cluster = "cluster") %>% GC_scale(scale_breaks = TRUE)
-  expect_length(compile_chart(chart)$series[["A"]]$scale$breaks, 0)
-  expect_length(compile_chart(chart)$series[["B"]]$scale$breaks, 1)
+  model <- compile_chart(chart)
+  expect_length(model$series[["A"]]$scale$breaks, 0)
+  expect_length(model$series[["B"]]$scale$breaks, 1)
 })
 
 test_that("GC_scale range axis shifts only the selected clusters (B10)", {
@@ -1172,16 +1189,18 @@ test_that("GC_scale range axis shifts only the selected clusters (B10)", {
 
   # hidden = TRUE still shifts the genes
   chart <- base %>% GC_scale(axis_type = "range", hidden = TRUE)
-  expect_equal(compile_chart(chart)$series[["A"]]$data$start, c(1, 1501))
-  expect_true(all(vapply(compile_chart(chart)$series, function(s) s$scale$hidden, logical(1))))
+  model <- compile_chart(chart)
+  expect_equal(model$series[["A"]]$data$start, c(1, 1501))
+  expect_true(all(vapply(model$series, function(s) s$scale$hidden, logical(1))))
 
   # One selected cluster only gets its own genes; other clusters are unchanged
   chart <- base %>% GC_scale(axis_type = "range", cluster = 2)
-  expect_length(compile_chart(chart)$series[["B"]]$data$start, 2)
-  expect_equal(compile_chart(chart)$series[["B"]]$data$start, c(1, 801))
-  expect_equal(compile_chart(chart)$series[["B"]]$scale$xMax, 1301)
-  expect_equal(compile_chart(chart)$series[["A"]]$data$start, c(10000, 11500))
-  expect_equal(compile_chart(chart)$series[["C"]]$data$start, c(200, 1200))
+  model <- compile_chart(chart)
+  expect_length(model$series[["B"]]$data$start, 2)
+  expect_equal(model$series[["B"]]$data$start, c(1, 801))
+  expect_equal(model$series[["B"]]$scale$xMax, 1301)
+  expect_equal(model$series[["A"]]$data$start, c(10000, 11500))
+  expect_equal(model$series[["C"]]$data$start, c(200, 1200))
 
   # Gene tracks from prevent_gene_overlap are kept
   chart <- base %>% GC_cluster(prevent_gene_overlap = TRUE) %>% GC_scale(axis_type = "range")
@@ -1269,8 +1288,9 @@ test_that("GC_grid margins work with pixel and percentage heights (B18)", {
   # Pixel heights: both margins are taken from the clusters
   chart <- GC_chart(genes, cluster = "cluster", height = "400px") %>% GC_grid(margin = list(top = 40, bottom = 20))
   expect_equal(heights(chart), c(170, 170))
-  expect_equal(compile_chart(chart)$style$paddingTop, "40px")
-  expect_equal(compile_chart(chart)$style$paddingBottom, "20px")
+  model <- compile_chart(chart)
+  expect_equal(model$style$paddingTop, "40px")
+  expect_equal(model$style$paddingBottom, "20px")
 
   # Percentage heights stay percentages (reduced in the browser)
   chart <- GC_chart(genes, cluster = "cluster", height = "100%") %>% GC_grid(margin = list(top = 40, bottom = 20))
@@ -1291,22 +1311,25 @@ test_that("GC_genes and GC_transcript keep GC_color and GC_pattern settings (B43
 
   # GC_color() then GC_genes(): colours kept
   chart1 <- chart %>% GC_color(customColors = cols) %>% GC_genes(marker = "box")
-  for (cl in names(compile_chart(chart1)$series)) {
-    expect_equal(compile_chart(chart1)$series[[cl]]$genes$customColors, cols)
-    expect_equal(compile_chart(chart1)$series[[cl]]$genes$marker, "box")
+  chart1_model <- compile_chart(chart1)
+  for (cl in names(chart1_model$series)) {
+    expect_equal(chart1_model$series[[cl]]$genes$customColors, cols)
+    expect_equal(chart1_model$series[[cl]]$genes$marker, "box")
   }
 
   # GC_pattern() then GC_genes(): pattern kept
   chart2 <- chart %>% GC_pattern() %>% GC_genes(marker = "box")
-  for (cl in names(compile_chart(chart2)$series)) {
-    expect_equal(compile_chart(chart2)$series[[cl]]$genes$pattern,
-                 compile_chart(chart2)$legend$legendOptions$pattern)
+  chart2_model <- compile_chart(chart2)
+  for (cl in names(chart2_model$series)) {
+    expect_equal(chart2_model$series[[cl]]$genes$pattern,
+                 chart2_model$legend$legendOptions$pattern)
   }
 
   # New colours in GC_genes() replace both old colour options
   chart3 <- chart %>% GC_color(customColors = cols) %>% GC_genes(colorScheme = "schemeAccent")
-  expect_equal(compile_chart(chart3)$series[["1"]]$genes$colorScheme, "schemeAccent")
-  expect_null(compile_chart(chart3)$series[["1"]]$genes$customColors)
+  chart3_model <- compile_chart(chart3)
+  expect_equal(chart3_model$series[["1"]]$genes$colorScheme, "schemeAccent")
+  expect_null(chart3_model$series[["1"]]$genes$customColors)
 
   # GC_genes() colours reach the legend, but not when only some clusters are set
   expect_equal(compile_chart(GC_genes(chart, customColors = cols))$legend$legendOptions$customColors, cols)
@@ -1322,9 +1345,10 @@ test_that("GC_genes and GC_transcript keep GC_color and GC_pattern settings (B43
     GC_color(customColors = cols) %>%
     GC_pattern() %>%
     GC_transcript(show = TRUE)
-  for (tr in names(compile_chart(tchart)$series)) {
-    expect_equal(compile_chart(tchart)$series[[tr]]$transcript$customColors, cols)
-    expect_false(is.null(compile_chart(tchart)$series[[tr]]$transcript$pattern))
+  tchart_model <- compile_chart(tchart)
+  for (tr in names(tchart_model$series)) {
+    expect_equal(tchart_model$series[[tr]]$transcript$customColors, cols)
+    expect_false(is.null(tchart_model$series[[tr]]$transcript$pattern))
   }
   expect_equal(
     compile_chart((GC_chart(tx, group = "group") %>%
@@ -1353,16 +1377,19 @@ test_that("GC_transcript keeps the settings of the whole chart made before it (B
     expect_equal(before$x[[name]], after$x[[name]], label = name)
   }
   expect_equal(before$height, after$height)
-  expect_equal(lapply(compile_chart(before)$series, `[[`, "container"),
-               lapply(compile_chart(after)$series, `[[`, "container"))
-  expect_equal(compile_chart(before)$title$title, "Title")
-  expect_equal(compile_chart(before)$series[[1]]$container$margin$left, 150)
+  after_model <- compile_chart(after)
+  before_model <- compile_chart(before)
+  expect_equal(lapply(before_model$series, `[[`, "container"),
+               lapply(after_model$series, `[[`, "container"))
+  expect_equal(before_model$title$title, "Title")
+  expect_equal(before_model$series[[1]]$container$margin$left, 150)
 })
 
 test_that("GC_genes() sends corner_radius to the browser as cornerRadius", {
   chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
   rounded <- GC_genes(chart, marker = "boxarrow", corner_radius = 3)
-  expect_true(all(sapply(compile_chart(rounded)$series, function(s) s$genes$cornerRadius) == 3))
+  rounded_model <- compile_chart(rounded)
+  expect_true(all(sapply(rounded_model$series, function(s) s$genes$cornerRadius) == 3))
   expect_null(compile_chart(GC_genes(chart))$series[[1]]$genes$cornerRadius)
   # In a theme, by its argument name
   themed <- GC_theme(chart, genes = list(corner_radius = 3))
@@ -1385,11 +1412,12 @@ test_that("GC_color takes colorScheme with a named list of customColors (B53)", 
 
   # A named list sets some groups; colorScheme colours the others
   both <- GC_color(chart, colorScheme = "schemeSet2", customColors = list(Other = "grey"))
-  expect_equal(compile_chart(both)$legend$legendOptions$colorScheme, "schemeSet2")
-  expect_equal(compile_chart(both)$legend$legendOptions$customColors, list(Other = "grey"))
-  for (cl in names(compile_chart(both)$series)) {
-    expect_equal(compile_chart(both)$series[[cl]]$genes$colorScheme, "schemeSet2")
-    expect_equal(compile_chart(both)$series[[cl]]$genes$customColors, list(Other = "grey"))
+  both_model <- compile_chart(both)
+  expect_equal(both_model$legend$legendOptions$colorScheme, "schemeSet2")
+  expect_equal(both_model$legend$legendOptions$customColors, list(Other = "grey"))
+  for (cl in names(both_model$series)) {
+    expect_equal(both_model$series[[cl]]$genes$colorScheme, "schemeSet2")
+    expect_equal(both_model$series[[cl]]$genes$customColors, list(Other = "grey"))
   }
 
   # Unnamed customColors replace the scheme: still one or the other
@@ -1478,12 +1506,14 @@ test_that("GC_title(), GC_clusterTitle() and GC_clusterFooter() send align and c
 
   # One per cluster, recycled
   titled <- GC_clusterTitle(chart, title = "Cluster", align = c("left", "right"))
-  expect_equal(unname(sapply(compile_chart(titled)$series, function(s) s$clusterTitle$align)), c("left", "right"))
+  titled_model <- compile_chart(titled)
+  expect_equal(unname(sapply(titled_model$series, function(s) s$clusterTitle$align)), c("left", "right"))
   expect_null(compile_chart(GC_clusterTitle(chart, title = "Cluster"))$series[[1]]$clusterTitle$align)
   expect_error(GC_clusterTitle(chart, title = "Cluster", align = "middle"), "align must be")
 
   footed <- GC_clusterFooter(chart, title = "Footer", align = "right")
-  expect_true(all(sapply(compile_chart(footed)$series, function(s) s$footer$align) == "right"))
+  footed_model <- compile_chart(footed)
+  expect_true(all(sapply(footed_model$series, function(s) s$footer$align) == "right"))
   expect_null(compile_chart(GC_clusterFooter(chart, title = "Footer"))$series[[1]]$footer$align)
   expect_error(GC_clusterFooter(chart, title = "Footer", align = 1), "align must be")
 })
@@ -1517,7 +1547,8 @@ test_that("a cluster footer is aligned like the cluster title, beside a cluster 
 test_that("GC_clusterLabel() sends align and checks it", {
   chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
   labelled <- GC_clusterLabel(chart, align = c("left", "right"))
-  expect_equal(unname(sapply(compile_chart(labelled)$series, function(s) s$clusterLabel$align)), c("left", "right"))
+  labelled_model <- compile_chart(labelled)
+  expect_equal(unname(sapply(labelled_model$series, function(s) s$clusterLabel$align)), c("left", "right"))
   expect_null(compile_chart(GC_clusterLabel(chart))$series[[1]]$clusterLabel$align)
   expect_error(GC_clusterLabel(chart, align = "middle"), "align must be")
 })
@@ -1586,7 +1617,8 @@ test_that("GC_clusterLabel() sends a subtitle, its font and spacing per cluster"
 
   labelled <- GC_clusterLabel(chart, subtitle = c("E. cloacae", "K. oxytoca"),
                               subtitleFont = list(fontStyle = "italic"), spacing = 16)
-  labels <- lapply(compile_chart(labelled)$series, `[[`, "clusterLabel")
+  labelled_model <- compile_chart(labelled)
+  labels <- lapply(labelled_model$series, `[[`, "clusterLabel")
   expect_equal(unname(sapply(labels, `[[`, "subtitle")), c("E. cloacae", "K. oxytoca"))
   expect_equal(labels[[2]]$subtitleFont, list(fontStyle = "italic"))
   expect_equal(labels[[1]]$spacing, 16)
@@ -1670,8 +1702,9 @@ test_that("GC_links() sends vmin and vmax and checks them", {
                       cluster2 = "B", start2 = 1, end2 = 100, identity = 90)
   chart <- GC_chart(genes, cluster = "cluster") %>%
     GC_links(data = links, vmin = 80, vmax = 99)
-  expect_equal(compile_chart(chart)$links[[1]]$options$vmin, 80)
-  expect_equal(compile_chart(chart)$links[[1]]$options$vmax, 99)
+  model <- compile_chart(chart)
+  expect_equal(model$links[[1]]$options$vmin, 80)
+  expect_equal(model$links[[1]]$options$vmax, 99)
   expect_null(compile_chart(GC_links(GC_chart(genes, cluster = "cluster"), data = links))$links[[1]]$options$vmin)
 
   chart <- GC_chart(genes, cluster = "cluster")
@@ -1719,12 +1752,13 @@ test_that("GC_scale with a range axis moves the annotations with the genes", {
                     position = list(list(c(1100, 60), c(1300, 40))))
   }
   check <- function(chart) {
-    a <- compile_chart(chart)$series[["1"]]$annotations
+    model <- compile_chart(chart)
+    a <- model$series[["1"]]$annotations
     expect_equal(a[[1]]$x, 451)
     expect_equal(a[[2]]$position, 451)
     expect_equal(a[[2]]$x1, 451)
     expect_equal(a[[3]]$position[[1]], list(c(101, 60), c(301, 40)))
-    expect_equal(compile_chart(chart)$series[["1"]]$data$start, c(1, 501))
+    expect_equal(model$series[["1"]]$data$start, c(1, 501))
   }
 
   base <- GC_chart(genes, cluster = "cluster", group = "name")
@@ -1764,9 +1798,10 @@ test_that("GC_labels stores groupStyle with the group column", {
   genes <- data.frame(start = c(1, 50), end = c(40, 90), class = c("x", "y"))
   chart <- GC_chart(genes, group = "class") %>%
     GC_labels(groupStyle = list(y = list(fill = "white")))
-  expect_equal(compile_chart(chart)$series[[1]]$labels$groupStyle, list(y = list(fill = "white")))
+  model <- compile_chart(chart)
+  expect_equal(model$series[[1]]$labels$groupStyle, list(y = list(fill = "white")))
   # the column the groups are in, set by GC_chart()
-  expect_equal(compile_chart(chart)$series[[1]]$labels$group, "class")
+  expect_equal(model$series[[1]]$labels$group, "class")
   expect_error(GC_chart(genes, group = "class") %>% GC_labels(groupStyle = list(y = "white")),
                "named list")
 })
@@ -1814,10 +1849,11 @@ test_that("GC_labels and GC_genes match groupStyle against style_by", {
   chart <- GC_chart(genes, group = "class") %>%
     GC_genes(style_by = "name", groupStyle = list(b = list(marker = "box"))) %>%
     GC_labels(label = "name", style_by = "name", groupStyle = list(b = list(fill = "white")))
-  expect_equal(compile_chart(chart)$series[[1]]$genes$styleBy, "name")
-  expect_equal(compile_chart(chart)$series[[1]]$labels$styleBy, "name")
+  model <- compile_chart(chart)
+  expect_equal(model$series[[1]]$genes$styleBy, "name")
+  expect_equal(model$series[[1]]$labels$styleBy, "name")
   # the colours still follow the group
-  expect_equal(compile_chart(chart)$series[[1]]$genes$group, "class")
+  expect_equal(model$series[[1]]$genes$group, "class")
   expect_null(compile_chart((GC_chart(genes, group = "class") %>% GC_labels("name")))$series[[1]]$labels$styleBy)
   expect_error(GC_chart(genes, group = "class") %>% GC_labels("name", style_by = "nope"),
                "single column name")

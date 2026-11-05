@@ -55,10 +55,11 @@ test_that("GC_cluster() checks prevent_gene_overlap and overlap_min", {
                  "'overlap_min' must be")
   }
   nested <- GC_cluster(chart, prevent_gene_overlap = "nested")
-  data <- compile_chart(nested)$series[[1]]$data
+  nested_model <- compile_chart(nested)
+  data <- nested_model$series[[1]]$data
   expect_equal(stats::setNames(data$geneTrack, data$name)[track_genes$name],
                c(A = 1, B = 1, B2 = 2, B3 = 3, C = 1))
-  expect_true(compile_chart(nested)$series[[1]]$cluster$preventGeneOverlap)
+  expect_true(nested_model$series[[1]]$cluster$preventGeneOverlap)
   small <- GC_cluster(chart, prevent_gene_overlap = TRUE, overlap_min = "5%")
   expect_equal(max(compile_chart(small)$series[[1]]$data$geneTrack), 3)
   # Both strands and overlap tracks cannot be combined

@@ -41,29 +41,22 @@ sent_x <- function(widget) {
   htmlwidgets:::createPayload(widget)$x
 }
 
-# Records the spec (or not) until the test ends
-local_record_spec <- function(value, env = parent.frame()) {
-  old <- options(geneviewer.record_spec = value)
-  do.call(on.exit, list(substitute(options(old)), add = TRUE, after = FALSE), envir = env)
-}
-
-test_that("without the option the chart has no spec", {
-  local_record_spec(NULL)
-  expect_null(sent_x(spec_chart())$spec)
+test_that("the widget sends the spec, and only the spec", {
+  x <- sent_x(spec_chart())
+  expect_named(x, "spec")
+  expect_identical(x$spec$version, 1L)
 })
 
-test_that("recording the spec does not change the chart", {
-  local_record_spec(NULL)
+test_that("the option of 0.2.x that recorded the spec changes nothing", {
+  old <- options(geneviewer.record_spec = FALSE)
+  on.exit(options(old))
   off <- sent_x(spec_chart())
-  local_record_spec(TRUE)
+  options(geneviewer.record_spec = TRUE)
   on <- sent_x(spec_chart())
-  expect_false(is.null(on$spec))
-  on$spec <- NULL
   expect_identical(htmlwidgets:::toJSON(on), htmlwidgets:::toJSON(off))
 })
 
 test_that("the spec holds the arguments as given, under their spec names", {
-  local_record_spec(TRUE)
   spec <- sent_x(spec_chart())$spec
 
   expect_identical(spec$version, 1L)
@@ -100,7 +93,6 @@ test_that("the spec holds the arguments as given, under their spec names", {
 })
 
 test_that("calls that change nothing are not recorded", {
-  local_record_spec(TRUE)
   spec <- sent_x(
     GC_chart(spec_genes, group = "group") %>%
       GC_title(show = FALSE) %>%
@@ -111,19 +103,16 @@ test_that("calls that change nothing are not recorded", {
 })
 
 test_that("a logical for a column argument is recorded as show", {
-  local_record_spec(TRUE)
   spec <- sent_x(GC_chart(spec_genes, group = "group") %>% GC_legend(FALSE))$spec
   expect_identical(spec$legend, list(show = FALSE))
 })
 
 test_that("save_button = FALSE is a toolbar without the save button", {
-  local_record_spec(TRUE)
   spec <- sent_x(GC_chart(spec_genes, save_button = FALSE))$spec
   expect_identical(spec$toolbar, list(buttons = list("undo", "redo", "reset", "zoom")))
 })
 
 test_that("theme calls without a theme change the one set before", {
-  local_record_spec(TRUE)
   spec <- sent_x(
     GC_chart(spec_genes, group = "group") %>%
       GC_theme("dark", links = list(normal_color = "red", show_links = FALSE)) %>%
@@ -139,7 +128,6 @@ test_that("theme calls without a theme change the one set before", {
 })
 
 test_that("links from gene matching are recorded as data", {
-  local_record_spec(TRUE)
   genes <- data.frame(
     start = c(1, 50, 100, 1, 50),
     end = c(40, 90, 140, 40, 90),
@@ -156,7 +144,6 @@ test_that("links from gene matching are recorded as data", {
 })
 
 test_that("transcripts are recorded with their introns", {
-  local_record_spec(TRUE)
   exons <- data.frame(
     start = c(1, 50), end = c(20, 80),
     type = "exon", transcript = "t1"
@@ -168,12 +155,14 @@ test_that("transcripts are recorded with their introns", {
 })
 
 test_that("normalised positions are recorded in the data", {
-  local_record_spec(TRUE)
   chart <- GC_chart(spec_genes, cluster = "cluster", group = "group") %>%
     GC_normalize(gap = 0.1)
   x <- sent_x(chart)
-  expect_identical(x$spec$data$start, chart$x$data$start)
   expect_null(x$spec$normalize)
+  # The library draws the positions of the spec
+  model <- compile_chart(chart)
+  expect_equal(unlist(lapply(model$series, function(s) s$data$start), use.names = FALSE),
+               x$spec$data$start)
 })
 
 test_that("the spec validates against the schema of spec v1", {
@@ -181,20 +170,17 @@ test_that("the spec validates against the schema of spec v1", {
   schema <- Sys.getenv("GENEVIEWER_SPEC_SCHEMA")
   skip_if(!nzchar(schema) || !file.exists(schema),
           "GENEVIEWER_SPEC_SCHEMA is not set to spec-v1.schema.json")
-  local_record_spec(TRUE)
   json <- htmlwidgets:::toJSON(sent_x(spec_chart())$spec)
   expect_true(jsonvalidate::json_validate(json, schema, engine = "ajv", error = TRUE))
 })
 
 test_that("options passed through ... keep their names", {
-  local_record_spec(TRUE)
   spec <- sent_x(GC_chart(spec_genes, group = "group") %>%
                    GC_genes(marker_size = "small", prevent_overlap = FALSE))$spec
   expect_identical(spec$genes, list(markerSize = "small", prevent_overlap = FALSE))
 })
 
 test_that("NULL is kept where it replaces a default", {
-  local_record_spec(TRUE)
   spec <- sent_x(GC_chart(spec_genes, group = "group") %>%
                    GC_pattern(background = NULL, size = 4))$spec
   expect_identical(spec$pattern, list(background = NULL, size = 4))
@@ -202,7 +188,6 @@ test_that("NULL is kept where it replaces a default", {
 })
 
 test_that("options passed through ... that spec v1 renames get the spec name", {
-  local_record_spec(TRUE)
   spec <- sent_x(GC_chart(spec_genes, group = "group") %>%
                    GC_scaleBar(scaleBarUnit = "kb", title = "1 kb") %>%
                    GC_labels("name", labelAdjustmentOptions = list(offsetY = 2)))$spec

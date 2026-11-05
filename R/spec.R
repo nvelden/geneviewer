@@ -202,7 +202,10 @@ add_spec_zoom <- function(GC_chart, args) {
     old$min <- NULL
     GC_chart$x$spec$zoom <- spec_entry(old)
   }
-  add_spec(GC_chart, "zoom", args, mode = "merge")
+  GC_chart <- add_spec(GC_chart, "zoom", args, mode = "merge")
+  # A new range replaces the old one; utils::modifyList() keeps an unnamed list
+  if (!is.null(args$range)) GC_chart$x$spec$zoom$range <- args$range
+  GC_chart
 }
 
 #' Add a GC_element_style() call to the spec
@@ -257,16 +260,35 @@ add_spec_theme <- function(GC_chart, args) {
   } else {
     old <- GC_chart$x$spec$theme
     if (is.character(old)) old <- list(base = old)
-    new <- merge_theme_settings(if (is.null(old)) list() else old, args)
+    new <- merge_spec_theme(if (is.null(old)) list() else old, args)
   }
   GC_chart$x$spec["theme"] <- list(spec_entry(new))
   GC_chart
+}
+
+#' Theme settings merged as merge_theme_settings() does, but a NULL stays, as
+#' null in the spec: the library removes the setting from the theme it is
+#' merged into (the built-in theme of `base`)
+#' @noRd
+merge_spec_theme <- function(x, y) {
+  is_named_list <- function(z) is.list(z) && !is.null(names(z))
+  for (name in names(y)) {
+    if (is.null(y[[name]])) {
+      x[name] <- list(NULL)
+    } else if (is_named_list(x[[name]]) && is_named_list(y[[name]])) {
+      x[[name]] <- merge_spec_theme(x[[name]], y[[name]])
+    } else {
+      x[[name]] <- y[[name]]
+    }
+  }
+  x
 }
 
 #' Option names of the components of a theme as in the browser
 #' @noRd
 spec_theme_names <- function(settings) {
   for (name in intersect(names(settings), c(names(theme_components), "annotations"))) {
+    if (is.null(settings[[name]])) next
     if (name == "annotations") {
       settings[[name]] <- lapply(settings[[name]], camel_case_names)
     } else {

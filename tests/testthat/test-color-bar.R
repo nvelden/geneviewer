@@ -17,7 +17,7 @@ color_bar_chart <- function(colorBarOptions = list(), legend = TRUE, theme = "de
 
 test_that("GC_links() checks and keeps where the color bar goes", {
   chart <- color_bar_chart(list(position = "topleft", orientation = "horizontal"))
-  expect_identical(chart$x$links[[1]]$options$colorBarOptions,
+  expect_identical(compile_chart(chart)$links[[1]]$options$colorBarOptions,
                    list(position = "topleft", orientation = "horizontal"))
   expect_error(color_bar_chart(list(position = "left")),
                "'colorBarOptions\\$position' must be one of")
@@ -65,7 +65,7 @@ color_bar_drawn <- function(chart) {
         ticks: (overlay ?? inLegend)?.querySelectorAll('line').length ?? 0,
         tickLabels,
         hidden,
-        exported: chartToSVG(el).includes('identity')
+        exported: HTMLWidgets.find('#' + el.id).getChart().toSVG().includes('identity')
       });
     })()
   ")

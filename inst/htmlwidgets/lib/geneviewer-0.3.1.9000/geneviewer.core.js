@@ -6075,7 +6075,8 @@ var geneviewer = (() => {
     }
     if (options.position !== null && options.position !== void 0) {
       if (options.type === "rectangle") {
-        options.position = [options.position].flat(0).map((corners) => {
+        const rectangles = Array.isArray(options.position) ? options.position : [options.position];
+        options.position = rectangles.map((corners) => {
           if (!Array.isArray(corners)) return [move(corners)];
           return corners.map((point) => Array.isArray(point) ? [move(point[0]), ...point.slice(1)] : move(point));
         });

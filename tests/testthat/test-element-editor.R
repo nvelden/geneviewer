@@ -7,15 +7,15 @@ test_that("element overrides target row IDs and merge without replacing neighbou
     GC_element_style("genes", 2, fill = "blue") %>%
     GC_element_style("genes", 1, marker = "box") %>%
     GC_element_style("labels", 1, text = "Changed", fontSize = "18px")
-  items <- chart$x$series$A$genes$itemStyle
+  items <- compile_chart(chart)$series$A$genes$itemStyle
   expect_length(items, 2)
   expect_equal(items[[2]], list(fill = "red", rowID = 1, marker = "box"))
-  expect_null(chart$x$series$B$genes$itemStyle)
-  expect_null(base$x$series$A$genes$itemStyle)
-  expect_equal(chart$x$series$A$labels$itemStyle[[1]]$text, "Changed")
+  expect_null(compile_chart(chart)$series$B$genes$itemStyle)
+  expect_null(compile_chart(base)$series$A$genes$itemStyle)
+  expect_equal(compile_chart(chart)$series$A$labels$itemStyle[[1]]$text, "Changed")
   reset <- GC_element_style(chart, "genes", 1, reset = TRUE)
-  expect_equal(reset$x$series$A$genes$itemStyle, list(list(fill = "blue", rowID = 2)))
-  expect_identical(reset$x$series$A$labels, chart$x$series$A$labels)
+  expect_equal(compile_chart(reset)$series$A$genes$itemStyle, list(list(fill = "blue", rowID = 2)))
+  expect_identical(compile_chart(reset)$series$A$labels, compile_chart(chart)$series$A$labels)
   expect_error(GC_element_style(base, "genes", 99, fill = "red"), "row_id")
   expect_error(GC_element_style(base, "genes", 1, "red"), "names")
   expect_error(GC_element_style(base, "genes", 1, index = 0), "row_id")
@@ -25,8 +25,8 @@ test_that("element overrides target row IDs and merge without replacing neighbou
 
 test_that("editor events are independent and validate their flags", {
   chart <- GC_chart(data.frame(start = 1, end = 20))
-  events <- GC_events(chart, click = FALSE, dblclick = TRUE, select = TRUE,
-                      legend_click = FALSE)$x$events
+  events <- compile_chart(GC_events(chart, click = FALSE, dblclick = TRUE, select = TRUE,
+                      legend_click = FALSE))$events
   expect_false(events$click)
   expect_true(events$dblclick)
   expect_true(events$select)
@@ -92,10 +92,10 @@ test_that("selection and legend toggles remain independent across redraws", {
       });
       click(el.querySelector('.legend-marker'));
       click(gene());
-      Object.values(x.series)[0].data.name[0] = 'Replacement';
+      x.spec.data.name[0] = 'Replacement';
       widget.renderValue(x);
       const replaced = el.querySelectorAll('.geneviewer-selected').length;
-      x.events = { click: true };
+      x.spec.events = { click: true };
       widget.renderValue(x);
       click(gene());
       return JSON.stringify({ fill, text, hidden, selected, cleared, toggled, others, replaced, dom,
@@ -232,15 +232,15 @@ test_that("cluster titles, footers, labels and coordinates are styled and select
     GC_element_style("coordinates", row_id = 1, end = "start", fill = "red") %>%
     GC_element_style("coordinates", row_id = 2, show = FALSE) %>%
     GC_events(click = FALSE, select = TRUE)
-  expect_equal(chart$x$series$ophA$footer$itemStyle, list(list(text = "", part = "title")))
-  expect_equal(chart$x$series$ophA$coordinates$itemStyle[[1]],
+  expect_equal(compile_chart(chart)$series$ophA$footer$itemStyle, list(list(text = "", part = "title")))
+  expect_equal(compile_chart(chart)$series$ophA$coordinates$itemStyle[[1]],
                list(fill = "red", rowID = 1, end = "start"))
   expect_error(GC_element_style(chart, "clusterTitle", cluster = 1, part = "header"), "part")
   expect_error(GC_element_style(chart, "clusterTitle", cluster = "nope", part = "title"), "cluster")
   expect_error(GC_element_style(chart, "coordinates", row_id = 1, end = "middle"), "end")
   expect_error(GC_element_style(chart, "genes", row_id = 1, cluster = 1), "row_id")
   reset <- GC_element_style(chart, "clusterLabel", cluster = 2, part = "title", reset = TRUE)
-  expect_length(reset$x$series$dbophA$clusterLabel$itemStyle, 1)
+  expect_length(compile_chart(reset)$series$dbophA$clusterLabel$itemStyle, 1)
 
   file <- tempfile(fileext = ".html")
   htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
@@ -310,14 +310,14 @@ test_that("legend overrides merge and reset each part independently", {
     GC_element_style("legend", group = "A", part = "marker", fill = "blue") %>%
     GC_element_style("legend", group = "B", part = "label", fontStyle = "italic") %>%
     GC_element_style("legend", group = "A", part = "label", fontSize = "20px")
-  expect_length(chart$x$legend$itemStyle, 3)
-  label <- chart$x$legend$itemStyle[[3]]
+  expect_length(compile_chart(chart)$legend$itemStyle, 3)
+  label <- compile_chart(chart)$legend$itemStyle[[3]]
   expect_equal(label$text, "Edited")
   expect_equal(label$fontSize, "20px")
   reset <- GC_element_style(chart, "legend", group = "A", part = "label", reset = TRUE)
-  expect_length(reset$x$legend$itemStyle, 2)
-  expect_equal(reset$x$legend$groupStyle, base$x$legend$groupStyle)
-  expect_null(base$x$legend$itemStyle)
+  expect_length(compile_chart(reset)$legend$itemStyle, 2)
+  expect_equal(compile_chart(reset)$legend$groupStyle, compile_chart(base)$legend$groupStyle)
+  expect_null(compile_chart(base)$legend$itemStyle)
   expect_error(GC_element_style(base, "legend", group = "absent", part = "label"), "group")
   expect_error(GC_element_style(base, "legend", group = "A", part = "title"), "part")
   expect_error(GC_element_style(base, "legend", row_id = 1, group = "A", part = "label"), "group")
@@ -354,7 +354,8 @@ test_that("legend parts report editing events and normal mode keeps visibility t
       widget.resize(700, 400);
       const preserved = el.querySelector('.geneviewer-selected')?.getAttribute('data-part');
       label().dispatchEvent(new MouseEvent('dblclick', { bubbles: true, detail: 2 }));
-      x.events = {};
+      // A chart without GC_events()
+      delete x.spec.events;
       widget.renderValue(x);
       click(label());
       const normalHidden = hidden();
@@ -363,12 +364,12 @@ test_that("legend parts report editing events and normal mode keeps visibility t
       click(marker());
       const shown = hidden();
       // Legacy click reporting alone also edits, without a selection outline.
-      x.events = { click: true };
+      x.spec.events = { click: true };
       widget.renderValue(x);
       click(label());
       const clickOnlyHidden = hidden();
       const lastClick = messages.filter(m => m.name.endsWith('_click')).at(-1).value;
-      x.events = { click: true, legendClick: false };
+      x.spec.events = { click: true, legendClick: false };
       widget.renderValue(x);
       click(marker());
       return JSON.stringify({ selections, doubles, editingHidden, preserved,
@@ -402,16 +403,16 @@ test_that("legend parts report editing events and normal mode keeps visibility t
 
 test_that("text drag events are opt-in and chart titles support individual offsets", {
   chart <- GC_chart(data.frame(start = 1, end = 20)) %>% GC_title("Chart", subtitle = "Sub")
-  expect_null(GC_events(chart)$x$events$drag)
-  expect_true(GC_events(chart, drag = TRUE)$x$events$drag)
+  expect_null(compile_chart(GC_events(chart))$events$drag)
+  expect_true(compile_chart(GC_events(chart, drag = TRUE))$events$drag)
   expect_error(GC_events(chart, drag = NA), "TRUE or FALSE")
   edited <- chart %>%
     GC_element_style("title", part = "title", moveX = 25, moveY = 10, fill = "red") %>%
     GC_element_style("title", part = "subtitle", moveX = -5) %>%
     GC_element_style("title", part = "title", moveY = 20)
-  expect_equal(edited$x$title$itemStyle[[2]], list(moveX = 25, moveY = 20, fill = "red", part = "title"))
+  expect_equal(compile_chart(edited)$title$itemStyle[[2]], list(moveX = 25, moveY = 20, fill = "red", part = "title"))
   reset <- GC_element_style(edited, "title", part = "title", reset = TRUE)
-  expect_equal(reset$x$title$itemStyle, list(list(moveX = -5, part = "subtitle")))
+  expect_equal(compile_chart(reset)$title$itemStyle, list(list(moveX = -5, part = "subtitle")))
   expect_error(GC_element_style(chart, "title", part = "title", cluster = 1), "part")
   expect_error(GC_element_style(chart, "title", part = "other"), "part")
 })
@@ -498,7 +499,8 @@ test_that("selection reports final label styles and clears when data changes dur
       label().dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
       const rotation = selections.at(-1).style.rotate;
       const transform = label().getAttribute('transform');
-      Object.values(input.series)[0].labels.itemStyle = [];
+      // GC_element_style(reset = TRUE) for the labels
+      input.spec.elementStyle = (input.spec.elementStyle || []).filter(s => s.component !== 'labels');
       widget.renderValue(input);
       const reset = selections.at(-1).style;
       const pointer = (target, type, x, y) => target.dispatchEvent(new PointerEvent(type, {
@@ -508,7 +510,7 @@ test_that("selection reports final label styles and clears when data changes dur
       pointer(window, 'pointermove', 120, 110);
       // Drop any deferred settings redraw before replacing the dataset.
       widget.renderValue(input);
-      Object.values(input.series)[0].data.name = ['new alpha', 'new beta', 'new gamma'];
+      input.spec.data.name = ['new alpha', 'new beta', 'new gamma'];
       widget.renderValue(input);
       pointer(window, 'pointerup', 120, 110);
       return JSON.stringify({ rotation, transform, reset,
@@ -537,8 +539,8 @@ for (component in c("scaleBar", "scale")) test_that(paste(component, "drags as a
     GC_events(click = FALSE, select = TRUE, drag = TRUE)
   expect_error(GC_element_style(chart, component, cluster = "A", part = "label"), "whole")
   reset <- GC_element_style(chart, component, cluster = "A", reset = TRUE)
-  expect_length(reset$x$series$A[[component]]$itemStyle, 0)
-  expect_null(chart$x$series$B[[component]]$itemStyle)
+  expect_length(compile_chart(reset)$series$A[[component]]$itemStyle, 0)
+  expect_null(compile_chart(chart)$series$B[[component]]$itemStyle)
   file <- tempfile(fileext = ".html")
   htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
   session <- chrome_page(file)
@@ -572,11 +574,12 @@ for (component in c("scaleBar", "scale")) test_that(paste(component, "drags as a
       const intact = children.every((n, i) => n.outerHTML === geometry[i] && bar().contains(n));
       const isolated = other.getAttribute('transform') === otherTransform;
       const selected = el.querySelectorAll('.geneviewer-selected').length;
-      input.series.A.SCALE_COMPONENT.itemStyle = [drags.at(-1).position];
+      // GC_element_style() with the reported position, as an app does
+      input.spec.elementStyle = [{ component: 'SCALE_COMPONENT', cluster: 'A', ...drags.at(-1).position }];
       widget.renderValue(input);
       widget.resize(700, 450);
       const restored = bar().__drawn__;
-      input.events.drag = false;
+      input.spec.events.drag = false;
       widget.renderValue(input);
       pointer(bar().querySelector('text'), 'pointerdown', 100, 100);
       pointer(window, 'pointermove', 140, 120);
@@ -665,7 +668,7 @@ test_that("moves are undone, redone and reset from the toolbar, keys and arrow k
       const resized = at(), keptSteps = shown('undo');
       // Moved elsewhere by new settings: the steps no longer apply
       const input = JSON.parse(document.querySelector('script[data-for]').textContent).x;
-      input.series[Object.keys(input.series)[0]].labels.itemStyle = [{ rowID: 1, moveX: 3, moveY: 3 }];
+      input.spec.elementStyle = [{ component: 'labels', rowID: 1, moveX: 3, moveY: 3 }];
       widget.renderValue(input);
       const reset = { at: at(), undo: shown('undo'), redo: shown('redo') };
       return JSON.stringify({ order, before, dragged, undone, afterUndo, undoneTwice, empty, redone,
@@ -742,7 +745,7 @@ test_that("legend labels and markers drag on their own and keep their offsets", 
     GC_legend(TRUE) %>%
     GC_element_style("legend", group = "B", part = "marker", moveX = 4, moveY = -3) %>%
     GC_events(click = FALSE, drag = TRUE)
-  expect_mapequal(chart$x$legend$itemStyle[[1]], list(group = "B", part = "marker", moveX = 4, moveY = -3))
+  expect_mapequal(compile_chart(chart)$legend$itemStyle[[1]], list(group = "B", part = "marker", moveX = 4, moveY = -3))
   file <- tempfile(fileext = ".html")
   htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
   session <- chrome_page(file)
@@ -964,13 +967,16 @@ test_that("GC_toolbar() checks and keeps its options", {
   chart <- chart %>%
     GC_toolbar(show = "always", buttons = "save", icons = c(save = "camera")) %>%
     GC_toolbar(size = 16)
-  expect_equal(chart$x$toolbar, list(show = "always", buttons = list("save"), icons = list(save = "camera"), size = 16))
+  expect_equal(chart$x$spec$toolbar, list(show = "always", buttons = list("save"), icons = list(save = "camera"), size = 16))
+  expect_equal(compile_chart(chart, simplify = FALSE)$toolbar,
+               list(show = "always", buttons = list("save"), size = 16, icons = list(save = "camera")))
   expect_true("font-awesome" %in% vapply(chart$dependencies, `[[`, "", "name"))
   # The built-in themes keep the icons visible on their background
   expect_equal(geneviewer_theme("dark")$toolbar$hoverColor, "#eeeeee")
-  expect_equal(theme_to_js(geneviewer_theme("dark"))$toolbarOptions$color, "#999999")
+  theme_js <- function(name) compile_chart(GC_theme(chart, name))$theme
+  expect_equal(theme_js("dark")$toolbarOptions$color, "#999999")
   # In the style of each theme's tooltip, and with its font
-  publication <- theme_to_js(geneviewer_theme("publication"))$toolbarOptions
+  publication <- theme_js("publication")$toolbarOptions
   expect_equal(publication[c("tooltipBorder", "tooltipRadius", "fontFamily")],
                list(tooltipBorder = "1px solid black", tooltipRadius = "0",
                     fontFamily = "Arial, Helvetica, sans-serif"))

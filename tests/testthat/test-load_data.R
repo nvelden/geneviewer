@@ -7,8 +7,8 @@ test_that("Read .gbk file from file path", {
 
   # Assertions
   expect_s3_class(chart, "htmlwidget")
-  expect_true("strand" %in% names(chart$x$data))
-  expect_true("cluster" %in% names(chart$x$data))
+  expect_true("cluster" %in% names(chart$x$spec$data))
+  expect_true("strand" %in% names(compile_chart(chart)$series[[1]]$data))
 })
 
 test_that("Read FASTA from file path", {
@@ -21,8 +21,8 @@ test_that("Read FASTA from file path", {
 
   # Assertions
   expect_s3_class(chart, "htmlwidget")
-  expect_true("strand" %in% names(chart$x$data))
-  expect_true("cluster" %in% names(chart$x$data))
+  expect_true("cluster" %in% names(chart$x$spec$data))
+  expect_true("strand" %in% names(compile_chart(chart)$series[[1]]$data))
 })
 
 test_that("Read .gff3 from file path", {
@@ -43,7 +43,7 @@ test_that("Read .gff3 from file path", {
 
   # Assertions for all required fields in the processed data
   expected_fields <- c("source", "type", "start", "end", "strand", "Name", "rowID")
-  missing_fields <- setdiff(expected_fields, names(chart$x$data))
+  missing_fields <- setdiff(expected_fields, names(compile_chart(chart)$series[[1]]$data))
   expect_equal(length(missing_fields), 0, info = paste("Missing fields:", paste(missing_fields, collapse = ", ")))
 })
 

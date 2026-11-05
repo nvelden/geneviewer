@@ -1,23 +1,23 @@
 test_that("GC_zoom() checks and keeps its options", {
   chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
-  expect_null(chart$x$zoom)
+  expect_null(compile_chart(chart)$zoom)
 
   zoomed <- GC_zoom(chart)
-  expect_identical(zoomed$x$zoom, list(show = TRUE))
+  expect_identical(compile_chart(zoomed)$zoom, list(show = TRUE))
   expect_true(any(vapply(zoomed$dependencies, function(dep) dep$name == "font-awesome", logical(1))))
 
   zoomed <- chart %>%
     GC_zoom(range = c(0.6, 0.2), height = 30) %>%
     GC_zoom(update = "release")
-  expect_identical(zoomed$x$zoom$range, c(0.2, 0.6))
-  expect_identical(zoomed$x$zoom$height, 30)
-  expect_identical(zoomed$x$zoom$update, "release")
+  expect_identical(compile_chart(zoomed)$zoom$range, c(0.2, 0.6))
+  expect_equal(compile_chart(zoomed)$zoom$height, 30)
+  expect_identical(compile_chart(zoomed)$zoom$update, "release")
 
   # A new mode drops the range of the old one
   absolute <- GC_zoom(zoomed, mode = "absolute")
-  expect_null(absolute$x$zoom$range)
-  expect_identical(GC_zoom(zoomed, mode = "absolute", range = c(100, 5000))$x$zoom$range, c(100, 5000))
-  expect_false(GC_zoom(zoomed, show = FALSE)$x$zoom$show)
+  expect_null(compile_chart(absolute)$zoom$range)
+  expect_equal(compile_chart(GC_zoom(zoomed, mode = "absolute", range = c(100, 5000)))$zoom$range, c(100, 5000))
+  expect_false(compile_chart(GC_zoom(zoomed, show = FALSE))$zoom$show)
 
   expect_error(GC_zoom(chart, range = c(100, 5000)), "between 0 and 1")
   expect_error(GC_zoom(chart, range = 0.5), "two different numbers")
@@ -29,8 +29,8 @@ test_that("GC_zoom() checks and keeps its options", {
   expect_error(GC_zoom(chart, show = NA), "TRUE or FALSE")
   expect_error(GC_zoom(chart, style = "red"), "named list")
 
-  expect_true(GC_events(chart, zoom = TRUE)$x$events$zoom)
-  expect_null(GC_events(chart)$x$events$zoom)
+  expect_true(compile_chart(GC_events(chart, zoom = TRUE))$events$zoom)
+  expect_null(compile_chart(GC_events(chart))$events$zoom)
   expect_error(GC_events(chart, zoom = "yes"), "TRUE or FALSE")
   expect_error(GC_zoom_to("chart", range = "a"), "two numbers")
 })
@@ -58,7 +58,7 @@ test_that("the zoom slider zooms, clips, reports and is left out of saved images
         overview: slider.querySelectorAll('.geneviewer-zoom-overview rect').length,
         linksClipped: !!el.querySelector('svg.GeneLink g[clip-path]'),
         resetHidden: el.querySelector('.geneviewer-zoom-buttons').hidden,
-        exported: chartToSVG(el).includes('geneviewer-zoom-overview')
+        exported: HTMLWidgets.find('#' + el.id).getChart().toSVG().includes('geneviewer-zoom-overview')
       };
       const reports = [];
       el.addEventListener('geneviewer:zoom', event => reports.push(event.detail));
@@ -104,7 +104,12 @@ test_that("redraws keep the window, and every change of it is reported", {
       const el = document.querySelector('.geneviewer');
       const widget = HTMLWidgets.find('#' + el.id);
       const x = JSON.parse(document.querySelector('script[data-for=\"' + el.id + '\"]').textContent).x;
-      const copy = change => Object.assign(JSON.parse(JSON.stringify(x)), change);
+      // The spec R sent, with some keys changed (null leaves a key out)
+      const copy = change => {
+        const spec = Object.assign(JSON.parse(JSON.stringify(x.spec)), change);
+        Object.keys(spec).forEach(key => { if (spec[key] === null) delete spec[key]; });
+        return { spec };
+      };
       const reports = [];
       el.addEventListener('geneviewer:zoom', event => reports.push(event.detail));
       const width = () => el.querySelector('[data-zoom-part=window]')?.style.width ?? null;
@@ -147,8 +152,10 @@ test_that("redraws keep the window, and every change of it is reported", {
   expect_length(steps$off$reports, 0)
   expect_length(steps$on$reports, 1)
 
-  # A range as Shiny gives it, a list, goes back into GC_zoom()
-  expect_identical(GC_zoom(chart, range = list(0.4, 0.2))$x$zoom$range, c(0.2, 0.4))
+  # A range as Shiny gives it, a list, goes back into GC_zoom(), also after
+  # an earlier range
+  expect_identical(compile_chart(GC_zoom(chart, range = list(0.4, 0.2)))$zoom$range, c(0.2, 0.4))
+  expect_identical(GC_zoom(chart, range = list(0.4, 0.2))$x$spec$zoom$range, list(0.4, 0.2))
 })
 
 test_that("a new render_id starts at the range again, also without rendered = TRUE", {
@@ -156,7 +163,7 @@ test_that("a new render_id starts at the range again, also without rendered = TR
                     height = "400px", width = "800px") %>%
     GC_events(zoom = TRUE, render_id = "load-1") %>%
     GC_zoom(range = c(0.25, 0.5))
-  expect_null(chart$x$events$rendered)
+  expect_null(compile_chart(chart)$events$rendered)
   file <- tempfile(fileext = ".html")
   htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
   session <- chrome_page(file, width = 1000, height = 600)
@@ -167,7 +174,7 @@ test_that("a new render_id starts at the range again, also without rendered = TR
       const x = JSON.parse(document.querySelector('script[data-for=\"' + el.id + '\"]').textContent).x;
       const copy = renderId => {
         const next = JSON.parse(JSON.stringify(x));
-        next.events.renderId = renderId;
+        next.spec.events.renderId = renderId;
         return next;
       };
       const reports = [];
@@ -228,7 +235,7 @@ test_that("saved images leave out the slider and its room", {
       const titleTop = top(el.querySelector('[id^=geneviewer-title-container] svg')) - box.top;
       // Draw the saved SVG on the page to measure it
       const holder = document.createElement('div');
-      holder.innerHTML = chartToSVG(el).replace(/^<\\?xml[^>]*>/, '');
+      holder.innerHTML = HTMLWidgets.find('#' + el.id).getChart().toSVG().replace(/^<\\?xml[^>]*>/, '');
       document.body.appendChild(holder);
       const saved = holder.querySelector('svg');
       const savedBox = saved.getBoundingClientRect();

@@ -39,9 +39,9 @@ test_that("GC_legend stores and checks groupStyle", {
   chart <- GC_chart(group_genes, group = "class") %>%
     GC_legend(groupStyle = list(A = list(fontStyle = "italic",
                                          marker = list(stroke = "red"))))
-  expect_equal(chart$x$legend$groupStyle$A$fontStyle, "italic")
-  expect_equal(chart$x$legend$groupStyle$A$marker$stroke, "red")
-  expect_null((GC_chart(group_genes, group = "class") %>% GC_legend())$x$legend$groupStyle)
+  expect_equal(compile_chart(chart)$legend$groupStyle$A$fontStyle, "italic")
+  expect_equal(compile_chart(chart)$legend$groupStyle$A$marker$stroke, "red")
+  expect_null(compile_chart((GC_chart(group_genes, group = "class") %>% GC_legend()))$legend$groupStyle)
   expect_error(GC_chart(group_genes, group = "class") %>% GC_legend(groupStyle = list("bold")),
                "named list")
   expect_error(GC_chart(group_genes, group = "class") %>% GC_legend(groupStyle = list(A = "bold")),
@@ -55,15 +55,15 @@ test_that("GC_transcript stores and checks its group styles", {
                   groupStyleExons = list(tx1 = list(fill = "red")),
                   groupStyleIntrons = list(tx1 = list(stroke = "blue")),
                   groupStyleUTRs = list(tx2 = list(fill = "green")))
-  options <- chart$x$series[["tx1"]]$transcript
+  options <- compile_chart(chart)$series[["tx1"]]$transcript
   expect_equal(options$groupStyleExons, list(tx1 = list(fill = "red")))
   expect_equal(options$groupStyleIntrons, list(tx1 = list(stroke = "blue")))
   expect_equal(options$groupStyleUTRs, list(tx2 = list(fill = "green")))
   expect_equal(options$styleBy, "transcript")
   # left out when not given
   plain <- GC_chart(transcripts) %>% GC_transcript(transcript = "transcript", type = "type")
-  expect_null(plain$x$series[["tx1"]]$transcript$groupStyleExons)
-  expect_null(plain$x$series[["tx1"]]$transcript$styleBy)
+  expect_null(compile_chart(plain)$series[["tx1"]]$transcript$groupStyleExons)
+  expect_null(compile_chart(plain)$series[["tx1"]]$transcript$styleBy)
   expect_error(GC_chart(transcripts) %>%
                  GC_transcript(transcript = "transcript", type = "type",
                                groupStyleExons = list(tx1 = "red")), "named list")
@@ -78,16 +78,16 @@ test_that("GC_transcript stores and checks its group styles", {
 test_that("GC_coordinates stores and checks groupStyle and style_by", {
   chart <- GC_chart(group_genes, group = "class") %>%
     GC_coordinates(groupStyle = list(B = list(show = FALSE)))
-  options <- chart$x$series[[1]]$coordinates
+  options <- compile_chart(chart)$series[[1]]$coordinates
   expect_equal(options$groupStyle, list(B = list(show = FALSE)))
   # the group of GC_chart(), unless style_by is given
   expect_equal(options$styleBy, "class")
   by_family <- GC_chart(group_genes, group = "class") %>%
     GC_coordinates(style_by = "family", groupStyle = list(x = list(fill = "red")))
-  expect_equal(by_family$x$series[[1]]$coordinates$styleBy, "family")
+  expect_equal(compile_chart(by_family)$series[[1]]$coordinates$styleBy, "family")
   # nothing is stored without groupStyle
   plain <- GC_chart(group_genes, group = "class") %>% GC_coordinates()
-  expect_false(any(c("groupStyle", "styleBy") %in% names(plain$x$series[[1]]$coordinates)))
+  expect_false(any(c("groupStyle", "styleBy") %in% names(compile_chart(plain)$series[[1]]$coordinates)))
   # a groupStyle needs a column to match against
   expect_error(GC_chart(group_genes[, c("start", "end")]) %>%
                  GC_coordinates(groupStyle = list(A = list(show = FALSE))), "style_by")

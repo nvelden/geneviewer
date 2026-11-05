@@ -18,9 +18,10 @@ var addZoomHandler = function () {
   });
 };
 
-// Until the R package moves to the spec (M6): tests in the R package and the
-// app export a chart with the globals chartToSVG(el) and chartToPNG(el),
-// which geneviewer.js defined before it was bundled
+// The globals chartToSVG(el) and chartToPNG(el), which geneviewer.js defined
+// before it was bundled. The app's tests still use them; the R package's
+// tests use getChart().toSVG() and toPNG() (M6). To be removed in a later
+// release.
 window.chartToSVG = function (el, exclude) { return geneviewer.chartToSVG(el, exclude); };
 window.chartToPNG = function (el, exclude) { return geneviewer.chartToPNG(el, exclude); };
 
@@ -65,6 +66,11 @@ HTMLWidgets.widget({
       },
       resize: function () {
         if (chart) chart.resize();
+      },
+      // The chart (geneviewer.newChart()), e.g. for chart.toSVG():
+      // HTMLWidgets.find("#" + id).getChart(); null before the first draw
+      getChart: function () {
+        return chart;
       }
     };
   }

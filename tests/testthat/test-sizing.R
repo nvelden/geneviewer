@@ -1,18 +1,23 @@
 test_that("rendered sizing uses the current widget width without changing the chart", {
   for (width in list("100%", "75%", "600px", 600, NULL)) {
     chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class", width = width)
-    rendered <- render_theme(chart)
-    expect_identical(rendered$x$size$width, chart$width)
-    expect_null(chart$x$size)
-    expect_identical(rendered$width, chart$width)
-    expect_identical(rendered$height, chart$height)
-    expect_identical(rendered$x$series, chart$x$series)
+    # The library sizes the chart as the widget. Without a width it gives
+    # "100%" (R 0.2.0 sent none); only pixel widths are applied in Shiny.
+    expect_equal(compile_chart(chart)$size$width, if (is.null(width)) "100%" else chart$width)
+    expect_null(chart$x$spec$size)
+    # Sending the chart leaves the widget and its spec as they are
+    sent <- send_spec(chart)
+    expect_identical(sent$width, chart$width)
+    expect_identical(sent$height, chart$height)
+    expect_identical(sent$x$spec, chart$x$spec)
   }
 
   chart <- GC_chart(ophA_clusters, cluster = "cluster") %>% GC_grid(width = 700)
-  expect_equal(render_theme(chart)$x$size$width, 700)
-  # The original construction arguments are not the rendered dimensions.
-  expect_equal(chart$x$params$width, "100%")
+  expect_equal(chart$width, 700)
+  expect_equal(compile_chart(chart)$size$width, 700)
+  # The construction arguments are kept as given; GC_grid() sets the width.
+  expect_null(chart$x$spec$width)
+  expect_equal(chart$x$spec$grid$width, 700)
 })
 
 test_that("Shiny pixel widths size the whole widget and restore the output width", {
@@ -42,10 +47,10 @@ test_that("Shiny pixel widths size the whole widget and restore the output width
         genes: el.querySelectorAll('.gene').length,
         scrolls: el.parentElement.scrollWidth > el.parentElement.clientWidth
       });
+      // R draws the chart again with another width (GC_chart(width = ))
       const render = (width) => {
         const x = JSON.parse(JSON.stringify(original));
-        x.size.width = width;
-        Object.values(x.series).forEach(s => { s.container.width = width; });
+        x.spec.width = width;
         widget.renderValue(x);
         return measure();
       };
@@ -56,12 +61,13 @@ test_that("Shiny pixel widths size the whole widget and restore the output width
       const fractional = render('500.5px');
       const responsive = render('100%');
       const percent = render('75%');
-      const legacy = JSON.parse(JSON.stringify(original));
+      // A render model without a size, as R 0.2.0 sent before it had one
+      const legacy = geneviewer.compile(original.spec);
       delete legacy.size;
       widget.renderValue(legacy);
       const oldPayload = measure();
       const styled = JSON.parse(JSON.stringify(original));
-      styled.style = { width: '550px' };
+      styled.spec.style = { width: '550px' };
       widget.renderValue(styled);
       const styleOverride = measure();
       const removedStyle = render('100%');

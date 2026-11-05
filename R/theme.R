@@ -141,6 +141,11 @@ GC_theme <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
+  # NULL removes a component from the theme; spec_args() leaves NULLs out
+  dots <- list(...)
+  for (name in names(dots)[nzchar(names(dots))]) {
+    if (is.null(dots[[name]])) spec[name] <- list(NULL)
+  }
   if (!is.null(theme)) {
     resolve_theme(theme)
   }

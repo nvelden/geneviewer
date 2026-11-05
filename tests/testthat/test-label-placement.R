@@ -25,13 +25,13 @@ test_that("GC_links() and GC_labels() check where labels go", {
   expect_error(placement_chart(adjustLabels = "spread", leaderLine = list(length = "30px")),
                "'leaderLine\\$length' must be a single number")
   chart <- GC_links(placement_chart(), group = "homolog", label_position = "link")
-  expect_identical(chart$x$links[[1]]$options$labelPosition, "link")
+  expect_identical(compile_chart(chart)$links[[1]]$options$labelPosition, "link")
   # Links from data keep their labels when they go on the links
   alignment <- data.frame(cluster1 = "a", cluster2 = "b", start1 = 1, end1 = 380,
                           start2 = 1, end2 = 380, identity = 90)
-  expect_false(GC_links(placement_chart(), data = alignment)$x$links[[1]]$options$label)
-  expect_true(GC_links(placement_chart(), data = alignment,
-                       label_position = "link")$x$links[[1]]$options$label)
+  expect_false(compile_chart(GC_links(placement_chart(), data = alignment))$links[[1]]$options$label)
+  expect_true(compile_chart(GC_links(placement_chart(), data = alignment,
+                       label_position = "link"))$links[[1]]$options$label)
 })
 
 # Draws the chart in Chrome and describes its labels; Chrome closes on return

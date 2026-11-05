@@ -35,7 +35,7 @@ test_that("Shiny pixel widths size the whole widget and restore the output width
       const measure = () => ({
         width: el.getBoundingClientRect().width,
         height: el.getBoundingClientRect().height,
-        svgs: [...el.querySelectorAll('svg')].map(svg => ({
+        svgs: [...el.querySelectorAll('svg:not(.geneviewer-icon-svg)')].map(svg => ({
           width: svg.getBoundingClientRect().width,
           scale: svg.getBoundingClientRect().width / svg.viewBox.baseVal.width
         })),

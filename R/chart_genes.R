@@ -100,7 +100,7 @@ GC_labels <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
-  state <- chart_state(GC_chart)
+  state <- chart_fields(GC_chart)
   check_group_style(groupStyle)
   check_style_by(state, style_by)
   adjust <- list(...)$adjustLabels
@@ -138,7 +138,7 @@ GC_labels <- function(
     label <- state$group
   }
 
-  if (!all(label %in% names(state$data))) {
+  if (!all(label %in% state$columns)) {
     stop("label column not found in data")
   }
 
@@ -153,7 +153,7 @@ check_style_by <- function(state, style_by) {
   # geneTrack: the track GC_cluster(prevent_gene_overlap = ) puts a gene on
   if (!is.null(style_by) &&
       (length(style_by) != 1 ||
-       !(style_by %in% names(state$data) || identical(style_by, "geneTrack")))) {
+       !(style_by %in% state$columns || identical(style_by, "geneTrack")))) {
     stop("style_by must be a single column name of the data, or \"geneTrack\"")
   }
 }
@@ -275,7 +275,7 @@ GC_genes <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
-  state <- chart_state(GC_chart)
+  state <- chart_fields(GC_chart)
   check_group_style(groupStyle)
   check_style_by(state, style_by)
 
@@ -287,7 +287,7 @@ GC_genes <- function(
     group <- state$group
   }
 
-  if (!is.null(group) && !all(group %in% names(state$data))) {
+  if (!is.null(group) && !all(group %in% state$columns)) {
     stop("group column not found in data")
   }
 
@@ -478,7 +478,7 @@ GC_transcript <- function(GC_chart,
                           ...) {
 
   spec <- spec_args(match.call(), environment())
-  state <- chart_state(GC_chart)
+  state <- chart_fields(GC_chart)
   check_group_style(groupStyleExons)
   check_group_style(groupStyleIntrons)
   check_group_style(groupStyleUTRs)
@@ -488,8 +488,8 @@ GC_transcript <- function(GC_chart,
   # the clusters
   if (is.null(GC_chart$x$spec$transcript)) {
 
-    data <- state$data
-    data_tmp <- state$data
+    data <- chart_state(GC_chart)$data
+    data_tmp <- data
     colnames_data <- colnames(data)
 
     if (!is.null(type) && length(type) != 1) {
@@ -521,7 +521,7 @@ GC_transcript <- function(GC_chart,
     # GC_chart() checks it
     cluster <- if (is.null(transcript)) "transcript" else transcript
     prepared <- prepare_data(data, state$start, state$end, cluster, state$group, strand)
-    state$data <- prepared
+    state$columns <- names(prepared)
     state$clusters <- state_clusters(prepared, cluster)
 
     # The spec holds the data and its introns
@@ -536,7 +536,7 @@ GC_transcript <- function(GC_chart,
     group <- state$group
   }
 
-  if (!is.null(group) && !all(group %in% names(state$data))) {
+  if (!is.null(group) && !all(group %in% state$columns)) {
     stop("group column not found in data")
   }
 
@@ -797,7 +797,7 @@ GC_legend <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
-  state <- chart_state(GC_chart)
+  state <- chart_fields(GC_chart)
   check_group_style(groupStyle)
 
   if (is.logical(group) && length(group) == 1) {
@@ -813,7 +813,7 @@ GC_legend <- function(
     group <- state$group
   }
 
-  if (!is.null(group) && !(group %in% names(state$data))) {
+  if (!is.null(group) && !(group %in% state$columns)) {
     stop("group column not found in data")
   }
 

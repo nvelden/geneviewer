@@ -16,10 +16,9 @@
 #' @param env The environment of the function, from `environment()`.
 #' @param fun The function, for the defaults of its arguments.
 #' @return A named list of the arguments given in the call, without the chart
-#'   and without empty lists; NULL when the spec is not recorded. A NULL is
-#'   kept only where the argument's default is not NULL (e.g.
-#'   `GC_pattern(background = NULL)`). The attribute "dots" names the
-#'   arguments passed through `...`, which keep their names.
+#'   and without empty lists. A NULL is kept only where the argument's default
+#'   is not NULL (e.g. `GC_pattern(background = NULL)`). The attribute "dots"
+#'   names the arguments passed through `...`, which keep their names.
 #' @noRd
 spec_args <- function(call, env, fun = sys.function(-1)) {
   # The chart first, as the function itself would
@@ -117,7 +116,7 @@ spec_theme_renames <- list(
 #'
 #' @param GC_chart The gene chart object.
 #' @param key Character, the key of the spec, e.g. "labels".
-#' @param args The arguments, from `spec_args()`; NULL adds nothing.
+#' @param args The arguments, from `spec_args()`.
 #' @param rename Named character, spec names of single arguments.
 #' @param mode How a call adds to earlier calls: "append" (an entry; more
 #'   calls make an array of entries), "items" (always an array), "merge"
@@ -129,9 +128,6 @@ add_spec <- function(GC_chart, key, args, rename = character(),
                      mode = c("append", "items", "merge", "replace"),
                      clusters = TRUE) {
   mode <- match.arg(mode)
-  if (is.null(args) || is.null(GC_chart$x$spec)) {
-    return(GC_chart)
-  }
   # Options passed through ... keep their names, as R sends them
   dot_names <- attr(args, "dots")
   is_dot <- names(args) %in% dot_names
@@ -192,9 +188,6 @@ spec_flag <- function(args, name) {
 #' one, as in GC_zoom().
 #' @noRd
 add_spec_zoom <- function(GC_chart, args) {
-  if (is.null(args) || is.null(GC_chart$x$spec)) {
-    return(GC_chart)
-  }
   if (!is.null(args$range)) args$range <- as.list(unlist(args$range))
   old <- GC_chart$x$spec$zoom
   if (!is.null(old) && !is.null(args$mode) && !identical(args$mode, old$mode)) {
@@ -214,9 +207,6 @@ add_spec_zoom <- function(GC_chart, args) {
 #' earlier entries for the element instead.
 #' @noRd
 add_spec_element_style <- function(GC_chart, args, component, reset) {
-  if (is.null(args) || is.null(GC_chart$x$spec)) {
-    return(GC_chart)
-  }
   args$reset <- NULL
   if (reset) {
     id <- c("rowID", "end", "cluster", "part", "group")
@@ -245,9 +235,6 @@ add_spec_element_style <- function(GC_chart, args, component, reset) {
 #' `textStyle`, `corner_radius` becomes `cornerRadius`).
 #' @noRd
 add_spec_theme <- function(GC_chart, args) {
-  if (is.null(args) || is.null(GC_chart$x$spec)) {
-    return(GC_chart)
-  }
   base <- args$theme
   args$theme <- NULL
   attr(args, "dots") <- NULL
@@ -271,23 +258,13 @@ add_spec_theme <- function(GC_chart, args) {
 #' merged into (the built-in theme of `base`)
 #' @noRd
 merge_spec_theme <- function(x, y) {
-  is_named_list <- function(z) is.list(z) && !is.null(names(z))
-  for (name in names(y)) {
-    if (is.null(y[[name]])) {
-      x[name] <- list(NULL)
-    } else if (is_named_list(x[[name]]) && is_named_list(y[[name]])) {
-      x[[name]] <- merge_spec_theme(x[[name]], y[[name]])
-    } else {
-      x[[name]] <- y[[name]]
-    }
-  }
-  x
+  merge_settings(x, y, keep_null = TRUE)
 }
 
 #' Option names of the components of a theme as in the browser
 #' @noRd
 spec_theme_names <- function(settings) {
-  for (name in intersect(names(settings), c(names(theme_components), "annotations"))) {
+  for (name in intersect(names(settings), c(theme_components, "annotations"))) {
     if (is.null(settings[[name]])) next
     if (name == "annotations") {
       settings[[name]] <- lapply(settings[[name]], camel_case_names)
@@ -364,17 +341,19 @@ prepare_data <- function(data, start = "start", end = "end", cluster = NULL,
   add_strand(data, strand)
 }
 
-#' The data, columns and clusters of a chart, from its spec
+#' The columns and clusters of a chart, from its spec
 #'
-#' After GC_transcript(), the clusters are the transcripts, as in the chart
-#' GC_transcript() draws.
+#' What checking an argument needs, without preparing the data: `columns` and
+#' `clusters` are those of `prepare_data()`. After GC_transcript(), the clusters
+#' are the transcripts, as in the chart GC_transcript() draws.
 #'
 #' @param GC_chart The gene chart object.
-#' @return A list: `data` (from `prepare_data()`), the column names `start`,
-#'   `end`, `cluster`, `group` and `strand` (NULL when not given), and
-#'   `clusters`, the names of the clusters in order.
+#' @return A list: the column names `start`, `end`, `cluster`, `group` and
+#'   `strand` (NULL when not given), `columns`, the names of the columns of the
+#'   prepared data (NULL when it has no rows), and `clusters`, the names of the
+#'   clusters in order.
 #' @noRd
-chart_state <- function(GC_chart) {
+chart_fields <- function(GC_chart) {
   spec <- GC_chart$x$spec
   fields <- spec$fields
   state <- list(
@@ -389,9 +368,27 @@ chart_state <- function(GC_chart) {
     state$cluster <- if (is.null(first$transcript)) "transcript" else first$transcript
     state["strand"] <- list(first$strand)
   }
-  state$data <- prepare_data(spec$data, state$start, state$end, state$cluster,
+  data <- spec$data
+  # prepare_data() leaves out the rows without a start or end
+  kept <- !is.na(data[[state$start]]) & !is.na(data[[state$end]])
+  state$columns <- if (any(kept)) union(names(data), c("rowID", "start", "end", "strand"))
+  state$clusters <- if (is.null(state$cluster)) {
+    "cluster"
+  } else {
+    unique(as.character(data[[state$cluster]][kept]))
+  }
+  state
+}
+
+#' `chart_fields()` and the prepared rows of a chart, as `data`
+#'
+#' For what works on the rows: links, introns, normalization, alignment and
+#' editing single rows.
+#' @noRd
+chart_state <- function(GC_chart) {
+  state <- chart_fields(GC_chart)
+  state$data <- prepare_data(GC_chart$x$spec$data, state$start, state$end, state$cluster,
                              state$group, state$strand, warn = FALSE)
-  state$clusters <- state_clusters(state$data, state$cluster)
   state
 }
 

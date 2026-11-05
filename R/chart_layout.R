@@ -483,7 +483,7 @@ GC_scale <- function(GC_chart,
   # Fail early on a padding that is no percentage or base pairs
   if (is.character(scale_break_padding)) break_padding_bp(scale_break_padding)
 
-  clusters <- getUpdatedClusters(chart_state(GC_chart)$clusters, cluster)
+  clusters <- getUpdatedClusters(chart_fields(GC_chart)$clusters, cluster)
 
   # Breaks given as a data frame, for the clusters in its cluster column
   if (!scale_breaks && length(clusters) > 0 && is.data.frame(breaks) &&
@@ -878,7 +878,7 @@ GC_coordinates <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
-  state <- chart_state(GC_chart)
+  state <- chart_fields(GC_chart)
   check_group_style(groupStyle)
   check_style_by(state, style_by)
   # the column groupStyle is matched against

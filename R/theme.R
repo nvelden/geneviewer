@@ -284,37 +284,13 @@ geneviewer_palettes <- function() {
 theme_global_settings <- c("textScale", "fontFamily", "textColor", "lineColor", "background", "palette", "pattern")
 
 theme_components <- c(
-  chart = "chartOptions",
-  grid = "containerOptions",
-  cluster = "clusterOptions",
-  title = "titleOptions",
-  clusterTitle = "clusterTitleOptions",
-  clusterFooter = "footerOptions",
-  clusterLabel = "clusterLabelOptions",
-  sequence = "sequenceOptions",
-  genes = "geneOptions",
-  transcript = "transcriptOptions",
-  labels = "labelsOptions",
-  coordinates = "coordinatesOptions",
-  scale = "scaleOptions",
-  scaleBar = "scaleBarOptions",
-  legend = "legendOptions",
-  links = "linkOptions",
-  tooltip = "tooltipOptions",
-  trackMouse = "trackMouseOptions",
-  toolbar = "toolbarOptions"
+  "chart", "grid", "cluster", "title", "clusterTitle", "clusterFooter", "clusterLabel",
+  "sequence", "genes", "transcript", "labels", "coordinates", "scale", "scaleBar",
+  "legend", "links", "tooltip", "trackMouse", "toolbar"
 )
 
 theme_annotation_types <- c(
-  text = "textAnnotationOptions",
-  line = "lineAnnotationOptions",
-  arrow = "arrowAnnotationOptions",
-  textMarker = "textMarkerAnnotationOptions",
-  symbol = "symbolAnnotationOptions",
-  rectangle = "rectangleAnnotationOptions",
-  promoter = "promoterAnnotationOptions",
-  terminator = "terminatorAnnotationOptions",
-  arc = "curveAnnotationOptions"
+  "text", "line", "arrow", "textMarker", "symbol", "rectangle", "promoter", "terminator", "arc"
 )
 
 resolve_theme <- function(theme) {
@@ -332,7 +308,7 @@ check_theme <- function(settings) {
   if (length(settings) == 0) {
     return(invisible())
   }
-  valid <- c(theme_global_settings, names(theme_components), "annotations")
+  valid <- c(theme_global_settings, theme_components, "annotations")
   if (is.null(names(settings)) || any(names(settings) == "")) {
     stop("All theme settings must be named")
   }
@@ -341,7 +317,7 @@ check_theme <- function(settings) {
     stop("Unknown theme setting: ", paste(unknown, collapse = ", "),
          ". Use one of: ", paste(valid, collapse = ", "))
   }
-  components <- settings[intersect(names(settings), c(names(theme_components), "annotations"))]
+  components <- settings[intersect(names(settings), c(theme_components, "annotations"))]
   for (name in names(components)) {
     # NULL removes the component from the theme
     if (!is.null(components[[name]]) && !is.list(components[[name]])) {
@@ -371,10 +347,10 @@ check_theme <- function(settings) {
     check_pattern(settings$pattern)
   }
   if (!is.null(settings$toolbar)) check_toolbar(camel_case_names(settings$toolbar))
-  unknown <- setdiff(names(settings$annotations), names(theme_annotation_types))
+  unknown <- setdiff(names(settings$annotations), theme_annotation_types)
   if (length(unknown) > 0) {
     stop("Unknown annotation type in theme: ", paste(unknown, collapse = ", "),
-         ". Use one of: ", paste(names(theme_annotation_types), collapse = ", "))
+         ". Use one of: ", paste(theme_annotation_types, collapse = ", "))
   }
   invisible()
 }
@@ -383,12 +359,18 @@ check_theme <- function(settings) {
 # (unnamed lists such as itemStyle or a palette included) replace the old value,
 # and NULL removes it. utils::modifyList() ignores unnamed lists.
 merge_theme_settings <- function(x, y) {
+  merge_settings(x, y, keep_null = FALSE)
+}
+
+# The recursion of merge_theme_settings() and merge_spec_theme(); keep_null says
+# whether a NULL in y is kept as a NULL or removes the setting
+merge_settings <- function(x, y, keep_null) {
   is_named_list <- function(z) is.list(z) && !is.null(names(z))
   for (name in names(y)) {
     if (is.null(y[[name]])) {
-      x[[name]] <- NULL
+      x[name] <- if (keep_null) list(NULL) else NULL
     } else if (is_named_list(x[[name]]) && is_named_list(y[[name]])) {
-      x[[name]] <- merge_theme_settings(x[[name]], y[[name]])
+      x[[name]] <- merge_settings(x[[name]], y[[name]], keep_null)
     } else {
       x[[name]] <- y[[name]]
     }

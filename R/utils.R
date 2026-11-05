@@ -1,7 +1,7 @@
 #' The clusters an argument selects
 #'
 #' @param clusters Character, the names of the chart's clusters, in order
-#'   (`chart_state()$clusters`).
+#'   (`chart_fields()$clusters`).
 #' @param cluster A numeric vector or character vector specifying the clusters
 #'   to be retrieved. If NULL (default), all clusters are returned.
 #'
@@ -34,7 +34,7 @@ getUpdatedClusters <- function(clusters, cluster) {
 #' does not have; the library leaves such an entry out.
 #' @noRd
 check_clusters <- function(GC_chart, cluster) {
-  if (!is.null(cluster)) getUpdatedClusters(chart_state(GC_chart)$clusters, cluster)
+  if (!is.null(cluster)) getUpdatedClusters(chart_fields(GC_chart)$clusters, cluster)
   invisible()
 }
 

@@ -206,3 +206,44 @@ test_that("sequence columns are sent only when an option names them", {
   expect_named(sent(GC_tooltip(chart, formatter = "{name}: {translation}")),
                c("start", "end", "name", "translation"))
 })
+
+test_that("chart_fields() gives the columns and clusters of the prepared data", {
+  same_as_prepared <- function(chart) {
+    state <- chart_state(chart)
+    expect_identical(state$columns, names(state$data))
+    expect_identical(state$clusters, state_clusters(state$data, state$cluster))
+  }
+  genes <- data.frame(from = c(10, 50, NA, 90), to = c(40, 80, 30, 120),
+                      contig = factor(c("b", "b", "gone", "a")), kind = c("x", "y", "x", "x"),
+                      dir = c(1, -1, 1, -1))
+
+  same_as_prepared(suppressWarnings(GC_chart(genes, start = "from", end = "to")))
+  same_as_prepared(suppressWarnings(GC_chart(genes, "from", "to", "contig", "kind", "dir")))
+  same_as_prepared(GC_chart(data.frame(genes, cluster = c(2, 2, 3, 1), start = 1, end = 2),
+                            cluster = "cluster"))
+  # An NA is a cluster; a cluster with only rows left out is not
+  with_na <- suppressWarnings(GC_chart(transform(genes, contig = c(NA, "b", "gone", "a")),
+                                       "from", "to", "contig"))
+  same_as_prepared(with_na)
+  expect_identical(chart_fields(with_na)$clusters, c(NA, "b", "a"))
+  # No rows left: as GC_chart() allows it, without columns or clusters
+  expect_null(chart_fields(suppressWarnings(GC_chart(genes[3, ], "from", "to", "contig")))$columns)
+  same_as_prepared(suppressWarnings(GC_chart(genes[3, ], "from", "to", "contig")))
+  same_as_prepared(suppressWarnings(GC_chart(genes[3, ], "from", "to")))
+
+  # After GC_transcript(), the transcripts are the clusters
+  exons <- data.frame(start = c(1, 50, 200), end = c(20, 80, 260), type = "exon",
+                      transcript = c("t2", "t2", "t1"), strand = 1)
+  transcripts <- GC_chart(exons, group = "type") %>% GC_transcript(transcript = "transcript", type = "type")
+  same_as_prepared(transcripts)
+  expect_identical(chart_fields(transcripts)$clusters, c("t2", "t1"))
+})
+
+test_that("theme settings keep or remove a NULL, and replace unnamed lists", {
+  old <- list(a = list(b = 1, c = 2), d = 3, e = list("x", "y"))
+  new <- list(a = list(b = NULL), d = NULL, e = list("z"))
+  expect_identical(merge_theme_settings(old, new),
+                   list(a = list(c = 2), e = list("z")))
+  expect_identical(merge_spec_theme(old, new),
+                   list(a = list(b = NULL, c = 2), d = NULL, e = list("z")))
+})

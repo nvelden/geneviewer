@@ -77,8 +77,7 @@ GC_align <- function(
 #' lengths and to introduce customized gaps between the genes.
 #'
 #' @param GC_chart A chart object containing genomic data and clustering
-#'   information. The chart object must include a `series` component with data
-#'   for each cluster.
+#'   information, from [GC_chart()].
 #' @param group Column name containing gene names to apply custom gaps to.
 #' @param cluster A vector of cluster names to be normalized. If `NULL`, all
 #'   clusters in the `GC_chart` will be normalized.

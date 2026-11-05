@@ -86,6 +86,42 @@ spec_names <- function(names, rename = character(), clusters = TRUE) {
   names
 }
 
+#' Spec names of options passed through ... that the spec renames
+#'
+#' The renderer reads `scaleBarUnit` and `labelAdjustmentOptions`; spec v1
+#' names them `scaleBar.unit` and `labelAdjustment` (decided 2026-11-05).
+#' @noRd
+spec_dot_renames <- list(
+  scaleBar = c(scaleBarUnit = "unit"),
+  labels = c(labelAdjustmentOptions = "labelAdjustment"),
+  links = c(labelAdjustmentOptions = "labelAdjustment")
+)
+
+#' @noRd
+spec_dot_names <- function(key, names) {
+  renames <- spec_dot_renames[[key]]
+  hit <- names %in% names(renames)
+  names[hit] <- renames[names[hit]]
+  names
+}
+
+#' Spec names of the options of each component in a theme
+#'
+#' A theme's component options use the names of the component in the spec
+#' (`theme.legend.textStyle`, decided 2026-11-05); R's theme settings use
+#' the argument names, camelCased here first.
+#' @noRd
+spec_theme_renames <- list(
+  legend = c(legendOptions = "markerStyle", legendTextOptions = "textStyle"),
+  sequence = c(sequenceStyle = "lineStyle"),
+  scaleBar = c(scaleBarLineStyle = "lineStyle", scaleBarTickStyle = "tickStyle",
+               scaleBarUnit = "unit"),
+  links = c(showLinks = "show", labelAdjustmentOptions = "labelAdjustment"),
+  labels = c(labelAdjustmentOptions = "labelAdjustment"),
+  scale = c(scaleBreaks = "autoBreaks", scaleBreakThreshold = "autoBreakThreshold",
+            scaleBreakPadding = "breakPadding")
+)
+
 #' Add the arguments of a call to the spec
 #'
 #' @param GC_chart The gene chart object.
@@ -109,6 +145,7 @@ add_spec <- function(GC_chart, key, args, rename = character(),
   dot_names <- attr(args, "dots")
   is_dot <- names(args) %in% dot_names
   names(args)[!is_dot] <- spec_names(names(args)[!is_dot], rename, clusters)
+  names(args)[is_dot] <- spec_dot_names(key, names(args)[is_dot])
   attr(args, "dots") <- NULL
   for (name in intersect(c("clusters", "selection"), names(args))) {
     args[[name]] <- as.list(args[[name]])
@@ -213,7 +250,8 @@ add_spec_element_style <- function(GC_chart, args, component, reset) {
 #'
 #' A call with a theme starts again from it; a call without one changes the
 #' theme set before, merged as in GC_theme(). The options of components are
-#' named as in the browser (`corner_radius` becomes `cornerRadius`).
+#' named as in the spec's components (`legendTextOptions` becomes
+#' `textStyle`, `corner_radius` becomes `cornerRadius`).
 #' @noRd
 add_spec_theme <- function(GC_chart, args) {
   if (is.null(args) || is.null(GC_chart$x$spec)) {
@@ -244,7 +282,13 @@ spec_theme_names <- function(settings) {
     if (name == "annotations") {
       settings[[name]] <- lapply(settings[[name]], camel_case_names)
     } else {
-      settings[[name]] <- camel_case_names(settings[[name]])
+      options <- camel_case_names(settings[[name]])
+      renames <- spec_theme_renames[[name]]
+      if (length(options) > 0 && !is.null(names(options)) && !is.null(renames)) {
+        hit <- names(options) %in% names(renames)
+        names(options)[hit] <- renames[names(options)[hit]]
+      }
+      settings[[name]] <- options
     }
   }
   settings

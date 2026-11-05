@@ -1,4 +1,4 @@
-# geneviewer 0.3.0
+# geneviewer (development version)
 
 ### Changes:
 - Charts are drawn by the geneviewer JavaScript library (<https://github.com/nvelden/geneviewer-js>), which the package ships in `inst/htmlwidgets/lib/`. The `GC_` functions describe the chart as a chart spec and the library draws it. Charts look and behave the same: the same functions, arguments, defaults, checks and messages, the same Shiny inputs, and the same drawing, checked against the charts of the examples, vignettes and tests of 0.2.0.

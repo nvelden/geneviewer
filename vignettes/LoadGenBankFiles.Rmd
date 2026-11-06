@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 
 ### Intro
 
-This tutorial demonstrates creating gene cluster visualizations from GenBank files using `geneviewer`. For guidance on importing clusters from FASTA files see: [link](https://nvelden.github.io/geneviewer/articles/LoadFastaFiles.html). You can obtain GenBank files containing genomic data from a variety of platforms such as [NCBI](https://www.ncbi.nlm.nih.gov/genbank/), [Ensembl](https://www.ensembl.org/), [UCSC](https://genome.ucsc.edu/), [antiSMASH](https://antismash.secondarymetabolites.org/#!/start) and [MIBiG](https://mibig.secondarymetabolites.org/). While `geneviewer` is designed to handle GenBank files from these sources (please report any compatibility issues on [Github](https://github.com/nvelden/geneviewer/issues)), this tutorial specifically aims to replicate a gene cluster visualization found on the [MIBiG](https://mibig.secondarymetabolites.org/) website.
+This tutorial demonstrates creating gene cluster visualizations from GenBank files using `geneviewer`. For guidance on importing clusters from FASTA files see: [link](https://nvelden.github.io/geneviewer/articles/LoadFastaFiles.html). You can obtain GenBank files containing genomic data from a variety of platforms such as [NCBI](https://www.ncbi.nlm.nih.gov/genbank/), [Ensembl](https://www.ensembl.org/), [UCSC](https://genome.ucsc.edu/), [antiSMASH](https://antismash.secondarymetabolites.org/#!/start) and [MIBiG](https://mibig.secondarymetabolites.org/). While `geneviewer` is designed to handle GenBank files from these sources (please report any compatibility issues on [GitHub](https://github.com/nvelden/geneviewer/issues)), this tutorial specifically aims to replicate a gene cluster visualization found on the [MIBiG](https://mibig.secondarymetabolites.org/) website.
 
 ### Materials 
 
@@ -45,7 +45,7 @@ file_path <- "~/Documents/2023 github/geneviewer/genbank_files/abyssomicin/BGC00
 gbk <- read_gbk(file_path)
 ```
 
-We can inspect the .gbk using the View pane in Rstudio (use `View(gbk)`) or by simply opening the .gbk file in a text editor. For the visualization we are interested in the start and end position of each gene as well as their identifiers and functions. We can find these under FEATURES > CDS. Lets print the first CDS to see what information it contains.   
+We can inspect the .gbk using the View pane in Rstudio (use `View(gbk)`) or by simply opening the .gbk file in a text editor. For the visualization we are interested in the start and end position of each gene as well as their identifiers and functions. We can find these under FEATURES > CDS. Let's print the first CDS to see what information it contains.   
 
 ```{r echo=TRUE, results='hide'}
 CDS_1 <- gbk[["BGC0000001"]][["FEATURES"]][["CDS"]][[1]] 
@@ -92,12 +92,12 @@ chart <- GC_chart(
   end = "end",
   group = "gene_kind",
   strand = "strand",
-  height = "150px"
+  height = "180px"
 )
 chart
 ```
 
-To make the chart more similar to the one we find on the [MIBiG](https://mibig.secondarymetabolites.org/) website we can add a title, alter the coloring and appearance of the genes and add a scale. In addition, we alter the tooltip to display the gene, product and region on hoover. 
+To make the chart more similar to the one we find on the [MIBiG](https://mibig.secondarymetabolites.org/) website we can add a title, alter the coloring and appearance of the genes and add a scale. In addition, we alter the tooltip to display the gene, product and region on hover. 
 
 ```{r echo = TRUE, results='asis'}
 colors <- list(
@@ -138,9 +138,9 @@ chart %>%
 
 ### Loading Multiple GenBank files
 
-The above functions to read and transform .gbk files can also be used to load multiple .gbk files from a folder and shown the clusters side by side. To demonstrate this we can go to the cluster page for [BGC0000001](https://mibig.secondarymetabolites.org/repository/BGC0000001/index.html#r1c1) and navigate to the "KnownClusterBlast" page. Click on the homologous clusters and download the .gbk files for [BGC0001694](https://mibig.secondarymetabolites.org/repository/BGC0001694/index.html#r1c1), [BGC0001492](https://mibig.secondarymetabolites.org/repository/BGC0001492/index.html#r1c1), [BGC0001288](https://mibig.secondarymetabolites.org/repository/BGC0001288/index.html#r1c1) and [BGC0000133](https://mibig.secondarymetabolites.org/repository/BGC0000133/index.html#r1c1).  
+The above functions to read and transform .gbk files can also be used to load multiple .gbk files from a folder and show the clusters side by side. To demonstrate this we can go to the cluster page for [BGC0000001](https://mibig.secondarymetabolites.org/repository/BGC0000001/index.html#r1c1) and navigate to the "KnownClusterBlast" page. Click on the homologous clusters and download the .gbk files for [BGC0001694](https://mibig.secondarymetabolites.org/repository/BGC0001694/index.html#r1c1), [BGC0001492](https://mibig.secondarymetabolites.org/repository/BGC0001492/index.html#r1c1), [BGC0001288](https://mibig.secondarymetabolites.org/repository/BGC0001288/index.html#r1c1) and [BGC0000133](https://mibig.secondarymetabolites.org/repository/BGC0000133/index.html#r1c1).  
 
-We place all the.gbk files in the same directory and can load them all together as we have done previously.
+We place all the .gbk files in the same directory and can load them all together as we have done previously.
 
 ```{r eval=FALSE, results='hide'}
 library(geneviewer)
@@ -171,7 +171,7 @@ source_clusters_df <- gbk_features_to_df(gbk_list, feature = "source")
 
 ```{r echo = FALSE, results='asis'}
 cds_clusters_df$region <- NULL
-kable(head(cds_df))
+kable(head(cds_clusters_df))
 ```
 
 We can now plot the graph but this time we specify the "cluster" column as identifier to distinguish the clusters and add cluster labels and titles.

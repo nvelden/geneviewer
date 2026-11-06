@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 ### Intro
 
-This tutorial describes how we can use `geneviewer` to identify and visualize homologous genes across clusters by aligning their proteins. To demonstrate this we use a GenBank file that contains the genes involved in the biosynthesis of erythromycin A from *Saccharopolyspora erythraea* and compare it too several homologous clusters from different species which were identified using [antiSMASH](https://antismash.secondarymetabolites.org/#!/start). For guidance on importing clusters from GenBank files, please refer to this [guide](https://nvelden.github.io/geneviewer/articles/LoadGenBankFiles.html).
+This tutorial describes how we can use `geneviewer` to identify and visualize homologous genes across clusters by aligning their proteins. To demonstrate this we use a GenBank file that contains the genes involved in the biosynthesis of erythromycin A from *Saccharopolyspora erythraea* and compare it to several homologous clusters from different species which were identified using [antiSMASH](https://antismash.secondarymetabolites.org/#!/start). For guidance on importing clusters from GenBank files, please refer to this [guide](https://nvelden.github.io/geneviewer/articles/LoadGenBankFiles.html).
 
 ### Materials
 
@@ -65,7 +65,7 @@ kable(head(genbank_df))
 
 ### Align the proteins
 
-In this tutorial, we will directly input the folder path into `the protein_blast()` function to load our data. We'll select BGC0000055 as our query cluster and align its proteins with those of the other clusters to find their homologs. We use 30 as the minimum identity threshold.
+In this tutorial, we will directly input the folder path into the `protein_blast()` function to load our data. We'll select BGC0000055 as our query cluster and align its proteins with those of the other clusters to find their homologs. We use 30 as the minimum identity threshold.
 
 ```{r echo=TRUE, results='hide'}
 BlastP_results <- geneviewer::protein_blast(
@@ -88,7 +88,7 @@ After the alignment, the dataset will contain four additional columns. These col
 kable(head(BlastP_results %>% select(-translation)))
 ```
 
-We can visualize the results using `geneviewer`. In the graph the clusters are ordered based on the synteny score. The genes are colored by their best hit in the query cluster. Genes that remain uncolored did not have any significant homologous. By hoovering over the genes one can see the percentage identity and similarity.
+We can visualize the results using `geneviewer`. In the graph the clusters are ordered based on the synteny score. The genes are colored by their best hit in the query cluster. Genes that remain uncolored did not have any significant homologs. By hovering over the genes one can see the percentage identity and similarity.
 
 ```{r echo = TRUE, results='asis'}
 GC_chart(
@@ -141,7 +141,7 @@ GC_clusterLabel() %>%
 GC_legend(TRUE)
 ```
 
-Alternatively, the GC_links() function allows for highlighting connections between specific genes by utilizing the value1 and value2 parameters. To gain insights into the cluster sizes, we can adjust the axis_type to range. For additional styling and coloring options, refer to the GC_links() and `GC_scale` documentation.
+Alternatively, the `GC_links()` function allows for highlighting connections between specific genes by utilizing the value1 and value2 parameters. To gain insights into the cluster sizes, we can adjust the axis_type to range. For additional styling and coloring options, refer to the `GC_links()` and `GC_scale()` documentation.
 
 ```{r echo = TRUE, results='asis'}
 GC_chart(

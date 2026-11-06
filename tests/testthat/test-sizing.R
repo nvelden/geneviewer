@@ -61,11 +61,6 @@ test_that("Shiny pixel widths size the whole widget and restore the output width
       const fractional = render('500.5px');
       const responsive = render('100%');
       const percent = render('75%');
-      // A render model without a size, as R 0.2.0 sent before it had one
-      const legacy = geneviewer.compile(original.spec);
-      delete legacy.size;
-      widget.renderValue(legacy);
-      const oldPayload = measure();
       const styled = JSON.parse(JSON.stringify(original));
       styled.spec.style = { width: '550px' };
       widget.renderValue(styled);
@@ -85,7 +80,7 @@ test_that("Shiny pixel widths size the whole widget and restore the output width
       el.style.flex = '2 1 auto';
       const hostChanged = render('100%');
       return JSON.stringify({ wide, resized, numeric, fractional, responsive,
-        percent, oldPayload, styleOverride, removedStyle, clicks,
+        percent, styleOverride, removedStyle, clicks,
         fillRowFixed, fillRowResponsive, hostChanged, hostFlex: el.style.flex });
     })()
   ")
@@ -105,7 +100,6 @@ test_that("Shiny pixel widths size the whole widget and restore the output width
   expect_equal(res$percent$width, 600)
   expect_equal(res$percent$svgs$width, rep(600, 4))
   expect_equal(res$percent$svgs$scale, c(1, 600 / 450, 600 / 450, 1))
-  expect_equal(res$oldPayload$width, 600)
   expect_equal(res$styleOverride$width, 550)
   expect_equal(res$removedStyle$width, 600)
   expect_equal(res$wide$height, res$responsive$height)

@@ -2396,7 +2396,9 @@ var geneviewer = (() => {
       colorBar: true,
       ...defaultLinkColors,
       measure: "identity",
-      margin: { top: 5, right: 25, bottom: 0, left: 50 },
+      // Right of the plot area, which ends 50 pixels from the edge: the two
+      // bars of normal and inverted links stay clear of the genes
+      margin: { top: 5, right: 19, bottom: 0, left: 50 },
       colorBarOptions: {
         // Where the bar goes: a corner of the plot area or "legend", and
         // whether it stands up or lies down
@@ -2596,7 +2598,7 @@ var geneviewer = (() => {
     this.data = [...new Set(data)];
     return this;
   };
-  container.prototype.legend = function(group, show = true, parentId = null, options = {}, colorBar = null) {
+  container.prototype.legend = function(group, show = true, chartElement, options = {}, colorBar = null) {
     if (!show) {
       return this;
     }
@@ -2740,25 +2742,10 @@ var geneviewer = (() => {
       }
       const unselectedLegend = g.selectAll(".unselected").data();
       const unselectedRowIds = this.data.filter((item) => unselectedLegend.includes(item[group])).map((item) => item.rowID);
-      if (parentId && typeof parentId === "string") {
-        d3.select("#" + parentId).selectAll("[rowID]").each(function() {
-          const currentRowID = +d3.select(this).attr("rowID");
-          if (unselectedRowIds.includes(currentRowID)) {
-            d3.select(this).style("display", "none");
-          } else {
-            d3.select(this).style("display", "");
-          }
-        });
-      } else {
-        d3.selectAll("[rowID]").each(function() {
-          const currentRowID = +d3.select(this).attr("rowID");
-          if (unselectedRowIds.includes(currentRowID)) {
-            d3.select(this).style("display", "none");
-          } else {
-            d3.select(this).style("display", "");
-          }
-        });
-      }
+      d3.select(chartElement).selectAll("[rowID]").each(function() {
+        const currentRowID = +d3.select(this).attr("rowID");
+        d3.select(this).style("display", unselectedRowIds.includes(currentRowID) ? "none" : "");
+      });
     });
     if (colorBar && barSide === "right") {
       addColorBar();
@@ -7334,7 +7321,7 @@ var geneviewer = (() => {
   }
 
   // src/lib/chart.js
-  var version = "0.3.4";
+  var version = "0.3.5";
   var renderSequence = 0;
   var chartCount = 0;
   var activeShortcuts = null;
@@ -8750,7 +8737,7 @@ var geneviewer = (() => {
         ).legendData(data).legend(
           legendOpts.group ?? false,
           legendOpts.show ?? false,
-          el.id,
+          el,
           legendOpts,
           legendColorBar
         );

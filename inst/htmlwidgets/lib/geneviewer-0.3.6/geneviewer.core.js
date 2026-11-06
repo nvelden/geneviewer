@@ -7321,7 +7321,7 @@ var geneviewer = (() => {
   }
 
   // src/lib/chart.js
-  var version = "0.3.5";
+  var version = "0.3.6";
   var renderSequence = 0;
   var chartCount = 0;
   var activeShortcuts = null;
@@ -8891,13 +8891,18 @@ var geneviewer = (() => {
       }
     };
     var spec = null;
+    var isRenderModel = function(input) {
+      return input?.graphContainer !== void 0;
+    };
     var drawInput = function(input) {
-      if (input && input.version !== void 0) {
-        spec = structuredClone(input);
-        renderValue(compile(spec));
-      } else {
+      if (isRenderModel(input)) {
         spec = null;
         renderValue(input);
+      } else {
+        var next = structuredClone(input);
+        var model = compile(next);
+        spec = next;
+        renderValue(model);
       }
     };
     var chart2 = {
@@ -8912,7 +8917,7 @@ var geneviewer = (() => {
       },
       setSpec: function(next) {
         if (destroyed) return;
-        if (!next || next.version === void 0) throw new Error("setSpec() needs a spec with a version");
+        if (!next || isRenderModel(next)) throw new Error("setSpec() needs a spec");
         drawInput(next);
       },
       getSpec: function() {

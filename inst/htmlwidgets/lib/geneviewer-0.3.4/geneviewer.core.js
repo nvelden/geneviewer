@@ -3699,11 +3699,19 @@ var geneviewer = (() => {
     x.legend = { group, show: group !== null, width };
     x.legend.style = { width: "100%", backgroundColor: style.backgroundColor ?? null };
     x.saveButton = saveButton;
-    const clusters = cluster2 === null ? ["cluster"] : [...new Set(data.get(cluster2))];
+    const clusterRows = /* @__PURE__ */ new Map();
+    if (cluster2 !== null) {
+      data.get(cluster2).forEach((name, i) => {
+        const rows = clusterRows.get(name);
+        if (rows) rows.push(i);
+        else clusterRows.set(name, [i]);
+      });
+    }
+    const clusters = cluster2 === null ? ["cluster"] : [...clusterRows.keys()];
     const blast = columnNames.includes("BlastP") && columnNames.includes("protein_id");
     const series = /* @__PURE__ */ new Map();
     for (const name of clusters) {
-      const subset = cluster2 === null ? data.copy() : data.filter((i) => data.get(cluster2)[i] === name);
+      const subset = cluster2 === null ? data.copy() : data.rows(clusterRows.get(name));
       subset.set("cluster", name);
       const clusterHeight = typeof height === "string" && /%$/.test(height) ? computeSize2(height, clusters.length) : Number(getRelativeHeight(height, height)) / clusters.length;
       const starts = subset.get("start");
@@ -7326,7 +7334,7 @@ var geneviewer = (() => {
   }
 
   // src/lib/chart.js
-  var version = "0.3.3";
+  var version = "0.3.4";
   var renderSequence = 0;
   var chartCount = 0;
   var activeShortcuts = null;
@@ -8644,25 +8652,28 @@ var geneviewer = (() => {
       redrawZoom(true);
       reportZoom("set");
     };
-    var draw = function() {
+    var keepScroll = function(drawing) {
       var scrolled = [];
       for (var node = el.parentElement; node; node = node.parentElement) {
         if (node.scrollTop || node.scrollLeft) scrolled.push([node, node.scrollTop, node.scrollLeft]);
       }
       var page = el.ownerDocument.scrollingElement;
-      if (page && (page.scrollTop || page.scrollLeft) && !scrolled.some(function(s) {
-        return s[0] === page;
+      if (page && !scrolled.some(function(item) {
+        return item[0] === page;
       })) {
         scrolled.push([page, page.scrollTop, page.scrollLeft]);
       }
       try {
-        drawChart();
+        drawing();
       } finally {
-        scrolled.forEach(function(s) {
-          if (s[0].scrollTop !== s[1]) s[0].scrollTop = s[1];
-          if (s[0].scrollLeft !== s[2]) s[0].scrollLeft = s[2];
+        scrolled.forEach(function(item) {
+          if (item[0].scrollTop !== item[1]) item[0].scrollTop = item[1];
+          if (item[0].scrollLeft !== item[2]) item[0].scrollLeft = item[2];
         });
       }
+    };
+    var draw = function() {
+      keepScroll(drawChart);
     };
     var drawChart = function() {
       cancelDrag();
@@ -8802,26 +8813,6 @@ var geneviewer = (() => {
       makeLinks(graphContainer2, links2, theme2);
       makeColorBar(graphContainer2, links2, theme2, legendColorBar !== null);
       clipZoomLinks();
-    };
-    var keepScroll = function(drawing) {
-      var scrolled = [];
-      for (var node = el.parentElement; node; node = node.parentElement) {
-        if (node.scrollTop || node.scrollLeft) scrolled.push([node, node.scrollTop, node.scrollLeft]);
-      }
-      var page = document.scrollingElement;
-      if (page && !scrolled.some(function(item) {
-        return item[0] === page;
-      })) {
-        scrolled.push([page, page.scrollTop, page.scrollLeft]);
-      }
-      try {
-        drawing();
-      } finally {
-        scrolled.forEach(function(item) {
-          if (item[0].scrollTop !== item[1]) item[0].scrollTop = item[1];
-          if (item[0].scrollLeft !== item[2]) item[0].scrollLeft = item[2];
-        });
-      }
     };
     var redraw = function() {
       var focused = zoomBar && zoomBar.contains(document.activeElement) ? document.activeElement.getAttribute("data-zoom-part") : null;

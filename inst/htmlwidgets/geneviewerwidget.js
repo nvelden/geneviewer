@@ -5,15 +5,19 @@
 (function () {
 // The events sent to Shiny, as the inputs <output id>_<name>
 var shinyEvents = ["click", "dblclick", "select", "selection", "drag", "moves", "zoom", "rendered"];
-// GC_zoom_to(): the chart of each output id
-var charts = {};
 var zoomHandlerAdded = false;
 
 var addZoomHandler = function () {
   if (zoomHandlerAdded || !window.Shiny?.addCustomMessageHandler) return;
   zoomHandlerAdded = true;
   Shiny.addCustomMessageHandler("geneviewer-zoom", function (message) {
-    var chart = charts[message.id];
+    // GC_zoom_to(): the chart of the output, found when the message arrives.
+    // This binding keeps no list of charts: a chart lives as long as its
+    // element, so removing a Shiny output frees it. Nothing here calls
+    // destroy(); that is for pages that use the library's newChart() themselves.
+    var el = document.getElementById(message.id);
+    var widget = el && HTMLWidgets.getInstance(el);
+    var chart = widget && widget.getChart();
     if (chart) chart.zoomTo(message.range);
   });
 };
@@ -55,7 +59,6 @@ HTMLWidgets.widget({
           return;
         }
         chart = geneviewer.newChart(el, spec || x, options);
-        charts[el.id] = chart;
       },
       resize: function () {
         if (chart) chart.resize();

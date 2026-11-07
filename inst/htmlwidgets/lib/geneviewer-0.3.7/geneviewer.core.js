@@ -354,10 +354,6 @@ var geneviewer = (() => {
 
   // src/lib/components/scale.js
   container.prototype.scale = function(options = {}) {
-    if (!this.data) {
-      console.error("No data has been added to this cluster container.");
-      return this;
-    }
     const defaultScaleOptions = {
       start: null,
       end: null,
@@ -1011,10 +1007,6 @@ var geneviewer = (() => {
     if (!show) {
       return this;
     }
-    if (!this.data) {
-      console.error("No data has been added to this cluster container. Please use the addGeneData() function before attempting to draw a gene line.");
-      return this;
-    }
     const defaultOptions = {
       y: 50,
       start: null,
@@ -1346,10 +1338,6 @@ var geneviewer = (() => {
       return this;
     }
     if (!label) {
-      return this;
-    }
-    if (!this.data) {
-      console.error("No data has been added to this cluster container. Please use the addGeneData() function before attempting to draw genes.");
       return this;
     }
     const defaultOptions = {
@@ -2021,10 +2009,6 @@ var geneviewer = (() => {
     if (!show) {
       return this;
     }
-    if (!this.data) {
-      console.error("No data has been added to this cluster container. Please use the geneData() function before attempting to draw arrows.");
-      return this;
-    }
     const defaultOptions = {
       x: 1,
       y: 50,
@@ -2070,10 +2054,6 @@ var geneviewer = (() => {
   // src/lib/components/transcript.js
   container.prototype.transcript = function(group, show = true, options = {}) {
     if (!show) {
-      return this;
-    }
-    if (!this.data) {
-      console.error("No data has been added to this cluster container. Please use the geneData() function before attempting to draw arrows.");
       return this;
     }
     const defaultOptions = {
@@ -3353,7 +3333,6 @@ var geneviewer = (() => {
      * @returns {Frame}
      */
     static from(data) {
-      if (data instanceof _Frame) return data.copy();
       if (Array.isArray(data)) {
         const names = [];
         for (const row of data) {
@@ -3411,14 +3390,6 @@ var geneviewer = (() => {
       return this;
     }
     /**
-     * @param {string} name
-     * @returns {Frame} this
-     */
-    drop(name) {
-      this.columns.delete(name);
-      return this;
-    }
-    /**
      * The rows at the given 0-based indices, in that order.
      * @param {number[]} indices
      * @returns {Frame}
@@ -3447,16 +3418,6 @@ var geneviewer = (() => {
       const frame = new _Frame();
       for (const name of names) if (this.columns.has(name)) frame.columns.set(name, this.columns.get(name).slice());
       return frame;
-    }
-    /**
-     * Row i as an object.
-     * @param {number} i
-     * @returns {Object<string, *>}
-     */
-    row(i) {
-      const row = {};
-      for (const [name, values] of this.columns) row[name] = values[i];
-      return row;
     }
     /** @returns {Object<string, Array<*>>} The columns, as htmlwidgets writes a data frame. */
     toJSON() {
@@ -7321,7 +7282,7 @@ var geneviewer = (() => {
   }
 
   // src/lib/chart.js
-  var version = "0.3.6";
+  var version = "0.3.7";
   var renderSequence = 0;
   var chartCount = 0;
   var activeShortcuts = null;
@@ -7421,7 +7382,7 @@ var geneviewer = (() => {
       }
     };
   };
-  function newChart(target, renderModel, options) {
+  function newChart(target, spec, options) {
     if (typeof target === "string") {
       var found = document.querySelector(target);
       if (!found) throw new Error("No element matches " + target);
@@ -8814,7 +8775,6 @@ var geneviewer = (() => {
       if (focused && zoomBar) zoomBar.querySelector('[data-zoom-part="' + focused + '"]')?.focus({ preventScroll: true });
     };
     var chartData = function(input) {
-      if (input.data) return toRows(input.data);
       var columns = input.dataColumns ?? [];
       var rows = [];
       Object.values(input.series ?? {}).forEach(function(cluster2) {
@@ -8890,38 +8850,25 @@ var geneviewer = (() => {
         report("rendered", detail);
       }
     };
-    var spec = null;
-    var isRenderModel = function(input) {
-      return input?.graphContainer !== void 0;
-    };
-    var drawInput = function(input) {
-      if (isRenderModel(input)) {
-        spec = null;
-        renderValue(input);
-      } else {
-        var next = structuredClone(input);
-        var model = compile(next);
-        spec = next;
-        renderValue(model);
-      }
+    var currentSpec = null;
+    var drawSpec = function(input) {
+      var next = structuredClone(input);
+      var model = compile(next);
+      currentSpec = next;
+      renderValue(model);
     };
     var chart2 = {
       update: function(input) {
         if (destroyed) return;
-        if (spec !== null) {
-          spec = mergeSpec(spec, input);
-          renderValue(compile(spec));
-        } else {
-          drawInput(input);
-        }
+        drawSpec(mergeSpec(currentSpec, input));
       },
       setSpec: function(next) {
         if (destroyed) return;
-        if (!next || isRenderModel(next)) throw new Error("setSpec() needs a spec");
-        drawInput(next);
+        if (!next) throw new Error("setSpec() needs a spec");
+        drawSpec(next);
       },
       getSpec: function() {
-        return spec === null ? null : structuredClone(spec);
+        return structuredClone(currentSpec);
       },
       resize: function() {
         if (!destroyed) redraw();
@@ -9020,7 +8967,7 @@ var geneviewer = (() => {
     Object.keys(options.on || {}).forEach(function(name) {
       chart2.on(name, options.on[name]);
     });
-    drawInput(renderModel);
+    drawSpec(spec);
     return chart2;
   }
   return __toCommonJS(index_exports);

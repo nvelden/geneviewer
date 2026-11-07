@@ -20,8 +20,6 @@ var geneviewer = (() => {
   // src/lib/index.js
   var index_exports = {};
   __export(index_exports, {
-    chartToPNG: () => chartToPNG,
-    chartToSVG: () => chartToSVG,
     compile: () => compile,
     newChart: () => newChart,
     palettes: () => palettes,
@@ -3629,7 +3627,7 @@ var geneviewer = (() => {
     const kept = data.filter((i) => startValues[i] !== null && endValues[i] !== null);
     const warnings = [];
     if (kept.nrow < data.nrow) {
-      warnings.push("Rows with NA values in 'start' or 'end' columns have been filtered out.");
+      warnings.push("Rows with no value in the start or end column have been filtered out.");
     }
     data = kept;
     data.set("rowID", Array.from({ length: data.nrow }, (_, i) => i + 1));
@@ -4578,7 +4576,7 @@ var geneviewer = (() => {
     let preventGeneOverlap = entry.preventGeneOverlap ?? null;
     const overlapMin = entry.overlapMin ?? null;
     if (separateStrands === true && preventGeneOverlap !== null && preventGeneOverlap !== false) {
-      state.warnings.push("Setting both 'separate_strands' and 'prevent_gene_overlap' to TRUE is not supported. Resetting to NULL.");
+      state.warnings.push("Setting both separateStrands and preventGeneOverlap is not supported. Neither is applied.");
       separateStrands = null;
       preventGeneOverlap = null;
     }
@@ -5383,7 +5381,7 @@ var geneviewer = (() => {
     const colorScheme = entry.colorScheme ?? null;
     const customColors = entry.customColors ?? null;
     if (colorScheme !== null && customColors !== null && !isNamedList(customColors)) {
-      state.warnings.push("Both colorScheme and customColors are selected. Use a named list of customColors to set the colours of some groups, or choose only one.");
+      state.warnings.push("Both colorScheme and customColors are selected. Use an object of customColors, by group, to set the colours of some groups, or choose only one.");
       return;
     }
     setPath(state.x, ["legend", "legendOptions", "colorScheme"], colorScheme);
@@ -5541,7 +5539,7 @@ var geneviewer = (() => {
     let styleBy = entry.styleBy ?? null;
     if (styleBy === null && state.x.group !== void 0) styleBy = state.x.group;
     if (entry.groupStyle != null && styleBy === null) {
-      throw new Error("groupStyle needs a group in GC_chart() or a style_by column");
+      throw new Error("groupStyle needs fields.group or a styleBy column");
     }
     const extra = dots(entry, COORDINATES);
     setClusterOptions(state, entry.clusters, "coordinates", (i) => {
@@ -5965,7 +5963,7 @@ var geneviewer = (() => {
   // src/lib/compile/scale.js
   function breakPaddingBp(padding) {
     if (!/^\s*[0-9]*\.?[0-9]+\s*bp\s*$/.test(padding)) {
-      throw new Error('scale_break_padding must be a percentage, e.g. 1, or base pairs, e.g. "500bp"');
+      throw new Error('breakPadding must be a percentage, e.g. 1, or base pairs, e.g. "500bp"');
     }
     return Number(padding.replace(/\s*bp\s*$/, ""));
   }
@@ -6155,7 +6153,7 @@ var geneviewer = (() => {
   function align(state, entry) {
     const x = state.x;
     if (x.cluster === void 0) {
-      state.warnings.push("Could not align selected gene. Please define cluster in the GC_chart function.");
+      state.warnings.push("Could not align the selected gene. The spec needs fields.cluster.");
       return;
     }
     if (!x.data.has(entry.idColumn)) {
@@ -6187,7 +6185,7 @@ var geneviewer = (() => {
     const rows = [];
     for (let i = 0; i < data.nrow; i++) if (ids[i] !== null && asCharacter(ids[i]) === id) rows.push(i);
     if (!rows.length) {
-      state.warnings.push(`Selected gene coud not be aligned. Gene ${options.id} not found in the ${options.idColumn} column.`);
+      state.warnings.push(`Selected gene could not be aligned. Gene ${options.id} not found in the ${options.idColumn} column.`);
       return;
     }
     if (new Set(rows.map((i) => clusterOf[i])).size < rows.length) {
@@ -6270,11 +6268,11 @@ var geneviewer = (() => {
     if (!MEASURES.includes(measure)) {
       throw new Error("Invalid measure specified. Choose 'identity', 'similarity', or 'none'.");
     }
-    if (!["gene", "link"].includes(labelPosition)) throw new Error(`'label_position' must be one of "gene", "link".`);
+    if (!["gene", "link"].includes(labelPosition)) throw new Error(`'labelPosition' must be one of "gene", "link".`);
     for (const [name, choices] of Object.entries(COLOR_BAR_CHOICES)) {
       const value = colorBarOptions[name];
       if (value != null && !choices.includes(value)) {
-        throw new Error(`'colorBarOptions$${name}' must be one of ${choices.map((c) => `"${c}"`).join(", ")}.`);
+        throw new Error(`'colorBarOptions.${name}' must be one of ${choices.map((c) => `"${c}"`).join(", ")}.`);
       }
     }
     const vmin = entry.vmin ?? null;
@@ -6505,7 +6503,7 @@ var geneviewer = (() => {
     let clusters;
     if (byRow) {
       if (typeof rowID !== "number" || !x.data.get("rowID").includes(rowID)) {
-        throw new Error("'row_id' must identify one row in the chart's data.");
+        throw new Error("'rowID' must identify one row in the chart's data.");
       }
       id = end === null ? { rowID } : { rowID, end };
       same = (item) => Number(item.rowID) === Number(rowID) && (item.end ?? null) === end;
@@ -6636,7 +6634,9 @@ var geneviewer = (() => {
       if (!apply) continue;
       for (const entry of entries(value)) apply(state, renameOptions(entry, OPTION_NAMES[key]));
     }
-    return toModel(renderTheme(state));
+    const model = toModel(renderTheme(state));
+    for (const warning of state.warnings) warnOnce("geneviewer: " + warning);
+    return model;
   }
   function toModel(value) {
     if (value instanceof Frame) return value.toJSON();
@@ -7282,7 +7282,7 @@ var geneviewer = (() => {
   }
 
   // src/lib/chart.js
-  var version = "0.3.7";
+  var version = "0.3.8";
   var renderSequence = 0;
   var chartCount = 0;
   var activeShortcuts = null;

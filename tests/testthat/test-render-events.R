@@ -1,14 +1,16 @@
 test_that("render events are opt-in and validate identifiers", {
   chart <- GC_chart(data.frame(start = 1, end = 10))
-  expect_identical(GC_events(chart)$x$events, list(click = TRUE, highlight = FALSE))
+  expect_identical(compile_chart(GC_events(chart))$events, list(click = TRUE, highlight = FALSE))
   # Without rendered, render_id is still sent: it marks a new load for GC_zoom()
-  expect_identical(GC_events(chart, rendered = FALSE, render_id = "load-1")$x$events,
+  expect_identical(compile_chart(GC_events(chart, rendered = FALSE, render_id = "load-1"))$events,
                    list(click = TRUE, highlight = FALSE, renderId = "load-1"))
   for (id in list(NULL, "load-1", "", 0, 2L, 1.5)) {
-    events <- GC_events(chart, click = FALSE, rendered = TRUE, render_id = id)$x$events
+    chart_id <- GC_events(chart, click = FALSE, rendered = TRUE, render_id = id)
+    events <- compile_chart(chart_id)$events
     expect_true(events$rendered)
     expect_false(events$click)
-    expect_identical(events$renderId, id)
+    expect_equal(events$renderId, id)
+    expect_identical(chart_id$x$spec$events$renderId, id)
   }
   for (id in list(NA, Inf, NaN, TRUE, character(), c("one", "two"), list(1), 1i)) {
     expect_error(GC_events(chart, rendered = TRUE, render_id = id), "render_id")
@@ -43,35 +45,36 @@ test_that("render events follow successful drawing and are independent of clicks
           save: !!el.querySelector('.save-option'),
           highlighted: el.classList.contains('geneviewer-highlight') });
       });
-      x.events = { click: false, highlight: false };
+      x.spec.events = { click: false, highlight: false };
       widget.renderValue(x);
       const defaultCount = dom.length;
-      x.events.rendered = true;
-      x.events.renderId = 'standalone';
+      x.spec.events.rendered = true;
+      x.spec.events.renderId = 'standalone';
       widget.renderValue(x);
       const standaloneShiny = shiny.length;
       HTMLWidgets.shinyMode = true;
-      x.events = { click: true, highlight: true, rendered: true, renderId: 'load-1' };
+      x.spec.events = { click: true, highlight: true, rendered: true, renderId: 'load-1' };
       widget.renderValue(x);
       widget.renderValue(x);
-      x.events.renderId = 2;
+      x.spec.events.renderId = 2;
       widget.renderValue(x);
       const beforeResize = dom.length;
       widget.resize(800, 400);
       const afterResize = dom.length;
       el.querySelector('.gene').dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      x.events.rendered = false;
+      x.spec.events.rendered = false;
       widget.renderValue(x);
       const disabledCount = dom.length;
-      x.events.rendered = true;
-      x.events.renderId = 'broken';
-      const originalMakeLinks = window.makeLinks;
-      window.makeLinks = () => { throw new Error('Simulated link drawing failure'); };
+      x.spec.events.rendered = true;
+      x.spec.events.renderId = 'broken';
+      // Links are drawn with d3.path() (the page's D3), and only links
+      const originalPath = d3.path;
+      d3.path = () => { throw new Error('Simulated link drawing failure'); };
       let failed = false;
       try { widget.renderValue(x); } catch (e) { failed = true; }
-      window.makeLinks = originalMakeLinks;
+      d3.path = originalPath;
       const failedCount = dom.length;
-      x.events.renderId = 'recovered';
+      x.spec.events.renderId = 'recovered';
       widget.renderValue(x);
       return JSON.stringify({ id: el.id, dom, shiny, defaultCount, standaloneShiny,
         beforeResize, afterResize, disabledCount, failed, failedCount });
@@ -120,7 +123,7 @@ test_that("omitted render IDs are unique across charts and repeated updates", {
       HTMLWidgets.shinyMode = true;
       const render = (el, id) => {
         const x = JSON.parse(document.querySelector('script[data-for=\"' + el.id + '\"]').textContent).x;
-        if (id !== undefined) x.events.renderId = id;
+        if (id !== undefined) x.spec.events.renderId = id;
         HTMLWidgets.find('#' + el.id).renderValue(x);
       };
       for (let i = 0; i < 3; i++) elements.forEach(el => render(el));

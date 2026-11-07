@@ -1,3 +1,13 @@
+# geneviewer (development version)
+
+### Changes:
+- Charts are drawn by the geneviewer JavaScript library (<https://github.com/nvelden/geneviewer-js>), which the package ships in `inst/htmlwidgets/lib/`. The `GC_` functions describe the chart as a chart spec and the library draws it. Charts look and behave the same: the same functions, arguments, defaults, checks and messages, the same Shiny inputs, and the same drawing, checked against the charts of the examples, vignettes and tests of 0.2.0.
+- Code that read the internals of a chart, `widget$x`, must use `widget$x$spec`: `widget$x` is now `list(spec = )`, the chart spec, which holds the arguments of the `GC_` functions as given, under the names of the spec. The R code that built the chart for the browser is gone.
+- The default icons of the toolbar are inline SVG copies of the same Font Awesome glyphs, so they show without an icon font. Custom icons by Font Awesome name (`GC_toolbar(icons = )`) still work: the package still loads Font Awesome.
+- `geneviewer_theme()` and `geneviewer_palette()` read the built-in themes and palettes from the library (its `themes.json`); they give the same settings and colours.
+- Functions that only style a chart (`GC_genes()`, `GC_labels()`, `GC_title()`, ...) no longer prepare the whole dataset to check their arguments, which adds up on large data.
+- FileSaver.js is no longer bundled: the library saves images with the browser's own download. jsonlite is now imported.
+
 # geneviewer 0.2.0
 
 ### New features:

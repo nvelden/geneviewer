@@ -50,7 +50,7 @@ virus_names <- c(
   KF261120 = "Cannesvirus",
   KF483846 = "Tunisvirus"
 )
-gff <- gff %>% mutate(Name = virus_names[filename]) 
+gff <- gff %>% mutate(Virus = virus_names[filename])
 
 View(gff) # Inspect the data frame in Rstudio
 ```

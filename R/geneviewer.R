@@ -56,153 +56,21 @@ magrittr::`%>%`
 GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group = NULL, strand = NULL, width = "100%", height = "400px", style = list(), elementId = NULL, save_button = TRUE) {
 
   spec <- spec_args(match.call(), environment())
-  x <- list()
-  # Capture all arguments with their current values
-  x$params <- as.list(environment())
-  x$params$data <- NULL
-  x$params$spec <- NULL
-  x$params <- Filter(function(y) !is.null(y) && !(is.list(y) && length(y) == 0), x$params)
-
 
   # Load from .gbk files
   if (is.character(data)) {
     data <- read_gbk_cds(data, start, end)
     cluster <- "cluster"
     strand <- "strand"
-    if (!is.null(spec)) spec[c("cluster", "strand")] <- list(cluster, strand)
+    spec[c("cluster", "strand")] <- list(cluster, strand)
   }
 
-  # The spec holds the data as given (or as read)
-  x$spec <- start_spec(data, spec)
+  # The spec holds the data as given (or as read); the library prepares it as
+  # prepare_data() does, which checks it here
+  x <- list(spec = start_spec(data, spec))
+  prepare_data(data, start, end, cluster, group, strand)
 
-  # ensure that data is a data frame
-  stopifnot(is.data.frame(data))
-
-  # Check if column names are in the data frame
-  colnames_data <- colnames(data)
-
-  if (!(start %in% colnames_data)) stop("start column not found in data")
-  if (!(end %in% colnames_data)) stop("end column not found in data")
-
-  if (!is.null(cluster) && !(cluster %in% colnames_data)) {
-    stop("cluster column not found in data")
-  }
-  if (!is.null(group) && !(group %in% colnames_data)) {
-    stop("group column not found in data")
-  }
-  if (!is.null(strand) && !(strand %in% colnames_data)) {
-    stop("strand column not found in data")
-  }
-
-  show_legend <- if (!is.null(group)) TRUE else FALSE
-
-  # Filter out rows with NA values in 'start' or 'end' columns
-  original_nrow <- nrow(data)
-  data <- data[!is.na(data[[start]]) & !is.na(data[[end]]), ]
-
-  # Check if any rows were filtered out and issue a warning
-  if (nrow(data) < original_nrow) {
-    warning("Rows with NA values in 'start' or 'end' columns have been filtered out.")
-  }
-
-  # Add rowID to data
-  data$rowID <- seq_len(nrow(data))
-
-  # add start and end
-  data_tmp <- data
-  data$start <- data_tmp[[start]]
-  data$end <- data_tmp[[end]]
-
-  # Convert cluster to character
-  if(!is.null(cluster)){
-  data[[cluster]] <- as.character(data[[cluster]])
-  }
-
-  # Add strand if specified
-  data <- add_strand(data, strand)
-
-  x$data <- data
-  x$group <- group
-  x$cluster <- cluster
-  x$graphContainer$direction <- "column"
-  x$style <- style
-  x$title$style <- list(width = "100%")
-  x$legend <- list(
-    group = group, show = show_legend,
-    width = width
-  )
-  x$legend$style <- list(width = "100%", backgroundColor = style$backgroundColor)
-  x$saveButton <- save_button
-
-
-  if (is.null(cluster)) {
-    clusters <- "cluster"
-  } else {
-    clusters <- unique(as.character(data[[cluster]]))
-  }
-
-  for (clust in clusters) {
-    # Subset data for the current cluster
-    if (is.null(cluster)) {
-      subset_data <- data
-    } else {
-      subset_data <- data[data[[cluster]] == clust, ]
-    }
-
-    # add cluster
-    subset_data$cluster <- clust
-
-    # Data
-    x$series[[clust]]$clusterName <- clust
-    x$series[[clust]]$data <- subset_data
-    x$series[[clust]]$cluster <- list()
-    if (is.character(height) && grepl("%$", height)) {
-      cluster_height <- compute_size(height, length(clusters))
-    } else {
-      cluster_height <- get_relative_height(height, height) / length(clusters)
-    }
-    x$series[[clust]]$container <- list(height = cluster_height, width = width)
-    x$series[[clust]]$container$style <- list(width = "100%", backgroundColor = style$backgroundColor)
-    x$series[[clust]]$genes <- list(group = group, show = TRUE)
-    x$series[[clust]]$sequence <- list(show = TRUE)
-    x$series[[clust]]$scale <- list(xMin = min(subset_data$start, subset_data$end), xMax = max(subset_data$start, subset_data$end))
-    x$series[[clust]]$transcript <- list(group = group, show = FALSE)
-    x$series[[clust]]$labels <- list(group = group, show = TRUE)
-    x$series[[clust]]$coordinates <- list(show = FALSE)
-    x$series[[clust]]$scaleBar <- list()
-    x$series[[clust]]$footer <- list()
-    x$series[[clust]]$clusterLabel <- list()
-    x$series[[clust]]$clusterTitle <- list()
-    x$series[[clust]]$annotations <- list()
-    x$series[[clust]]$trackMouse <- list(show = FALSE)
-
-    # protein_blast() specific settings
-    if(all(c("BlastP", "protein_id") %in% colnames_data) &&
-       any(subset_data$BlastP == subset_data$protein_id, na.rm = TRUE) &&
-       all(subset_data$BlastP %in% c(subset_data$protein_id, "No Hit", NA))){
-      # The query cluster: its genes are only hits of themselves
-      formatter <-
-        "<b>{protein_id}</b><br>
-        <b>Query gene</b><br>
-        <b>Location:</b> {start} - {end}<br>"
-    } else if(all(c("BlastP", "protein_id") %in% colnames_data)){
-      formatter <-
-        "<b>{protein_id}</b><br>
-        <b>Best hit:</b> {BlastP}<br>
-        <b>Identity:</b> {identity}%<br>
-        <b>Similarity:</b> {similarity}%<br>
-        <b>Location:</b> {start} - {end}<br>"
-    } else {
-      formatter <-
-        "<b>Start:</b> {start}<br><b>End:</b> {end}"
-    }
-    x$series[[clust]]$tooltip <- list(
-      show = TRUE,
-      formatter = formatter
-    )
-  }
-
-  # Determine dependencies
+  # Determine dependencies: custom toolbar icons are Font Awesome icons
   dependencies <- if (save_button) {
     list(fontawesome::fa_html_dependency())
   } else {
@@ -218,6 +86,6 @@ GC_chart <- function(data, start = "start", end = "end", cluster = NULL, group =
     package = "geneviewer",
     dependencies = dependencies,
     elementId = elementId,
-    preRenderHook = render_theme
+    preRenderHook = send_spec
   )
 }

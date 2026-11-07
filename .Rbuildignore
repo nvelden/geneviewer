@@ -33,3 +33,5 @@
 ^data-raw$
 \.DS_Store$
 ^man/figures/geneviewer_promo\.gif$
+^\.gitattributes$
+^\.Renviron$

@@ -16,3 +16,4 @@ revdep/
 inst/.DS_Store
 CRAN-SUBMISSION
 dev/BUGLIST.md
+.Renviron

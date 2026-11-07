@@ -108,23 +108,6 @@ GC_title <- function(
     return(GC_chart)
   }
 
-  # Capture arguments and filter out NULL or empty values
-  options <- compact(list(
-      title = title,
-      subtitle = subtitle,
-      subtitleFont = subtitleFont,
-      titleFont = titleFont,
-      style = style,
-      height = height,
-      show = show,
-      align = align,
-      spacing = spacing,
-      ...
-    ))
-
-  # Merge new options with existing options
-  GC_chart$x$title <- merge_options(GC_chart$x$title, options)
-
   add_spec(GC_chart, "title", spec, mode = "merge")
 }
 
@@ -223,34 +206,8 @@ GC_clusterTitle <- function(
   }
   check_align(align, per_cluster = TRUE)
   check_spacing(spacing, per_cluster = TRUE)
+  check_clusters(GC_chart, cluster)
 
-  # Capture ... arguments
-  dots <- list(...)
-
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-
-  for (i in seq_along(clusters)) {
-    # Default options
-    options <- list(
-      title = recycle_at(title, i),
-      subtitle = recycle_at(subtitle, i),
-      subtitleFont = subtitleFont,
-      titleFont = titleFont,
-      show = recycle_at(show, i)
-    )
-    options$align <- recycle_at(align, i)
-    options$spacing <- recycle_at(spacing, i)
-
-    # Add arguments to options
-    options <- recycle_dots(options, dots, i)
-
-    # Set height for each cluster
-    GC_chart$x$series[[clusters[i]]]$grid$margin$top <- recycle_at(height, i)
-
-    # Set title options for each cluster
-    GC_chart$x$series[[clusters[i]]]$clusterTitle <- options
-  }
   add_spec(GC_chart, "clusterTitle", spec)
 }
 
@@ -320,72 +277,9 @@ GC_sequence <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
+  check_clusters(GC_chart, cluster)
 
-  # Capture ... arguments
-  dots <- list(...)
-
-  # Set sequence options for each cluster
-  GC_chart <- set_cluster_options(GC_chart, cluster, "sequence", function(i, series) {
-    # Default options
-    options <- list(
-      show = recycle_at(show, i),
-      y = recycle_at(y, i),
-      sequenceStyle = sequenceStyle,
-      markerStyle = markerStyle
-    )
-
-    # Add ... arguments to options
-    options <- recycle_dots(options, dots, i)
-
-    # A range axis has moved the genes of the cluster; move the line along
-    shift_sequence(options, series$positionShift)
-  })
   add_spec(GC_chart, "sequence", spec, rename = c(sequenceStyle = "lineStyle"))
-}
-
-#' The scale breaks of one cluster
-#'
-#' Picks the breaks of `cluster` from a data frame of breaks (all its rows when
-#' it has no `cluster` column) or takes a list of breaks as is, and moves them
-#' by `shift`, as the genes when a range axis has moved them to start at 1.
-#' @noRd
-cluster_breaks <- function(breaks, cluster, shift = NULL) {
-  if (is.data.frame(breaks)) {
-    if (!all(c("start", "end") %in% names(breaks))) {
-      stop("A data frame of breaks needs a start and an end column")
-    }
-    if ("cluster" %in% names(breaks)) {
-      breaks <- breaks[as.character(breaks$cluster) == cluster, , drop = FALSE]
-    }
-    breaks <- lapply(seq_len(nrow(breaks)), function(k) {
-      list(start = breaks$start[k], end = breaks$end[k])
-    })
-  }
-  if (is.null(shift) || shift == 0) {
-    return(breaks)
-  }
-  lapply(breaks, function(gap) {
-    gap$start <- gap$start - shift
-    gap$end <- gap$end - shift
-    gap
-  })
-}
-
-#' Move the start and end of the line of a cluster
-#'
-#' Subtracts `shift` from the `start` and `end` of the line, so it stays with
-#' the genes when `GC_scale(axis_type = "range")` has moved them to start at 1.
-#' @noRd
-shift_sequence <- function(options, shift) {
-  if (is.null(options) || is.null(shift) || shift == 0) {
-    return(options)
-  }
-  for (name in intersect(c("start", "end"), names(options))) {
-    if (is.numeric(options[[name]])) {
-      options[[name]] <- options[[name]] - shift
-    }
-  }
-  options
 }
 
 #' Update Grid Display of a GC Chart Cluster
@@ -433,32 +327,15 @@ GC_grid <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
-
-  all_clusters <- names(GC_chart$x$series)
-  update_clusters <- getUpdatedClusters(GC_chart, cluster)
+  check_clusters(GC_chart, cluster)
   chart_height <- GC_chart$height
 
+  # The width of the widget
   if(!is.null(width) && is.null(cluster)){
     GC_chart$width <- get_relative_height(GC_chart$width, width)
   }
 
-  if(direction == "row"){
-    GC_chart$x$graphContainer$direction <- "row"
-    # compute the % width for each cluster
-    num_clusters <- length(update_clusters)
-    if (num_clusters > 0) {
-      # Round to 3 decimals
-      cluster_width_pct <- round(100 / num_clusters, 3)
-      for (cluster_name in update_clusters) {
-        # Convert numeric to character and append '%'
-        pct_str <- paste0(cluster_width_pct, "%")
-        GC_chart$x$series[[cluster_name]]$container$style$width <- pct_str
-        GC_chart$x$series[[cluster_name]]$container$width <- pct_str
-      }
-    }
-  }
-
-  # Update margins
+  # Top and bottom margins are padding of the whole chart
   if(!is.null(margin) && is.null(cluster)){
 
     paddingTop <- if (!is.null(margin[["top"]])) get_relative_height(chart_height, margin[["top"]]) else 0
@@ -468,65 +345,10 @@ GC_grid <- function(
       stop("Use pixel values for the top and bottom margins when the chart height is a percentage.")
     }
 
-    margin[["top"]] <- NULL
-    margin[["bottom"]] <- NULL
-
-    # Update left and right margins
-    GC_chart$x$legend$margin <- merge_options(GC_chart$x$legend$margin, margin)
-    GC_chart$x$title$margin <- merge_options(GC_chart$x$title$margin, margin)
-
-    # Update top and bottom margins
-    if(paddingTop > 0){
-      GC_chart$x$style[["paddingTop"]] <- paste0(as.character(paddingTop), "px")
-    }
-    if(paddingBottom > 0){
-      GC_chart$x$style[["paddingBottom"]] <- paste0(as.character(paddingBottom), "px")
-    }
-
-    # Take the margins from the cluster heights. Percentage heights are
-    # reduced in the browser, once the height in pixels is known.
+    # The library takes the padding from the cluster heights; the widget
+    # fills its container
     if(paddingTop > 0 || paddingBottom > 0){
       GC_chart$height <- "100%"
-      for (cluster_name in all_clusters) {
-        container_height <- GC_chart$x$series[[cluster_name]]$container$height
-        if (is.character(container_height) && grepl("%$", container_height)) {
-          next
-        }
-        current_height <- get_relative_height(container_height, container_height)
-        GC_chart$x$series[[cluster_name]]$container$height <-
-          current_height - ((paddingTop + paddingBottom) / length(all_clusters))
-      }
-    }
-
-  }
-
-  # Udpate cluster dimensions
-  for (i in seq_along(update_clusters)) {
-    cluster_name <- update_clusters[i]
-
-    # Update left and right margins if provided
-    if (!is.null(margin)) {
-        GC_chart$x$series[[cluster_name]]$container$margin <-
-          merge_options(GC_chart$x$series[[cluster_name]]$container$margin, margin)
-    }
-
-    # Update width if provided
-    if (!is.null(width) && !is.null(cluster)) {
-      current_width <- recycle_at(width, i)
-      current_width <- get_relative_height(GC_chart$width, current_width)
-      GC_chart$x$series[[cluster_name]]$container$style$width <- current_width
-      GC_chart$x$series[[cluster_name]]$container$width <- current_width
-    }
-
-    # Update height if provided
-    if (!is.null(height)) {
-      if(!is.null(cluster)){
-      current_height <- recycle_at(height, i)
-      current_height <- get_relative_height(chart_height, current_height)
-      GC_chart$x$series[[cluster_name]]$container$height <- current_height
-      } else {
-        GC_chart$x$series[[cluster_name]]$container$height <- compute_size(height, length(all_clusters))
-      }
     }
   }
 
@@ -657,111 +479,22 @@ GC_scale <- function(GC_chart,
                      lineStyle = list(),
                      ...) {
   spec <- spec_args(match.call(), environment())
-  # Capture ... arguments
-  dots <- list(...)
 
   # Fail early on a padding that is no percentage or base pairs
   if (is.character(scale_break_padding)) break_padding_bp(scale_break_padding)
 
-  xMin <- NULL
-  xMax <- NULL
+  clusters <- getUpdatedClusters(chart_fields(GC_chart)$clusters, cluster)
 
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-
-  if(axis_type == "range"){
-    if(is.null(ticksFormat)){
-      ticksFormat <- ".2s"
-    }
-    # Shift the genes of each selected cluster to start at 1
-    for (clust in clusters) {
-      cluster_data <- GC_chart$x$series[[clust]]$data
-      min_start_end <- min(cluster_data$start, cluster_data$end)
-      cluster_data$start <- cluster_data$start - min_start_end + 1
-      cluster_data$end <- cluster_data$end - min_start_end + 1
-      GC_chart$x$series[[clust]]$data <- cluster_data
-      # Move the annotations with the genes, now and when added later
-      shift <- min_start_end - 1
-      GC_chart$x$series[[clust]]$sequence <- shift_sequence(
-        GC_chart$x$series[[clust]]$sequence, shift)
-      if (length(GC_chart$x$series[[clust]]$annotations) > 0) {
-        GC_chart$x$series[[clust]]$annotations <- lapply(
-          GC_chart$x$series[[clust]]$annotations, shift_annotation, shift = shift)
-      }
-      previous <- GC_chart$x$series[[clust]]$positionShift
-      GC_chart$x$series[[clust]]$positionShift <-
-        if (is.null(previous)) shift else previous + shift
-      rows <- match(cluster_data$rowID, GC_chart$x$data$rowID)
-      GC_chart$x$data$start[rows] <- cluster_data$start
-      GC_chart$x$data$end[rows] <- cluster_data$end
-    }
-    xMin <- 1
-    xMax <- max(unlist(lapply(clusters, function(clust) {
-      c(GC_chart$x$series[[clust]]$data$start, GC_chart$x$series[[clust]]$data$end)
-    })))
+  # Breaks given as a data frame, for the clusters in its cluster column
+  if (!scale_breaks && length(clusters) > 0 && is.data.frame(breaks) &&
+      !all(c("start", "end") %in% names(breaks))) {
+    stop("A data frame of breaks needs a start and an end column")
   }
 
-  for (i in seq_along(clusters)) {
-
-    subset_data <- GC_chart$x$series[[clusters[i]]]$data
-
-    # With a range axis, show one shared axis below the last cluster
-    if (axis_type == "range" && !hidden && i < length(clusters)) {
-      hidden_current <- TRUE
-    } else {
-      hidden_current <- hidden
-    }
-
-    # Compute scale breaks if required
-    if (scale_breaks) {
-      breaks_data <-
-        get_scale_breaks(subset_data,
-                         threshold_percentage = scale_break_threshold,
-                         padding = scale_break_padding)
-    } else {
-      breaks_data <- cluster_breaks(breaks, clusters[i],
-                                    GC_chart$x$series[[clusters[i]]]$positionShift)
-    }
-
-    # Default options
-    options <- list(
-      start = recycle_at(start, i),
-      end = recycle_at(end, i),
-      xMin = xMin,
-      xMax = xMax,
-      padding = padding,
-      hidden = hidden_current,
-      breaks = breaks_data,
-      tickValues = tickValues,
-      reverse = recycle_at(reverse, i),
-      axisPosition = axis_position,
-      axisType = axis_type,
-      scale_breaks = scale_breaks,
-      scale_break_threshold = scale_break_threshold,
-      scale_break_padding = scale_break_padding,
-      ticksCount = ticksCount,
-      ticksFormat = ticksFormat,
-      y = y,
-      tickStyle = tickStyle,
-      textStyle = textStyle,
-      lineStyle = lineStyle
-    )
-
-    # Add additional options
-    options <- recycle_dots(options, dots, i)
-
-    # Set scale options for each cluster
-    GC_chart$x$series[[clusters[i]]]$scale <- options
-
-  }
-
-  GC_chart <- add_spec(GC_chart, "scale", spec,
-                       rename = c(scale_breaks = "autoBreaks",
-                                  scale_break_threshold = "autoBreakThreshold",
-                                  scale_break_padding = "breakPadding"))
-
-  # Keep the clusters aligned on the gene chosen with GC_align()
-  apply_align(GC_chart)
+  add_spec(GC_chart, "scale", spec,
+           rename = c(scale_breaks = "autoBreaks",
+                      scale_break_threshold = "autoBreakThreshold",
+                      scale_break_padding = "breakPadding"))
 }
 
 #' Update Scale Bar of a GC Chart Cluster
@@ -837,23 +570,8 @@ GC_scaleBar <- function(
   if (!any(show)) {
     return(GC_chart)
   }
+  check_clusters(GC_chart, cluster)
 
-  # Capture ... arguments
-  dots <- list(...)
-
-  # Set scaleBar options for each cluster
-  GC_chart <- set_cluster_options(GC_chart, cluster, "scaleBar", function(i, series) {
-    # Default options
-    options <- list(
-      show = recycle_at(show, i),
-      scaleBarLineStyle = scaleBarLineStyle,
-      scaleBarTickStyle = scaleBarTickStyle,
-      labelStyle = labelStyle
-    )
-
-    # Add ... arguments to options
-    recycle_dots(options, dots, i)
-  })
   add_spec(GC_chart, "scaleBar", spec,
            rename = c(scaleBarLineStyle = "lineStyle", scaleBarTickStyle = "tickStyle"))
 }
@@ -971,46 +689,8 @@ GC_clusterLabel <- function(
   }
   check_align(align, per_cluster = TRUE)
   check_spacing(spacing, per_cluster = TRUE)
+  check_clusters(GC_chart, cluster)
 
-  cluster_column <- GC_chart$x$cluster
-
-  # Capture ... arguments
-  dots <- list(...)
-
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-
-  # By default, label each selected cluster with its own name
-  if(!is.null(cluster_column) && is.null(title)){
-    title <- clusters
-  }
-
-  for(i in seq_along(clusters)){
-
-    # Default options. The browser sets the cluster margin for the label from
-    # its width and position, so a theme can set them too (clusterLabelMargin())
-    options <- Filter(Negate(is.null), list(
-      title = recycle_at(title, i),
-      show = recycle_at(show, i),
-      width = recycle_at(width, i),
-      wrapLabel = wrapLabel,
-      wrapOptions = wrapOptions,
-      position = recycle_at(position, i),
-      align = recycle_at(align, i),
-      subtitle = recycle_at(subtitle, i),
-      spacing = recycle_at(spacing, i)
-    ))
-    if (length(subtitleFont) > 0) {
-      options$subtitleFont <- subtitleFont
-    }
-
-    # Add ... arguments to options
-    options <- recycle_dots(options, dots, i)
-
-    # Set clusterLabel options for each cluster
-    GC_chart$x$series[[clusters[i]]]$clusterLabel <- options
-
-  }
   add_spec(GC_chart, "clusterLabel", spec)
 }
 
@@ -1104,26 +784,8 @@ GC_clusterFooter <- function(
   }
   check_align(align, per_cluster = TRUE)
   check_spacing(spacing, per_cluster = TRUE)
+  check_clusters(GC_chart, cluster)
 
-  # Capture ... arguments
-  dots <- list(...)
-
-  # Set footer options for each cluster
-  GC_chart <- set_cluster_options(GC_chart, cluster, "footer", function(i, series) {
-    # Default options
-    options <- list(
-      title = recycle_at(title, i),
-      subtitle = recycle_at(subtitle, i),
-      show = recycle_at(show, i),
-      subtitleFont = subtitleFont,
-      titleFont = titleFont
-    )
-    options$align <- recycle_at(align, i)
-    options$spacing <- recycle_at(spacing, i)
-
-    # Add ... arguments to options
-    recycle_dots(options, dots, i)
-  })
   add_spec(GC_chart, "clusterFooter", spec)
 }
 
@@ -1216,10 +878,11 @@ GC_coordinates <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
+  state <- chart_fields(GC_chart)
   check_group_style(groupStyle)
-  check_style_by(GC_chart, style_by)
+  check_style_by(state, style_by)
   # the column groupStyle is matched against
-  if (is.null(style_by)) style_by <- GC_chart$x$group
+  if (is.null(style_by)) style_by <- state$group
   if (!is.null(groupStyle) && is.null(style_by)) {
     stop("groupStyle needs a group in GC_chart() or a style_by column")
   }
@@ -1227,32 +890,8 @@ GC_coordinates <- function(
   if (!any(show)) {
     return(GC_chart)
   }
+  getUpdatedClusters(state$clusters, cluster)
 
-  # Capture ... arguments
-  dots <- list(...)
-
-  # Set coordinates options for each cluster
-  GC_chart <- set_cluster_options(GC_chart, cluster, "coordinates", function(i, series) {
-    # Default options
-    options <- list(
-      show = recycle_at(show, i),
-      ticksFormat = ticksFormat,
-      tickStyle = tickStyle,
-      textStyle = textStyle
-    )
-    if (!is.null(groupStyle)) {
-      options$groupStyle <- groupStyle
-      options$styleBy <- style_by
-    }
-
-    # Add ... arguments to options
-    options <- recycle_dots(options, dots, i)
-
-    # Add tickvalues for each cluster
-    options$tickValuesTop <- tickValuesTop
-    options$tickValuesBottom <- tickValuesBottom
-    options
-  })
   add_spec(GC_chart, "coordinates", spec)
 }
 
@@ -1344,50 +983,8 @@ GC_cluster <- function(
   if (isTRUE(separate_strands) && !is.null(prevent_gene_overlap) &&
       !isFALSE(prevent_gene_overlap)) {
     warning("Setting both 'separate_strands' and 'prevent_gene_overlap' to TRUE is not supported. Resetting to NULL.")
-    separate_strands <- NULL
-    prevent_gene_overlap <- NULL
   }
-
-  # Update the GC_chart object with title and options for each cluster
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-
-
-  for(i in seq_along(clusters)){
-
-  # Add gene track
-  if(!is.null(prevent_gene_overlap) && !isFALSE(prevent_gene_overlap)){
-    subset_data <- GC_chart$x$series[[clusters[i]]]$data
-    subset_data <- subset_data[with(subset_data, order(-pmax(start, end), abs(end - start))), ]
-    GC_chart$x$series[[clusters[i]]]$data <- add_gene_track(
-      subset_data,
-      nested = identical(prevent_gene_overlap, "nested"),
-      overlap_min = if (is.null(overlap_min)) 0 else overlap_min
-    )
-  }
-
-  # Update style options
-  GC_chart$x$series[[clusters[i]]]$container$style <-
-    merge_options(GC_chart$x$series[[clusters[i]]]$container$style, style)
-
-  # Update cluster options
-  clusterOptions <- compact(list(
-    separateStrands = separate_strands,
-    strandSpacing = strand_spacing,
-    preventGeneOverlap = if (!is.null(prevent_gene_overlap)) !isFALSE(prevent_gene_overlap),
-    overlapSpacing = overlap_spacing,
-    ...
-  ))
-  GC_chart$x$series[[clusters[i]]]$cluster <-
-    merge_options(GC_chart$x$series[[clusters[i]]]$cluster, clusterOptions)
-
-  # Update container options
-  containerOptions <- compact(list(
-    ...
-  ))
-  GC_chart$x$series[[clusters[i]]]$container <-
-    merge_options(GC_chart$x$series[[clusters[i]]]$container, containerOptions)
-
-  }
+  check_clusters(GC_chart, cluster)
 
   add_spec(GC_chart, "cluster", spec)
 }

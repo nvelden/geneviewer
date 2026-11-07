@@ -36,7 +36,8 @@ GC_align <- function(
     id,
     align = "left") {
   spec <- spec_args(match.call(), environment())
-  if (is.null(GC_chart$x$cluster)) {
+  state <- chart_state(GC_chart)
+  if (is.null(state$cluster)) {
     warning("Could not align selected gene. Please define cluster in the GC_chart function.")
     return(GC_chart)
   }
@@ -45,62 +46,27 @@ GC_align <- function(
     stop("id and id_column must be single values")
   }
 
-  if (!(id_column %in% colnames(GC_chart$x$data))) {
+  if (!(id_column %in% colnames(state$data))) {
     warning(paste("Column", id_column, "not found in the data."))
     return(GC_chart)
   }
 
-  if (!(id %in% GC_chart$x$data[[id_column]])) {
+  if (!(id %in% state$data[[id_column]])) {
     warning(paste("ID", id, "not found in the", id_column, "column."))
     return(GC_chart)
   }
 
-  GC_chart$x$align <- list(id_column = id_column, id = id, align = align)
-  GC_chart <- add_spec(GC_chart, "align", spec, mode = "replace")
-
-  apply_align(GC_chart)
-}
-
-#' Set the scale of each cluster to the alignment stored by GC_align()
-#'
-#' Kept apart from GC_align() so GC_scale() can align the clusters again after
-#' it has replaced their scale or shifted their genes.
-#' @noRd
-apply_align <- function(GC_chart) {
-  options <- GC_chart$x$align
-  if (is.null(options)) {
-    return(GC_chart)
+  # The library sets the scale of each cluster from the alignment; it needs
+  # the gene once per cluster
+  genes <- state$data[!is.na(state$data[[id_column]]) & state$data[[id_column]] == id, ]
+  if (anyDuplicated(genes[[state$cluster]])) {
+    warning(paste("The selected gene", id, "appears multiple times in some clusters.",
+                  "Please make sure to use a unique gene id."))
+  } else if (!(is.character(align) && length(align) == 1 && align %in% c("left", "right", "center"))) {
+    warning("Alignment should be 'left', 'right', or 'center'. Defaulting to 'left'.")
   }
 
-  # Swap start and stop for reverse genes
-  data <- GC_chart$x$data
-  cluster_column <- GC_chart$x$cluster
-
-  # Get reversed clusters
-  clusters <- unique(data[[cluster_column]])
-  reversed_clusters <- clusters[sapply(clusters, function(cl) {
-    isTRUE(GC_chart$x$series[[cl]]$scale$reverse)
-  })]
-
-  swapped_indices <- data$start > data$end
-  data[swapped_indices, c("start", "end")] <- data[swapped_indices, c("end", "start")]
-
-  # The scale breaks of each cluster, left out of its range
-  breaks <- lapply(stats::setNames(nm = as.character(clusters)), function(cl) {
-    GC_chart$x$series[[cl]]$scale$breaks
-  })
-
-  adjusted_range <- adjust_range(data, cluster_column, options$id_column, options$id,
-                                 align = options$align, reversed_clusters, breaks)
-
-  for (i in seq_len(NROW(adjusted_range))) {
-    cluster <- as.character(adjusted_range[[cluster_column]][i])
-    # Set scale options for each cluster
-    GC_chart$x$series[[cluster]]$scale$start <- adjusted_range$start[i]
-    GC_chart$x$series[[cluster]]$scale$end <- adjusted_range$end[i]
-  }
-
-  return(GC_chart)
+  add_spec(GC_chart, "align", spec, mode = "replace")
 }
 
 #' Normalize Gene Clusters in a Genomic Chart
@@ -111,8 +77,7 @@ apply_align <- function(GC_chart) {
 #' lengths and to introduce customized gaps between the genes.
 #'
 #' @param GC_chart A chart object containing genomic data and clustering
-#'   information. The chart object must include a `series` component with data
-#'   for each cluster.
+#'   information, from [GC_chart()].
 #' @param group Column name containing gene names to apply custom gaps to.
 #' @param cluster A vector of cluster names to be normalized. If `NULL`, all
 #'   clusters in the `GC_chart` will be normalized.
@@ -160,30 +125,33 @@ GC_normalize <-
     custom_gaps = list()
     ) {
 
+  state <- chart_state(GC_chart)
+
   # Check if 'cluster' column exists if the cluster parameter is provided
-  if (is.null(GC_chart$x$cluster) && !is.null(cluster)) {
+  if (is.null(state$cluster) && !is.null(cluster)) {
     warning("Could not normalize selected genes. Please define cluster in the GC_chart function.")
     return(GC_chart)
   }
 
-  if (is.null(group) && !is.null(GC_chart$x$group)){
-    group <- GC_chart$x$group
+  if (is.null(group) && !is.null(state$group)){
+    group <- state$group
   }
 
   if (!is.null(group) && length(group) != 1) {
     stop("group must be a single column name")
   }
 
-  if (!is.null(group) && !(group %in% names(GC_chart$x$data))) {
+  if (!is.null(group) && !(group %in% names(state$data))) {
     stop("group column not found in data")
   }
 
-  clusters <- getUpdatedClusters(GC_chart, cluster)
+  clusters <- getUpdatedClusters(state$clusters, cluster)
+  data <- state$data
 
   for (i in seq_along(clusters)) {
 
     cluster_name <- clusters[i]
-    cluster_data <- GC_chart$x$series[[cluster_name]]$data
+    cluster_data <- cluster_rows(state, cluster_name)
 
     # Normalize genes
     if(normalize){
@@ -209,27 +177,16 @@ GC_normalize <-
       }
     }
 
-    # Update chart and cluster data
-    GC_chart$x$series[[cluster_name]]$data <- cluster_data
-    GC_chart[["x"]][["series"]][[cluster_name]][["scale"]][["xMin"]] <-
-      min(cluster_data$start, cluster_data$end)
-    GC_chart[["x"]][["series"]][[cluster_name]][["scale"]][["xMax"]] <-
-      max(cluster_data$start, cluster_data$end)
-
-    GC_chart$x$data <- update_cluster_data(GC_chart$x$data, cluster_data)
+    data <- update_cluster_data(data, cluster_data)
 
   }
 
   # The spec holds the shifted positions, also in the columns given as
   # start and end
-  if (!is.null(GC_chart$x$spec)) {
-    data <- GC_chart$x$data
-    for (field in c("start", "end")) {
-      column <- GC_chart$x$params[[field]]
-      if (!is.null(column)) data[[column]] <- data[[field]]
-    }
-    GC_chart$x$spec$data <- data
+  for (field in c("start", "end")) {
+    data[[state[[field]]]] <- data[[field]]
   }
+  GC_chart$x$spec$data <- data
 
   return(GC_chart)
 }

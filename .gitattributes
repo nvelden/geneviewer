@@ -1,0 +1,5 @@
+# The JavaScript vendored by dev/update_js.R is checked against the release's
+# SHA256SUMS (tests/testthat/test-vendored-js.R): keep it byte for byte, also
+# in checkouts on Windows
+inst/htmlwidgets/geneviewerwidget.js -text
+inst/htmlwidgets/lib/geneviewer-*/** -text

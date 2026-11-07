@@ -31,7 +31,7 @@ ITRALARLGEHAACAVRSSATAEDLPTASFAGQQDTYLNVVGPTAILQHVSRCWASLFTERAVTYRQRNG
 
 ### Materials 
 
-The FASTA files uses for the tutorial were originally downloaded from the [NCBI](https://www.ncbi.nlm.nih.gov/nuccore) website but can be downloaded directly from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Loading%20FASTA%20files) repository.
+The FASTA files used for the tutorial were originally downloaded from the [NCBI](https://www.ncbi.nlm.nih.gov/nuccore) website but can be downloaded directly from the [geneviewer-tutorials](https://github.com/nvelden/geneviewer-tutorials/tree/main/Loading%20FASTA%20files) repository.
 
 ### Loading FASTA files
 
@@ -77,9 +77,9 @@ chart <- GC_chart(
 chart
 ```
 
-### Uniprot Keywords
+### UniProt keywords
 
-We can get additional information for each gene using the `Uniprot.ws` package. We make the connection to the database using the `UniProt.ws` function. Using `keytypes(up)` we can see all the keys we can use to query the database and with `columns(up)` we can see all the different fields we can get in return. Our gene IDs are EMBL-GenBank-DDBJ_CDS identifiers. For this tutorial we want to return the keywords associated with each gene such that we can use it to group the genes based on their function.
+We can get additional information for each gene using the `UniProt.ws` package. We make the connection to the database using the `UniProt.ws` function. Using `keytypes(up)` we can see all the keys we can use to query the database and with `columns(up)` we can see all the different fields we can get in return. Our gene IDs are EMBL-GenBank-DDBJ_CDS identifiers. For this tutorial we want to return the keywords associated with each gene such that we can use it to group the genes based on their function.
 
 ```{r eval=FALSE, results='asis'}
 library(UniProt.ws)
@@ -172,7 +172,7 @@ fasta_df_with_keywords <-
 kable(head(fasta_df_with_keywords))
 ```
 
-We can now make our visual again but use the keywords to group the genes. We alter the order of the legend such that it is in alphabetical order and the Other group is placed last and finally we customize the tooltip to also show the protein Id on hoover.
+We can now make our visual again but use the keywords to group the genes. We alter the order of the legend such that it is in alphabetical order and the Other group is placed last and finally we customize the tooltip to also show the protein Id on hover.
 
 ```{r echo = TRUE, results='asis'}
 

@@ -370,7 +370,7 @@ GC_chart(
   subset(human_hox_genes, cluster %in% c("HOXA", "HOXB")),
   group = "name",
   cluster = "cluster",
-  height = "300px" 
+  height = "390px" 
   ) %>% 
   GC_labels(label = "name", adjustLabels = FALSE) %>%
   GC_labels(label = "name", 
@@ -390,9 +390,9 @@ GC_chart(
   subset(coronavirus_genomes, cluster == "SARS-CoV-2"),
   group = "category",
   cluster = "cluster",
-  height = "230px"
+  height = "380px"
   ) %>%
-  GC_cluster(prevent_gene_overlap = "nested") %>%
+  GC_cluster(prevent_gene_overlap = "nested", overlap_spacing = 20) %>%
   GC_genes(style_by = "geneTrack", groupStyle = list("2" = nested, "3" = nested)) %>%
   GC_labels("gene") %>%
   GC_zoom(range = c(0.83, 1))
@@ -1507,7 +1507,7 @@ geneviewer_palette()
 `textScale` scales all text of the chart at once, e.g. for a slide or a figure that is printed small. The title and the width of the cluster labels grow with the text.
 
 ```{r echo=TRUE, results='asis'}
-GC_chart(ophA_cluster, group = "class", height = "180px") %>%
+GC_chart(ophA_cluster, group = "class", height = "220px") %>%
   GC_title("ophA gene cluster") %>%
   GC_labels("name") %>%
   GC_theme("classic", textScale = 1.4)

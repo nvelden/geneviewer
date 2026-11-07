@@ -14,7 +14,7 @@ test_that("PNG export works with modern host colors and retains pixel density an
       const results = [];
       for (const ratio of [1, 2]) {
         Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: ratio });
-        const blob = await chartToPNG(el);
+        const blob = await HTMLWidgets.find('#' + el.id).getChart().toPNG();
         const bitmap = await createImageBitmap(blob);
         const canvas = document.createElement('canvas');
         canvas.width = bitmap.width; canvas.height = bitmap.height;

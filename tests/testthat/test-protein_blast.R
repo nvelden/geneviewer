@@ -57,10 +57,11 @@ blast_genes <- data.frame(
 
 test_that("the query cluster of BlastP results gets its own tooltip", {
   chart <- GC_chart(blast_genes, cluster = "cluster", group = "BlastP")
-  expect_match(chart$x$series$A$tooltip$formatter, "Query gene")
-  expect_no_match(chart$x$series$A$tooltip$formatter, "Identity")
-  expect_match(chart$x$series$B$tooltip$formatter, "Best hit")
-  expect_match(chart$x$series$B$tooltip$formatter, "Identity")
+  model <- compile_chart(chart)
+  expect_match(model$series$A$tooltip$formatter, "Query gene")
+  expect_no_match(model$series$A$tooltip$formatter, "Identity")
+  expect_match(model$series$B$tooltip$formatter, "Best hit")
+  expect_match(model$series$B$tooltip$formatter, "Identity")
 })
 
 test_that("tooltips leave out lines without values", {

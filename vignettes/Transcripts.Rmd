@@ -119,7 +119,7 @@ transcript_attributes <- BRCA1_splice_variants[, c("ensembl_transcript_id", "typ
 kable(head(transcript_attributes))
 ```
 
-Now that we have the start, end and strand information of the transcripts we can visualize the results using `geneviewer` and the `GC_transcript` function. Note that the intron positions are calculated based on the exon positions. To ensure the exons are recognized, the type column with the feature name must be specified and include "exon" in its name.
+Now that we have the start, end and strand information of the transcripts we can visualize the results using `geneviewer` and the `GC_transcript()` function. Note that the intron positions are calculated based on the exon positions. To ensure the exons are recognized, the type column with the feature name must be specified and include "exon" in its name.
 
 ```{r echo = TRUE, results='asis'}
 GC_chart(
@@ -135,7 +135,7 @@ GC_chart(
   )
 ```
 
-We can further customize the chart by adding a title with the transcript name and a footer with the relative abundance of each transcript. To change the color, alter the appearance of specific features, and explore many more options, see the [Get Started](https://nvelden.github.io/geneviewer/articles/geneviewer.html#transcripts) guide or the GC_transcripts documentation by running ?GC_transcripts in the console.
+We can further customize the chart by adding a title with the transcript name and a footer with the relative abundance of each transcript. To change the color, alter the appearance of specific features, and explore many more options, see the [Get Started](https://nvelden.github.io/geneviewer/articles/geneviewer.html#transcripts) guide or the `GC_transcript()` documentation by running `?GC_transcript` in the console.
 
 ```{r echo = TRUE, results='asis'}
 GC_chart(

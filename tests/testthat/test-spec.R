@@ -112,6 +112,20 @@ test_that("save_button = FALSE is a toolbar without the save button", {
   expect_identical(spec$toolbar, list(buttons = list("undo", "redo", "reset", "zoom")))
 })
 
+test_that("a later call's unnamed list replaces the earlier one (B64)", {
+  spec <- sent_x(
+    GC_chart(spec_genes, group = "group") %>%
+      GC_toolbar(buttons = "undo", icons = list(reset = "house")) %>%
+      GC_toolbar(buttons = c("undo", "redo"), icons = list(save = "download")) %>%
+      GC_legend(order = list("B", "A"), style = list(fill = "red")) %>%
+      GC_legend(order = list("A", "B"), style = list(stroke = "blue"))
+  )$spec
+  expect_identical(spec$toolbar, list(buttons = list("undo", "redo"),
+                                      icons = list(reset = "house", save = "download")))
+  expect_identical(spec$legend, list(order = list("A", "B"),
+                                     style = list(fill = "red", stroke = "blue")))
+})
+
 test_that("theme calls without a theme change the one set before", {
   spec <- sent_x(
     GC_chart(spec_genes, group = "group") %>%

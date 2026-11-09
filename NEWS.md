@@ -8,6 +8,9 @@
 - Functions that only style a chart (`GC_genes()`, `GC_labels()`, `GC_title()`, ...) no longer prepare the whole dataset to check their arguments, which adds up on large data.
 - FileSaver.js is no longer bundled: the library saves images with the browser's own download. jsonlite is now imported.
 
+### Bug fixes:
+- A second `GC_toolbar(buttons = )` or `GC_legend(order = )` call replaces the buttons or order of the first, as other options do; before, the first call's list was kept.
+
 # geneviewer 0.2.0
 
 ### New features:

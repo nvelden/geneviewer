@@ -120,7 +120,8 @@ spec_theme_renames <- list(
 #' @param rename Named character, spec names of single arguments.
 #' @param mode How a call adds to earlier calls: "append" (an entry; more
 #'   calls make an array of entries), "items" (always an array), "merge"
-#'   (merged into the one entry) or "replace".
+#'   (merged into the one entry: named lists are merged, other values replace
+#'   the old ones and NULL removes them) or "replace".
 #' @param clusters Logical, whether the `cluster` argument becomes `clusters`.
 #' @return The gene chart object.
 #' @noRd
@@ -143,7 +144,9 @@ add_spec <- function(GC_chart, key, args, rename = character(),
   new <- switch(mode,
     append = if (is.null(old)) args else c(if (is_spec_entry(old)) list(old) else old, list(args)),
     items = c(old, list(args)),
-    merge = if (is.null(old)) args else spec_entry(utils::modifyList(old, args)),
+    # utils::modifyList() would keep an old unnamed list, e.g. the buttons of
+    # GC_toolbar(); a new one replaces it (B64)
+    merge = if (is.null(old)) args else spec_entry(merge_settings(old, args, keep_null = FALSE)),
     replace = args
   )
   GC_chart$x$spec[key] <- list(new)
@@ -195,10 +198,7 @@ add_spec_zoom <- function(GC_chart, args) {
     old$min <- NULL
     GC_chart$x$spec$zoom <- spec_entry(old)
   }
-  GC_chart <- add_spec(GC_chart, "zoom", args, mode = "merge")
-  # A new range replaces the old one; utils::modifyList() keeps an unnamed list
-  if (!is.null(args$range)) GC_chart$x$spec$zoom$range <- args$range
-  GC_chart
+  add_spec(GC_chart, "zoom", args, mode = "merge")
 }
 
 #' Add a GC_element_style() call to the spec

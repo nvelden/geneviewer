@@ -365,6 +365,7 @@ add("blast-genes", list(call("protein_blast", query = "A", genes = "A1")), data 
 add("blast-sequence", list(call("protein_blast", query = 1)), data = data.frame(
   protein_id = c("a", "b", "c", "d"), cluster = c(1, 1, 2, 2), start = c(1, 10, 1, 10),
   end = c(5, 15, 5, 15), sequence = c("MKVLLAW", "MKLGGTT", "MKVLLAW", "PPPPKLGG")))
+add("blast-one-cluster", list(call("protein_blast", query = "BGC0000001")), gbk1)
 add("blast-missing-query", list(call("protein_blast", query = "Z")), data = blast_genes)
 add("blast-no-sequence", list(call("protein_blast", query = "A")), data = blast_genes[, 1:4])
 add("blast-erythromycin", list(call("protein_blast", query = "BGC0000055")),

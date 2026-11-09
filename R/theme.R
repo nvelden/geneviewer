@@ -170,7 +170,9 @@ GC_theme <- function(
 #' Settings of a Built-in Theme
 #'
 #' Returns the settings of a built-in theme of [GC_theme()], to see them or to
-#' start a theme of your own.
+#' start a theme of your own. The options of components have the names of the
+#' chart spec, e.g. `cornerRadius` and `textStyle` (for `GC_legend()`'s
+#' `corner_radius` and `legendTextOptions`); [GC_theme()] takes both.
 #'
 #' @param name Name of the theme: `"default"`, `"classic"`,
 #'   `"dark"`, `"vintage"`, `"infographic"`, `"publication"` or `"bw"`.

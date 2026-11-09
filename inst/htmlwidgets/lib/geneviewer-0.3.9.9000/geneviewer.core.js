@@ -75,7 +75,7 @@ var geneviewer = (() => {
     const style = itemStyle.find((s) => s.index === i);
     if (style) {
       for (const [key, value] of Object.entries(style)) {
-        if (!["index", "rowID", "text", "labelAdjustmentOptions", ...moveKeys].includes(key)) {
+        if (!notStyles.includes(key)) {
           currentElement.style(camelToKebab(key), value);
         }
       }
@@ -2875,8 +2875,8 @@ var geneviewer = (() => {
     const clip = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     clip.setAttribute("class", "geneviewer-zoom-clip");
     clip.setAttribute("x", this.margin.left);
-    clip.setAttribute("y", 0);
-    clip.setAttribute("width", plotWidth);
+    clip.setAttribute("y", "0");
+    clip.setAttribute("width", String(plotWidth));
     clip.setAttribute("height", this.height);
     clip.setAttribute("viewBox", `${this.margin.left} 0 ${plotWidth} ${this.height}`);
     clip.setAttribute("preserveAspectRatio", "none");
@@ -3819,7 +3819,7 @@ var geneviewer = (() => {
         },
         genes: {
           stroke: "none",
-          corner_radius: 3
+          cornerRadius: 3
         },
         transcript: {
           styleExons: {
@@ -3856,14 +3856,14 @@ var geneviewer = (() => {
           }
         },
         legend: {
-          corner_radius: 3,
-          legendTextOptions: {
+          cornerRadius: 3,
+          textStyle: {
             fill: "#464646"
           }
         },
         links: {
-          normal_color: "#5470c6",
-          inverted_color: "#ee6666",
+          normalColor: "#5470c6",
+          invertedColor: "#ee6666",
           linkStyle: {
             fillOpacity: 0.6
           },
@@ -3937,7 +3937,7 @@ var geneviewer = (() => {
         },
         genes: {
           stroke: "none",
-          corner_radius: 3
+          cornerRadius: 3
         },
         transcript: {
           styleExons: {
@@ -3974,12 +3974,12 @@ var geneviewer = (() => {
           }
         },
         legend: {
-          corner_radius: 3
+          cornerRadius: 3
         },
         links: {
-          normal_color: "#759aa0",
-          inverted_color: "#dd6b66",
-          low_color: "#333333",
+          normalColor: "#759aa0",
+          invertedColor: "#dd6b66",
+          lowColor: "#333333",
           linkStyle: {
             fillOpacity: 0.6
           },
@@ -4047,13 +4047,13 @@ var geneviewer = (() => {
           }
         },
         sequence: {
-          sequenceStyle: {
+          lineStyle: {
             stroke: "#c9c2b5"
           }
         },
         genes: {
           stroke: "none",
-          corner_radius: 3
+          cornerRadius: 3
         },
         transcript: {
           styleExons: {
@@ -4073,12 +4073,12 @@ var geneviewer = (() => {
           }
         },
         legend: {
-          corner_radius: 3
+          cornerRadius: 3
         },
         links: {
-          normal_color: "#61a0a8",
-          inverted_color: "#d87c7c",
-          low_color: "#fef8ef",
+          normalColor: "#61a0a8",
+          invertedColor: "#d87c7c",
+          lowColor: "#fef8ef",
           linkStyle: {
             fillOpacity: 0.6
           },
@@ -4143,7 +4143,7 @@ var geneviewer = (() => {
         },
         genes: {
           stroke: "none",
-          corner_radius: 3
+          cornerRadius: 3
         },
         transcript: {
           styleExons: {
@@ -4180,14 +4180,14 @@ var geneviewer = (() => {
           }
         },
         legend: {
-          corner_radius: 3,
-          legendTextOptions: {
+          cornerRadius: 3,
+          textStyle: {
             fill: "#464646"
           }
         },
         links: {
-          normal_color: "#27727B",
-          inverted_color: "#C1232B",
+          normalColor: "#27727B",
+          invertedColor: "#C1232B",
           linkStyle: {
             fillOpacity: 0.6
           },
@@ -4265,7 +4265,7 @@ var geneviewer = (() => {
         genes: {
           stroke: "black",
           strokeWidth: 0.75,
-          corner_radius: 3
+          cornerRadius: 3
         },
         transcript: {
           styleExons: {
@@ -4309,18 +4309,18 @@ var geneviewer = (() => {
           }
         },
         legend: {
-          corner_radius: 2,
-          legendOptions: {
+          cornerRadius: 2,
+          markerStyle: {
             stroke: "black",
             strokeWidth: 0.75
           },
-          legendTextOptions: {
+          textStyle: {
             fontSize: "9.33px"
           }
         },
         links: {
-          normal_color: "#0072B2",
-          inverted_color: "#D55E00",
+          normalColor: "#0072B2",
+          invertedColor: "#D55E00",
           linkStyle: {
             fillOpacity: 0.6
           },
@@ -4414,7 +4414,7 @@ var geneviewer = (() => {
         genes: {
           stroke: "black",
           strokeWidth: 0.75,
-          corner_radius: 3
+          cornerRadius: 3
         },
         transcript: {
           styleExons: {
@@ -4452,14 +4452,14 @@ var geneviewer = (() => {
           }
         },
         legend: {
-          corner_radius: 3,
-          legendTextOptions: {
+          cornerRadius: 3,
+          textStyle: {
             fill: "black"
           }
         },
         links: {
-          normal_color: "#bdbdbd",
-          inverted_color: "#525252",
+          normalColor: "#bdbdbd",
+          invertedColor: "#525252",
           colorBarOptions: {
             barOptions: {
               stroke: "#555555"
@@ -5626,7 +5626,7 @@ var geneviewer = (() => {
     if (!isNamedList(options)) return options;
     return Object.fromEntries(Object.entries(options).map(([name, value]) => [snakeToCamel(name), value]));
   }
-  function themeNames(theme2) {
+  function rendererNames(theme2) {
     const out = { ...theme2 };
     for (const name of Object.keys(out)) {
       if (name === "annotations") {
@@ -5634,7 +5634,7 @@ var geneviewer = (() => {
           out[name] = Object.fromEntries(Object.entries(out[name]).map(([type, o]) => [type, camelCaseNames(o)]));
         }
       } else if (name in THEME_COMPONENTS) {
-        out[name] = camelCaseNames(out[name]);
+        out[name] = renameOptions(camelCaseNames(out[name]), THEME_NAMES[name]);
       }
     }
     return out;
@@ -5659,7 +5659,7 @@ var geneviewer = (() => {
       if (!(name in builtinThemes)) {
         throw new Error(`name must be one of: ${Object.keys(builtinThemes).map((t) => `"${t}"`).join(", ")}`);
       }
-      base = themeNames(clone(builtinThemes[name]));
+      base = rendererNames(clone(builtinThemes[name]));
     }
     for (const name2 of Object.keys(settings)) {
       if (name2 in THEME_NAMES) settings[name2] = renameOptions(settings[name2], THEME_NAMES[name2]);
@@ -7118,8 +7118,8 @@ var geneviewer = (() => {
     const height = Math.ceil(elRect.height - (band ? band.height : 0));
     const root = document.createElementNS(ns, "svg");
     root.setAttribute("xmlns", ns);
-    root.setAttribute("width", width);
-    root.setAttribute("height", height);
+    root.setAttribute("width", String(width));
+    root.setAttribute("height", String(height));
     root.setAttribute("viewBox", `0 0 ${width} ${height}`);
     const addBackground = (parent, x, y, w, h, color2) => {
       if (!color2 || color2 === "transparent" || color2 === "rgba(0, 0, 0, 0)") return;
@@ -7159,13 +7159,16 @@ var geneviewer = (() => {
       const top = rect.top - elRect.top;
       const y = top - shiftOf(top);
       addBackground(root, x, y, rect.width, rect.height, svgStyle.backgroundColor);
-      const clone2 = svg.cloneNode(true);
+      const clone2 = (
+        /** @type {SVGSVGElement} */
+        svg.cloneNode(true)
+      );
       clone2.removeAttribute("style");
       clone2.removeAttribute("class");
-      clone2.setAttribute("x", x);
-      clone2.setAttribute("y", y);
-      clone2.setAttribute("width", rect.width);
-      clone2.setAttribute("height", rect.height);
+      clone2.setAttribute("x", String(x));
+      clone2.setAttribute("y", String(y));
+      clone2.setAttribute("width", String(rect.width));
+      clone2.setAttribute("height", String(rect.height));
       const sources = svg.querySelectorAll("*");
       const targets = clone2.querySelectorAll("*");
       const computedStyles = /* @__PURE__ */ new Map([[svg, copyStyles(svg, clone2, null)]]);
@@ -7178,7 +7181,10 @@ var geneviewer = (() => {
         }
         if (source.closest("defs")) return;
         target.removeAttribute("class");
-        computedStyles.set(source, copyStyles(source, target, computedStyles.get(source.parentNode)));
+        computedStyles.set(source, copyStyles(source, target, computedStyles.get(
+          /** @type {Element} */
+          source.parentNode
+        )));
       });
       if (band && top < band.bottom - 0.5) {
         Array.from(svg.children).forEach((part, i) => {
@@ -7235,7 +7241,7 @@ var geneviewer = (() => {
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4e4);
   }
-  function createSaveIcon(widgetId, el, container2, iconClass = null, save = downloadBlob) {
+  function createSaveIcon(widgetId, el, container2, iconClass, download) {
     var saveMenu = d3.select(container2).append("div").attr("id", `saveMenu-${widgetId}`).style("position", "relative").style("z-index", "1000").style("display", "block");
     var icon = saveMenu.append(iconClass ? "i" : "span").attr("class", (iconClass ? iconClass + " " : "") + "geneviewer-save-icon").attr("id", `saveIcon-${widgetId}`).attr("tabindex", "0").attr("role", "button").attr("aria-label", "Save chart").attr("aria-haspopup", "menu").style("text-align", "right").style("cursor", "pointer");
     if (!iconClass) appendIcon(icon, "download");
@@ -7244,19 +7250,12 @@ var geneviewer = (() => {
       options.style("display", "none");
     };
     var formats = [
-      {
-        label: "Save as SVG",
-        save: function() {
-          var svg = chartToSVG(el, container2);
-          save(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "graph.svg");
-        }
-      },
-      {
-        label: "Save as PNG",
-        save: function() {
-          return chartToPNG(el, container2).then((blob) => save(blob, "graph.png"));
-        }
-      }
+      { label: "Save as SVG", save: function() {
+        return download("svg");
+      } },
+      { label: "Save as PNG", save: function() {
+        return download("png");
+      } }
     ];
     formats.forEach(function(format) {
       options.append("div").attr("class", "save-option").attr("tabindex", "0").attr("role", "menuitem").text(format.label).style("padding", "5px 8px").style("cursor", "pointer").on("click", function() {
@@ -7282,7 +7281,7 @@ var geneviewer = (() => {
   }
 
   // src/lib/chart.js
-  var version = "0.3.8";
+  var version = "0.3.9";
   var renderSequence = 0;
   var chartCount = 0;
   var activeShortcuts = null;
@@ -7303,6 +7302,7 @@ var geneviewer = (() => {
   }).join(", ");
   var toolbarButtons = ["undo", "redo", "reset", "zoom", "save"];
   var eventNames = ["click", "dblclick", "select", "selection", "drag", "dragmove", "moves", "zoom", "rendered"];
+  var eventOption = { selection: "select", dragmove: "drag", moves: "drag" };
   var samePosition = function(a, b) {
     return !!a && !!b && Math.abs(a.moveX - b.moveX) < 0.01 && Math.abs(a.moveY - b.moveY) < 0.01;
   };
@@ -7646,12 +7646,16 @@ var geneviewer = (() => {
       var matrix = parent.getScreenCTM();
       if (!matrix) return null;
       var ns = "http://www.w3.org/2000/svg";
-      var overlay = el.querySelector(".geneviewer-move-overlay");
+      var overlay = (
+        /** @type {SVGSVGElement} */
+        el.querySelector(".geneviewer-move-overlay")
+      );
       if (!overlay) {
-        overlay = document.createElementNS(ns, "svg");
+        overlay = /** @type {SVGSVGElement} */
+        document.createElementNS(ns, "svg");
         overlay.setAttribute("class", "geneviewer-move-overlay");
-        overlay.setAttribute("width", el.clientWidth);
-        overlay.setAttribute("height", el.clientHeight);
+        overlay.setAttribute("width", String(el.clientWidth));
+        overlay.setAttribute("height", String(el.clientHeight));
         overlay.setAttribute("viewBox", `0 0 ${el.clientWidth} ${el.clientHeight}`);
         Object.assign(overlay.style, {
           position: "absolute",
@@ -7696,7 +7700,7 @@ var geneviewer = (() => {
     };
     var syncLegendFrames = function() {
       el.querySelectorAll(".geneviewer-move-overlay [data-part]").forEach(function(node) {
-        if (node.__home__) node.parentNode.classList.toggle("unselected", node.__home__.classList.contains("unselected"));
+        if (node.__home__) node.parentElement.classList.toggle("unselected", node.__home__.classList.contains("unselected"));
       });
     };
     var liftMovedElements = function() {
@@ -8059,6 +8063,7 @@ var geneviewer = (() => {
       updateToolbar(nodes);
     };
     var restoreLocalMoves = function() {
+      if (!Object.keys(localMoves).length) return;
       var nodes = movableNodes();
       Object.keys(localMoves).forEach(function(key) {
         if (nodes[key]) placeAt(nodes[key], localMoves[key]);
@@ -8231,7 +8236,9 @@ var geneviewer = (() => {
         });
         if (save) zoomGroup.append("span").attr("class", "geneviewer-toolbar-divider");
       }
-      if (save) createSaveIcon(widgetId, el, toolbar2.node(), customIcon("save"), options.saveAs);
+      if (save) createSaveIcon(widgetId, el, toolbar2.node(), customIcon("save"), function(format) {
+        return chart2.download(format);
+      });
     };
     var hovered = null;
     var setHovered = function(node) {
@@ -8304,13 +8311,15 @@ var geneviewer = (() => {
     var zoomMode = function() {
       return zoomOptions?.mode === "absolute" ? "absolute" : "relative";
     };
-    var initialZoom = function() {
-      var range = zoomOptions?.range;
+    var zoomWindow = function(range) {
       if (!Array.isArray(range) || range.length !== 2) return null;
       range = range.slice().sort(function(a, b) {
         return a - b;
       });
       return zoomMode() === "relative" && range[0] <= 0 && range[1] >= 1 ? null : range;
+    };
+    var initialZoom = function() {
+      return zoomWindow(zoomOptions?.range);
     };
     var toTrack = function(value) {
       return (value - zoomTrack[0]) / (zoomTrack[1] - zoomTrack[0]);
@@ -8446,17 +8455,18 @@ var geneviewer = (() => {
       zoomDrag.part = part;
       zoomDrag.shares = shares;
     };
+    var shiftShares = function(s, part, delta, min) {
+      if (part === "start") return [Math.max(0, Math.min(s[1] - min, s[0] + delta)), s[1]];
+      if (part === "end") return [s[0], Math.min(1, Math.max(s[0] + min, s[1] + delta))];
+      var shift = Math.max(-s[0], Math.min(1 - s[1], delta));
+      return [s[0] + shift, s[1] + shift];
+    };
     var moveZoomDrag = function(event) {
       if (!zoomDrag || event.pointerId !== zoomDrag.id) return;
       event.preventDefault();
       var delta = (event.clientX - zoomDrag.left) / zoomDrag.width - zoomDrag.at;
-      var s = zoomDrag.shares, min = minShare();
-      var next = zoomDrag.part === "start" ? [Math.max(0, Math.min(s[1] - min, s[0] + delta)), s[1]] : zoomDrag.part === "end" ? [s[0], Math.min(1, Math.max(s[0] + min, s[1] + delta))] : (function() {
-        var shift = Math.max(-s[0], Math.min(1 - s[1], delta));
-        return [s[0] + shift, s[1] + shift];
-      })();
       zoomDrag.moved = true;
-      changeZoom(next);
+      changeZoom(shiftShares(zoomDrag.shares, zoomDrag.part, delta, minShare()));
     };
     var endZoomDrag = function(event) {
       if (!zoomDrag || event.pointerId !== void 0 && event.pointerId !== zoomDrag.id) return;
@@ -8474,8 +8484,7 @@ var geneviewer = (() => {
       var step2 = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[event.key];
       var next = null;
       if (step2) {
-        var delta = step2 * (event.shiftKey ? 0.1 : 0.01);
-        next = part === "start" ? [Math.max(0, Math.min(s[1] - min, s[0] + delta)), s[1]] : part === "end" ? [s[0], Math.min(1, Math.max(s[0] + min, s[1] + delta))] : [s[0] + Math.max(-s[0], Math.min(1 - s[1], delta)), s[1] + Math.max(-s[0], Math.min(1 - s[1], delta))];
+        next = shiftShares(s, part, step2 * (event.shiftKey ? 0.1 : 0.01), min);
       } else if (event.key === "Home") {
         next = part === "end" ? [s[0], Math.min(1, s[0] + min)] : part === "start" ? [0, s[1]] : [0, s[1] - s[0]];
       } else if (event.key === "End") {
@@ -8574,9 +8583,9 @@ var geneviewer = (() => {
           var chart3 = item.chart;
           var svgBox = chart3.svg.node().getBoundingClientRect(), svgScale = svgBox.width / chart3.width || 1;
           var rect = document.createElementNS(ns, "rect");
-          rect.setAttribute("x", (svgBox.left + chart3.margin.left * svgScale - box.left) / scale2);
-          rect.setAttribute("y", 0);
-          rect.setAttribute("width", (chart3.width - chart3.margin.left - chart3.margin.right) * svgScale / scale2);
+          rect.setAttribute("x", String((svgBox.left + chart3.margin.left * svgScale - box.left) / scale2));
+          rect.setAttribute("y", "0");
+          rect.setAttribute("width", String((chart3.width - chart3.margin.left - chart3.margin.right) * svgScale / scale2));
           rect.setAttribute("height", svg.getAttribute("height"));
           clipPath.appendChild(rect);
         });
@@ -8593,10 +8602,7 @@ var geneviewer = (() => {
     };
     var zoomTo = function(range) {
       if (destroyed || !zoomOptions) return;
-      zoomRange = Array.isArray(range) && range.length === 2 ? range.slice().sort(function(a, b) {
-        return a - b;
-      }) : null;
-      if (zoomRange && zoomMode() === "relative" && zoomRange[0] <= 0 && zoomRange[1] >= 1) zoomRange = null;
+      zoomRange = zoomWindow(range);
       redrawZoom(true);
       reportZoom("set");
     };
@@ -8762,16 +8768,17 @@ var geneviewer = (() => {
       makeColorBar(graphContainer2, links2, theme2, legendColorBar !== null);
       clipZoomLinks();
     };
+    var drawWithMoves = function() {
+      draw();
+      addLinks();
+      liftMovedElements();
+      restoreLocalMoves();
+      wireEvents();
+      checkMoves();
+    };
     var redraw = function() {
       var focused = zoomBar && zoomBar.contains(document.activeElement) ? document.activeElement.getAttribute("data-zoom-part") : null;
-      keepScroll(function() {
-        draw();
-        addLinks();
-        liftMovedElements();
-        restoreLocalMoves();
-        wireEvents();
-        checkMoves();
-      });
+      keepScroll(drawWithMoves);
       if (focused && zoomBar) zoomBar.querySelector('[data-zoom-part="' + focused + '"]')?.focus({ preventScroll: true });
     };
     var chartData = function(input) {
@@ -8834,11 +8841,7 @@ var geneviewer = (() => {
       theme2 = input.theme ?? {};
       events2 = input.events ?? {};
       size = input.size ?? {};
-      draw();
-      addLinks();
-      liftMovedElements();
-      wireEvents();
-      checkMoves();
+      drawWithMoves();
       reportZoom("render");
       if (events2.rendered === true) {
         var detail = {
@@ -8876,6 +8879,12 @@ var geneviewer = (() => {
       on: function(name, handler) {
         if (!eventNames.includes(name)) throw new Error("Unknown event: " + name);
         (handlers2[name] = handlers2[name] || []).push(handler);
+        queueMicrotask(function() {
+          var option = eventOption[name] || name;
+          if (!destroyed && events2[option] !== true) {
+            warnOnce('chart.on("' + name + '") reports nothing without events: { ' + option + ": true }.");
+          }
+        });
         return function() {
           chart2.off(name, handler);
         };
@@ -8936,7 +8945,7 @@ var geneviewer = (() => {
         if (zoomFrame) cancelAnimationFrame(zoomFrame);
         if (activeShortcuts === onShortcut) activeShortcuts = null;
         handlers2 = {};
-        [
+        var listeners = [
           ["click", onCaptureClick, true],
           ["click", syncLegendFrames],
           ["pointerdown", markActive, true],
@@ -8947,7 +8956,8 @@ var geneviewer = (() => {
           ["pointerdown", startDrag],
           ["mousemove", onMouseMove],
           ["mouseleave", onMouseLeave]
-        ].forEach(function(l) {
+        ];
+        listeners.forEach(function(l) {
           el.removeEventListener(l[0], l[1], l[2]);
         });
         d3.select(el).on("mouseleave", null).selectAll("*").remove();
@@ -8965,7 +8975,8 @@ var geneviewer = (() => {
       }
     };
     Object.keys(options.on || {}).forEach(function(name) {
-      chart2.on(name, options.on[name]);
+      if (!eventNames.includes(name)) throw new Error("Unknown event: " + name);
+      (handlers2[name] = handlers2[name] || []).push(options.on[name]);
     });
     drawSpec(spec);
     return chart2;

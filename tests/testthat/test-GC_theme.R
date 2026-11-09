@@ -279,3 +279,39 @@ test_that("the lines of spread labels take the line colour and their own options
   expect_equal(line_of("publication"), list(stroke = "black", strokeWidth = 0.75))
   expect_equal(line_of("bw"), list(stroke = "#555555", strokeWidth = 1))
 })
+
+test_that("built-in themes use the spec's names, and GC_theme() takes the old ones too", {
+  # No snake_case or renderer names in the settings of a built-in theme
+  for (name in c("default", "classic", "dark", "vintage", "infographic", "publication", "bw")) {
+    theme <- geneviewer_theme(name)
+    for (component in intersect(names(theme), theme_components)) {
+      keys <- names(theme[[component]])
+      expect_false(any(grepl("_", keys)), info = paste(name, component))
+      expect_false(any(keys %in% names(spec_theme_renames[[component]])), info = paste(name, component))
+    }
+  }
+  classic <- geneviewer_theme("classic")
+  expect_equal(classic$genes$cornerRadius, 3)
+  expect_equal(classic$legend$textStyle, list(fill = "#464646"))
+  expect_equal(classic$links$normalColor, "#5470c6")
+
+  # A theme of your own from a built-in one draws as the built-in one
+  expect_equal(theme_js(classic), compile_chart(GC_theme(chart, "classic"))$theme)
+
+  # Old names give the same chart as new names
+  old <- theme_js(list(genes = list(corner_radius = 5), links = list(normal_color = "red"),
+                       legend = list(legendTextOptions = list(fill = "red"))))
+  new <- theme_js(list(genes = list(cornerRadius = 5), links = list(normalColor = "red"),
+                       legend = list(textStyle = list(fill = "red"))))
+  expect_equal(old, new)
+
+  # An old name added to a built-in theme's new one: one option, the old name's
+  # value merged in last
+  mixed <- utils::modifyList(classic, list(legend = list(legendTextOptions = list(fontSize = "20px"))))
+  spec <- GC_theme(chart, mixed)$x$spec$theme
+  expect_equal(spec$legend$textStyle, list(fill = "#464646", fontSize = "20px"))
+  expect_equal(sum(names(spec$legend) == "textStyle"), 1)
+  js <- theme_js(mixed)
+  expect_equal(js$legendOptions$legendTextOptions$fontSize, "20px")
+  expect_equal(js$legendOptions$legendTextOptions$fill, "#464646")
+})

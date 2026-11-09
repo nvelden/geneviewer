@@ -275,6 +275,15 @@ spec_theme_names <- function(settings) {
         hit <- names(options) %in% names(renames)
         names(options)[hit] <- renames[names(options)[hit]]
       }
+      # An option given under both names, e.g. a built-in theme's textStyle and
+      # a legendTextOptions added to it: one option, the later one merged in
+      if (anyDuplicated(names(options))) {
+        merged <- list()
+        for (i in seq_along(options)) {
+          merged <- merge_settings(merged, options[i], keep_null = TRUE)
+        }
+        options <- merged
+      }
       settings[[name]] <- options
     }
   }

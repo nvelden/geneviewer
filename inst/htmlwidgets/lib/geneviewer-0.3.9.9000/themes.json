@@ -118,7 +118,7 @@
       },
       "genes": {
         "stroke": "none",
-        "corner_radius": 3
+        "cornerRadius": 3
       },
       "transcript": {
         "styleExons": {
@@ -155,14 +155,14 @@
         }
       },
       "legend": {
-        "corner_radius": 3,
-        "legendTextOptions": {
+        "cornerRadius": 3,
+        "textStyle": {
           "fill": "#464646"
         }
       },
       "links": {
-        "normal_color": "#5470c6",
-        "inverted_color": "#ee6666",
+        "normalColor": "#5470c6",
+        "invertedColor": "#ee6666",
         "linkStyle": {
           "fillOpacity": 0.6
         },
@@ -236,7 +236,7 @@
       },
       "genes": {
         "stroke": "none",
-        "corner_radius": 3
+        "cornerRadius": 3
       },
       "transcript": {
         "styleExons": {
@@ -273,12 +273,12 @@
         }
       },
       "legend": {
-        "corner_radius": 3
+        "cornerRadius": 3
       },
       "links": {
-        "normal_color": "#759aa0",
-        "inverted_color": "#dd6b66",
-        "low_color": "#333333",
+        "normalColor": "#759aa0",
+        "invertedColor": "#dd6b66",
+        "lowColor": "#333333",
         "linkStyle": {
           "fillOpacity": 0.6
         },
@@ -346,13 +346,13 @@
         }
       },
       "sequence": {
-        "sequenceStyle": {
+        "lineStyle": {
           "stroke": "#c9c2b5"
         }
       },
       "genes": {
         "stroke": "none",
-        "corner_radius": 3
+        "cornerRadius": 3
       },
       "transcript": {
         "styleExons": {
@@ -372,12 +372,12 @@
         }
       },
       "legend": {
-        "corner_radius": 3
+        "cornerRadius": 3
       },
       "links": {
-        "normal_color": "#61a0a8",
-        "inverted_color": "#d87c7c",
-        "low_color": "#fef8ef",
+        "normalColor": "#61a0a8",
+        "invertedColor": "#d87c7c",
+        "lowColor": "#fef8ef",
         "linkStyle": {
           "fillOpacity": 0.6
         },
@@ -442,7 +442,7 @@
       },
       "genes": {
         "stroke": "none",
-        "corner_radius": 3
+        "cornerRadius": 3
       },
       "transcript": {
         "styleExons": {
@@ -479,14 +479,14 @@
         }
       },
       "legend": {
-        "corner_radius": 3,
-        "legendTextOptions": {
+        "cornerRadius": 3,
+        "textStyle": {
           "fill": "#464646"
         }
       },
       "links": {
-        "normal_color": "#27727B",
-        "inverted_color": "#C1232B",
+        "normalColor": "#27727B",
+        "invertedColor": "#C1232B",
         "linkStyle": {
           "fillOpacity": 0.6
         },
@@ -564,7 +564,7 @@
       "genes": {
         "stroke": "black",
         "strokeWidth": 0.75,
-        "corner_radius": 3
+        "cornerRadius": 3
       },
       "transcript": {
         "styleExons": {
@@ -608,18 +608,18 @@
         }
       },
       "legend": {
-        "corner_radius": 2,
-        "legendOptions": {
+        "cornerRadius": 2,
+        "markerStyle": {
           "stroke": "black",
           "strokeWidth": 0.75
         },
-        "legendTextOptions": {
+        "textStyle": {
           "fontSize": "9.33px"
         }
       },
       "links": {
-        "normal_color": "#0072B2",
-        "inverted_color": "#D55E00",
+        "normalColor": "#0072B2",
+        "invertedColor": "#D55E00",
         "linkStyle": {
           "fillOpacity": 0.6
         },
@@ -713,7 +713,7 @@
       "genes": {
         "stroke": "black",
         "strokeWidth": 0.75,
-        "corner_radius": 3
+        "cornerRadius": 3
       },
       "transcript": {
         "styleExons": {
@@ -751,14 +751,14 @@
         }
       },
       "legend": {
-        "corner_radius": 3,
-        "legendTextOptions": {
+        "cornerRadius": 3,
+        "textStyle": {
           "fill": "black"
         }
       },
       "links": {
-        "normal_color": "#bdbdbd",
-        "inverted_color": "#525252",
+        "normalColor": "#bdbdbd",
+        "invertedColor": "#525252",
         "colorBarOptions": {
           "barOptions": {
             "stroke": "#555555"

@@ -5,6 +5,7 @@
 - `gbk_features_to_df()` and `read_fasta()` now give the full span of spliced genes whose exons are listed from right to left, as in `join(complement(5441..5600),complement(5095..5373))` (common in fungal and other eukaryotic GenBank files). `gbk_features_to_df()` took the first and the last number, so the gene was drawn reversed and too short, and `read_fasta()` kept only the first exon. A location crossing the origin of a circular genome now keeps its first part in `gbk_features_to_df()` too, as in `read_fasta()`.
 - `read_bed()` reads BED12 files in which every row has one block; it stopped with "non-character argument".
 - `read_fasta()` skips an empty FASTA file with the warning of a file without keys, instead of an internal error message.
+- `protein_blast()` with only the query cluster (e.g. one GenBank file) gives each gene as its own hit; before, R crashed, because pwalign was given nothing to align.
 
 # geneviewer 0.2.0
 

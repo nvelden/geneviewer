@@ -307,13 +307,20 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
   protein_combinations_alignment <- protein_combinations_all[protein_combinations_all$cluster1 != protein_combinations_all$cluster2, ]
   protein_combinations_query <- protein_combinations_all[protein_combinations_all$rowID.x == protein_combinations_all$rowID.y, ]
 
-  alignments <- pwalign::pairwiseAlignment(pattern = protein_combinations_alignment$translation1,
-                                              subject = protein_combinations_alignment$translation2,
-                                              scoreOnly = FALSE)
+  # With only the query cluster there is nothing to align; pwalign crashes
+  # R when given no sequences
+  if (nrow(protein_combinations_alignment) > 0) {
+    alignments <- pwalign::pairwiseAlignment(pattern = protein_combinations_alignment$translation1,
+                                                subject = protein_combinations_alignment$translation2,
+                                                scoreOnly = FALSE)
 
-  # The aligned sequences of all alignments, with gaps
-  patterns <- as.character(pwalign::pattern(alignments))
-  subjects <- as.character(pwalign::subject(alignments))
+    # The aligned sequences of all alignments, with gaps
+    patterns <- as.character(pwalign::pattern(alignments))
+    subjects <- as.character(pwalign::subject(alignments))
+  } else {
+    patterns <- character()
+    subjects <- character()
+  }
 
   identity_df <- compute_identity(patterns, subjects)
 

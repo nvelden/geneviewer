@@ -94,3 +94,19 @@ test_that("tooltips leave out lines without values", {
   expect_no_match(tips$BB2, "Identity|Similarity")
   expect_match(tips$BB2, "Location: 200 - 350")
 })
+
+test_that("protein_blast works with only the query cluster (B67)", {
+  skip_if_not_installed("Biostrings")
+  skip_if_not_installed("pwalign")
+
+  # pwalign crashed R when there was nothing to align
+  genes <- data.frame(protein_id = c("a", "b"), cluster = "A", start = c(1, 10),
+                      end = c(5, 15), translation = c("MKV", "MKL"))
+  result <- protein_blast(genes, query = "A")
+  expect_equal(result$identity, c(100, 100))
+  expect_equal(result$BlastP, c("No Hit", "No Hit"))
+
+  gbk <- protein_blast(system.file("extdata", "BGC0000001.gbk", package = "geneviewer"),
+                       query = "BGC0000001")
+  expect_true(all(gbk$identity == 100))
+})

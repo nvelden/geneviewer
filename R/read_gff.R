@@ -4,7 +4,8 @@
 #' combines them into a single data frame.
 #'
 #' @param path A character string specifying the directory containing GFF files
-#'   or the file path to a single GFF file.
+#'   (`.gff`, `.gff2`, `.gff3` or `.gtf`) or the file path to a single GFF
+#'   file.
 #' @param fields An optional vector of character strings specifying the fields
 #'   to extract from the GFF files.
 #'
@@ -14,6 +15,12 @@
 #'   single GFF file. It processes each file, extracts the specified fields (if
 #'   provided), adds a 'name' column with the filename, and combines the data
 #'   frames from all files into one.
+#'
+#'   Each attribute becomes a character column. GFF3 attributes are read as
+#'   `key=value` pairs; GTF and GFF2 attributes, rows without any `=`, as
+#'   `key "value"` pairs, without the quotes. A key repeated in one row, such
+#'   as `tag` in GTF files, keeps all its values joined with `","`, as GFF3
+#'   writes several values of one key (`Dbxref=GeneID:1,UniProt:P1`).
 #'
 #' @examples
 #' gff_file <- system.file("extdata", "HQ113105.1.gff3", package = "geneviewer")
@@ -34,7 +41,8 @@
 #' @export
 read_gff <- function(path, fields = NULL){
 
-  data <- read_tables(path, "\\.gff3?$", "gff", function(file) process_gff(file, fields))
+  data <- read_tables(path, "\\.(gff[23]?|gtf)$", "gff or .gtf",
+                      function(file) process_gff(file, fields))
 
   if(!is.null(fields)){
     invalid_fields <- setdiff(fields, names(data))
@@ -106,7 +114,17 @@ parse_attributes <- function(info) {
   pairs <- trimws(strsplit(info, ";", fixed = TRUE)[[1]], which = "left")
   pairs <- pairs[pairs != ""]
 
-  # Split each pair at the first '='; a key without '=' gets NA
+  # GTF and GFF2: key "value" pairs, in rows without any '=' (B48)
+  if (!any(grepl("=", pairs, fixed = TRUE)) && any(grepl("\\s", pairs))) {
+    pairs <- trimws(pairs)
+    has_value <- grepl("\\s", pairs)
+    keys <- ifelse(has_value, sub("\\s.*$", "", pairs), pairs)
+    values <- ifelse(has_value, sub("^\\S+\\s+", "", pairs), NA_character_)
+    values <- sub('^"(.*)"$', "\\1", values)
+    return(data.frame(key = keys, value = values, stringsAsFactors = FALSE))
+  }
+
+  # GFF3: split each pair at the first '='; a key without '=' gets NA
   has_value <- grepl("=", pairs, fixed = TRUE)
   keys <- trimws(ifelse(has_value, sub("=.*$", "", pairs), pairs))
   values <- ifelse(has_value, url_decode(sub("^[^=]*=", "", pairs)), NA_character_)

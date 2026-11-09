@@ -1,3 +1,8 @@
+# geneviewer (development version)
+
+### Bug fixes:
+- `read_gff()` reads GTF and GFF2 files: attributes written as `key "value"` become columns without the quotes, and folders are searched for `.gtf` and `.gff2` files too. A key repeated in one row (e.g. `tag` in GTF, or `Dbxref` twice) keeps its values joined with `","`, as GFF3 writes several values of one key; before, every attribute column of the file became a list column, with a warning. `read_fasta()` joins repeated `[key=value]` fields the same way.
+
 # geneviewer 0.2.0
 
 ### New features:

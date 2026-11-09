@@ -17,3 +17,4 @@ inst/.DS_Store
 CRAN-SUBMISSION
 dev/BUGLIST.md
 .Renviron
+tests/testthat/testthat-problems.rds

@@ -10,15 +10,13 @@
 ^_pkgdown\.yml$
 ^pkgdown$
 ^docs/$
-^doc/$
 ^LICENSE\.md$
-^README\.Rmd$
 ^\.github$
 ^vignettes/Examples\.Rmd$
 ^vignettes/geneviewer\.Rmd$
 ^vignettes/LoadFastaFiles\.Rmd$
 ^vignettes/LoadGenBankFiles\.Rmd$
-^vignettes/BlASTP\.Rmd$
+^vignettes/BLASTP\.Rmd$
 ^vignettes/MUMMER\.Rmd$
 ^vignettes/LoadGFF\.Rmd$
 ^vignettes/Transcripts\.Rmd$

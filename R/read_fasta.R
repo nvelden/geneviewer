@@ -116,17 +116,7 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
 
       # Check if 'location' column exists and then extract start and end positions
       if ("location" %in% colnames(df)) {
-        all_matches <- regmatches(df$location, gregexpr("[0-9]+", df$location))
-
-        # Start and end span all parts of split locations such as
-        # join(1..100,200..300). Parts that are not in order (crossing the
-        # origin of a circular genome, trans-splicing) keep the first part.
-        location_range <- function(x) {
-          x <- as.numeric(x)
-          if (length(x) < 2) return(c(NA_real_, NA_real_))
-          if (is.unsorted(x)) x[1:2] else range(x)
-        }
-        ranges <- vapply(all_matches, location_range, numeric(2))
+        ranges <- vapply(df$location, location_span, numeric(2), USE.NAMES = FALSE)
         start_end_df <- data.frame(start = ranges[1, ], end = ranges[2, ])
 
         # Bind start and end columns to the data frame

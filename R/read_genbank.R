@@ -150,8 +150,9 @@ gbk_features_to_df <- function(gbk_list, feature = "CDS", keys = NULL, process_r
                "forward")
       )
 
-      df$start <- as.numeric(sub("[^0-9]*(\\d+)\\.\\..*$", "\\1", df$region))
-      df$end <- as.numeric(gsub(".*\\.\\.[^0-9]*([0-9]+).*", "\\1", df$region))
+      coords <- lapply(df$region, location_span)
+      df$start <- vapply(coords, `[`, numeric(1), 1)
+      df$end <- vapply(coords, `[`, numeric(1), 2)
     }
 
     # Append the df to df_list

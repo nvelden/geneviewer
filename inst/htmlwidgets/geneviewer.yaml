@@ -1,13 +1,13 @@
 dependencies:
   - name: geneviewerwidget
-    version: 0.3.9.9000
+    version: 0.3.10
     src: htmlwidgets
     script: geneviewerwidget.js
   - name: geneviewer
-    version: 0.3.9.9000
+    version: 0.3.10
     src: htmlwidgets
-    script: ./lib/geneviewer-0.3.9.9000/geneviewer.core.js
-    stylesheet: ./lib/geneviewer-0.3.9.9000/geneviewer.css
+    script: ./lib/geneviewer-0.3.10/geneviewer.core.js
+    stylesheet: ./lib/geneviewer-0.3.10/geneviewer.css
   - name: D3
     version: 7.8.5
     src: htmlwidgets

@@ -8,7 +8,8 @@ read_gff(path, fields = NULL)
 }
 \arguments{
 \item{path}{A character string specifying the directory containing GFF files
-or the file path to a single GFF file.}
+(\code{.gff}, \code{.gff2}, \code{.gff3} or \code{.gtf}) or the file path to a single GFF
+file.}
 
 \item{fields}{An optional vector of character strings specifying the fields
 to extract from the GFF files.}
@@ -25,6 +26,12 @@ This function can read multiple GFF files from a directory or a
 single GFF file. It processes each file, extracts the specified fields (if
 provided), adds a 'name' column with the filename, and combines the data
 frames from all files into one.
+
+Each attribute becomes a character column. GFF3 attributes are read as
+\code{key=value} pairs; GTF and GFF2 attributes, rows without any \code{=}, as
+\verb{key "value"} pairs, without the quotes. A key repeated in one row, such
+as \code{tag} in GTF files, keeps all its values joined with \code{","}, as GFF3
+writes several values of one key (\verb{Dbxref=GeneID:1,UniProt:P1}).
 }
 \examples{
 gff_file <- system.file("extdata", "HQ113105.1.gff3", package = "geneviewer")

@@ -40,7 +40,8 @@ read_bed <- function(path){
 
 #' @noRd
 block_to_numeric <- function(x) {
-  as.numeric(unlist(strsplit(x, ",")))
+  # A column of single blocks is read as numbers (B65)
+  as.numeric(unlist(strsplit(as.character(x), ",")))
 }
 
 #' @noRd

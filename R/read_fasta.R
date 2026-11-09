@@ -72,7 +72,8 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
       matches[bracketed] <- gregexpr(bracket_pattern, fasta_headers[bracketed], perl = TRUE)
       matches[!bracketed] <- gregexpr("(\\w+)=(.*?)(?=\\s+\\w+=|$)", fasta_headers[!bracketed], perl = TRUE)
 
-      no_matches <- which(sapply(matches, function(x) any(x == -1)))
+      # vapply(): an empty file has no matches, not an error (B66)
+      no_matches <- which(vapply(matches, function(x) any(x == -1), logical(1)))
 
       if (length(sequences) == length(no_matches)) {
         warning(sprintf("No keys found in '%s'. Make sure the fasta headers are in the right format. Skipping file.", cluster_name))

@@ -18,3 +18,9 @@ CRAN-SUBMISSION
 dev/BUGLIST.md
 .Renviron
 tests/testthat/testthat-problems.rds
+
+# Internal planning: plans, roadmap, step reports, reviews and proposals stay local
+docs/plans/
+docs/roadmap.md
+docs/*REVIEW*.md
+docs/internal/

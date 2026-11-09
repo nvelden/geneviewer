@@ -20,3 +20,14 @@ test_that("BED directives and comments do not drop earlier tracks", {
   expect_equal(bed$name, c("first", "second"))
   expect_equal(bed$chromStart, c(1, 21))
 })
+
+test_that("BED12 files whose rows all have one block are read (B65)", {
+  file <- tempfile(fileext = ".bed")
+  on.exit(unlink(file))
+  writeLines(c("chr1\t0\t100\ta\t0\t+\t0\t100\t0\t1\t100\t0",
+               "chr1\t200\t300\tb\t0\t-\t200\t300\t0\t1\t100\t0"), file)
+  bed <- read_bed(file)
+  expect_equal(bed$blockSizes, list(100, 100))
+  expect_equal(bed$blockStarts, list(1, 1))
+  expect_equal(bed$chromStart, c(1, 201))
+})

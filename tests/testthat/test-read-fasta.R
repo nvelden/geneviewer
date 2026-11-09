@@ -147,3 +147,9 @@ test_that("read_fasta gives the same result as Biostrings", {
                      info = basename(file))
   }
 })
+
+test_that("read_fasta skips an empty file with the warning of a file without keys (B66)", {
+  file <- write_fasta(character())
+  expect_warning(result <- read_fasta(file), "No keys found in")
+  expect_identical(nrow(result), 0L)
+})

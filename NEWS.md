@@ -2,6 +2,7 @@
 
 ### Bug fixes:
 - `read_gff()` reads GTF and GFF2 files: attributes written as `key "value"` become columns without the quotes, and folders are searched for `.gtf` and `.gff2` files too. A key repeated in one row (e.g. `tag` in GTF, or `Dbxref` twice) keeps its values joined with `","`, as GFF3 writes several values of one key; before, every attribute column of the file became a list column, with a warning. `read_fasta()` joins repeated `[key=value]` fields the same way.
+- `gbk_features_to_df()` and `read_fasta()` now give the full span of spliced genes whose exons are listed from right to left, as in `join(complement(5441..5600),complement(5095..5373))` (common in fungal and other eukaryotic GenBank files). `gbk_features_to_df()` took the first and the last number, so the gene was drawn reversed and too short, and `read_fasta()` kept only the first exon. A location crossing the origin of a circular genome now keeps its first part in `gbk_features_to_df()` too, as in `read_fasta()`.
 
 # geneviewer 0.2.0
 

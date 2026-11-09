@@ -119,6 +119,34 @@ test_that("read_gbk keeps qualifier values intact (B04)", {
   expect_equal(unname(cds[[2]]["product"]), "(R)-3-hydroxybutyryl-CoA dehydrogenase")
 })
 
+test_that("read_gbk uses the full span of spliced genes on the minus strand (B57)", {
+  gbk_lines <- c(
+    "LOCUS       DEMO01                 32000 bp    DNA     linear   PLN 01-JAN-2024",
+    "FEATURES             Location/Qualifiers",
+    "     CDS             join(complement(5441..5600),complement(5095..5373),",
+    "                     complement(5024..5040))",
+    "                     /locus_tag=\"DEMO_0001\"",
+    "     CDS             complement(join(6915..7069,7157..7232))",
+    "                     /locus_tag=\"DEMO_0002\"",
+    "     CDS             join(<10..120,200..>300)",
+    "                     /locus_tag=\"DEMO_0003\"",
+    "     CDS             join(30883..31317,1..108)",
+    "                     /locus_tag=\"DEMO_0004\"",
+    "     CDS             complement(120..920)",
+    "                     /locus_tag=\"DEMO_0005\"",
+    "ORIGIN",
+    "        1 atgaaacgca",
+    "//"
+  )
+  gbk_file <- tempfile(fileext = ".gbk")
+  writeLines(gbk_lines, gbk_file)
+
+  df <- gbk_features_to_df(read_gbk(gbk_file), keys = c("region", "locus_tag"))
+  expect_equal(df$start, c(5024, 6915, 10, 30883, 120))
+  expect_equal(df$end, c(5600, 7232, 300, 31317, 920))
+  expect_equal(df$strand, c("complement", "complement", "forward", "forward", "complement"))
+})
+
 test_that("read_bed converts BED coordinates like rtracklayer (B05)", {
   bed_file <- tempfile(fileext = ".bed")
   writeLines(c(
@@ -225,12 +253,13 @@ test_that("read_fasta uses the full span of join() locations (B08)", {
     ">X_1 [gene=ORF1ab] [location=join(266..13468,13468..21555)]", "MKTAYIAKQR",
     ">X_2 [gene=ARV1] [location=complement(join(6915..7069,7157..7232,8571..8666))]", "MSDNELLKRL",
     ">X_3 [gene=abc] [location=complement(<1..2247)]", "MSDNELLKRL",
-    ">X_4 [gene=ori] [location=join(30883..31317,1..108)]", "MSDNELLKRL"
+    ">X_4 [gene=ori] [location=join(30883..31317,1..108)]", "MSDNELLKRL",
+    ">X_5 [gene=BDH2] [location=join(complement(5441..5600),complement(5095..5373))]", "MSDNELLKRL"
   ), fasta_file)
   fasta <- read_fasta(fasta_file, sequence = FALSE)
-  expect_equal(fasta$start, c(266, 6915, 1, 30883))
-  expect_equal(fasta$end, c(21555, 8666, 2247, 31317))
-  expect_equal(fasta$strand, c("forward", "complement", "complement", "forward"))
+  expect_equal(fasta$start, c(266, 6915, 1, 30883, 5095))
+  expect_equal(fasta$end, c(21555, 8666, 2247, 31317, 5600))
+  expect_equal(fasta$strand, c("forward", "complement", "complement", "forward", "complement"))
 })
 
 test_that("genbank_to_fasta writes one FASTA record per GenBank record (B19)", {

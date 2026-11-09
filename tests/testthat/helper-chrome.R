@@ -1,3 +1,7 @@
+# What a drawn chart does (the editor, label placement, zoom, sizing, ...) is
+# tested in geneviewer-js, test/behaviour/. Chrome is used here for the render
+# model R's settings give (compile_chart()) and for the real htmlwidgets page.
+
 # Whether this run must run every test that needs a prerequisite: set by the
 # contract job in CI, where a missing prerequisite is a failure, not a skip
 tests_required <- function() {

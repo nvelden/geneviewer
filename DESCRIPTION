@@ -44,7 +44,6 @@ Suggests:
     Biostrings,
     chromote,
     digest,
-    htmltools,
     jsonvalidate,
     testthat (>= 3.2.0),
     withr

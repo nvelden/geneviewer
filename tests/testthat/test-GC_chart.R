@@ -1428,74 +1428,12 @@ test_that("GC_color takes colorScheme with a named list of customColors (B53)", 
   expect_identical(unchanged, chart)
 })
 
-test_that("a title of the default height is not cut off (B54)", {
-  genes <- data.frame(start = c(10, 50), end = c(40, 80), group = c("A", "B"))
-  file <- tempfile(fileext = ".html")
-  # An 18px title with descenders (g, y, p)
-  chart <- GC_chart(genes, group = "group", height = "150px") %>%
-    GC_title("Gypsy group") %>%
-    GC_theme("classic")
-  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
-
-  session <- chrome_page(file)
-  overflow <- session$Runtime$evaluate("
-    (() => {
-      const svg = document.querySelector('[id^=geneviewer-title-container] svg');
-      const text = svg.querySelector('text');
-      return text.getBoundingClientRect().bottom - svg.getBoundingClientRect().bottom;
-    })()")$result$value
-
-  expect_lte(overflow, 0)
-})
-
-test_that("the legend of a chart with a fixed width is not scaled down (B55)", {
-  genes <- data.frame(start = c(10, 50), end = c(40, 80), group = c("A", "B"))
-  file <- tempfile(fileext = ".html")
-  chart <- GC_chart(genes, group = "group", width = "600px", height = "150px")
-  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
-
-  # A window much wider than the chart
-  session <- chrome_page(file, width = 1600, height = 600)
-  scale <- session$Runtime$evaluate("
-    (() => {
-      const svg = document.querySelector('[id^=geneviewer-legend-container] svg');
-      return svg.getBoundingClientRect().width / svg.viewBox.baseVal.width;
-    })()")$result$value
-
-  expect_equal(scale, 1)
-})
-
 test_that("GC_legend() sends align and checks it", {
   chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
   expect_equal(compile_chart(GC_legend(chart, align = "center"))$legend$align, "center")
   expect_null(compile_chart(GC_legend(chart))$legend$align)
   expect_error(GC_legend(chart, align = "middle"), "align must be")
   expect_error(GC_legend(chart, align = c("left", "right")), "align must be")
-})
-
-test_that("GC_legend(align = ) aligns the legend rows left, centre or right", {
-  genes <- data.frame(start = c(10, 50, 90), end = c(40, 80, 120), group = c("A", "B", "C"))
-  # Space between the legend items and the left and right edges of the legend
-  margins <- sapply(c("left", "center", "right"), function(align) {
-    file <- tempfile(fileext = ".html")
-    chart <- GC_chart(genes, group = "group", width = "600px", height = "150px") %>%
-      GC_legend(align = align)
-    htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
-    session <- chrome_page(file)
-    unlist(session$Runtime$evaluate("
-      (() => {
-        const svg = document.querySelector('[id^=geneviewer-legend-container] svg');
-        const items = svg.querySelectorAll('.legend');
-        const box = svg.getBoundingClientRect();
-        const left = Math.min(...[...items].map(d => d.getBoundingClientRect().left));
-        const right = Math.max(...[...items].map(d => d.getBoundingClientRect().right));
-        return [left - box.left, box.right - right];
-      })()", returnByValue = TRUE)$result$value)
-  })
-
-  expect_lt(margins[1, "left"], margins[2, "left"])
-  expect_lt(margins[2, "right"], margins[1, "right"])
-  expect_equal(margins[1, "center"], margins[2, "center"], tolerance = 0.1)
 })
 
 test_that("GC_title(), GC_clusterTitle() and GC_clusterFooter() send align and check it", {
@@ -1518,32 +1456,6 @@ test_that("GC_title(), GC_clusterTitle() and GC_clusterFooter() send align and c
   expect_error(GC_clusterFooter(chart, title = "Footer", align = 1), "align must be")
 })
 
-test_that("a cluster footer is aligned like the cluster title, beside a cluster label (B56)", {
-  genes <- data.frame(start = c(10, 50), end = c(40, 80), group = c("A", "B"))
-  # Left and right edges of the cluster title and the footer
-  edges <- lapply(c(left = "left", right = "right"), function(align) {
-    file <- tempfile(fileext = ".html")
-    chart <- GC_chart(genes, group = "group", width = "600px", height = "200px") %>%
-      GC_clusterLabel("Cluster") %>%
-      GC_clusterTitle(title = "Title", align = align) %>%
-      GC_clusterFooter(title = "Footer", align = align)
-    htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
-    session <- chrome_page(file)
-    session$Runtime$evaluate("
-      (() => {
-        const box = text => {
-          const node = [...document.querySelectorAll('text')].find(d => d.textContent === text);
-          const rect = node.getBoundingClientRect();
-          return { left: rect.left, right: rect.right };
-        };
-        return { title: box('Title'), footer: box('Footer') };
-      })()", returnByValue = TRUE)$result$value
-  })
-
-  expect_equal(edges$left$footer$left, edges$left$title$left, tolerance = 0.01)
-  expect_equal(edges$right$footer$right, edges$right$title$right, tolerance = 0.01)
-})
-
 test_that("GC_clusterLabel() sends align and checks it", {
   chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class")
   labelled <- GC_clusterLabel(chart, align = c("left", "right"))
@@ -1551,64 +1463,6 @@ test_that("GC_clusterLabel() sends align and checks it", {
   expect_equal(unname(sapply(labelled_model$series, function(s) s$clusterLabel$align)), c("left", "right"))
   expect_null(compile_chart(GC_clusterLabel(chart))$series[[1]]$clusterLabel$align)
   expect_error(GC_clusterLabel(chart, align = "middle"), "align must be")
-})
-
-test_that("GC_clusterLabel(align = ) lines up the lines of a label in its margin", {
-  genes <- data.frame(start = c(10, 50), end = c(40, 80), group = c("A", "B"))
-  # Left and right edges of each line of a wrapped label, and of the margin
-  edges <- lapply(c(left = "left", center = "center", right = "right"), function(align) {
-    file <- tempfile(fileext = ".html")
-    chart <- GC_chart(genes, group = "group", width = "600px", height = "200px") %>%
-      GC_clusterLabel("A long cluster name wrapped", width = "120px", align = align)
-    htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
-    session <- chrome_page(file)
-    session$Runtime$evaluate("
-      (() => {
-        const lines = [...document.querySelectorAll('tspan.wrap-line')]
-          .filter(d => d.closest('text').textContent.startsWith('A long'))
-          .map(d => d.getBoundingClientRect());
-        const svg = lines.length && document.querySelector('tspan.wrap-line').ownerSVGElement.getBoundingClientRect();
-        return { left: lines.map(d => d.left - svg.left), right: lines.map(d => d.right - svg.left) };
-      })()", returnByValue = TRUE)$result$value
-  })
-
-  expect_gt(length(edges$left$left), 1)
-  # Left: all lines start at the left edge; right: all end at the margin (120px);
-  # centre: the lines are centred in the margin. The boxes of the letters stick
-  # out a pixel or so past where the text starts, depending on the font
-  expect_lt(max(abs(unlist(edges$left$left) - 0)), 2)
-  expect_lt(max(abs(unlist(edges$right$right) - 120)), 2)
-  mid <- (unlist(edges$center$left) + unlist(edges$center$right)) / 2
-  expect_lt(max(abs(mid - 60)), 2)
-})
-
-test_that("a wrapped cluster label keeps <i> styles over its lines", {
-  genes <- data.frame(start = c(10, 50), end = c(40, 80), group = c("A", "B"))
-  file <- tempfile(fileext = ".html")
-  chart <- GC_chart(genes, group = "group", width = "600px", height = "200px") %>%
-    GC_clusterLabel("pQEB1_inv3 <i>Enterobacter cloacae ECL-21</i>", width = "120px",
-                    wrapOptions = list(splitOnHyphen = FALSE))
-  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
-  session <- chrome_page(file)
-  label <- session$Runtime$evaluate("
-    (() => {
-      const text = [...document.querySelectorAll('text')]
-        .find(d => d.textContent.startsWith('pQEB1'));
-      const lines = [...text.querySelectorAll('tspan.wrap-line')];
-      return {
-        lines: lines.map(d => d.textContent),
-        italic: [...text.querySelectorAll('tspan.wrap-line tspan')]
-          .map(d => [d.textContent, getComputedStyle(d).fontStyle])
-      };
-    })()", returnByValue = TRUE)$result$value
-
-  lines <- unlist(label$lines)
-  expect_gt(length(lines), 1)
-  expect_false(any(grepl("<|>", lines)))
-  expect_equal(paste(lines, collapse = " "), "pQEB1_inv3 Enterobacter cloacae ECL-21")
-  styles <- setNames(sapply(label$italic, `[[`, 2), trimws(sapply(label$italic, `[[`, 1)))
-  expect_equal(unname(styles["pQEB1_inv3"]), "normal")
-  expect_true(all(styles[c("Enterobacter", "cloacae", "ECL-21")] == "italic"))
 })
 
 test_that("GC_clusterLabel() sends a subtitle, its font and spacing per cluster", {
@@ -1645,57 +1499,6 @@ test_that("GC_title(), GC_clusterTitle() and GC_clusterFooter() take spacing", {
   expect_error(GC_clusterFooter(chart, "Title", spacing = NA), "spacing must be")
 })
 
-test_that("a cluster label subtitle sits below the title, centred together on the cluster", {
-  genes <- data.frame(start = c(10, 50), end = c(40, 80), group = c("A", "B"))
-  # Middle of each line (from its y and dy) and the bounding boxes of the title
-  # and subtitle
-  label_lines <- function(chart) {
-    file <- tempfile(fileext = ".html")
-    htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
-    session <- chrome_page(file)
-    session$Runtime$evaluate("
-      (() => {
-        const texts = [...document.querySelectorAll('text[dominant-baseline=central]')];
-        const middles = t => [...t.querySelectorAll('tspan.wrap-line')].map(l =>
-          parseFloat(l.getAttribute('y')) +
-          parseFloat(l.getAttribute('dy')) * parseFloat(getComputedStyle(t).fontSize));
-        return texts.map(t => ({
-          text: t.textContent, middles: middles(t),
-          top: t.getBoundingClientRect().top, bottom: t.getBoundingClientRect().bottom,
-          fontStyle: getComputedStyle(t).fontStyle, fontWeight: getComputedStyle(t).fontWeight
-        }));
-      })()", returnByValue = TRUE)$result$value
-  }
-  chart <- GC_chart(genes, group = "group", width = "600px", height = "200px")
-
-  # Without a subtitle the label is on the middle of the cluster
-  middle <- label_lines(chart %>% GC_clusterLabel("pQEB1"))[[1]]$middles[[1]]
-
-  # Default spacing: 1.2 times the mean font size of 12px and 11px
-  label <- label_lines(chart %>%
-    GC_clusterLabel("pQEB1", subtitle = "E. cloacae", subtitleFont = list(fontStyle = "italic")))
-  expect_length(label, 2)
-  title <- label[[1]]
-  subtitle <- label[[2]]
-  expect_equal(subtitle$text, "E. cloacae")
-  expect_equal(subtitle$fontStyle, "italic")
-  expect_equal(subtitle$fontWeight, "400")
-  expect_equal(subtitle$middles[[1]] - title$middles[[1]], 1.2 * (12 + 11) / 2, tolerance = 1e-6)
-  expect_equal((title$middles[[1]] + subtitle$middles[[1]]) / 2, middle, tolerance = 1e-6)
-  expect_gt(subtitle$top, title$top)
-
-  # A wrapped title: the subtitle is spacing below its last line
-  label <- label_lines(chart %>%
-    GC_clusterLabel("A long cluster name wrapped", subtitle = "E. cloacae",
-                    width = "100px", spacing = 20))
-  title_middles <- unlist(label[[1]]$middles)
-  subtitle_middle <- label[[2]]$middles[[1]]
-  expect_gt(length(title_middles), 1)
-  expect_equal(subtitle_middle - max(title_middles), 20, tolerance = 1e-6)
-  expect_equal((min(title_middles) + subtitle_middle) / 2, middle, tolerance = 1e-6)
-  expect_gte(label[[2]]$top, label[[1]]$bottom - 1)
-})
-
 test_that("GC_links() sends vmin and vmax and checks them", {
   genes <- data.frame(cluster = c("A", "B"), start = c(1, 1), end = c(100, 100))
   links <- data.frame(cluster1 = "A", start1 = 1, end1 = 100,
@@ -1711,30 +1514,6 @@ test_that("GC_links() sends vmin and vmax and checks them", {
   expect_error(GC_links(chart, data = links, vmin = 90, vmax = 80), "smaller")
   expect_error(GC_links(chart, data = links, vmin = 100), "smaller")
   expect_error(GC_links(chart, data = links, vmin = "a"), "single numbers")
-})
-
-test_that("links fade from nearly white at vmin to the link colour at vmax", {
-  genes <- data.frame(cluster = c("A", "B"), start = c(1, 1), end = c(400, 400))
-  links <- data.frame(cluster1 = "A", start1 = c(1, 101, 201, 301), end1 = c(90, 190, 290, 390),
-                      cluster2 = "B", start2 = c(1, 101, 201, 301), end2 = c(90, 190, 290, 390),
-                      identity = c(40, 60, 80, 100))
-  file <- tempfile(fileext = ".html")
-  chart <- GC_chart(genes, cluster = "cluster", height = "300px") %>%
-    GC_links(data = links, vmin = 60, vmax = 100, normal_color = "#000000")
-  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
-
-  session <- chrome_page(file)
-  res <- session$Runtime$evaluate("
-    JSON.stringify({
-      fills: [...document.querySelectorAll('path.GeneLink')].map(p => p.style.fill),
-      labels: [...document.querySelectorAll('.color-bar text')].map(t => t.textContent)
-    })")$result$value
-  res <- jsonlite::fromJSON(res)
-
-  # 10% black on white is rgb(230, 230, 230); 40 is clamped to vmin
-  expect_equal(res$fills, c("rgb(230, 230, 230)", "rgb(230, 230, 230)",
-                            "rgb(115, 115, 115)", "rgb(0, 0, 0)"))
-  expect_true(all(c("60%", "100%") %in% res$labels))
 })
 
 test_that("GC_scale with a range axis moves the annotations with the genes", {
@@ -1861,33 +1640,6 @@ test_that("GC_labels and GC_genes match groupStyle against style_by", {
                "single column name")
 })
 
-test_that("each GC_links() call labels its links with its own options (B47)", {
-  genes <- data.frame(cluster = rep(c("A", "B"), each = 2), start = c(1, 201, 1, 201),
-                      end = c(150, 350, 150, 350), name = rep(c("a", "b"), 2),
-                      identity = c(NA, NA, 90, 70))
-  labels <- function(chart) {
-    file <- tempfile(fileext = ".html")
-    htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
-    session <- chrome_page(file)
-    res <- session$Runtime$evaluate("
-      JSON.stringify([...document.querySelectorAll('.link-text')].map(t =>
-        ({ text: t.textContent, fill: t.style.fill, id: t.id })))")$result$value
-    jsonlite::fromJSON(res)
-  }
-  base <- GC_chart(genes, cluster = "cluster", group = "name", height = "300px")
-
-  res <- labels(base %>%
-    GC_links("name", value1 = "a", value2 = "a", labelStyle = list(fill = "red")) %>%
-    GC_links("name", value1 = "b", value2 = "b", labelStyle = list(fill = "blue")))
-  expect_equal(res$text, c("90%", "70%"))
-  expect_equal(res$fill, c("red", "blue"))
-  expect_false(anyDuplicated(res$id) > 0)
-
-  # a gene in two link sets gets one label
-  res <- labels(base %>% GC_links("name") %>% GC_links("name"))
-  expect_equal(res$text, c("90%", "70%"))
-})
-
 test_that("GC_events sets the click events and checks its arguments", {
   genes <- data.frame(start = c(1, 50), end = c(40, 90))
   expect_null(compile_chart(GC_chart(genes))$events)
@@ -1895,88 +1647,4 @@ test_that("GC_events sets the click events and checks its arguments", {
   expect_equal(compile_chart(GC_events(GC_chart(genes), highlight = TRUE))$events$highlight, TRUE)
   expect_error(GC_events(GC_chart(genes), click = "yes"), "TRUE or FALSE")
   expect_error(GC_events(GC_chart(genes), highlight = NA), "TRUE or FALSE")
-})
-
-# A chart with every component, for the data-component and click tests
-events_chart <- function(events = FALSE) {
-  genes <- data.frame(
-    cluster = rep(c("A", "B"), each = 2), start = c(1, 201, 1, 201),
-    end = c(150, 350, 150, 350), name = rep(c("a", "b"), 2),
-    identity = c(NA, NA, 90, 70)
-  )
-  chart <- GC_chart(genes, cluster = "cluster", group = "name", height = "500px") %>%
-    GC_title("Chart title") %>%
-    GC_clusterTitle(title = c("Title A", "Title B")) %>%
-    GC_clusterFooter(title = c("Footer A", "Footer B")) %>%
-    GC_clusterLabel() %>%
-    GC_labels("name") %>%
-    GC_coordinates() %>%
-    GC_scale(hidden = FALSE) %>%
-    GC_scaleBar() %>%
-    GC_annotation(cluster = "A", type = "text", text = "note", x = 100, y = 80) %>%
-    GC_links("name")
-  if (events) chart <- GC_events(chart, highlight = TRUE)
-  file <- tempfile(fileext = ".html")
-  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
-  file
-}
-
-test_that("every part of the chart is marked with data-component", {
-  session <- chrome_page(events_chart())
-  res <- jsonlite::fromJSON(session$Runtime$evaluate("
-    JSON.stringify({
-      components: [...new Set([...document.querySelectorAll('[data-component]')]
-        .map(e => e.getAttribute('data-component')))].sort(),
-      clusters: [...document.querySelectorAll('[data-cluster]')].map(e => e.getAttribute('data-cluster')),
-      highlight: document.querySelector('.geneviewer').classList.contains('geneviewer-highlight')
-    })")$result$value)
-
-  expect_setequal(res$components, c(
-    "annotations", "clusterFooter", "clusterLabel", "clusterTitle", "coordinates",
-    "genes", "labels", "legend", "links", "scale", "scaleBar", "sequence", "title"
-  ))
-  expect_equal(res$clusters, c("A", "B"))
-  # without GC_events() nothing is highlighted
-  expect_false(res$highlight)
-})
-
-test_that("GC_events reports the clicked part, cluster and data to Shiny", {
-  session <- chrome_page(events_chart(events = TRUE))
-  # Render the chart again as in Shiny, with setInputValue recorded
-  res <- jsonlite::fromJSON(session$Runtime$evaluate("
-    (() => {
-      window.clicks = [];
-      window.Shiny = { setInputValue: (name, value, opts) => clicks.push({ name, value, opts }) };
-      HTMLWidgets.shinyMode = true;
-      const el = document.querySelector('.geneviewer');
-      const x = JSON.parse(document.querySelector('script[data-for=\"' + el.id + '\"]').textContent).x;
-      HTMLWidgets.find('#' + el.id).renderValue(x);
-      const click = (selector) => document.querySelector(selector)
-        .dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      click('[data-cluster=\"B\"] .gene');
-      click('[data-cluster=\"A\"] text.label');
-      click('.legend');
-      click('[data-cluster=\"A\"] [data-component=\"scale\"] text');
-      click('path.GeneLink');
-      return JSON.stringify({
-        id: el.id,
-        highlight: el.classList.contains('geneviewer-highlight'),
-        clicks: clicks.map(c => ({ name: c.name, priority: c.opts.priority,
-          component: c.value.component, cluster: c.value.cluster,
-          data: c.value.data === null ? null : JSON.stringify(c.value.data) }))
-      });
-    })()")$result$value)
-
-  clicks <- res$clicks
-  expect_equal(clicks$name, rep(paste0(res$id, "_click"), 5))
-  expect_true(all(clicks$priority == "event"))
-  expect_equal(clicks$component, c("genes", "labels", "legend", "scale", "links"))
-  expect_equal(clicks$cluster, c("B", "A", NA, "A", NA))
-  expect_equal(jsonlite::fromJSON(clicks$data[1])$name, "a")
-  expect_equal(jsonlite::fromJSON(clicks$data[2])$name, "a")
-  expect_equal(jsonlite::fromJSON(clicks$data[3]), "a")
-  # the scale reports no data (d3 binds tick values to its ticks)
-  expect_true(is.na(clicks$data[4]))
-  expect_equal(jsonlite::fromJSON(clicks$data[5])$cluster1, "A")
-  expect_true(res$highlight)
 })

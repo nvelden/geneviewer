@@ -75,25 +75,4 @@ test_that("genes and labels can be styled by their track", {
     GC_labels("name", style_by = "geneTrack", groupStyle = list("2" = list(fontSize = "8px")))
   expect_identical(compile_chart(chart)$series[[1]]$genes$styleBy, "geneTrack")
   expect_error(GC_genes(chart, style_by = "track"), "style_by must be")
-
-  file <- tempfile(fileext = ".html")
-  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
-  session <- chrome_page(file, width = 800, height = 300)
-  result <- session$Runtime$evaluate("
-    (() => {
-      const genes = Array.from(document.querySelectorAll('.gene'));
-      const labels = Array.from(document.querySelectorAll('text.label'));
-      const height = name => genes.find(g => g.__data__.name === name).getBBox().height;
-      const font = name => labels.find(t => t.textContent === name).style.fontSize;
-      return JSON.stringify({ B: height('B'), B2: height('B2'), B3: height('B3'),
-                              fontB: font('B'), fontB2: font('B2') });
-    })()
-  ")
-  expect_null(result$exceptionDetails)
-  value <- jsonlite::fromJSON(result$result$value)
-  # The genes of the second track are drawn smaller, the others as before
-  expect_lt(value$B2, value$B)
-  expect_equal(value$B3, value$B)
-  expect_equal(value$fontB2, "8px")
-  expect_false(identical(value$fontB, "8px"))
 })

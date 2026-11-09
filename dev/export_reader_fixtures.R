@@ -20,6 +20,9 @@
 #
 # Types: character, integer, numeric, logical, factor (with levels) and
 # list (of numeric vectors). NA and NaN are null.
+#
+# Also protein_blast() and mummer_alignment(), for the alignment of the
+# Python package (the mummer-* cases need MUMmer in the PATH).
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 1 || !dir.exists(args[[1]])) {
@@ -349,6 +352,48 @@ for (name in names(introns)) {
   add(paste0("introns-", gsub("_", "-", name)), list(call("get_introns")), data = introns[[name]])
 }
 
+# Alignment (protein_blast, mummer_alignment) ----------------------------------
+
+blast_genes <- data.frame(
+  protein_id = c("A1", "A2", "B1", "B2"), cluster = c("A", "A", "B", "B"),
+  start = c(1, 200, 1, 200), end = c(150, 350, 150, 350),
+  translation = c("MKTAYIAKQRQISFVKSHFSRQ", "MSDNELLKRLGEAVLAHPTTG",
+                  "MKTAYIAKQRQISFVKSHFSRQ", "MLPGGRTSWVQEHCDKAYNIF")
+)
+add("blast-example", list(call("protein_blast", query = "A")), data = blast_genes)
+add("blast-genes", list(call("protein_blast", query = "A", genes = "A1")), data = blast_genes)
+add("blast-sequence", list(call("protein_blast", query = 1)), data = data.frame(
+  protein_id = c("a", "b", "c", "d"), cluster = c(1, 1, 2, 2), start = c(1, 10, 1, 10),
+  end = c(5, 15, 5, 15), sequence = c("MKVLLAW", "MKLGGTT", "MKVLLAW", "PPPPKLGG")))
+add("blast-missing-query", list(call("protein_blast", query = "Z")), data = blast_genes)
+add("blast-no-sequence", list(call("protein_blast", query = "A")), data = blast_genes[, 1:4])
+add("blast-erythromycin", list(call("protein_blast", query = "BGC0000055")),
+    data = erythromycin_BlastP[, c("protein_id", "region", "translation", "cluster",
+                                   "strand", "start", "end")])
+
+# Two clusters made from BGC0000001: its GenBank file, and its sequence
+# rearranged (the second half first) with every 50th base changed
+mm_fasta <- readLines(genbank_to_fasta(system.file("extdata", "BGC0000001.gbk", package = "geneviewer"),
+                                       output_dir = tempdir()))
+mm_seq <- strsplit(paste(mm_fasta[-1], collapse = ""), "")[[1]]
+mm_n <- length(mm_seq)
+mm_b <- c(mm_seq[(mm_n %/% 2 + 1):mm_n], mm_seq[1:(mm_n %/% 2)])
+mm_at <- seq(25, mm_n, by = 50)
+mm_b[mm_at] <- c(A = "C", C = "G", G = "T", T = "A")[mm_b[mm_at]]
+dir.create(file.path(inputs, "mummer"))
+file.copy(system.file("extdata", "BGC0000001.gbk", package = "geneviewer"), file.path(inputs, "mummer", "A.gbk"))
+put("mummer/B.fasta", c(">B rearranged", paste(mm_b, collapse = "")))
+put("mummer/C.fasta", c(">C", paste(mm_b[1:(mm_n %/% 3)], collapse = "")))
+for (seqtype in c("nucleotide", "protein")) {
+  for (maptype in c("many-to-many", "one-to-one")) {
+    add(paste("mummer", seqtype, maptype, sep = "-"),
+        list(call("mummer_alignment", cluster = c("A", "B", "C"), seqtype = seqtype, maptype = maptype)),
+        "inputs/mummer")
+  }
+}
+add("mummer-missing", list(call("mummer_alignment", cluster = c("A", "Z"))), "inputs/mummer")
+add("mummer-one-cluster", list(call("mummer_alignment", cluster = "A")), "inputs/mummer")
+
 # Run ---------------------------------------------------------------------------
 
 setwd(out)
@@ -382,7 +427,7 @@ for (name in names(cases)) {
     result <- table_json(result)
   }
   calls <- lapply(case$calls, function(step) {
-    vectors <- names(step$args) %in% c("keys", "fields", "sections", "features")
+    vectors <- names(step$args) %in% c("keys", "fields", "sections", "features", "cluster", "genes")
     args <- step$args
     args[vectors] <- lapply(args[vectors], I)
     list(fun = step$fun, args = if (length(args)) args else structure(list(), names = character()))

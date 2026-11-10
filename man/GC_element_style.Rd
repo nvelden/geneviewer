@@ -23,9 +23,10 @@ GC_element_style(
 \item{component}{The component to edit: \code{"genes"}, \code{"labels"},
 \code{"coordinates"}, \code{"clusterTitle"}, \code{"clusterFooter"}, \code{"clusterLabel"}, \code{"legend"}, \code{"title"}, \code{"scaleBar"} or \code{"scale"}.}
 
-\item{row_id}{For genes, labels and coordinates: the gene's \code{rowID} in
-\code{GC_chart$x$data}, also returned in \verb{input$<outputId>_select$data$rowID}
-and double-click event data.}
+\item{row_id}{For genes, labels and coordinates: the gene's \code{rowID}, its
+row number in the chart's data once rows without a start or end are left
+out, also returned in \verb{input$<outputId>_select$data$rowID} and
+double-click event data.}
 
 \item{...}{Named element options, using JavaScript names, e.g. \code{fill},
 \code{stroke}, \code{strokeWidth}, \code{marker}, \code{markerSize}, \code{fontSize}, \code{dx}, \code{dy}

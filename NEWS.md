@@ -1,6 +1,15 @@
 # geneviewer (development version)
 
+### Changes:
+- Charts are drawn by the geneviewer JavaScript library (<https://github.com/nvelden/geneviewer-js>), which the package ships in `inst/htmlwidgets/lib/`. The `GC_` functions describe the chart as a chart spec and the library draws it. Charts look and behave the same: the same functions, arguments, defaults, checks and messages, the same Shiny inputs, and the same drawing, checked against the charts of the examples, vignettes and tests of 0.2.0.
+- Code that read the internals of a chart, `widget$x`, must use `widget$x$spec`: `widget$x` is now `list(spec = )`, the chart spec, which holds the arguments of the `GC_` functions as given, under the names of the spec. The R code that built the chart for the browser is gone.
+- The default icons of the toolbar are inline SVG copies of the same Font Awesome glyphs, so they show without an icon font. Custom icons by Font Awesome name (`GC_toolbar(icons = )`) still work: the package still loads Font Awesome.
+- `geneviewer_theme()` and `geneviewer_palette()` read the built-in themes and palettes from the library (its `themes.json`); they give the same settings and colours. The options of a theme's components have the names of the chart spec: `cornerRadius` (was `corner_radius`), `normalColor`, `invertedColor` and `lowColor` (were `normal_color`, ...), `textStyle` and `markerStyle` in `legend` (were `legendTextOptions` and `legendOptions`), and `lineStyle` in `sequence` (was `sequenceStyle`). `GC_theme()` still takes the old names, also mixed with the new ones in one theme.
+- Functions that only style a chart (`GC_genes()`, `GC_labels()`, `GC_title()`, ...) no longer prepare the whole dataset to check their arguments, which adds up on large data.
+- FileSaver.js is no longer bundled: the library saves images with the browser's own download. jsonlite is now imported.
+
 ### Bug fixes:
+- A second `GC_toolbar(buttons = )` or `GC_legend(order = )` call replaces the buttons or order of the first, as other options do; before, the first call's list was kept.
 - `read_gff()` reads GTF and GFF2 files: attributes written as `key "value"` become columns without the quotes, and folders are searched for `.gtf` and `.gff2` files too. A key repeated in one row (e.g. `tag` in GTF, or `Dbxref` twice) keeps its values joined with `","`, as GFF3 writes several values of one key; before, every attribute column of the file became a list column, with a warning. `read_fasta()` joins repeated `[key=value]` fields the same way.
 - `gbk_features_to_df()` and `read_fasta()` now give the full span of spliced genes whose exons are listed from right to left, as in `join(complement(5441..5600),complement(5095..5373))` (common in fungal and other eukaryotic GenBank files). `gbk_features_to_df()` took the first and the last number, so the gene was drawn reversed and too short, and `read_fasta()` kept only the first exon. A location crossing the origin of a circular genome now keeps its first part in `gbk_features_to_df()` too, as in `read_fasta()`.
 - `read_bed()` reads BED12 files in which every row has one block; it stopped with "non-character argument".

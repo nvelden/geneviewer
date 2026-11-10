@@ -15,7 +15,9 @@ A list of theme settings, to use as the \code{theme} of \code{\link[=GC_theme]{G
 }
 \description{
 Returns the settings of a built-in theme of \code{\link[=GC_theme]{GC_theme()}}, to see them or to
-start a theme of your own.
+start a theme of your own. The options of components have the names of the
+chart spec, e.g. \code{cornerRadius} and \code{textStyle} (for \code{GC_legend()}'s
+\code{corner_radius} and \code{legendTextOptions}); \code{\link[=GC_theme]{GC_theme()}} takes both.
 }
 \examples{
 geneviewer_theme("dark")

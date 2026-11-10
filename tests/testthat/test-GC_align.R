@@ -8,7 +8,7 @@ align_genes <- data.frame(
 
 scale_range <- function(chart) {
   t(sapply(c("1", "2"), function(cl) {
-    unlist(chart$x$series[[cl]]$scale[c("start", "end")])
+    unlist(compile_chart(chart)$series[[cl]]$scale[c("start", "end")])
   }))
 }
 
@@ -63,7 +63,7 @@ test_that("GC_align is kept by GC_scale, also with a range axis", {
   expect_equal(scale_range(before), scale_range(after))
   # the genes now start at 1, so x starts at 201 and 501
   expect_equal(unname(scale_range(after)[, "start"]), c(201, 501) - 500)
-  expect_equal(before$x$series[["2"]]$scale$axisType, "range")
+  expect_equal(compile_chart(before)$series[["2"]]$scale$axisType, "range")
 })
 
 test_that("GC_scale takes breaks per cluster, in the positions of the data", {
@@ -71,12 +71,13 @@ test_that("GC_scale takes breaks per cluster, in the positions of the data", {
     GC_scale(axis_type = "range",
              breaks = data.frame(cluster = 2, start = 1250, end = 1450))
   # cluster 2 starts at 1000, so on the range axis the break is at 251 - 451
-  expect_equal(chart$x$series[["2"]]$scale$breaks, list(list(start = 251, end = 451)))
-  expect_equal(chart$x$series[["1"]]$scale$breaks, list())
+  model <- compile_chart(chart)
+  expect_equal(model$series[["2"]]$scale$breaks, list(list(start = 251, end = 451)))
+  expect_equal(model$series[["1"]]$scale$breaks, list())
   # without a cluster column the breaks are for all clusters, as a list is
   all <- GC_chart(align_genes, cluster = "cluster", group = "name") %>%
     GC_scale(breaks = data.frame(start = 1250, end = 1450))
-  expect_equal(all$x$series[["1"]]$scale$breaks, list(list(start = 1250, end = 1450)))
+  expect_equal(compile_chart(all)$series[["1"]]$scale$breaks, list(list(start = 1250, end = 1450)))
   expect_error(GC_chart(align_genes, cluster = "cluster") %>%
                  GC_scale(breaks = data.frame(from = 1)), "start and an end")
 })
@@ -85,7 +86,7 @@ test_that("GC_align leaves the scale breaks out of the shared range", {
   breaks <- data.frame(cluster = 2, start = 1250, end = 1450)
   ranges <- function(chart) scale_range(chart)
   shown <- function(chart, cl) {
-    sc <- chart$x$series[[cl]]$scale
+    sc <- compile_chart(chart)$series[[cl]]$scale
     gap <- sum(vapply(sc$breaks, function(b) b$end - b$start, numeric(1)))
     sc$end - sc$start - gap
   }
@@ -114,12 +115,14 @@ test_that("normalising each cluster keeps its original positions in the chart da
   chart <- GC_chart(genes, cluster = "cluster") %>%
     GC_normalize(preserve_gene_length = FALSE)
 
+  model <- compile_chart(chart)
   for (name in c("a", "b")) {
-    series <- chart$x$series[[name]]$data
-    rows <- match(series$rowID, chart$x$data$rowID)
-    expect_identical(chart$x$data$original_start[rows], series$original_start)
-    expect_identical(chart$x$data$original_end[rows], series$original_end)
-    expect_identical(chart$x$data$start[rows], series$start)
+    series <- model$series[[name]]$data
+    data <- chart$x$spec$data
+    rows <- match(series$rowID, data$rowID)
+    expect_equal(data$original_start[rows], series$original_start)
+    expect_equal(data$original_end[rows], series$original_end)
+    expect_equal(data$start[rows], series$start)
   }
-  expect_false(anyNA(chart$x$data$original_start))
+  expect_false(anyNA(chart$x$spec$data$original_start))
 })

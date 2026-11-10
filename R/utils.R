@@ -1,21 +1,14 @@
-#' Get clusters to update from geneviewer Object
+#' The clusters an argument selects
 #'
-#' This function retrieves the clusters to be updated from a geneviewer object
-#' based on the provided cluster argument. The function checks if the cluster
-#' argument is valid and returns the corresponding clusters.
-#'
-#' @param geneviewer An object containing the series of clusters.
+#' @param clusters Character, the names of the chart's clusters, in order
+#'   (`chart_fields()$clusters`).
 #' @param cluster A numeric vector or character vector specifying the clusters
 #'   to be retrieved. If NULL (default), all clusters are returned.
 #'
-#' @return A character vector of cluster names.
-#'
-#'
+#' @return A character vector of cluster names; NULL, with a warning, when
+#'   `cluster` names clusters the chart does not have.
 #' @noRd
-getUpdatedClusters <- function(geneviewer, cluster) {
-
-  # Get the names of the clusters
-  clusters <- names(geneviewer$x$series)
+getUpdatedClusters <- function(clusters, cluster) {
 
   # If cluster is NULL, update all clusters
   if (is.null(cluster)) {
@@ -35,109 +28,14 @@ getUpdatedClusters <- function(geneviewer, cluster) {
   return(cluster)
 }
 
-#' Identify Non-Coding Regions Between Genes
+#' Check the clusters an argument selects
 #'
-#' Given a set of gene positions, this function calculates and returns the
-#' non-coding regions, potentially with added padding. It also considers
-#' overlapping genes and ensures that the starting position is always less than
-#' the ending position for each gene.
-#'
-#' @param genes A data.frame containing the start and end positions of genes.
-#'   The data.frame must contain columns named 'start' and 'end'.
-#' @param threshold_percentage Numeric. A threshold value given as percentage.
-#'   Only non-coding regions that are larger than this threshold (relative to
-#'   the entire genomic region covered) will be returned.
-#' @param padding The room left on either side of each break: a number, as a
-#'   percentage of the region shown (without the non-coding regions left out),
-#'   or a string in base pairs, e.g. "500bp".
-#'
-#' @return A data.frame containing the start and end positions of the
-#'   identified non-coding regions.
-#' @importFrom stats setNames
-#' @examples
-#' genes_data <- data.frame(
-#'   start = c(10, 50, 90),
-#'   end = c(40, 80, 120)
-#' )
-#' get_scale_breaks(genes_data, threshold_percentage = 5, padding = 2)
-#'
+#' Warns, as the GC_ functions did, when `cluster` names clusters the chart
+#' does not have; the library leaves such an entry out.
 #' @noRd
-get_scale_breaks <- function(genes, threshold_percentage = 0, padding = 0) {
-
-  # Ensure genes is a data.frame
-  if (!is.data.frame(genes)) {
-    stop("Input must be a data.frame with 'start' and 'end' columns.")
-  }
-
-  # Check if required columns exist
-  if (!all(c("start", "end") %in% colnames(genes))) {
-    stop("The data.frame must contain 'start' and 'end' columns.")
-  }
-
-  # Ensure start is always smaller than end
-  swapped_indices <- genes$start > genes$end
-  genes[swapped_indices, c("start", "end")] <- genes[swapped_indices, c("end", "start")]
-
-  # Calculate the entire region's length using min and max
-  entire_region_length <- max(genes$end) - min(genes$start) + 1
-
-  # Calculate the minimum gap length based on threshold_percentage
-  min_gap_length <- entire_region_length * threshold_percentage / 100
-
-  # Sort by start
-  genes <- genes[order(genes$start), ]
-
-  # Merge overlapping regions
-  merged_regions <- list()
-  current_region <- genes[1,]
-
-  for(i in seq_len(nrow(genes))[-1]){
-    if(genes$start[i] <= current_region$end){
-      current_region$end <- max(current_region$end, genes$end[i])
-    } else {
-      merged_regions <- append(merged_regions, list(current_region))
-      current_region <- genes[i,]
-    }
-  }
-
-  merged_regions <- append(merged_regions, list(current_region))
-
-  # Extract non-coding regions
-  non_coding_regions <- data.frame(start=integer(), end=integer())
-
-  for(i in seq_len(length(merged_regions) - 1)){
-    non_coding_start <- merged_regions[[i]]$end + 1
-    non_coding_end <- merged_regions[[i+1]]$start - 1
-    gap_length <- non_coding_end - non_coding_start + 1
-
-    if (gap_length >= min_gap_length) {
-      non_coding_regions <- rbind(non_coding_regions, data.frame(start=non_coding_start, end=non_coding_end))
-    }
-  }
-
-  if (is.character(padding)) {
-    # In base pairs
-    padding_val <- break_padding_bp(padding)
-  } else {
-    # A share of the region shown: the entire region less the regions left out
-    shown_length <- entire_region_length -
-      sum(non_coding_regions$end - non_coding_regions$start + 1)
-    padding_val <- shown_length * padding / 100
-  }
-  non_coding_regions$start <- non_coding_regions$start + padding_val
-  non_coding_regions$end <- non_coding_regions$end - padding_val
-  # A gap too short for the padding gets no break
-  non_coding_regions <- non_coding_regions[non_coding_regions$start < non_coding_regions$end, ]
-  # Row names would become list names, sent to the chart as an object
-  rownames(non_coding_regions) <- NULL
-
-  #convert df to list of lists
-  non_coding_regions <-
-  apply(non_coding_regions, 1, function(row) {
-    as.list(stats::setNames(row, names(row)))
-  })
-
-  return(non_coding_regions)
+check_clusters <- function(GC_chart, cluster) {
+  if (!is.null(cluster)) getUpdatedClusters(chart_fields(GC_chart)$clusters, cluster)
+  invisible()
 }
 
 #' The base pairs of a padding given as a string, e.g. "500bp"
@@ -147,36 +45,6 @@ break_padding_bp <- function(padding) {
     stop("scale_break_padding must be a percentage, e.g. 1, or base pairs, e.g. \"500bp\"")
   }
   as.numeric(sub("\\s*bp\\s*$", "", padding))
-}
-
-#' Compute Size
-#'
-#' Internal function to compute size for GC_grid. This function is used to
-#' compute the size based on input value and length.
-#'
-#' @param value A numeric or character value specifying size.
-#' @param length A numeric value specifying length to divide the size by.
-#' @return Returns computed size.
-#' @noRd
-compute_size <- function(value, length = 2) {
-  # Check if value is numeric
-  if (is.numeric(value)) {
-    return(value / length)
-  }
-
-  # Check if value ends with 'px'
-  if (grepl("px$", value)) {
-    num_val <- as.numeric(sub("px$", "", value))
-    return(paste0(num_val / length, "px"))
-  }
-
-  # Check if value ends with '%'
-  if (grepl("%$", value)) {
-    num_val <- as.numeric(sub("%$", "", value))
-    return(paste0(num_val / length, "%"))
-  }
-
-  stop("Unsupported format")
 }
 
 #' Get Relative Height
@@ -279,78 +147,6 @@ add_strand <- function(data, strand = NULL){
 
 }
 
-#' Assign Tracks to Genes Based on Start and End Positions
-#'
-#' Assigns each gene a track (`geneTrack`) so that genes that overlap go on
-#' different tracks: a gene goes on the first track where it overlaps no gene
-#' placed before it.
-#'
-#' @param data A dataframe with `start` and `end` columns, one gene per row, in
-#'   the order the genes are placed.
-#' @param nested Logical; if `TRUE`, only genes that lie inside another gene
-#'   leave the first track: all other genes stay on it, also where they
-#'   overlap. The nested genes are placed from the second track on, apart from
-#'   each other.
-#' @param overlap_min The overlap two genes need to go on different tracks:
-#'   a number of base pairs, or a string with a share of the shorter gene,
-#'   e.g. `"10%"`. Genes that overlap by no more than this share a track.
-#'   Default 0: any overlap.
-#'
-#' @return `data` with a `geneTrack` column: the track of each gene, from 1.
-#' @examples
-#' gene_data <- data.frame(start = c(1, 5, 10), end = c(4, 9, 15))
-#' add_gene_track(gene_data)
-#' @noRd
-add_gene_track <- function(data, nested = FALSE, overlap_min = 0) {
-  if (is.null(data) || nrow(data) == 0) {
-    return(NULL)
-  }
-  low <- pmin(data$start, data$end)
-  high <- pmax(data$start, data$end)
-  share <- is.character(overlap_min)
-  limit <- if (share) as.numeric(sub("%$", "", overlap_min)) / 100 else overlap_min
-
-  # Two genes clash when they overlap by more than overlap_min
-  clash <- function(i, j) {
-    overlap <- min(high[i], high[j]) - max(low[i], low[j]) + 1
-    if (overlap <= 0) return(FALSE)
-    threshold <- if (share) {
-      limit * min(high[i] - low[i] + 1, high[j] - low[j] + 1)
-    } else {
-      limit
-    }
-    overlap > threshold
-  }
-
-  # A gene inside another one; of two equal genes, the second
-  inside <- vapply(seq_along(low), function(i) {
-    any(vapply(seq_along(low), function(j) {
-      j != i && low[j] <= low[i] && high[j] >= high[i] &&
-        (low[j] < low[i] || high[j] > high[i] || j < i)
-    }, logical(1)))
-  }, logical(1))
-
-  track <- integer(length(low))
-  placed <- list()
-  for (i in seq_along(low)) {
-    if (nested && !inside[i]) {
-      track[i] <- 1L
-      next
-    }
-    candidate <- if (nested) 2L else 1L
-    repeat {
-      on_track <- placed[[as.character(candidate)]]
-      if (is.null(on_track) ||
-          !any(vapply(on_track, function(j) clash(i, j), logical(1)))) break
-      candidate <- candidate + 1L
-    }
-    track[i] <- candidate
-    placed[[as.character(candidate)]] <- c(placed[[as.character(candidate)]], i)
-  }
-  data$geneTrack <- track
-  data
-}
-
 #' Update Start and End Columns Based on Merged Data
 #'
 #' This function merges two data frames by a specified column (default is
@@ -392,82 +188,6 @@ update_cluster_data <- function(data, updated_data, by_col = "rowID") {
   return(result)
 }
 
-
-#' Keep colour and pattern options when gene or transcript options are reset
-#'
-#' `GC_genes()` and `GC_transcript()` replace their options, which would drop
-#' colours from `GC_color()` and patterns from `GC_pattern()`. This copies them
-#' from the old options unless new colours or a new pattern are given.
-#'
-#' @param options List, the new options.
-#' @param old List or NULL, the options they replace.
-#' @return The new options with the old colours and pattern added.
-#' @noRd
-keep_color_options <- function(options, old) {
-  if (is.null(options$colorScheme) && is.null(options$customColors)) {
-    options$colorScheme <- old$colorScheme
-    options$customColors <- old$customColors
-  }
-  if (is.null(options$pattern)) {
-    options$pattern <- old$pattern
-  }
-  options
-}
-
-#' Set the legend colours to the gene colours
-#'
-#' @param GC_chart The gene chart object.
-#' @param colorScheme,customColors The colours given to `GC_genes()` or
-#'   `GC_transcript()`.
-#' @return The gene chart object.
-#' @noRd
-set_legend_colors <- function(GC_chart, colorScheme, customColors) {
-  if (is.null(colorScheme) && is.null(customColors)) {
-    return(GC_chart)
-  }
-  GC_chart$x$legend$legendOptions$colorScheme <- colorScheme
-  GC_chart$x$legend$legendOptions$customColors <- customColors
-  GC_chart
-}
-
-#' Keep the settings of the whole chart in a chart made again
-#'
-#' `GC_transcript()` makes the chart again with `GC_chart()`, with the
-#' transcripts as clusters. This keeps the title, legend, theme, events,
-#' toolbar, zoom and width of the old chart, and its `GC_grid()` margins and
-#' direction. Settings per cluster are for the old clusters and are not kept.
-#'
-#' @param GC_chart The chart made again.
-#' @param old_chart The chart before it was made again.
-#' @return The gene chart object.
-#' @noRd
-keep_chart_settings <- function(GC_chart, old_chart) {
-  old <- old_chart$x
-  GC_chart$x$title <- old$title
-  GC_chart$x$legend <- old$legend
-  GC_chart$x$theme <- old$theme
-  GC_chart$x$events <- old$events
-  GC_chart$x$toolbar <- old$toolbar
-  GC_chart$x$zoom <- old$zoom
-  GC_chart$width <- old_chart$width
-
-  # GC_grid() margins: left and right are kept when all clusters had the same
-  # (a margin for the whole chart); top and bottom are the padding of the chart
-  margins <- lapply(old$series, function(series) series$container$margin)
-  same_margin <- length(margins) > 0 &&
-    all(vapply(margins, identical, logical(1), margins[[1]]))
-  margin <- if (same_margin) margins[[1]] else list()
-  margin$top <- old$style$paddingTop
-  margin$bottom <- old$style$paddingBottom
-  if (length(margin) > 0) {
-    GC_chart <- GC_grid(GC_chart, margin = margin)
-  }
-  if (identical(old$graphContainer$direction, "row")) {
-    GC_chart <- GC_grid(GC_chart, direction = "row")
-  }
-
-  GC_chart
-}
 
 #' Value for the i-th selected cluster
 #'
@@ -594,54 +314,3 @@ read_tables <- function(path, pattern, type, read_file, call = sys.call(-1)) {
   }
 }
 
-#' Options without the NULL and empty values
-#'
-#' @param options A named list.
-#' @return `options` without the elements that are NULL or of length 0.
-#' @noRd
-compact <- function(options) {
-  Filter(function(x) !is.null(x) && length(x) > 0, options)
-}
-
-#' Merge new options into the old ones
-#'
-#' @param old List or NULL, the options set before.
-#' @param new List, the new options.
-#' @return `new` when there are no old options, otherwise the old options
-#'   updated with `new` by `utils::modifyList()`.
-#' @noRd
-merge_options <- function(old, new) {
-  if (is.null(old)) new else utils::modifyList(old, new)
-}
-
-#' Add the ... arguments to the options of the i-th selected cluster
-#'
-#' @param options List, the options of the cluster.
-#' @param dots List, the ... arguments; vectors are recycled over the clusters.
-#' @param i Integer, the index of the cluster.
-#' @return `options` with the ... arguments for cluster `i`.
-#' @noRd
-recycle_dots <- function(options, dots, i) {
-  for (name in names(dots)) {
-    options[[name]] <- recycle_at(dots[[name]], i)
-  }
-  options
-}
-
-#' Set the options of a component for the selected clusters
-#'
-#' @param GC_chart The gene chart object.
-#' @param cluster The clusters to update, as for `getUpdatedClusters()`.
-#' @param slot Character, the component, e.g. "labels".
-#' @param options_for Function of the index of the cluster and its series,
-#'   returning the options of the component for that cluster.
-#' @return The gene chart object.
-#' @noRd
-set_cluster_options <- function(GC_chart, cluster, slot, options_for) {
-  clusters <- getUpdatedClusters(GC_chart, cluster)
-  for (i in seq_along(clusters)) {
-    series <- GC_chart$x$series[[clusters[i]]]
-    GC_chart$x$series[[clusters[i]]][[slot]] <- options_for(i, series)
-  }
-  GC_chart
-}

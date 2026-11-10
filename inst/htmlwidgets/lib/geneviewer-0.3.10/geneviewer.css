@@ -152,7 +152,7 @@
 .geneviewer-toolbar-topleft { left: 10px; right: auto; }
 .geneviewer-toolbar-bottomright { top: auto; bottom: 10px; align-items: flex-end; }
 .geneviewer-toolbar-bottomleft { top: auto; bottom: 10px; left: 10px; right: auto; align-items: flex-end; }
-.html-widget:hover > .geneviewer-toolbar,
+.geneviewer:hover > .geneviewer-toolbar,
 .geneviewer-toolbar:focus-within,
 .geneviewer-toolbar.geneviewer-toolbar-always {
   opacity: 1;
@@ -161,18 +161,18 @@
 .geneviewer-toolbar > [id^="saveMenu-"] {
   pointer-events: none;
 }
-.html-widget:hover > .geneviewer-toolbar .geneviewer-toolbar-button,
-.html-widget:hover > .geneviewer-toolbar > [id^="saveMenu-"],
+.geneviewer:hover > .geneviewer-toolbar .geneviewer-toolbar-button,
+.geneviewer:hover > .geneviewer-toolbar > [id^="saveMenu-"],
 .geneviewer-toolbar:focus-within .geneviewer-toolbar-button,
 .geneviewer-toolbar:focus-within > [id^="saveMenu-"],
 .geneviewer-toolbar-always .geneviewer-toolbar-button,
 .geneviewer-toolbar-always > [id^="saveMenu-"] {
   pointer-events: auto;
 }
-.html-widget.geneviewer-dragging > .geneviewer-toolbar {
+.geneviewer.geneviewer-dragging > .geneviewer-toolbar {
   opacity: 0;
 }
-.html-widget.geneviewer-dragging > .geneviewer-toolbar * {
+.geneviewer.geneviewer-dragging > .geneviewer-toolbar * {
   pointer-events: none !important;
 }
 /* Undo, redo and reset, 4px apart, and a divider before the save icon.
@@ -208,10 +208,17 @@
 }
 /* Glyphs the size of the save icon */
 .geneviewer-toolbar-button > i,
+.geneviewer-toolbar-button > .geneviewer-icon,
 .geneviewer-toolbar .geneviewer-save-icon {
   display: block;
   padding: 5px;
   font-size: var(--gv-toolbar-size);
+}
+/* The default icons: inline SVG, 1em high, in the text colour */
+.geneviewer-icon-svg {
+  display: block;
+  height: 1em;
+  fill: currentColor;
 }
 .geneviewer-toolbar .geneviewer-save-icon {
   color: var(--gv-toolbar-color);

@@ -16,8 +16,7 @@ GC_normalize(
 }
 \arguments{
 \item{GC_chart}{A chart object containing genomic data and clustering
-information. The chart object must include a \code{series} component with data
-for each cluster.}
+information, from \code{\link[=GC_chart]{GC_chart()}}.}
 
 \item{group}{Column name containing gene names to apply custom gaps to.}
 

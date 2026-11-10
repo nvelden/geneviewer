@@ -1,23 +1,38 @@
 chart <- GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "200px")
 
+# The theme as the library sends it to the renderer: the options of each
+# component under its key there, with the global settings applied
+theme_js <- function(theme, simplify = TRUE) {
+  compile_chart(GC_theme(chart, theme), simplify = simplify)$theme
+}
+
 test_that("GC_theme() starts from a built-in theme and changes the current theme", {
   themed <- GC_theme(chart, "dark")
-  expect_equal(themed$x$theme, geneviewer_theme("dark"))
+  expect_equal(themed$x$spec$theme, list(base = "dark"))
+  expect_equal(compile_chart(themed)$theme, theme_js(geneviewer_theme("dark")))
 
   # Without a theme, the current theme is changed
   themed <- GC_theme(themed, textColor = "white", labels = list(fontSize = "9px"))
-  expect_equal(themed$x$theme$textColor, "white")
-  expect_equal(themed$x$theme$background, "#333333")
-  expect_equal(themed$x$theme$labels$fontSize, "9px")
+  expect_equal(themed$x$spec$theme,
+               list(base = "dark", textColor = "white", labels = list(fontSize = "9px")))
+  js <- compile_chart(themed)$theme
+  expect_equal(js$titleOptions$titleFont$fill, "white")
+  expect_equal(js$chartOptions$style$backgroundColor, "#333333")
+  expect_equal(js$labelsOptions$fontSize, "9px")
 
   # Nested options are merged, NULL removes a component
   themed <- GC_theme(themed, links = list(linkStyle = list(stroke = "red")))
-  expect_equal(themed$x$theme$links$linkStyle, list(fillOpacity = 0.6, stroke = "red"))
+  expect_equal(compile_chart(themed)$theme$linkOptions$linkStyle, list(fillOpacity = 0.6, stroke = "red"))
   themed <- GC_theme(themed, links = NULL)
-  expect_null(themed$x$theme$links)
+  expect_true("links" %in% names(themed$x$spec$theme))
+  expect_null(themed$x$spec$theme$links)
+  expect_match(as.character(htmlwidgets:::toJSON(themed$x$spec$theme)), '"links":null')
+  expect_null(compile_chart(themed)$theme$linkOptions$linkStyle)
+  expect_null(compile_chart(GC_theme(chart, "dark", links = NULL))$theme$linkOptions$linkStyle)
 
   # A new theme replaces the current one
-  expect_equal(GC_theme(themed, "default")$x$theme, list())
+  expect_equal(GC_theme(themed, "default")$x$spec$theme, list(base = "default"))
+  expect_null(compile_chart(GC_theme(themed, "default"))$theme)
 })
 
 test_that("GC_theme() checks its settings", {
@@ -43,7 +58,7 @@ test_that("the theme is sent to the browser with its keys there", {
     scale = list(axis_position = "top"),
     annotations = list(arc = list(style = list(stroke = "blue")))
   )
-  js <- theme_to_js(themed$x$theme)
+  js <- compile_chart(themed)$theme
 
   expect_equal(js$chartOptions$style$backgroundColor, "white")
   expect_equal(js$titleOptions$titleFont, list(fontFamily = "Arial", fill = "navy"))
@@ -64,18 +79,18 @@ test_that("the theme is sent to the browser with its keys there", {
   expect_equal(js$curveAnnotationOptions$style$stroke, "blue")
 
   # No global settings: no options
-  expect_null(theme_to_js(list()))
-  expect_equal(names(theme_to_js(list(genes = list(stroke = "none")))), "geneOptions")
+  expect_null(compile_chart(chart)$theme)
+  expect_equal(names(theme_js(list(genes = list(stroke = "none")))), "geneOptions")
 })
 
 test_that("a palette of colours is sent as an array and unnamed lists replace", {
-  js <- theme_to_js(list(palette = "#ff0000"))
+  js <- theme_js(list(palette = "#ff0000"), simplify = FALSE)
   expect_equal(js$geneOptions$colorScheme, list("#ff0000"))
   expect_equal(js$transcriptOptions$colorScheme, list("#ff0000"))
 
   # An unnamed list in a component replaces the global palette
-  js <- theme_to_js(list(palette = c("red", "blue"),
-                         genes = list(colorScheme = list("green"))))
+  js <- theme_js(list(palette = c("red", "blue"),
+                      genes = list(colorScheme = list("green"))), simplify = FALSE)
   expect_equal(js$geneOptions$colorScheme, list("green"))
 })
 
@@ -86,8 +101,9 @@ test_that("GC_transcript() keeps the theme, in either order", {
   }
   chart <- GC_chart(brca, start = "start", end = "end", strand = "strand", height = "200px")
 
-  expect_equal(transcripts(GC_theme(chart, "dark"))$x$theme, geneviewer_theme("dark"))
-  expect_equal(GC_theme(transcripts(chart), "dark")$x$theme, geneviewer_theme("dark"))
+  dark <- compile_chart(GC_theme(chart, "dark"))$theme
+  expect_equal(compile_chart(transcripts(GC_theme(chart, "dark")))$theme, dark)
+  expect_equal(compile_chart(GC_theme(transcripts(chart), "dark"))$theme, dark)
 })
 
 test_that("GC_transcript() keeps the events and toolbar of the chart", {
@@ -97,8 +113,10 @@ test_that("GC_transcript() keeps the events and toolbar of the chart", {
     GC_toolbar(show = "always", position = "bottomleft")
 
   transcripts <- GC_transcript(chart, transcript = "ensembl_transcript_id", type = "type")
-  expect_equal(transcripts$x$events, chart$x$events)
-  expect_equal(transcripts$x$toolbar, chart$x$toolbar)
+  model <- compile_chart(chart)
+  transcripts_model <- compile_chart(transcripts)
+  expect_equal(transcripts_model$events, model$events)
+  expect_equal(transcripts_model$toolbar, model$toolbar)
 })
 
 test_that("the theme is converted when the chart is drawn", {
@@ -106,15 +124,16 @@ test_that("the theme is converted when the chart is drawn", {
   file <- tempfile(fileext = ".html")
   htmlwidgets::saveWidget(themed, file, selfcontained = FALSE)
   html <- paste(readLines(file, warn = FALSE), collapse = "")
-  expect_match(html, '"theme":\\{"chartOptions"|"theme":\\{"titleOptions"')
-  expect_match(html, '"geneOptions":\\{"colorScheme":\\["#5470c6"')
+  # The page has the theme as set; the library converts it
+  expect_match(html, '"theme":\\{"base":"classic"\\}')
+  expect_equal(compile_chart(themed)$theme$geneOptions$colorScheme[1], "#5470c6")
 
   # The chart object keeps the theme as set
-  expect_equal(themed$x$theme$palette, geneviewer_theme("classic")$palette)
+  expect_equal(themed$x$spec$theme, list(base = "classic"))
 })
 
 test_that("the bw theme fills genes, exons and legend markers with patterns", {
-  js <- theme_to_js(geneviewer_theme("bw"))
+  js <- theme_js(geneviewer_theme("bw"))
   bw_pattern <- list(color = "#000000", background = "#FFFFFF", size = 6, strokeWidth = 1)
   expect_equal(js$geneOptions$pattern, bw_pattern)
   expect_equal(js$transcriptOptions$pattern, bw_pattern)
@@ -123,14 +142,15 @@ test_that("the bw theme fills genes, exons and legend markers with patterns", {
   # Patterns set with the theme are merged with those of the current theme
   themed <- GC_theme(chart, "bw", pattern = list(patterns = c("dots", "grid"),
                                                  background = "grey90"))
-  js <- theme_to_js(themed$x$theme)
-  expect_equal(js$geneOptions$pattern$patterns, list("dots", "grid"))
+  js <- compile_chart(themed)$theme
+  expect_equal(js$geneOptions$pattern$patterns, c("dots", "grid"))
   expect_equal(js$geneOptions$pattern$background, "#E5E5E5")
   expect_equal(js$geneOptions$pattern$color, "#000000")
 
   # FALSE removes the patterns of the theme
-  expect_null(GC_theme(themed, pattern = FALSE)$x$theme$pattern)
-  expect_equal(GC_theme(themed, pattern = FALSE)$x$theme$textColor, "#555555")
+  unpatterned <- compile_chart(GC_theme(themed, pattern = FALSE))$theme
+  expect_null(unpatterned$geneOptions$pattern)
+  expect_equal(unpatterned$titleOptions$subtitleFont$fill, "#555555")
 
   expect_error(GC_theme(chart, pattern = "dots"), "arguments of GC_pattern")
   expect_error(GC_theme(chart, pattern = list(type = "dots")), "arguments of GC_pattern")
@@ -139,12 +159,12 @@ test_that("the bw theme fills genes, exons and legend markers with patterns", {
 
 test_that("textScale is kept in the theme and sent to the browser", {
   themed <- GC_theme(chart, "classic", textScale = 1.5)
-  expect_equal(themed$x$theme$textScale, 1.5)
-  expect_equal(theme_to_js(themed$x$theme)$textScale, 1.5)
+  expect_equal(themed$x$spec$theme$textScale, 1.5)
+  expect_equal(compile_chart(themed)$theme$textScale, 1.5)
   # Kept when the theme is changed, replaced by a new theme
-  expect_equal(GC_theme(themed, textColor = "red")$x$theme$textScale, 1.5)
-  expect_null(GC_theme(themed, "classic")$x$theme$textScale)
-  expect_null(theme_to_js(list(labels = list(fontSize = "10px")))$textScale)
+  expect_equal(compile_chart(GC_theme(themed, textColor = "red"))$theme$textScale, 1.5)
+  expect_null(compile_chart(GC_theme(themed, "classic"))$theme$textScale)
+  expect_null(theme_js(list(labels = list(fontSize = "10px")))$textScale)
 
   expect_error(GC_theme(chart, textScale = "large"), "single positive number")
   expect_error(GC_theme(chart, textScale = c(1, 2)), "single positive number")
@@ -154,10 +174,10 @@ test_that("textScale is kept in the theme and sent to the browser", {
 test_that("geneviewer palettes are used by name and sent as colours", {
   expect_equal(geneviewer_palette(), c("okabeIto", "classic", "vivid", "dark", "vintage", "infographic", "greys", "blues"))
   expect_equal(geneviewer_theme("vintage")$palette, "vintage")
-  vintage <- theme_to_js(geneviewer_theme("vintage"))
+  vintage <- theme_js(geneviewer_theme("vintage"))
   expect_equal(vintage$geneOptions$cornerRadius, 3)
   expect_equal(vintage$legendOptions$cornerRadius, 3)
-  dark <- theme_to_js(geneviewer_theme("dark"))
+  dark <- theme_js(geneviewer_theme("dark"))
   expect_equal(dark$geneOptions$cornerRadius, 3)
   expect_equal(dark$legendOptions$cornerRadius, 3)
   expect_equal(geneviewer_palette("vivid")[1], "#4992ff")
@@ -165,21 +185,21 @@ test_that("geneviewer palettes are used by name and sent as colours", {
   expect_equal(geneviewer_theme("classic")$palette, "classic")
 
   # In a theme, GC_genes() and GC_color(); d3 scheme names are kept
-  render <- function(x) render_theme(x)$x
+  render <- compile_chart
   expect_equal(render(GC_theme(chart, palette = "blues"))$theme$geneOptions$colorScheme,
-               as.list(geneviewer_palette("blues")))
+               geneviewer_palette("blues"))
   rendered <- render(GC_genes(chart, colorScheme = "vivid"))
-  expect_equal(rendered$series[[1]]$genes$colorScheme, as.list(geneviewer_palette("vivid")))
-  expect_equal(rendered$legend$legendOptions$colorScheme, as.list(geneviewer_palette("vivid")))
+  expect_equal(rendered$series[[1]]$genes$colorScheme, geneviewer_palette("vivid"))
+  expect_equal(rendered$legend$legendOptions$colorScheme, geneviewer_palette("vivid"))
   expect_equal(render(GC_color(chart, colorScheme = "greys"))$series[[1]]$genes$colorScheme,
-               as.list(geneviewer_palette("greys")))
+               geneviewer_palette("greys"))
   expect_equal(render(GC_genes(chart, colorScheme = "schemeSet2"))$series[[1]]$genes$colorScheme,
                "schemeSet2")
 })
 
 test_that("the publication theme follows journal figure guidelines", {
   theme <- geneviewer_theme("publication")
-  js <- theme_to_js(theme)
+  js <- theme_js(theme)
 
   expect_equal(theme$fontFamily, "Arial, Helvetica, sans-serif")
   expect_equal(theme$textColor, "black")
@@ -209,27 +229,27 @@ test_that("the publication theme follows journal figure guidelines", {
 })
 
 test_that("the font and text colour of the theme reach the labels of arc annotations", {
-  js <- theme_to_js(list(fontFamily = "Georgia", textColor = "white"))
+  js <- theme_js(list(fontFamily = "Georgia", textColor = "white"))
   expect_equal(js$curveAnnotationOptions$textStyle$fontFamily, "Georgia")
   expect_equal(js$curveAnnotationOptions$textStyle$fill, "white")
   # Options of the arc in the theme take precedence
   themed <- list(textColor = "white", annotations = list(arc = list(textStyle = list(fill = "red"))))
-  expect_equal(theme_to_js(themed)$curveAnnotationOptions$textStyle$fill, "red")
-  expect_equal(theme_to_js(geneviewer_theme("publication"))$curveAnnotationOptions$textStyle$fontFamily,
+  expect_equal(theme_js(themed)$curveAnnotationOptions$textStyle$fill, "red")
+  expect_equal(theme_js(geneviewer_theme("publication"))$curveAnnotationOptions$textStyle$fontFamily,
                "Arial, Helvetica, sans-serif")
 })
 
 test_that("the UTRs of transcripts are filled with the background of the theme", {
-  expect_equal(theme_to_js(geneviewer_theme("dark"))$transcriptOptions$styleUTRs$fill, "#333333")
-  expect_equal(theme_to_js(list(background = "black"))$transcriptOptions$styleUTRs$fill, "black")
-  expect_null(theme_to_js(geneviewer_theme("default"))$transcriptOptions$styleUTRs)
+  expect_equal(theme_js(geneviewer_theme("dark"))$transcriptOptions$styleUTRs$fill, "#333333")
+  expect_equal(theme_js(list(background = "black"))$transcriptOptions$styleUTRs$fill, "black")
+  expect_null(theme_js(geneviewer_theme("default"))$transcriptOptions$styleUTRs)
   # A fill set for the UTRs in the theme takes precedence
   themed <- list(background = "black", transcript = list(styleUTRs = list(fill = "red")))
-  expect_equal(theme_to_js(themed)$transcriptOptions$styleUTRs$fill, "red")
+  expect_equal(theme_js(themed)$transcriptOptions$styleUTRs$fill, "red")
 })
 
 test_that("the publication theme keeps all general text at 7 pt", {
-  js <- theme_to_js(geneviewer_theme("publication"))
+  js <- theme_js(geneviewer_theme("publication"))
   font_sizes <- function(x) {
     if (!is.list(x)) return(NULL)
     sizes <- if (!is.null(x$fontSize)) as.numeric(sub("px$", "", x$fontSize))
@@ -242,15 +262,15 @@ test_that("the publication theme keeps all general text at 7 pt", {
 
 test_that("the lines of spread labels take the line colour and their own options of the theme", {
   # The global line colour, with the options of the component on top
-  js <- theme_to_js(list(lineColor = "grey", labels = list(leaderLine = list(strokeWidth = 2))))
+  js <- theme_js(list(lineColor = "grey", labels = list(leaderLine = list(strokeWidth = 2))))
   expect_equal(js$labelsOptions$leaderLine, list(stroke = "grey", strokeWidth = 2))
-  js <- theme_to_js(list(lineColor = "grey", labels = list(leader_line = list(stroke = "red"))))
+  js <- theme_js(list(lineColor = "grey", labels = list(leader_line = list(stroke = "red"))))
   expect_equal(js$labelsOptions$leaderLine$stroke, "red")
   # FALSE in the theme leaves the lines out
-  expect_false(theme_to_js(list(lineColor = "grey", labels = list(leaderLine = FALSE)))$labelsOptions$leaderLine)
+  expect_false(theme_js(list(lineColor = "grey", labels = list(leaderLine = FALSE)))$labelsOptions$leaderLine)
 
   # Each built-in theme styles them
-  line_of <- function(name) theme_to_js(geneviewer_theme(name))$labelsOptions$leaderLine
+  line_of <- function(name) theme_js(geneviewer_theme(name))$labelsOptions$leaderLine
   expect_null(line_of("default"))
   expect_equal(line_of("classic"), list(stroke = "#6E7079", strokeWidth = 1))
   expect_equal(line_of("dark"), list(stroke = "#eeeeee", strokeWidth = 1))
@@ -258,4 +278,40 @@ test_that("the lines of spread labels take the line colour and their own options
   expect_equal(line_of("infographic"), list(stroke = "#6E7079", strokeWidth = 1))
   expect_equal(line_of("publication"), list(stroke = "black", strokeWidth = 0.75))
   expect_equal(line_of("bw"), list(stroke = "#555555", strokeWidth = 1))
+})
+
+test_that("built-in themes use the spec's names, and GC_theme() takes the old ones too", {
+  # No snake_case or renderer names in the settings of a built-in theme
+  for (name in c("default", "classic", "dark", "vintage", "infographic", "publication", "bw")) {
+    theme <- geneviewer_theme(name)
+    for (component in intersect(names(theme), theme_components)) {
+      keys <- names(theme[[component]])
+      expect_false(any(grepl("_", keys)), info = paste(name, component))
+      expect_false(any(keys %in% names(spec_theme_renames[[component]])), info = paste(name, component))
+    }
+  }
+  classic <- geneviewer_theme("classic")
+  expect_equal(classic$genes$cornerRadius, 3)
+  expect_equal(classic$legend$textStyle, list(fill = "#464646"))
+  expect_equal(classic$links$normalColor, "#5470c6")
+
+  # A theme of your own from a built-in one draws as the built-in one
+  expect_equal(theme_js(classic), compile_chart(GC_theme(chart, "classic"))$theme)
+
+  # Old names give the same chart as new names
+  old <- theme_js(list(genes = list(corner_radius = 5), links = list(normal_color = "red"),
+                       legend = list(legendTextOptions = list(fill = "red"))))
+  new <- theme_js(list(genes = list(cornerRadius = 5), links = list(normalColor = "red"),
+                       legend = list(textStyle = list(fill = "red"))))
+  expect_equal(old, new)
+
+  # An old name added to a built-in theme's new one: one option, the old name's
+  # value merged in last
+  mixed <- utils::modifyList(classic, list(legend = list(legendTextOptions = list(fontSize = "20px"))))
+  spec <- GC_theme(chart, mixed)$x$spec$theme
+  expect_equal(spec$legend$textStyle, list(fill = "#464646", fontSize = "20px"))
+  expect_equal(sum(names(spec$legend) == "textStyle"), 1)
+  js <- theme_js(mixed)
+  expect_equal(js$legendOptions$legendTextOptions$fontSize, "20px")
+  expect_equal(js$legendOptions$legendTextOptions$fill, "#464646")
 })

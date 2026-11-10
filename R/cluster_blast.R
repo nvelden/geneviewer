@@ -127,20 +127,6 @@ compute_identity <- function(patterns, subjects) {
 }
 
 
-get_synteny_genes <- function(numbers) {
-  # Step 1: Sort the vector
-  sorted_numbers <- sort(numbers)
-
-  # Step 2: Get all unique numbers
-  unique_numbers <- unique(sorted_numbers)
-
-  # Step 3: Find numbers that are part of a subsequent number pair
-  result <- unique_numbers[sapply(unique_numbers, function(x) (x + 1) %in% unique_numbers)]
-
-  # Return the result
-  return(result)
-}
-
 synteny_score <- function(order1, order2, identity, i = 0.5) {
 
   score <- 0

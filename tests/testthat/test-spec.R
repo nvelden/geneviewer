@@ -41,29 +41,22 @@ sent_x <- function(widget) {
   htmlwidgets:::createPayload(widget)$x
 }
 
-# Records the spec (or not) until the test ends
-local_record_spec <- function(value, env = parent.frame()) {
-  old <- options(geneviewer.record_spec = value)
-  do.call(on.exit, list(substitute(options(old)), add = TRUE, after = FALSE), envir = env)
-}
-
-test_that("without the option the chart has no spec", {
-  local_record_spec(NULL)
-  expect_null(sent_x(spec_chart())$spec)
+test_that("the widget sends the spec, and only the spec", {
+  x <- sent_x(spec_chart())
+  expect_named(x, "spec")
+  expect_identical(x$spec$version, 1L)
 })
 
-test_that("recording the spec does not change the chart", {
-  local_record_spec(NULL)
+test_that("the option of 0.2.x that recorded the spec changes nothing", {
+  old <- options(geneviewer.record_spec = FALSE)
+  on.exit(options(old))
   off <- sent_x(spec_chart())
-  local_record_spec(TRUE)
+  options(geneviewer.record_spec = TRUE)
   on <- sent_x(spec_chart())
-  expect_false(is.null(on$spec))
-  on$spec <- NULL
   expect_identical(htmlwidgets:::toJSON(on), htmlwidgets:::toJSON(off))
 })
 
 test_that("the spec holds the arguments as given, under their spec names", {
-  local_record_spec(TRUE)
   spec <- sent_x(spec_chart())$spec
 
   expect_identical(spec$version, 1L)
@@ -100,7 +93,6 @@ test_that("the spec holds the arguments as given, under their spec names", {
 })
 
 test_that("calls that change nothing are not recorded", {
-  local_record_spec(TRUE)
   spec <- sent_x(
     GC_chart(spec_genes, group = "group") %>%
       GC_title(show = FALSE) %>%
@@ -111,19 +103,30 @@ test_that("calls that change nothing are not recorded", {
 })
 
 test_that("a logical for a column argument is recorded as show", {
-  local_record_spec(TRUE)
   spec <- sent_x(GC_chart(spec_genes, group = "group") %>% GC_legend(FALSE))$spec
   expect_identical(spec$legend, list(show = FALSE))
 })
 
 test_that("save_button = FALSE is a toolbar without the save button", {
-  local_record_spec(TRUE)
   spec <- sent_x(GC_chart(spec_genes, save_button = FALSE))$spec
   expect_identical(spec$toolbar, list(buttons = list("undo", "redo", "reset", "zoom")))
 })
 
+test_that("a later call's unnamed list replaces the earlier one (B64)", {
+  spec <- sent_x(
+    GC_chart(spec_genes, group = "group") %>%
+      GC_toolbar(buttons = "undo", icons = list(reset = "house")) %>%
+      GC_toolbar(buttons = c("undo", "redo"), icons = list(save = "download")) %>%
+      GC_legend(order = list("B", "A"), style = list(fill = "red")) %>%
+      GC_legend(order = list("A", "B"), style = list(stroke = "blue"))
+  )$spec
+  expect_identical(spec$toolbar, list(buttons = list("undo", "redo"),
+                                      icons = list(reset = "house", save = "download")))
+  expect_identical(spec$legend, list(order = list("A", "B"),
+                                     style = list(fill = "red", stroke = "blue")))
+})
+
 test_that("theme calls without a theme change the one set before", {
-  local_record_spec(TRUE)
   spec <- sent_x(
     GC_chart(spec_genes, group = "group") %>%
       GC_theme("dark", links = list(normal_color = "red", show_links = FALSE)) %>%
@@ -139,7 +142,6 @@ test_that("theme calls without a theme change the one set before", {
 })
 
 test_that("links from gene matching are recorded as data", {
-  local_record_spec(TRUE)
   genes <- data.frame(
     start = c(1, 50, 100, 1, 50),
     end = c(40, 90, 140, 40, 90),
@@ -156,7 +158,6 @@ test_that("links from gene matching are recorded as data", {
 })
 
 test_that("transcripts are recorded with their introns", {
-  local_record_spec(TRUE)
   exons <- data.frame(
     start = c(1, 50), end = c(20, 80),
     type = "exon", transcript = "t1"
@@ -168,33 +169,32 @@ test_that("transcripts are recorded with their introns", {
 })
 
 test_that("normalised positions are recorded in the data", {
-  local_record_spec(TRUE)
   chart <- GC_chart(spec_genes, cluster = "cluster", group = "group") %>%
     GC_normalize(gap = 0.1)
   x <- sent_x(chart)
-  expect_identical(x$spec$data$start, chart$x$data$start)
   expect_null(x$spec$normalize)
+  # The library draws the positions of the spec
+  model <- compile_chart(chart)
+  expect_equal(unlist(lapply(model$series, function(s) s$data$start), use.names = FALSE),
+               x$spec$data$start)
 })
 
 test_that("the spec validates against the schema of spec v1", {
-  skip_if_not_installed("jsonvalidate")
+  skip_unless(requireNamespace("jsonvalidate", quietly = TRUE), "jsonvalidate cannot be loaded")
   schema <- Sys.getenv("GENEVIEWER_SPEC_SCHEMA")
-  skip_if(!nzchar(schema) || !file.exists(schema),
-          "GENEVIEWER_SPEC_SCHEMA is not set to spec-v1.schema.json")
-  local_record_spec(TRUE)
+  skip_unless(nzchar(schema) && file.exists(schema),
+              "GENEVIEWER_SPEC_SCHEMA is not set to spec-v1.schema.json")
   json <- htmlwidgets:::toJSON(sent_x(spec_chart())$spec)
   expect_true(jsonvalidate::json_validate(json, schema, engine = "ajv", error = TRUE))
 })
 
 test_that("options passed through ... keep their names", {
-  local_record_spec(TRUE)
   spec <- sent_x(GC_chart(spec_genes, group = "group") %>%
                    GC_genes(marker_size = "small", prevent_overlap = FALSE))$spec
   expect_identical(spec$genes, list(markerSize = "small", prevent_overlap = FALSE))
 })
 
 test_that("NULL is kept where it replaces a default", {
-  local_record_spec(TRUE)
   spec <- sent_x(GC_chart(spec_genes, group = "group") %>%
                    GC_pattern(background = NULL, size = 4))$spec
   expect_identical(spec$pattern, list(background = NULL, size = 4))
@@ -202,10 +202,62 @@ test_that("NULL is kept where it replaces a default", {
 })
 
 test_that("options passed through ... that spec v1 renames get the spec name", {
-  local_record_spec(TRUE)
   spec <- sent_x(GC_chart(spec_genes, group = "group") %>%
                    GC_scaleBar(scaleBarUnit = "kb", title = "1 kb") %>%
                    GC_labels("name", labelAdjustmentOptions = list(offsetY = 2)))$spec
   expect_identical(spec$scaleBar, list(unit = "kb", title = "1 kb"))
   expect_identical(spec$labels, list(label = "name", labelAdjustment = list(offsetY = 2)))
+})
+
+test_that("sequence columns are sent only when an option names them", {
+  genes <- data.frame(start = c(10, 50), end = c(40, 80), name = c("a", "b"),
+                      translation = c("MKV", "MLL"), sequence = c("ATG", "ATG"))
+  sent <- function(chart) htmlwidgets:::createPayload(chart)$x$spec$data
+  chart <- GC_chart(genes, height = "100px")
+  expect_named(sent(chart), c("start", "end", "name"))
+  # The chart keeps its data as given
+  expect_true(all(c("translation", "sequence") %in% names(chart$x$spec$data)))
+  expect_named(sent(GC_tooltip(chart, formatter = "{name}: {translation}")),
+               c("start", "end", "name", "translation"))
+})
+
+test_that("chart_fields() gives the columns and clusters of the prepared data", {
+  same_as_prepared <- function(chart) {
+    state <- chart_state(chart)
+    expect_identical(state$columns, names(state$data))
+    expect_identical(state$clusters, state_clusters(state$data, state$cluster))
+  }
+  genes <- data.frame(from = c(10, 50, NA, 90), to = c(40, 80, 30, 120),
+                      contig = factor(c("b", "b", "gone", "a")), kind = c("x", "y", "x", "x"),
+                      dir = c(1, -1, 1, -1))
+
+  same_as_prepared(suppressWarnings(GC_chart(genes, start = "from", end = "to")))
+  same_as_prepared(suppressWarnings(GC_chart(genes, "from", "to", "contig", "kind", "dir")))
+  same_as_prepared(GC_chart(data.frame(genes, cluster = c(2, 2, 3, 1), start = 1, end = 2),
+                            cluster = "cluster"))
+  # An NA is a cluster; a cluster with only rows left out is not
+  with_na <- suppressWarnings(GC_chart(transform(genes, contig = c(NA, "b", "gone", "a")),
+                                       "from", "to", "contig"))
+  same_as_prepared(with_na)
+  expect_identical(chart_fields(with_na)$clusters, c(NA, "b", "a"))
+  # No rows left: as GC_chart() allows it, without columns or clusters
+  expect_null(chart_fields(suppressWarnings(GC_chart(genes[3, ], "from", "to", "contig")))$columns)
+  same_as_prepared(suppressWarnings(GC_chart(genes[3, ], "from", "to", "contig")))
+  same_as_prepared(suppressWarnings(GC_chart(genes[3, ], "from", "to")))
+
+  # After GC_transcript(), the transcripts are the clusters
+  exons <- data.frame(start = c(1, 50, 200), end = c(20, 80, 260), type = "exon",
+                      transcript = c("t2", "t2", "t1"), strand = 1)
+  transcripts <- GC_chart(exons, group = "type") %>% GC_transcript(transcript = "transcript", type = "type")
+  same_as_prepared(transcripts)
+  expect_identical(chart_fields(transcripts)$clusters, c("t2", "t1"))
+})
+
+test_that("theme settings keep or remove a NULL, and replace unnamed lists", {
+  old <- list(a = list(b = 1, c = 2), d = 3, e = list("x", "y"))
+  new <- list(a = list(b = NULL), d = NULL, e = list("z"))
+  expect_identical(merge_theme_settings(old, new),
+                   list(a = list(c = 2), e = list("z")))
+  expect_identical(merge_spec_theme(old, new),
+                   list(a = list(b = NULL, c = 2), d = NULL, e = list("z")))
 })

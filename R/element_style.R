@@ -15,9 +15,10 @@ scale_components <- c("scaleBar", "scale")
 #' @param GC_chart A GC chart object.
 #' @param component The component to edit: `"genes"`, `"labels"`,
 #'   `"coordinates"`, `"clusterTitle"`, `"clusterFooter"`, `"clusterLabel"`, `"legend"`, `"title"`, `"scaleBar"` or `"scale"`.
-#' @param row_id For genes, labels and coordinates: the gene's `rowID` in
-#'   `GC_chart$x$data`, also returned in `input$<outputId>_select$data$rowID`
-#'   and double-click event data.
+#' @param row_id For genes, labels and coordinates: the gene's `rowID`, its
+#'   row number in the chart's data once rows without a start or end are left
+#'   out, also returned in `input$<outputId>_select$data$rowID` and
+#'   double-click event data.
 #' @param ... Named element options, using JavaScript names, e.g. `fill`,
 #'   `stroke`, `strokeWidth`, `marker`, `markerSize`, `fontSize`, `dx`, `dy`
 #'   or `rotate`. Labels, titles and subtitles also accept `text` to override
@@ -70,6 +71,7 @@ GC_element_style <- function(GC_chart,
                              row_id = NULL, ..., cluster = NULL, part = NULL, end = NULL,
                              reset = FALSE, group = NULL) {
   spec <- spec_args(match.call(), environment())
+  state <- chart_state(GC_chart)
   component <- match.arg(component)
   by_row <- component %in% row_components
   if (component == "title") {
@@ -83,9 +85,9 @@ GC_element_style <- function(GC_chart,
     if (!is.null(row_id) || !is.null(cluster) || !is.null(end)) {
       stop("Use 'group' and 'part' to identify a legend label or marker.")
     }
-    column <- GC_chart$x$legend$group
+    column <- legend_group(GC_chart, state)
     if (length(group) != 1 || is.na(group) || !length(column) ||
-        !group %in% GC_chart$x$data[[column]]) {
+        !group %in% state$data[[column]]) {
       stop("'group' must identify one group in the legend.")
     }
     if (!identical(part, "label") && !identical(part, "marker")) {
@@ -96,7 +98,7 @@ GC_element_style <- function(GC_chart,
   }
   if (by_row) {
     if (!is.numeric(row_id) || length(row_id) != 1 || is.na(row_id) ||
-        !is.finite(row_id) || !row_id %in% GC_chart$x$data$rowID) {
+        !is.finite(row_id) || !row_id %in% state$data$rowID) {
       stop("'row_id' must identify one row in the chart's data.")
     }
     if (!is.null(cluster) || !is.null(part)) {
@@ -111,7 +113,7 @@ GC_element_style <- function(GC_chart,
       stop("Use 'cluster' and 'part' to identify a title or subtitle, not 'row_id' or 'end'.")
     }
     if (length(cluster) != 1 || is.na(cluster)) stop("'cluster' must be one cluster.")
-    cluster <- suppressWarnings(getUpdatedClusters(GC_chart, cluster))
+    cluster <- suppressWarnings(getUpdatedClusters(state$clusters, cluster))
     if (is.null(cluster)) stop("'cluster' must be the name or number of a cluster of the chart.")
     if (component %in% scale_components) {
       if (!is.null(part)) stop("Scale bars and axes are edited as a whole; do not supply 'part'.")
@@ -136,49 +138,12 @@ GC_element_style <- function(GC_chart,
          "labels, titles, scales and the legend.")
   }
 
-  if (component %in% chart_components) {
-    id <- c(if (component == "legend") list(group = group), list(part = part))
-    same <- function(item) {
-      identical(item$part, part) && (component == "title" || identical(item$group, group))
-    }
-    GC_chart$x[[component]]$itemStyle <- update_element_override(
-      GC_chart$x[[component]]$itemStyle, same, id, style, reset)
-    return(add_spec_element_style(GC_chart, spec, component, reset))
-  }
-
-  # The series entry of the component, and what identifies the element in it
-  key <- switch(component, clusterFooter = "footer", component)
-  id <- if (by_row) {
-    c(list(rowID = row_id), if (!is.null(end)) list(end = end))
-  } else if (component %in% scale_components) list() else list(part = part)
-  same <- function(item) {
-    if (by_row) {
-      identical(as.numeric(item$rowID), as.numeric(row_id)) && identical(item$end, end)
-    } else {
-      identical(item$part, part)
-    }
-  }
-
-  clusters <- if (by_row) names(GC_chart$x$series) else cluster
-  for (name in clusters) {
-    series <- GC_chart$x$series[[name]]
-    if (by_row && !row_id %in% series$data$rowID) next
-    GC_chart$x$series[[name]][[key]]$itemStyle <- update_element_override(
-      series[[key]]$itemStyle, same, id, style, reset)
-  }
   add_spec_element_style(GC_chart, spec, component, reset)
 }
 
-
-# Merge or remove one override while keeping the other elements unchanged.
-update_element_override <- function(items, same, id, style, reset) {
-  matched <- vapply(items, same, logical(1))
-  previous <- if (any(matched)) items[[which(matched)[1]]] else list()
-  items <- items[!matched]
-  if (!reset) {
-    override <- utils::modifyList(previous, style)
-    override[names(id)] <- id
-    items <- c(items, list(override))
-  }
-  unname(items)
+#' The column of the legend's groups: GC_legend(group = ), else the chart's
+#' @noRd
+legend_group <- function(GC_chart, state) {
+  legend <- GC_chart$x$spec$legend
+  if (is.character(legend$group)) legend$group else state$group
 }

@@ -141,10 +141,13 @@ GC_theme <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
-  if (is.null(theme)) {
-    base <- if (is.null(GC_chart$x$theme)) list() else GC_chart$x$theme
-  } else {
-    base <- resolve_theme(theme)
+  # NULL removes a component from the theme; spec_args() leaves NULLs out
+  dots <- list(...)
+  for (name in names(dots)[nzchar(names(dots))]) {
+    if (is.null(dots[[name]])) spec[name] <- list(NULL)
+  }
+  if (!is.null(theme)) {
+    resolve_theme(theme)
   }
 
   settings <- c(
@@ -161,18 +164,15 @@ GC_theme <- function(
   )
   check_theme(settings)
 
-  GC_chart$x$theme <- merge_theme_settings(base, settings)
-  if (isFALSE(pattern)) {
-    GC_chart$x$theme$pattern <- NULL
-  }
-
   add_spec_theme(GC_chart, spec)
 }
 
 #' Settings of a Built-in Theme
 #'
 #' Returns the settings of a built-in theme of [GC_theme()], to see them or to
-#' start a theme of your own.
+#' start a theme of your own. The options of components have the names of the
+#' chart spec, e.g. `cornerRadius` and `textStyle` (for `GC_legend()`'s
+#' `corner_radius` and `legendTextOptions`); [GC_theme()] takes both.
 #'
 #' @param name Name of the theme: `"default"`, `"classic"`,
 #'   `"dark"`, `"vintage"`, `"infographic"`, `"publication"` or `"bw"`.
@@ -188,10 +188,11 @@ GC_theme <- function(
 #'
 #' @export
 geneviewer_theme <- function(name = "default") {
-  if (!is.character(name) || length(name) != 1 || !name %in% names(builtin_themes)) {
-    stop("name must be one of: ", paste0('"', names(builtin_themes), '"', collapse = ", "))
+  themes <- builtin_themes()
+  if (!is.character(name) || length(name) != 1 || !name %in% names(themes)) {
+    stop("name must be one of: ", paste0('"', names(themes), '"', collapse = ", "))
   }
-  builtin_themes[[name]]
+  themes[[name]]
 }
 
 #' Colours of a geneviewer Palette
@@ -232,306 +233,66 @@ geneviewer_theme <- function(name = "default") {
 #'
 #' @export
 geneviewer_palette <- function(name = NULL) {
+  palettes <- geneviewer_palettes()
   if (is.null(name)) {
-    return(names(geneviewer_palettes))
+    return(names(palettes))
   }
-  if (!is.character(name) || length(name) != 1 || !name %in% names(geneviewer_palettes)) {
-    stop("name must be one of: ", paste0('"', names(geneviewer_palettes), '"', collapse = ", "))
+  if (!is.character(name) || length(name) != 1 || !name %in% names(palettes)) {
+    stop("name must be one of: ", paste0('"', names(palettes), '"', collapse = ", "))
   }
-  geneviewer_palettes[[name]]
+  palettes[[name]]
 }
 
-geneviewer_palettes <- list(
-  okabeIto = c("#E69F00", "#56B4E9", "#009E73", "#F0E442",
-               "#0072B2", "#D55E00", "#CC79A7", "#999999"),
-  classic = c("#5470c6", "#91cc75", "#fac858", "#ee6666", "#73c0de",
-              "#3ba272", "#fc8452", "#9a60b4", "#ea7ccc"),
-  vivid = c("#4992ff", "#7cffb2", "#fddd60", "#ff6e76", "#58d9f9",
-            "#05c091", "#ff8a45", "#8d48e3", "#dd79ff"),
-  dark = c("#dd6b66", "#759aa0", "#e69d87", "#8dc1a9", "#ea7e53", "#eedd78",
-           "#73a373", "#73b9bc", "#7289ab", "#91ca8c", "#f49f42"),
-  vintage = c("#d87c7c", "#919e8b", "#d7ab82", "#6e7074", "#61a0a8",
-              "#efa18d", "#787464", "#cc7e63", "#724e58", "#4b565b"),
-  infographic = c("#C1232B", "#27727B", "#FCCE10", "#E87C25", "#B5C334",
-                  "#FE8463", "#9BCA63", "#FAD860", "#F3A43B", "#60C0DD",
-                  "#D7504B", "#C6E579", "#F4E001", "#F0805A", "#26C0C0"),
-  greys = c("#252525", "#525252", "#737373", "#969696", "#bdbdbd", "#d9d9d9"),
-  blues = c("#08306b", "#08519c", "#2171b5", "#4292c6", "#6baed6", "#9ecae1", "#c6dbef")
-)
+# The built-in themes and palettes, from the themes.json of the vendored
+# JavaScript library (with the option names of the GC_ functions), read once
+theme_store <- new.env(parent = emptyenv())
 
-# Built-in themes, as settings for GC_theme()
-
-# The default tooltip of ECharts, with 12px text like the rest of the chart
-# (ECharts uses 14px and 10px padding)
-echarts_tooltip <- list(backgroundColor = "#ffffff", color = "#6d6e73",
-                        border = "1px solid #b7b9be", borderRadius = "4px",
-                        fontSize = "12px", fontFamily = "sans-serif", padding = "8px",
-                        boxShadow = "1px 2px 10px rgba(0, 0, 0, 0.2)")
-infographic_tooltip <- list(backgroundColor = "rgba(50, 50, 50, 0.85)", color = "#ffffff",
-                            border = "none", borderRadius = "4px", fontSize = "12px")
-publication_tooltip <- list(backgroundColor = "white", color = "black",
-                            border = "1px solid black", borderRadius = "0",
-                            boxShadow = "none", fontSize = "9.33px", padding = "8px")
-
-# The toolbar of a theme (GC_toolbar()): its tooltips and save menu in the
-# style of the theme's tooltip, and icons in two colours, at rest and under
-# the mouse
-toolbar_style <- function(tooltip, color, hoverColor) {
-  c(list(color = color, hoverColor = hoverColor),
-    Filter(Negate(is.null), list(
-      tooltipBackground = tooltip$backgroundColor, tooltipColor = tooltip$color,
-      tooltipBorder = tooltip$border, tooltipRadius = tooltip$borderRadius,
-      tooltipShadow = tooltip$boxShadow, fontFamily = tooltip$fontFamily)))
+themes_json <- function() {
+  if (is.null(theme_store$json)) {
+    lib <- system.file("htmlwidgets", "lib", package = "geneviewer")
+    folder <- list.files(lib, pattern = "^geneviewer-", full.names = TRUE)
+    file <- file.path(folder, "themes.json")
+    if (length(file) != 1 || !file.exists(file)) {
+      stop("The themes of the JavaScript library are missing (themes.json).")
+    }
+    theme_store$json <- as_r_values(jsonlite::read_json(file, simplifyVector = FALSE))
+  }
+  theme_store$json
 }
 
-# Flat, rounded genes and exons without keylines
-flat_genes <- list(stroke = "none", corner_radius = 3)
-flat_transcript <- list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
-                        styleUTRs = list(cornerRadius = 3))
+# Numbers as doubles, as they are written in R; an empty object is list()
+as_r_values <- function(x) {
+  if (is.list(x)) {
+    if (length(x) == 0) return(list())
+    x[] <- lapply(x, as_r_values)
+    return(x)
+  }
+  if (is.integer(x)) as.double(x) else x
+}
 
-# 12px gene labels and axis text with 5px ticks, as in ECharts
-echarts_axes <- list(
-  # Lines to spread labels 1px wide, as the ECharts axis and label guide lines
-  labels = list(fontStyle = "normal", fontSize = "12px", leaderLine = list(strokeWidth = 1)),
-  # Coordinates keep 10px: at 12px the numbers of adjacent genes overlap
-  coordinates = list(tickStyle = list(lineLength = 5)),
-  scale = list(textStyle = list(fontSize = "12px"), tickStyle = list(lineLength = 5)),
-  scaleBar = list(labelStyle = list(fontSize = "12px"))
-)
-echarts_color_bar <- list(barOptions = list(stroke = "none"),
-                          labelOptions = list(fontSize = 12),
-                          titleOptions = list(fontSize = 12))
+#' The built-in themes, by name
+#' @noRd
+builtin_themes <- function() {
+  themes_json()$themes
+}
 
-builtin_themes <- list(
-  default = list(),
-  # The default theme of ECharts 5: only the genes and links are coloured. The
-  # title colour (#464646) for titles, cluster labels and the legend, the
-  # subtitle colour (#6E7079) for the other text and all lines; sans-serif
-  # 12px text, an 18px title, 5px axis ticks and the ECharts tooltip
-  classic = c(
-    list(
-      fontFamily = "sans-serif",
-      textColor = "#6E7079",
-      lineColor = "#6E7079",
-      palette = "classic",
-      title = list(titleFont = list(fontSize = "18px", fill = "#464646"),
-                   subtitleFont = list(fontSize = "12px")),
-      clusterTitle = list(titleFont = list(fill = "#464646")),
-      clusterLabel = list(fill = "#464646"),
-      genes = flat_genes,
-      transcript = flat_transcript
-    ),
-    echarts_axes,
-    list(
-      legend = list(corner_radius = 3, legendTextOptions = list(fill = "#464646")),
-      # Links in the blue and red of the palette
-      links = list(normal_color = "#5470c6", inverted_color = "#ee6666",
-                   linkStyle = list(fillOpacity = 0.6),
-                   colorBarOptions = echarts_color_bar),
-      tooltip = echarts_tooltip,
-      trackMouse = echarts_tooltip,
-      # The grey and emphasis blue of the ECharts toolbox
-      toolbar = toolbar_style(echarts_tooltip, "#999999", "#3E98C5")
-    )
-  ),
-  # The ECharts dark theme (ECharts 4) on the ECharts defaults: #eee for all
-  # text and lines but the subtitle (#aaa), sans-serif 12px text, an 18px
-  # title, 5px axis ticks, links in the colours of the theme fading into the
-  # background, and the light ECharts tooltip
-  dark = c(
-    list(
-      fontFamily = "sans-serif",
-      background = "#333333",
-      textColor = "#eeeeee",
-      lineColor = "#eeeeee",
-      palette = "dark",
-      title = list(titleFont = list(fontSize = "18px"),
-                   subtitleFont = list(fontSize = "12px", fill = "#aaaaaa")),
-      clusterTitle = list(subtitleFont = list(fill = "#aaaaaa")),
-      clusterLabel = list(subtitleFont = list(fill = "#aaaaaa")),
-      genes = flat_genes,
-      transcript = flat_transcript
-    ),
-    echarts_axes,
-    list(
-      legend = list(corner_radius = 3),
-      links = list(normal_color = "#759aa0", inverted_color = "#dd6b66",
-                   low_color = "#333333", linkStyle = list(fillOpacity = 0.6),
-                   colorBarOptions = echarts_color_bar),
-      tooltip = echarts_tooltip,
-      trackMouse = echarts_tooltip,
-      # Muted icons that light up on the dark background, and the light tooltip
-      toolbar = toolbar_style(echarts_tooltip, "#999999", "#eeeeee")
-    )
-  ),
-  # The colours and flat style of the ECharts vintage theme: its palette and
-  # background, with the text and axis colours of the ECharts defaults
-  vintage = list(
-    background = "#fef8ef",
-    textColor = "#3f3a33",
-    lineColor = "#787464",
-    palette = "vintage",
-    title = list(subtitleFont = list(fill = "#787464")),
-    clusterTitle = list(subtitleFont = list(fill = "#787464")),
-    clusterLabel = list(subtitleFont = list(fill = "#787464")),
-    sequence = list(sequenceStyle = list(stroke = "#c9c2b5")),
-    genes = flat_genes,
-    transcript = flat_transcript,
-    # Lines to spread labels in the colour of the sequence line
-    labels = list(fontStyle = "normal", fontSize = "11px",
-                  leaderLine = list(stroke = "#c9c2b5", strokeWidth = 1)),
-    legend = list(corner_radius = 3),
-    links = list(normal_color = "#61a0a8", inverted_color = "#d87c7c",
-                 low_color = "#fef8ef", linkStyle = list(fillOpacity = 0.6),
-                 colorBarOptions = list(barOptions = list(stroke = "none"))),
-    tooltip = echarts_tooltip,
-    trackMouse = echarts_tooltip,
-    # Icons in the colour of its sequence line, red under the mouse
-    toolbar = toolbar_style(echarts_tooltip, "#c9c2b5", "#d87c7c")
-  ),
-  # The ECharts infographic theme on the ECharts defaults: only the genes and
-  # links are coloured. The title colour (#464646) for titles, cluster labels and the
-  # legend, the subtitle colour (#6E7079) for the other text and all lines;
-  # sans-serif 12px text, an 18px title, 5px axis ticks and dark tooltips
-  infographic = c(
-    list(
-      fontFamily = "sans-serif",
-      textColor = "#6E7079",
-      lineColor = "#6E7079",
-      palette = "infographic",
-      title = list(titleFont = list(fontSize = "18px", fill = "#464646"),
-                   subtitleFont = list(fontSize = "12px")),
-      clusterTitle = list(titleFont = list(fill = "#464646")),
-      clusterLabel = list(fill = "#464646"),
-      genes = flat_genes,
-      transcript = flat_transcript
-    ),
-    echarts_axes,
-    list(
-      legend = list(corner_radius = 3, legendTextOptions = list(fill = "#464646")),
-      # Links in the teal and red of the theme
-      links = list(normal_color = "#27727B", inverted_color = "#C1232B",
-                   linkStyle = list(fillOpacity = 0.6),
-                   colorBarOptions = echarts_color_bar),
-      tooltip = infographic_tooltip,
-      trackMouse = infographic_tooltip,
-      # The red and orange of the ECharts infographic toolbox
-      toolbar = toolbar_style(infographic_tooltip, "#C1232B", "#E87C25")
-    )
-  ),
-  # Figures for journals, after common journal figure guidelines, in the style
-  # of the other themes: Arial or Helvetica, text of 7 pt (9.33px; at most 7
-  # and at least 5 pt in print), black text and keylines, italic gene labels,
-  # black axis lines with ticks, no gridlines, patterns or shadows, and the colour-blind-safe colours
-  # of Wong (2011), with links in its blue and vermillion. Journals reserve
-  # 8 pt bold text for panel labels, which authors add separately. Sizes are
-  # for a chart drawn at its final print size.
-  publication = list(
-    fontFamily = "Arial, Helvetica, sans-serif",
-    textColor = "black",
-    lineColor = "black",
-    palette = "okabeIto",
-    title = list(titleFont = list(fontSize = "9.33px", fill = "black"),
-                 subtitleFont = list(fontSize = "9.33px")),
-    clusterTitle = list(titleFont = list(fontSize = "9.33px"), subtitleFont = list(fontSize = "9.33px")),
-    clusterFooter = list(titleFont = list(fontSize = "9.33px"), subtitleFont = list(fontSize = "9.33px")),
-    clusterLabel = list(fontSize = "9.33px", subtitleFont = list(fontSize = "9.33px")),
-    genes = list(stroke = "black", strokeWidth = 0.75, corner_radius = 3),
-    # No keylines on exons and UTRs: on a short exon the outline hides its colour
-    transcript = list(styleExons = list(strokeWidth = 0, cornerRadius = 3),
-                      styleUTRs = list(cornerRadius = 3, fontSize = "9.33px"),
-                      labelOptions = list(fontSize = "9.33px")),
-    # Gene symbols are italic in journals; lines to spread labels as thick as
-    # the keylines, above the 0.5 pt minimum of most journals
-    labels = list(fontStyle = "italic", fontSize = "9.33px",
-                  leaderLine = list(strokeWidth = 0.75)),
-    coordinates = list(textStyle = list(fontSize = "9.33px"), tickStyle = list(lineLength = 4)),
-    scale = list(textStyle = list(fontSize = "9.33px"), tickStyle = list(lineLength = 4)),
-    scaleBar = list(labelStyle = list(fontSize = "9.33px")),
-    legend = list(corner_radius = 2,
-                  legendOptions = list(stroke = "black", strokeWidth = 0.75),
-                  legendTextOptions = list(fontSize = "9.33px")),
-    links = list(normal_color = "#0072B2", inverted_color = "#D55E00",
-                 linkStyle = list(fillOpacity = 0.6), labelStyle = list(fontSize = "9.33px"),
-                 colorBarOptions = list(barOptions = list(stroke = "none"),
-                                        labelOptions = list(fontSize = 9.33),
-                                        titleOptions = list(fontSize = 9.33))),
-    annotations = list(text = list(style = list(fontSize = "9.33px")),
-                       textMarker = list(textStyle = list(fontSize = "9.33px")),
-                       arc = list(textStyle = list(fontSize = "9.33px"))),
-    tooltip = publication_tooltip,
-    trackMouse = publication_tooltip,
-    toolbar = toolbar_style(publication_tooltip, "#999999", "black")
-  ),
-  # Black and white, in the style of the other themes: black for titles,
-  # cluster labels and the legend, grey (#555555) for the other text and all
-  # lines; sans-serif 12px text, an 18px title, 5px axis ticks, rounded genes
-  # and legend markers with a black outline around the patterns, grey links
-  # and the ECharts tooltip
-  bw = c(
-    list(
-      fontFamily = "sans-serif",
-      textColor = "#555555",
-      lineColor = "#555555",
-      pattern = list(color = "black", background = "white", size = 6, strokeWidth = 1),
-      title = list(titleFont = list(fontSize = "18px", fill = "black"),
-                   subtitleFont = list(fontSize = "12px")),
-      clusterTitle = list(titleFont = list(fill = "black")),
-      clusterLabel = list(fill = "black"),
-      genes = list(stroke = "black", strokeWidth = 0.75, corner_radius = 3),
-      transcript = list(styleExons = list(stroke = "black", strokeWidth = 0.75, cornerRadius = 3),
-                        styleUTRs = list(cornerRadius = 3))
-    ),
-    echarts_axes,
-    list(
-      legend = list(corner_radius = 3, legendTextOptions = list(fill = "black")),
-      links = list(normal_color = "#bdbdbd", inverted_color = "#525252",
-                   colorBarOptions = list(barOptions = list(stroke = "#555555"),
-                                          labelOptions = list(fontSize = 12),
-                                          titleOptions = list(fontSize = 12))),
-      tooltip = echarts_tooltip,
-      trackMouse = echarts_tooltip,
-      toolbar = toolbar_style(echarts_tooltip, "#bdbdbd", "black")
-    )
-  )
-)
+#' The geneviewer palettes, by name: character vectors of colours
+#' @noRd
+geneviewer_palettes <- function() {
+  lapply(themes_json()$palettes, unlist)
+}
 
-# Global settings and components of a theme, with the key of each component in
-# the browser (geneviewer.js)
+# Global settings and components of a theme
 theme_global_settings <- c("textScale", "fontFamily", "textColor", "lineColor", "background", "palette", "pattern")
 
 theme_components <- c(
-  chart = "chartOptions",
-  grid = "containerOptions",
-  cluster = "clusterOptions",
-  title = "titleOptions",
-  clusterTitle = "clusterTitleOptions",
-  clusterFooter = "footerOptions",
-  clusterLabel = "clusterLabelOptions",
-  sequence = "sequenceOptions",
-  genes = "geneOptions",
-  transcript = "transcriptOptions",
-  labels = "labelsOptions",
-  coordinates = "coordinatesOptions",
-  scale = "scaleOptions",
-  scaleBar = "scaleBarOptions",
-  legend = "legendOptions",
-  links = "linkOptions",
-  tooltip = "tooltipOptions",
-  trackMouse = "trackMouseOptions",
-  toolbar = "toolbarOptions"
+  "chart", "grid", "cluster", "title", "clusterTitle", "clusterFooter", "clusterLabel",
+  "sequence", "genes", "transcript", "labels", "coordinates", "scale", "scaleBar",
+  "legend", "links", "tooltip", "trackMouse", "toolbar"
 )
 
 theme_annotation_types <- c(
-  text = "textAnnotationOptions",
-  line = "lineAnnotationOptions",
-  arrow = "arrowAnnotationOptions",
-  textMarker = "textMarkerAnnotationOptions",
-  symbol = "symbolAnnotationOptions",
-  rectangle = "rectangleAnnotationOptions",
-  promoter = "promoterAnnotationOptions",
-  terminator = "terminatorAnnotationOptions",
-  arc = "curveAnnotationOptions"
+  "text", "line", "arrow", "textMarker", "symbol", "rectangle", "promoter", "terminator", "arc"
 )
 
 resolve_theme <- function(theme) {
@@ -549,7 +310,7 @@ check_theme <- function(settings) {
   if (length(settings) == 0) {
     return(invisible())
   }
-  valid <- c(theme_global_settings, names(theme_components), "annotations")
+  valid <- c(theme_global_settings, theme_components, "annotations")
   if (is.null(names(settings)) || any(names(settings) == "")) {
     stop("All theme settings must be named")
   }
@@ -558,7 +319,7 @@ check_theme <- function(settings) {
     stop("Unknown theme setting: ", paste(unknown, collapse = ", "),
          ". Use one of: ", paste(valid, collapse = ", "))
   }
-  components <- settings[intersect(names(settings), c(names(theme_components), "annotations"))]
+  components <- settings[intersect(names(settings), c(theme_components, "annotations"))]
   for (name in names(components)) {
     # NULL removes the component from the theme
     if (!is.null(components[[name]]) && !is.list(components[[name]])) {
@@ -585,13 +346,13 @@ check_theme <- function(settings) {
       stop("pattern must be a list with the arguments of GC_pattern(): ",
            paste(pattern_args, collapse = ", "))
     }
-    pattern_to_js(settings$pattern)
+    check_pattern(settings$pattern)
   }
   if (!is.null(settings$toolbar)) check_toolbar(camel_case_names(settings$toolbar))
-  unknown <- setdiff(names(settings$annotations), names(theme_annotation_types))
+  unknown <- setdiff(names(settings$annotations), theme_annotation_types)
   if (length(unknown) > 0) {
     stop("Unknown annotation type in theme: ", paste(unknown, collapse = ", "),
-         ". Use one of: ", paste(names(theme_annotation_types), collapse = ", "))
+         ". Use one of: ", paste(theme_annotation_types, collapse = ", "))
   }
   invisible()
 }
@@ -600,12 +361,18 @@ check_theme <- function(settings) {
 # (unnamed lists such as itemStyle or a palette included) replace the old value,
 # and NULL removes it. utils::modifyList() ignores unnamed lists.
 merge_theme_settings <- function(x, y) {
+  merge_settings(x, y, keep_null = FALSE)
+}
+
+# The recursion of merge_theme_settings() and merge_spec_theme(); keep_null says
+# whether a NULL in y is kept as a NULL or removes the setting
+merge_settings <- function(x, y, keep_null) {
   is_named_list <- function(z) is.list(z) && !is.null(names(z))
   for (name in names(y)) {
     if (is.null(y[[name]])) {
-      x[[name]] <- NULL
+      x[name] <- if (keep_null) list(NULL) else NULL
     } else if (is_named_list(x[[name]]) && is_named_list(y[[name]])) {
-      x[[name]] <- merge_theme_settings(x[[name]], y[[name]])
+      x[[name]] <- merge_settings(x[[name]], y[[name]], keep_null)
     } else {
       x[[name]] <- y[[name]]
     }
@@ -623,159 +390,4 @@ camel_case_names <- function(options) {
     names(options) <- snake_to_camel(names(options))
   }
   options
-}
-
-# Options of each component set by the global settings
-theme_global_options <- function(theme) {
-  font <- Filter(Negate(is.null), list(fontFamily = theme$fontFamily))
-  text <- c(font, Filter(Negate(is.null), list(fill = theme$textColor)))
-  html_text <- c(font, Filter(Negate(is.null), list(color = theme$textColor)))
-  line <- Filter(Negate(is.null), list(stroke = theme$lineColor))
-
-  # A d3 scheme or palette name, or colours (a list, so one colour is still an
-  # array). Palette names are replaced by their colours by render_theme().
-  palette <- theme$palette
-  if (!is.null(palette) && !(length(palette) == 1 &&
-                             (grepl("^scheme", palette) || palette %in% names(geneviewer_palettes)))) {
-    palette <- as.list(palette)
-  }
-  colors <- Filter(Negate(is.null), list(colorScheme = palette))
-  pattern <- if (!is.null(theme$pattern)) list(pattern = pattern_to_js(theme$pattern))
-
-  options <- list(
-    chart = list(style = Filter(Negate(is.null), list(backgroundColor = theme$background))),
-    title = list(titleFont = text, subtitleFont = text),
-    clusterTitle = list(titleFont = text, subtitleFont = text),
-    clusterFooter = list(titleFont = text, subtitleFont = text),
-    clusterLabel = c(text, list(subtitleFont = text)),
-    sequence = list(sequenceStyle = line, markerStyle = line),
-    genes = c(colors, pattern),
-    # UTRs are open boxes, filled with the background
-    transcript = c(colors, pattern, list(labelOptions = html_text),
-                   list(styleUTRs = Filter(Negate(is.null), list(fill = theme$background)))),
-    labels = c(text, list(leaderLine = line)),
-    coordinates = list(textStyle = text, tickStyle = line),
-    scale = list(textStyle = text, tickStyle = line, lineStyle = line),
-    scaleBar = list(labelStyle = text, scaleBarLineStyle = line, scaleBarTickStyle = line),
-    legend = list(legendOptions = c(colors, pattern), legendTextOptions = text),
-    links = list(labelStyle = text,
-                 colorBarOptions = list(labelOptions = text, titleOptions = text)),
-    tooltip = html_text,
-    trackMouse = html_text,
-    toolbar = font,
-    annotations = list(text = list(style = text), textMarker = list(textStyle = text),
-                       arc = list(textStyle = text))
-  )
-  drop_empty(options)
-}
-
-# Removes empty lists, so they do not replace defaults in the browser
-drop_empty <- function(x) {
-  if (!is.list(x)) {
-    return(x)
-  }
-  x <- lapply(x, drop_empty)
-  x[!vapply(x, function(y) is.list(y) && length(y) == 0, logical(1))]
-}
-
-# preRenderHook of GC_chart(): the theme is kept as set with GC_theme() and sent
-# to the browser in its form there when the chart is drawn
-render_theme <- function(widget) {
-  # The spec is sent as recorded
-  spec <- widget$x$spec
-  widget$x$spec <- NULL
-  # The widget width can change after GC_chart(), e.g. through GC_grid().
-  # Shiny's output element otherwise keeps only GC_chartOutput()'s width.
-  widget$x$size <- list(width = widget$width)
-  widget$x$theme <- theme_to_js(widget$x$theme)
-  widget$x <- resolve_palette_names(widget$x)
-  widget$x <- compact_data(widget$x)
-  widget$x$spec <- spec
-  widget
-}
-
-# Columns sent to the browser only when an option names them, as in a tooltip
-# formatter "{translation}": they hold long sequences the chart does not draw
-sequence_columns <- c("translation", "sequence")
-
-# The rows of the chart are sent once, in the data of the clusters. The browser
-# joins them again for the legend and the colours, in the columns of
-# dataColumns, which are those of x$data.
-compact_data <- function(x) {
-  if (is.null(x$data)) {
-    return(x)
-  }
-  options <- x
-  options$data <- NULL
-  options$series <- lapply(options$series, function(s) { s$data <- NULL; s })
-  strings <- option_strings(options)
-  unused <- Filter(function(column) {
-    !any(grepl(column, strings, fixed = TRUE))
-  }, intersect(sequence_columns, names(x$data)))
-  x$dataColumns <- as.list(setdiff(names(x$data), unused))
-  x$data <- NULL
-  x$series <- lapply(x$series, function(s) {
-    if (is.data.frame(s$data)) {
-      s$data <- s$data[, setdiff(names(s$data), unused), drop = FALSE]
-    }
-    s
-  })
-  x
-}
-
-# All character values of the options, outside data frames
-option_strings <- function(x) {
-  if (is.data.frame(x)) {
-    return(character())
-  }
-  if (is.list(x)) {
-    return(unlist(lapply(x, option_strings), use.names = FALSE))
-  }
-  if (is.character(x)) x else character()
-}
-
-# Replaces each colorScheme that is the name of a geneviewer palette by its
-# colours; d3 scheme names are left for the browser
-resolve_palette_names <- function(x) {
-  if (!is.list(x)) {
-    return(x)
-  }
-  for (i in seq_along(x)) {
-    name <- names(x)[i]
-    value <- x[[i]]
-    if (identical(name, "colorScheme") && is.character(value) && length(value) == 1 &&
-        value %in% names(geneviewer_palettes)) {
-      x[[i]] <- as.list(geneviewer_palettes[[value]])
-    } else if (is.list(value)) {
-      x[[i]] <- resolve_palette_names(value)
-    }
-  }
-  x
-}
-
-# The theme as sent to the browser: the options of each component, under the
-# key used in geneviewer.js, with the global settings applied
-theme_to_js <- function(theme) {
-  if (is.null(theme) || length(theme) == 0) {
-    return(NULL)
-  }
-
-  components <- lapply(theme[intersect(names(theme), names(theme_components))], camel_case_names)
-  if (!is.null(theme$annotations)) {
-    components$annotations <- lapply(theme$annotations, camel_case_names)
-  }
-
-  # Options of a component take precedence over the global settings
-  options <- merge_theme_settings(theme_global_options(theme), components)
-
-  js <- list()
-  for (name in intersect(names(theme_components), names(options))) {
-    js[[theme_components[[name]]]] <- options[[name]]
-  }
-  for (type in names(options$annotations)) {
-    js[[theme_annotation_types[[type]]]] <- options$annotations[[type]]
-  }
-  # Scales the font sizes in the browser, where the defaults are known
-  js$textScale <- theme$textScale
-  js
 }

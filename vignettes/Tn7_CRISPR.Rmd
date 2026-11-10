@@ -202,4 +202,4 @@ chart
 
 To save the chart for a publication, hover over the download icon at the top right of the chart and choose "Save as SVG". The SVG holds the whole chart, with all rows, the title and the legend, as one vector file, so it stays sharp at any size. It can also be opened in a vector editor such as Inkscape, Adobe Illustrator or Affinity Designer to finish the figure by hand, for example to move a label, add an arrow or combine it with other panels. Choose "Save as PNG" for a picture to use in slides or on the web.
 
-To change the look of the chart further, for example other colours, fonts or marker shapes, see [Get started](https://nvelden.github.io/geneviewer/articles/geneviewer.html) or the documentation of each function, e.g. `?GC_genes`.
+To change the look of the chart further, for example other colours, fonts or marker shapes, see [Get started](https://nvelden.github.io/geneviewer-docs/getting-started?lang=r) or the documentation of each function, e.g. `?GC_genes`.

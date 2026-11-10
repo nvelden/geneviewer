@@ -135,7 +135,7 @@ GC_chart(
   )
 ```
 
-We can further customize the chart by adding a title with the transcript name and a footer with the relative abundance of each transcript. To change the color, alter the appearance of specific features, and explore many more options, see the [Get Started](https://nvelden.github.io/geneviewer/articles/geneviewer.html#transcripts) guide or the `GC_transcript()` documentation by running `?GC_transcript` in the console.
+We can further customize the chart by adding a title with the transcript name and a footer with the relative abundance of each transcript. To change the color, alter the appearance of specific features, and explore many more options, see the [Get Started](https://nvelden.github.io/geneviewer-docs/getting-started?lang=r#transcripts) guide or the `GC_transcript()` documentation by running `?GC_transcript` in the console.
 
 ```{r echo = TRUE, results='asis'}
 GC_chart(

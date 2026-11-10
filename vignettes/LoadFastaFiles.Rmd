@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 
 ### Intro
 
-This tutorial demonstrates creating gene cluster visualizations from FASTA files using `geneviewer`. For guidance on importing clusters from GenBank files see: [link](https://nvelden.github.io/geneviewer/articles/LoadGenBankFiles.html). `geneviewer` parses FASTA headers to extract key-value pairs, denoted by =.  For instance, in the below FASTA header it identifies 'protein' as 'putative phosphoenolpyruvate synthase' and similarly processes other pairs. The 'location' tag is crucial because it allows the extraction of 'start', 'end', and 'strand' information for each gene.
+This tutorial demonstrates creating gene cluster visualizations from FASTA files using `geneviewer`. For guidance on importing clusters from GenBank files see: [link](https://nvelden.github.io/geneviewer-docs/r/articles/genbank). `geneviewer` parses FASTA headers to extract key-value pairs, denoted by =.  For instance, in the below FASTA header it identifies 'protein' as 'putative phosphoenolpyruvate synthase' and similarly processes other pairs. The 'location' tag is crucial because it allows the extraction of 'start', 'end', and 'strand' information for each gene.
 
 ```text
 >lcl|HQ3864.1_prot_ADX475.1_1 protein=putative phosphoenolpyruvate synthase protein_id=ADX66475.1 location=complement(<1..2247) gbkey=CDS

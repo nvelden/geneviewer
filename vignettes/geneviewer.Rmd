@@ -572,7 +572,7 @@ GC_chart(ophA_clusters, cluster = "cluster", group = "class", height = "280px") 
 
 ## Protein alignment
 
-The `protein_blast()` function finds homologous genes between clusters with global pairwise protein alignments (not BLAST). For more information see the [Cluster comparison using protein alignments](https://nvelden.github.io/geneviewer/articles/BLASTP.html) tutorial.
+The `protein_blast()` function finds homologous genes between clusters with global pairwise protein alignments (not BLAST). For more information see the [Cluster comparison using protein alignments](https://nvelden.github.io/geneviewer-docs/r/articles/protein-alignment) tutorial.
 
 ```{r echo=TRUE, eval=FALSE, warning=FALSE}
 BlastP_results <- 

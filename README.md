@@ -8,7 +8,7 @@
 
 <!-- badges: end -->
 
-**geneviewer** is an R package for plotting gene clusters and transcripts. It imports data from GenBank, FASTA, and GFF files, performs protein and MUMmer alignments, and displays results on gene arrow maps. The package offers extensive customization options, including legends, labels, annotations, scales, colors, tooltips, and more. To explore all features visit the [package website](https://nvelden.github.io/geneviewer/articles/geneviewer.html).
+**geneviewer** is an R package for plotting gene clusters and transcripts. It imports data from GenBank, FASTA, and GFF files, performs protein and MUMmer alignments, and displays results on gene arrow maps. The package offers extensive customization options, including legends, labels, annotations, scales, colors, tooltips, and more. To explore all features visit the [package website](https://nvelden.github.io/geneviewer-docs/getting-started?lang=r).
 
 <br clear="right">
 
@@ -59,7 +59,7 @@ GC_chart(gene_cluster, group = "class", height = "100px") %>%
 
 ## Examples
 
-For additional examples and the corresponding code to create the plots, please visit the [Examples](https://nvelden.github.io/geneviewer/articles/Examples.html) section.
+For additional examples and the corresponding code to create the plots, please visit the [Examples](https://nvelden.github.io/geneviewer-docs/examples?lang=r) section.
 
 <img src="man/figures/erythromycin_BlastP_okabeIto_2x.png" width="776"/>
 

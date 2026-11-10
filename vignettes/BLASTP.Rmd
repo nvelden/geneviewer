@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 ### Intro
 
-This tutorial describes how we can use `geneviewer` to identify and visualize homologous genes across clusters by aligning their proteins. To demonstrate this we use a GenBank file that contains the genes involved in the biosynthesis of erythromycin A from *Saccharopolyspora erythraea* and compare it to several homologous clusters from different species which were identified using [antiSMASH](https://antismash.secondarymetabolites.org/#!/start). For guidance on importing clusters from GenBank files, please refer to this [guide](https://nvelden.github.io/geneviewer/articles/LoadGenBankFiles.html).
+This tutorial describes how we can use `geneviewer` to identify and visualize homologous genes across clusters by aligning their proteins. To demonstrate this we use a GenBank file that contains the genes involved in the biosynthesis of erythromycin A from *Saccharopolyspora erythraea* and compare it to several homologous clusters from different species which were identified using [antiSMASH](https://antismash.secondarymetabolites.org/#!/start). For guidance on importing clusters from GenBank files, please refer to this [guide](https://nvelden.github.io/geneviewer-docs/r/articles/genbank).
 
 ### Materials
 

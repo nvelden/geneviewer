@@ -75,6 +75,9 @@ page <- function(target) {
     "<head>",
     "<meta charset=\"utf-8\">",
     "<title>The geneviewer documentation has moved</title>",
+    # Keeps this address verified in Google Search Console, as the pkgdown
+    # site was; the new site has the same tag
+    "<meta name=\"google-site-verification\" content=\"yTGAUIDwbj1rCz39OTZSzq5wZAPsbzfL9O_Gc7u6w14\">",
     sprintf("<link rel=\"canonical\" href=\"%s\">", url),
     sprintf("<meta http-equiv=\"refresh\" content=\"0; url=%s\">", url),
     # With the #section of the link, which the line above cannot keep

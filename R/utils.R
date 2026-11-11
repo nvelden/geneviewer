@@ -107,8 +107,13 @@ get_relative_height <- function(baseHeight, relativeHeight) {
 #' @noRd
 add_strand <- function(data, strand = NULL){
 
-  if (is.null(data) || nrow(data) == 0) {
+  if (is.null(data)) {
     return(NULL)
+  }
+  # Data without rows keeps its columns, with an empty strand (B75)
+  if (nrow(data) == 0) {
+    data$strand <- character(0)
+    return(data)
   }
 
   colnames_data <- colnames(data)

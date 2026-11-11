@@ -33,11 +33,11 @@
 get_introns <- function(data) {
 
   if (!"type" %in% colnames(data)) {
-    data$type <- "exon"
+    data$type <- rep("exon", nrow(data))
   }
 
   if (!"transcript" %in% colnames(data)) {
-    data$transcript <- "transcript1"
+    data$transcript <- rep("transcript1", nrow(data))
   }
 
   if (!"start" %in% colnames(data) || !"end" %in% colnames(data)) {

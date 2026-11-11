@@ -166,7 +166,8 @@ gbk_features_to_df <- function(gbk_list, feature = "CDS", keys = NULL, process_r
 
 #' @noRd
 gbk_get_feature_keys <- function(lines){
-  pattern <- "^ {5}[a-zA-Z]\\w*"
+  # Any key, also those that do not start with a letter, e.g. 5'UTR (B72)
+  pattern <- "^ {5}\\S"
   matched_lines <- grep(pattern, lines, value = TRUE)
   keys <- sub("^ {5}(\\S+).*", "\\1", matched_lines)
   return(unique(keys))
@@ -236,27 +237,26 @@ gbk_get_sections <- function(lines, keys) {
 gbk_process_features <- function(lines, key){
 
   # Extract qualifiers as /key=value pairs. A quoted value runs to its closing
-  # quote ("" is an escaped quote), so it can contain "/" and "=".
-  qualifier_pattern <- '(?:^|(?<= ))/([^\\s/="]+)=("(?:[^"]|"")*"|[^\\s"]*)'
+  # quote ("" is an escaped quote), so it can contain "/" and "=". A qualifier
+  # without a value, e.g. /pseudo, gets "" (B72).
+  qualifier_pattern <- '(?:^|(?<= ))/([^\\s/="]+)(?:=("(?:[^"]|"")*"|[^\\s"]*)|(?=\\s|$))'
   qualifier_matches <- gregexpr(qualifier_pattern, lines, perl=TRUE)
   qualifiers <- unlist(regmatches(lines, qualifier_matches))
 
-  keys <- sub("^/([^=]+)=.*$", "\\1", qualifiers)
-  values <- sub("^/[^=]+=", "", qualifiers)
+  keys <- sub("^/([^=]+)(=.*)?$", "\\1", qualifiers)
+  values <- ifelse(grepl("^/[^=]+=", qualifiers), sub("^/[^=]+=", "", qualifiers), "")
   values <- sub('^"(.*)"$', "\\1", values)
   values <- trimws(gsub('""', '"', values))
 
   # Combine keys and values into a named vector
   key_values <- setNames(values, keys)
 
-  # Extract region based on the key
-  # Fix the regex pattern and extraction process
-  region_pattern <- sprintf(".*?%s\\s+(.*?)\\s*\\/.*", key)
-  region <- sub(region_pattern, "\\1", lines)
-
-  # If the pattern isn't found, sub returns the original string, so check for that
-  if (region == lines) {
-    region <- NA
+  # The region: the location after the key, up to the first qualifier; also
+  # for a feature without qualifiers (B72)
+  region <- NA_character_
+  if (startsWith(lines, key)) {
+    location <- sub("\\s*/.*$", "", trimws(substring(lines, nchar(key) + 1)))
+    if (nzchar(location)) region <- location
   }
 
   key_values["region"] <- region
@@ -273,7 +273,9 @@ gbk_process_features <- function(lines, key){
 #' @noRd
 gbk_get_features <- function(lines, key) {
   # Find the starts of the sections (feature keys start in column 6)
-  section_starts <- which(grepl(paste0("^ {5}", key, "(\\s|$)"), lines))
+  # The key as written, also with characters such as ' (5'UTR)
+  line_keys <- ifelse(grepl("^ {5}\\S", lines), sub("^ {5}(\\S+).*$", "\\1", lines), NA)
+  section_starts <- which(line_keys == key)
 
   # If the section is not found, return NULL
   if (length(section_starts) == 0) {
@@ -281,7 +283,7 @@ gbk_get_features <- function(lines, key) {
   }
 
   # Find all potential section start lines
-  all_section_starts <- which(grepl("^ {5}[a-zA-Z]", lines))
+  all_section_starts <- which(grepl("^ {5}\\S", lines))
 
   # Initialize a list to store the content of each section
   sections_content <- vector("list", length(section_starts))

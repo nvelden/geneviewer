@@ -401,3 +401,33 @@ test_that("scores that are not numbers become NA with one warning", {
   expect_equal(data$score, c(NA_real_, NA_real_))
   expect_identical(data$chrom, c("1", "X"))
 })
+
+test_that("read_gbk reads features of any key, flag qualifiers and features without qualifiers (B72)", {
+  gbk_file <- tempfile(fileext = ".gbk")
+  writeLines(c(
+    "LOCUS       B72                      600 bp    DNA     linear   BCT 01-JAN-2024",
+    "FEATURES             Location/Qualifiers",
+    "     5'UTR           1..9",
+    "                     /gene=\"utr5\"",
+    "     CDS             10..200",
+    "                     /gene=\"abc\"",
+    "                     /pseudo",
+    "                     /note=\"see /x=1 here\"",
+    "     gene            300..500",
+    "     -10_signal      590..595",
+    "ORIGIN",
+    "        1 acgtacgtac",
+    "//"), gbk_file)
+
+  features <- read_gbk(gbk_file)[[1]]$FEATURES
+  expect_named(features, c("5'UTR", "CDS", "gene", "-10_signal"))
+  # The 5'UTR is its own feature, not part of the gene before it
+  expect_equal(features$`5'UTR`[[1]], c(gene = "utr5", region = "1..9"))
+  expect_equal(features$CDS[[1]],
+               c(gene = "abc", pseudo = "", note = "see /x=1 here", region = "10..200"))
+  expect_equal(features$gene[[1]], c(region = "300..500"))
+  expect_equal(features$`-10_signal`[[1]], c(region = "590..595"))
+
+  genes <- gbk_features_to_df(read_gbk(gbk_file), feature = "gene")
+  expect_equal(c(genes$start, genes$end), c(300, 500))
+})

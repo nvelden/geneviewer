@@ -77,6 +77,27 @@ gbk_b71 <- c(
   "100000021 agagagagag ctctctctct",
   "//")
 
+# Feature keys that do not start with a letter, a flag qualifier, a feature
+# without qualifiers and a location over two lines (B72)
+gbk_b72 <- c(
+  "LOCUS       B72                      600 bp    DNA     linear   BCT 01-JAN-2024",
+  "DEFINITION  B72.",
+  "FEATURES             Location/Qualifiers",
+  "     5'UTR           1..9",
+  "                     /gene=\"utr5\"",
+  "     CDS             10..200",
+  "                     /gene=\"abc\"",
+  "                     /pseudo",
+  "                     /note=\"see /x=1 here\"",
+  "                     /protein_id=\"P1\"",
+  "     gene            300..500",
+  "     -10_signal      590..595",
+  "     misc_feature    complement(join(510..520,",
+  "                     530..540))",
+  "ORIGIN",
+  "        1 acgtacgtac",
+  "//")
+
 gbk_b03 <- c(
   "LOCUS       DEMO01                   600 bp    DNA     linear   BCT 01-JAN-2024",
   "FEATURES             Location/Qualifiers",
@@ -255,6 +276,8 @@ add("gbk-no-features", list(call("read_gbk", sections = "LOCUS", features = "CDS
 add("gbk-B03", list(call("read_gbk")), put("B03.gbk", gbk_b03))
 add("gbk-B04", list(call("read_gbk")), put("B04.gbk", gbk_b04))
 add("gbk-B71", list(call("read_gbk")), put("B71.gbk", gbk_b71))
+add("gbk-B72", list(call("read_gbk")), put("B72.gbk", gbk_b72))
+add("gbkdf-B72", list(call("read_gbk"), call("gbk_features_to_df")), "inputs/B72.gbk")
 add("gbk-multi", list(call("read_gbk")), put("multi.gbk", c(gbk_record("AAA", "acgtacgtac gtacgtacgt"), gbk_record("BBB", "ttttgggggc ccccaaaaat"))))
 put("gbk-folder/B03.gbk", gbk_b03)
 add("gbk-folder", list(call("read_gbk")), put("gbk-folder/B04.gb", gbk_b04) |> dirname())

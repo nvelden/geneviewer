@@ -21,7 +21,8 @@ directory (default is 'fasta').}
 }
 \value{
 A data frame with columns for each piece of information extracted from
-the FASTA headers.
+the FASTA headers. With a \code{location} key, it also has \code{start} and \code{end},
+the full span of the location, and \code{strand}: "complement" or "forward".
 }
 \description{
 This function reads protein sequences from the specified FASTA file or all

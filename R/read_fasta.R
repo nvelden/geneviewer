@@ -19,7 +19,8 @@
 #'@param file_extension Extension of the FASTA files to be read from the
 #'  directory (default is 'fasta').
 #'@return A data frame with columns for each piece of information extracted from
-#'  the FASTA headers.
+#'  the FASTA headers. With a `location` key, it also has `start` and `end`,
+#'  the full span of the location, and `strand`: "complement" or "forward".
 #'
 #'@importFrom dplyr bind_rows select any_of
 #'@importFrom tools file_path_sans_ext
@@ -123,11 +124,10 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
         # Bind start and end columns to the data frame
         df <- cbind(df, start_end_df)
 
-        # Add strand
-        if (any(grepl("complement", df$location))) {
-          # Create the 'strand' column based on the presence of the word "complement" in the 'location' column
-          df$strand <- ifelse(grepl("complement", df$location), "complement", "forward")
-        }
+        # Add strand, also when every location is forward: the files of a
+        # folder all get the column (B73)
+        df$strand <- ifelse(is.na(df$location), NA_character_,
+                            ifelse(grepl("complement", df$location), "complement", "forward"))
       }
 
       # Add the cluster name as a new column to the data frame

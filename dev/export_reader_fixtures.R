@@ -324,6 +324,12 @@ add("fasta-empty", list(call("read_fasta")), put("empty.fasta", character()))
 put("fasta-folder/b.fasta", fasta$alignment)
 put("fasta-folder/c.fa", fasta$uniprot)
 add("fasta-folder", list(call("read_fasta", sequence = FALSE)), put("fasta-folder/a.fasta", fasta$ncbi_cds) |> dirname())
+# One file with a complement location, one with only forward ones (B73)
+put("fasta-B73/A.fasta", c(">a [protein_id=p1] [location=complement(1..90)]", "MKK",
+                            ">b [protein_id=p2] [location=100..190]", "MAA"))
+add("fasta-B73", list(call("read_fasta")),
+    put("fasta-B73/B.fasta", c(">a [protein_id=p3] [location=1..90]", "MKK",
+                               ">c [protein_id=p5]", "MCC")) |> dirname())
 add("fasta-folder-fa", list(call("read_fasta", file_extension = "fa")), "inputs/fasta-folder")
 add("fasta-missing", list(call("read_fasta")), "inputs/does-not-exist.fasta")
 

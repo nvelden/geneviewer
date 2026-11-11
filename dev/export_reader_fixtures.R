@@ -64,6 +64,19 @@ gbk_record <- function(id, seq) c(
   sprintf("        1 %s", seq),
   "//")
 
+# Sequence lines from base 1,000,001: two, one and no spaces before the position (B71)
+gbk_b71 <- c(
+  "LOCUS       LONG             100000080 bp    DNA     linear   BCT 01-JAN-2024",
+  "DEFINITION  Long record.",
+  "VERSION     LONG.1",
+  "FEATURES             Location/Qualifiers",
+  "ORIGIN",
+  "   999961 aaaaaaaaaa cccccccccc",
+  "  1000021 gggggggggg tttttttttt",
+  " 10000021 acacacacac gtgtgtgtgt",
+  "100000021 agagagagag ctctctctct",
+  "//")
+
 gbk_b03 <- c(
   "LOCUS       DEMO01                   600 bp    DNA     linear   BCT 01-JAN-2024",
   "FEATURES             Location/Qualifiers",
@@ -241,6 +254,7 @@ add("gbk-BGC0000001-missing", list(call("read_gbk", sections = c("LOCUS", "NOPE"
 add("gbk-no-features", list(call("read_gbk", sections = "LOCUS", features = "CDS")), gbk1)
 add("gbk-B03", list(call("read_gbk")), put("B03.gbk", gbk_b03))
 add("gbk-B04", list(call("read_gbk")), put("B04.gbk", gbk_b04))
+add("gbk-B71", list(call("read_gbk")), put("B71.gbk", gbk_b71))
 add("gbk-multi", list(call("read_gbk")), put("multi.gbk", c(gbk_record("AAA", "acgtacgtac gtacgtacgt"), gbk_record("BBB", "ttttgggggc ccccaaaaat"))))
 put("gbk-folder/B03.gbk", gbk_b03)
 add("gbk-folder", list(call("read_gbk")), put("gbk-folder/B04.gb", gbk_b04) |> dirname())

@@ -187,7 +187,9 @@ gbk_get_section_keys <- function(lines) {
 gbk_get_sections <- function(lines, keys) {
 
   # Find all section starts
-  all_section_starts <- which(grepl("^ {0,2}([^ ]+)(?=\\s|$)", lines, perl = TRUE))
+  # Not the sequence lines of ORIGIN: from base 1,000,001 their position has
+  # no more than two spaces before it (B71)
+  all_section_starts <- which(grepl("^ {0,2}(?![0-9])([^ ]+)(?=\\s|$)", lines, perl = TRUE))
 
   # Initialize a list to store the content of each section
   sections <- list()

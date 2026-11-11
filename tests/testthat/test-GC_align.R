@@ -141,3 +141,37 @@ test_that("GC_normalize keeps a column named cluster when the clusters are anoth
   data <- chart$x$spec$data
   expect_equal(data$cluster[order(data$rowID)], c("keep1", "keep2", "keep3"))
 })
+
+test_that("GC_normalize shares the total gap between the gaps, so a cluster keeps its range (B68)", {
+  genes <- data.frame(
+    start = c(10, 50, 90, 10, 90, 130, 300),
+    end = c(40, 80, 120, 40, 120, 160, 400),
+    cluster = c("even", "even", "even", "uneven", "uneven", "uneven", "single")
+  )
+  positions <- function(...) {
+    data <- (GC_chart(genes, cluster = "cluster") %>% GC_normalize(...))$x$spec$data
+    split(data[, c("start", "end")], data$cluster)
+  }
+
+  # Evenly spaced genes stay where they are; the others keep the cluster's range
+  result <- positions()
+  expect_equal(result$even$start, c(10, 50, 90))
+  expect_equal(result$even$end, c(40, 80, 120))
+  expect_equal(result$uneven$start, c(10, 70, 130))
+  expect_equal(result$uneven$end, c(40, 100, 160))
+  expect_equal(c(result$single$start, result$single$end), c(300, 400))
+
+  # Genes of the mean length fill the same range
+  result <- positions(preserve_gene_length = FALSE)
+  expect_equal(result$uneven$start, c(10, 70, 130))
+  expect_equal(result$uneven$end, c(40, 100, 160))
+  expect_equal(c(result$single$start, result$single$end), c(300, 400))
+
+  # A given gap is the gap drawn: 0.1 of a range of 110 and of 150
+  result <- positions(gap = 0.1)
+  expect_equal(result$even$start[-1] - result$even$end[-3], c(11, 11))
+  expect_equal(result$uneven$start[-1] - result$uneven$end[-3], c(15, 15))
+  result <- positions(gap = 0.1, preserve_gene_length = FALSE)
+  expect_equal(range(unlist(result$uneven)), c(10, 160))
+  expect_equal(result$uneven$start[-1] - result$uneven$end[-3], c(15, 15))
+})

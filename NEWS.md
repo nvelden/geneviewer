@@ -1,3 +1,8 @@
+# geneviewer (development version)
+
+### Bug fixes:
+- `GC_normalize()` spaces the genes over the whole range of their cluster, as documented. It shared the total gap between as many gaps as there are genes, one too many, so every gap was too small and the cluster ended before its last gene did: genes at 10-40, 90-120 and 130-160 became 10-40, 60-90 and 110-140, and are now 10-40, 70-100 and 130-160. Genes that are already evenly spaced stay where they are. A given `gap` is now the gap drawn; it was (n - 1) / n of it for n genes. Charts made with `GC_normalize()` change: genes after the first move to the right, the last gene of a cluster by the size of one gap.
+
 # geneviewer 0.2.1
 
 ### Changes:

@@ -31,3 +31,5 @@
 ^man/figures/geneviewer_promo\.gif$
 ^\.gitattributes$
 ^\.Renviron$
+^pkgdown$
+^vignettes$

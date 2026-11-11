@@ -617,6 +617,10 @@ GC_zoom_to <- function(outputId, range = NULL, session = shiny::getDefaultReacti
                           any(!is.finite(range)))) {
     stop("'range' must be NULL or two numbers: c(start, end).")
   }
+  # The default session needs shiny, which is only suggested
+  if (missing(session) && !requireNamespace("shiny", quietly = TRUE)) {
+    stop("GC_zoom_to() works in a Shiny session; the shiny package is not installed.")
+  }
   if (is.null(session)) stop("GC_zoom_to() works in a Shiny session.")
   session$sendCustomMessage("geneviewer-zoom", list(
     id = session$ns(outputId),

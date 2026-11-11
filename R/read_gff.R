@@ -22,6 +22,11 @@
 #'   as `tag` in GTF files, keeps all its values joined with `","`, as GFF3
 #'   writes several values of one key (`Dbxref=GeneID:1,UniProt:P1`).
 #'
+#'   The columns `seqid`, `source`, `type`, `strand` and `phase` are character,
+#'   also when their values look like numbers (a chromosome named `1`), so that
+#'   the files of a directory can be combined. `score` is numeric; a score of
+#'   `"."` (no score) is `NA`.
+#'
 #' @examples
 #' gff_file <- system.file("extdata", "HQ113105.1.gff3", package = "geneviewer")
 #'
@@ -80,8 +85,15 @@ process_gff <- function(path, fields = NULL){
       fill = TRUE,
       comment.char = "",
       stringsAsFactors = FALSE,
-      col.names = field_names
+      col.names = field_names,
+      # Text by definition, also when it looks like a number (a seqid 1), so
+      # that the files of a directory can be combined
+      colClasses = c(seqid = "character", source = "character", type = "character",
+                     score = "character", strand = "character", phase = "character",
+                     attributes = "character")
       )
+    # Numeric, also in files where every score is "." (no score)
+    data$score <- score_to_numeric(data$score)
 
     data$attributes <- gsub("\\t.*", "", data$attributes)
 

@@ -51,7 +51,8 @@ without parallel processing. Kept so that existing code keeps working.}
 A modified version of the input \code{data} dataframe, including
 additional columns \code{BlastP} (the protein of the query cluster that is the
 best hit; the name is kept for compatibility), \code{identity}, \code{similarity} and
-\code{score} (the synteny score of the cluster).
+\code{score} (the synteny score of the cluster). Columns of \code{data} with these
+names, e.g. from an earlier call, are replaced.
 }
 \description{
 Compares the proteins of a query cluster with those of the other clusters. It

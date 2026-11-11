@@ -314,3 +314,19 @@ read_tables <- function(path, pattern, type, read_file, call = sys.call(-1)) {
   }
 }
 
+#' The score column of a GFF or BED file as numbers
+#'
+#' `"."` and empty values, no score, become NA. Other values that are not
+#' numbers also become NA, with a warning.
+#' @noRd
+score_to_numeric <- function(x) {
+  x <- trimws(as.character(x))
+  x[x %in% c(".", "")] <- NA
+  numbers <- suppressWarnings(as.numeric(x))
+  lost <- !is.na(x) & is.na(numbers)
+  if (any(lost)) {
+    warning("Scores that are not numbers were set to NA: ",
+            paste(utils::head(unique(x[lost]), 5), collapse = ", "), call. = FALSE)
+  }
+  numbers
+}

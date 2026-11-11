@@ -357,8 +357,8 @@ GC_links <- function(
   }
 
   # Check for required data
-  if (is.null(data) && is.null(GC_chart)) {
-    stop("Error: Either 'group' or 'data' must be provided.")
+  if (is.null(data) && is.null(group)) {
+    stop("Either 'group' or 'data' must be provided.")
   }
 
   # Retrieve links data or use the provided data

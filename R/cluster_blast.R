@@ -186,7 +186,8 @@ synteny_score <- function(order1, order2, identity, i = 0.5) {
 #' @return A modified version of the input `data` dataframe, including
 #'   additional columns `BlastP` (the protein of the query cluster that is the
 #'   best hit; the name is kept for compatibility), `identity`, `similarity` and
-#'   `score` (the synteny score of the cluster).
+#'   `score` (the synteny score of the cluster). Columns of `data` with these
+#'   names, e.g. from an earlier call, are replaced.
 #'
 #' @examples
 #' \donttest{
@@ -262,6 +263,12 @@ protein_blast <- function(data, query, id = "protein_id", start = "start", end =
   if ('sequence' %in% names(data) && !('translation' %in% names(data))) {
     names(data)[names(data) == "sequence"] <- "translation"
   }
+
+  # The columns of the result replace those of earlier results, e.g. when
+  # protein_blast() is run on its own output
+  result_columns <- c("BlastP", "identity", "similarity", "score")
+  replaced <- setdiff(intersect(result_columns, names(data)), c(id, cluster, start, end))
+  data <- data[, setdiff(names(data), replaced), drop = FALSE]
 
   # Remove NA values
   data <- data[!is.na(data[[id]]) & !is.na(data$translation) & !is.na(data[[cluster]]), ]

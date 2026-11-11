@@ -18,6 +18,11 @@
 #'   single BED file from a specified path. It adds a 'filename' column with the
 #'   name of the file, and combines the data frames from all files into one.
 #'
+#'   The columns `chrom`, `name`, `strand` and `itemRgb` are character, also
+#'   when their values look like numbers (a chromosome named `1`), so that the
+#'   files of a directory can be combined. `score` is numeric; a score of
+#'   `"."` (no score) is `NA`.
+#'
 #' @examples
 #' bed_file <- tempfile(fileext = ".bed")
 #' writeLines(c(
@@ -43,6 +48,11 @@ block_to_numeric <- function(x) {
   # A column of single blocks is read as numbers (B65)
   as.numeric(unlist(strsplit(as.character(x), ",")))
 }
+
+# Columns of BED files read as character; the others are guessed per file
+bed_classes <- c(chrom = "character", name = "character", score = "character",
+                 strand = "character", itemRgb = "character",
+                 blockSizes = "character", blockStarts = "character")
 
 #' @noRd
 process_bed <- function(path){
@@ -75,8 +85,14 @@ process_bed <- function(path){
       comment.char = "",
       fill = TRUE,
       stringsAsFactors = FALSE,
-      col.names = used_fields
+      col.names = used_fields,
+      # Text by definition, also when it looks like a number (a chrom 1), so
+      # that the files of a directory can be combined
+      colClasses = bed_classes[intersect(names(bed_classes), used_fields)]
     )
+    if ("score" %in% colnames(data)) {
+      data$score <- score_to_numeric(data$score)
+    }
 
     # Add +1 to starts (0-based to 1-based). BED ends are exclusive, so they
     # are already the 1-based end positions.

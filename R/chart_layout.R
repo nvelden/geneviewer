@@ -104,7 +104,9 @@ GC_title <- function(
   check_align(align)
   check_spacing(spacing)
 
-  if (!show || is.null(title) && is.null(subtitle)) {
+  # A call without a title changes the title set before, e.g. show = FALSE
+  # hides it; on a chart without a title it changes nothing
+  if (is.null(GC_chart$x$spec[["title"]]) && (!show || is.null(title) && is.null(subtitle))) {
     return(GC_chart)
   }
 

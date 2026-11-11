@@ -79,3 +79,24 @@ test_that("protein_blast works with only the query cluster (B67)", {
                        query = "BGC0000001")
   expect_true(all(gbk$identity == 100))
 })
+
+test_that("protein_blast can be run on its own result", {
+  skip_if_not_installed("Biostrings")
+  skip_if_not_installed("pwalign")
+
+  genes <- data.frame(
+    protein_id = c("A1", "A2", "B1", "B2"), cluster = c("A", "A", "B", "B"),
+    start = c(1, 200, 1, 200), end = c(150, 350, 150, 350),
+    translation = c("MKTAYIAKQRQISFVKSHFSRQ", "MSDNELLKRLGEAVLAHPTTG",
+                    "MKTAYIAKQRQISFVKSHFSRQ", "MLPGGRTSWVQEHCDKAYNIF")
+  )
+  first <- protein_blast(genes, query = "A")
+  again <- protein_blast(first, query = "A")
+  expect_setequal(names(again), names(first))
+  expect_equal(again[names(first)], first)
+
+  # Another query replaces the results of the first
+  by_b <- protein_blast(first, query = "B")
+  expect_equal(by_b$cluster[1], "B")
+  expect_equal(by_b$BlastP[by_b$protein_id == "A1"], "B1")
+})

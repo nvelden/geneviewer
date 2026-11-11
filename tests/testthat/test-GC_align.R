@@ -175,3 +175,36 @@ test_that("GC_normalize shares the total gap between the gaps, so a cluster keep
   expect_equal(range(unlist(result$uneven)), c(10, 160))
   expect_equal(result$uneven$start[-1] - result$uneven$end[-3], c(15, 15))
 })
+
+test_that("links made before GC_normalize() move with their genes (B69)", {
+  genes <- data.frame(
+    s = c(10, 100, 150, 10, 60, 110), e = c(40, 130, 180, 40, 90, 140),
+    name = rep(c("A", "B", "C"), 2), cluster = rep(1:2, each = 3)
+  )
+  chart <- GC_chart(genes, start = "s", end = "e", cluster = "cluster", group = "name")
+  before <- chart %>% GC_links("name") %>% GC_links("name", value1 = "A", value2 = "A") %>%
+    GC_normalize(cluster = 1)
+  after <- chart %>% GC_normalize(cluster = 1) %>% GC_links("name") %>%
+    GC_links("name", value1 = "A", value2 = "A")
+  # The same positions as links made after GC_normalize()
+  positions <- c("rowID1", "rowID2", "start1", "end1", "start2", "end2", "s1", "e1", "s2", "e2")
+  for (i in 1:2) {
+    expect_equal(before$x$spec$links[[i]]$data[positions], after$x$spec$links[[i]]$data[positions])
+  }
+  links <- before$x$spec$links[[1]]$data
+  expect_equal(links$start1, c(10, 80, 150))
+  expect_equal(links$s1, links$start1)
+  expect_equal(links$start2, c(10, 60, 110))
+
+  # One set of links, as an entry
+  one <- chart %>% GC_links("name") %>% GC_normalize(cluster = 1)
+  expect_equal(one$x$spec$links$data$end1, c(40, 110, 180))
+
+  # Links given as data keep their positions, with a warning
+  alignment <- data.frame(cluster1 = "1", cluster2 = "2", start1 = 100, end1 = 120,
+                          start2 = 60, end2 = 80, identity = 90)
+  expect_warning(given <- chart %>% GC_links(data = alignment) %>% GC_normalize(cluster = 1),
+                 "keep their positions")
+  expect_equal(given$x$spec$links$data$start1, 100)
+  expect_null((chart %>% GC_normalize())$x$spec$links)
+})

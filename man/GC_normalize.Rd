@@ -49,6 +49,11 @@ cluster, ensuring that the genes are evenly spaced along the entire range of
 the cluster. The function allows for the option to preserve the original gene
 lengths and to introduce customized gaps between the genes.
 }
+\details{
+Links made before by \code{\link[=GC_links]{GC_links()}}\verb{(group = )} move with their
+genes. Links given as \code{data} (e.g. from \code{\link[=mummer_alignment]{mummer_alignment()}}) keep their
+positions, with a warning: add them after \code{GC_normalize()}.
+}
 \examples{
 genes_data <- data.frame(
   start = c(10, 90, 130, 10, 90, 130),

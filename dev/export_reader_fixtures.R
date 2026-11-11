@@ -302,6 +302,13 @@ add("gff-numbers", list(call("read_gff")), put("numbers.gff3", c(
   gff_row("ID=b", 600, 900, score = "12", phase = "2"),
   "chr1\tdemo\tgene\t1000\t1200\t1e3\t-",
   "  ")))
+# Scores that are not numbers: NA, with one warning naming the first five
+add("gff-score-text", list(call("read_gff")), put("score-text.gff3", c(
+  gff_row("ID=a", score = "high"),
+  gff_row("ID=b", 600, 900, score = " 7 "),
+  gff_row("ID=c", 1000, 1200, score = "high"),
+  gff_row("ID=d", 1300, 1400, score = "NA"),
+  gff_row("ID=e", 1500, 1600, score = "0x1F"))))
 put("gff-folder/genes.gtf", gtf_lines)
 put("gff-folder/more.gff2", gtf_lines)
 add("gff-folder", list(call("read_gff")), put("gff-folder/B48.gff3", c("##gff-version 3", gff_row("ID=g1;Name=abcA"))) |> dirname())
@@ -334,6 +341,8 @@ add("fasta-folder-fa", list(call("read_fasta", file_extension = "fa")), "inputs/
 add("fasta-missing", list(call("read_fasta")), "inputs/does-not-exist.fasta")
 
 add("bed-B05", list(call("read_bed")), put("B05.bed", bed12))
+add("bed-score-text", list(call("read_bed")), put("score-text.bed", c(
+  "1\t0\t100\ta\t.\t+", "1\t200\t300\tb\t500\t-", "X\t400\t500\tc\tlow\t+")))
 add("bed-B05-single", list(call("read_bed")), put("B05-single.bed", "chr1\t0\t100\ta\t0\t+\t0\t100\t0\t2\t10,20\t0,80"))
 add("bed-track-names", list(call("read_bed")), put("track-names.bed", c(
   "chr1\t0\t10\tfirst", "chr1\t20\t30\ttrack_gene",

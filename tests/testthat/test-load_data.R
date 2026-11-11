@@ -384,3 +384,20 @@ test_that("read_gbk reads the whole ORIGIN of records over a million bases (B71)
   expect_equal(gbk$DEFINITION, "Long record.")
   expect_equal(unname(gbk$FEATURES$CDS[[1]]["protein_id"]), "P1")
 })
+
+test_that("scores that are not numbers become NA with one warning", {
+  dir <- tempfile()
+  dir.create(dir)
+  gff <- file.path(dir, "a.gff3")
+  writeLines(c("chr1\tdemo\tgene\t100\t500\thigh\t+\t.\tID=a",
+               "chr1\tdemo\tgene\t600\t900\t 7 \t+\t.\tID=b",
+               "chr1\tdemo\tgene\t1000\t1200\thigh\t-\t.\tID=c"), gff)
+  expect_warning(scores <- read_gff(gff)$score, "Scores that are not numbers were set to NA: high$")
+  expect_equal(scores, c(NA, 7, NA))
+
+  bed <- file.path(dir, "a.bed")
+  writeLines(c("1\t0\t100\ta\t.\t+", "X\t400\t500\tc\tlow\t+"), bed)
+  expect_warning(data <- read_bed(bed), "set to NA: low$")
+  expect_equal(data$score, c(NA_real_, NA_real_))
+  expect_identical(data$chrom, c("1", "X"))
+})

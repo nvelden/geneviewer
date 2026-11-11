@@ -22,3 +22,27 @@ test_that("GC_links without group or data says that one of them is needed", {
   expect_error(GC_links(GC_chart(genes, cluster = "cluster")),
                "Either 'group' or 'data' must be provided.", fixed = TRUE)
 })
+
+test_that("GC_links(group = ) reads the clusters of the chart, not another column named cluster (B70)", {
+  genes <- data.frame(
+    start = c(10, 100, 190, 10, 100, 190), end = c(80, 170, 260, 80, 170, 260),
+    name = rep(c("abcA", "abcB", "abcC"), 2),
+    genome = rep(c("genome1", "genome2"), each = 3)
+  )
+  expected <- (GC_chart(genes, cluster = "genome") %>% GC_links("name"))$x$spec$links$data
+
+  values <- list("BGC1", c("genome1", "genome2", "genome2", "genome1", "genome1", "genome2"))
+  for (value in values) {
+    # The column before the chart's cluster column, and after it
+    for (data in list(cbind(cluster = value, genes), cbind(genes, cluster = value))) {
+      links <- (GC_chart(data, cluster = "genome") %>% GC_links("name"))$x$spec$links$data
+      expect_identical(links, expected)
+    }
+  }
+  expect_equal(expected$cluster1, rep("genome1", 3))
+  expect_equal(expected$cluster2, rep("genome2", 3))
+
+  # Links by that column itself cannot be named in the link table
+  expect_error(GC_chart(cbind(cluster = "BGC1", genes), cluster = "genome") %>% GC_links("cluster"),
+               "cannot be the group of the links")
+})

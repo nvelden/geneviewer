@@ -53,7 +53,16 @@ get_links <-
       stop("Please define cluster in the GC_chart function.")
     }
 
-    # Rename cluster column
+    # The links name their clusters in cluster1 and cluster2. Another column
+    # named cluster is left out: it would be read in place of the clusters of
+    # the chart (B70)
+    if (cluster_column != "cluster" && "cluster" %in% colnames(data)) {
+      if (group == "cluster") {
+        stop("The column \"cluster\" cannot be the group of the links when the clusters of ",
+             "the chart are another column (\"", cluster_column, "\"). Rename the column.")
+      }
+      data$cluster <- NULL
+    }
     colnames(data)[colnames(data) == cluster_column] <- "cluster"
 
     cluster_pairs <-

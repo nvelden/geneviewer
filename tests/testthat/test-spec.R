@@ -261,3 +261,46 @@ test_that("theme settings keep or remove a NULL, and replace unnamed lists", {
   expect_identical(merge_spec_theme(old, new),
                    list(a = list(b = NULL, c = 2), d = NULL, e = list("z")))
 })
+
+test_that("GC_legend(order = ) with one name is sent as an array and drawn", {
+  chart <- GC_chart(spec_genes, cluster = "cluster", group = "group",
+                    elementId = "legend-order") %>%
+    GC_legend(order = "B")
+  expect_match(as.character(htmlwidgets:::toJSON(sent_x(chart)$spec$legend)),
+               '"order":["B"]', fixed = TRUE)
+
+  # The library called order.filter() on the string "B": a blank chart
+  file <- tempfile(fileext = ".html")
+  htmlwidgets::saveWidget(chart, file, selfcontained = FALSE)
+  session <- chrome_page(file, width = 800, height = 400)
+  labels <- session$Runtime$evaluate(
+    "Array.from(document.querySelectorAll('#legend-order .legend-label')).map(e => e.textContent).join(',')"
+  )$result$value
+  expect_equal(labels, "B,A,C")
+})
+
+test_that("named vectors of options are sent as objects, without a jsonlite message", {
+  chart <- GC_chart(spec_genes, cluster = "cluster", group = "group") %>%
+    GC_pattern(color = c(A = "white"), background = c(A = "black", B = "grey"))
+  pattern <- sent_x(chart)$spec$pattern
+  expect_no_message(json <- as.character(htmlwidgets:::toJSON(pattern)))
+  expect_match(json, '"color":{"A":"white"}', fixed = TRUE)
+  expect_match(json, '"background":{"A":"black","B":"grey"}', fixed = TRUE)
+  # Data frames and unnamed vectors are kept
+  expect_s3_class(sent_x(chart)$spec$data, "data.frame")
+  expect_null(names(named_vectors_as_lists(list(a = c(1, 2)))$a))
+})
+
+test_that("GC_title(show = FALSE) hides a title set before", {
+  hidden <- GC_chart(spec_genes) %>% GC_title("Title") %>% GC_title(show = FALSE)
+  expect_identical(hidden$x$spec$title, list(title = "Title", show = FALSE))
+  expect_null(compile_chart(hidden)$title$title)
+
+  shown <- hidden %>% GC_title(show = TRUE)
+  expect_true(shown$x$spec$title$show)
+  expect_equal(compile_chart(shown)$title$title, "Title")
+
+  # On a chart without a title it changes nothing
+  untitled <- GC_chart(spec_genes) %>% GC_title("Title", show = FALSE)
+  expect_null(untitled$x$spec$title)
+})

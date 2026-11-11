@@ -324,3 +324,39 @@ test_that("read_gbk only adds translation to features that have one (B22)", {
   expect_true(all(vapply(features$CDS, function(x) !is.na(x[["translation"]]), logical(1))))
   expect_false(grepl("[^A-Za-z]", features$CDS[[1]][["translation"]]))
 })
+
+test_that("read_gff and read_bed combine files whose columns look like different types", {
+  dir <- tempfile()
+  dir.create(dir)
+  on.exit(unlink(dir, recursive = TRUE))
+
+  # Chromosome 1 reads as a number, X as text; "." as text, 5.5 as a number
+  writeLines("1\tsrc\tgene\t1\t100\t.\t+\t.\tID=a", file.path(dir, "a.gff"))
+  writeLines("X\tsrc\tgene\t1\t100\t5.5\t-\t0\tID=b", file.path(dir, "b.gff"))
+  gff <- read_gff(dir)
+  expect_equal(gff$seqid, c("1", "X"))
+  expect_equal(gff$score, c(NA, 5.5))
+  expect_equal(gff$phase, c(".", "0"))
+  expect_type(gff$source, "character")
+  expect_type(gff$type, "character")
+  expect_type(gff$strand, "character")
+
+  # A file without scores still has a numeric score
+  expect_type(read_gff(file.path(dir, "a.gff"))$score, "double")
+
+  writeLines("1\t0\t100\tg1\t.\t+", file.path(dir, "a.bed"))
+  writeLines("X\t0\t100\t2\t500\t-", file.path(dir, "b.bed"))
+  bed <- read_bed(dir)
+  expect_equal(bed$chrom, c("1", "X"))
+  expect_equal(bed$name, c("g1", "2"))
+  expect_equal(bed$score, c(NA, 500))
+  expect_equal(bed$chromStart, c(1, 1))
+})
+
+test_that("a score that is not a number becomes NA with a warning", {
+  gff_file <- tempfile(fileext = ".gff")
+  on.exit(unlink(gff_file))
+  writeLines("chr1\tsrc\tgene\t1\t100\thigh\t+\t.\tID=a", gff_file)
+  expect_warning(gff <- read_gff(gff_file), "not numbers")
+  expect_true(is.na(gff$score))
+})

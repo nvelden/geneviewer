@@ -1,41 +1,31 @@
 ## Submission comments
 
-This resubmission replaces the geneviewer 0.2.0 submission of 2026-11-03.
-The only change is that `read_fasta()` now reads FASTA files with base R
-instead of Biostrings.
+This is an update from 0.2.0 to 0.2.1. See NEWS.md for details.
 
-This is an update from 0.1.11 to 0.2.0. It adds new chart features (themes,
-patterns, SVG export, click events for Shiny, styling by group) and fixes a
-number of bugs in the file readers and charts. See NEWS.md for details.
-
-* The bundled D3 (ISC) and FileSaver.js (MIT) libraries now ship with their
-  upstream license files; their authors are listed as `ctb`/`cph` in
-  Authors@R and the details are in inst/COPYRIGHTS.
-* tidyr is no longer a dependency, and the suggested packages knitr,
-  rmarkdown and biomaRt were removed: they were only used by website articles
-  that are not part of the package.
-* The description and documentation of `protein_blast()` now describe the
-  method it uses, a global (Needleman-Wunsch) pairwise protein alignment, and
-  cite it, instead of BLASTP.
-* `genbank_to_fasta()` now writes to `tempdir()` by default instead of next to
-  the input file.
-* `mummer_alignment()` uses the external MUMmer programs, now declared in
+* Charts are now drawn by the geneviewer JavaScript library, which the package
+  ships in inst/htmlwidgets/lib/geneviewer-0.3.10/ (MIT, by the package
+  author). The R functions, their arguments and the charts they draw are
+  unchanged.
+* The internals of a chart widget changed: `widget$x` is now `list(spec = )`,
+  the chart spec, instead of the options built in R. This is noted in NEWS.md
+  for code that read `widget$x` directly.
+* It fixes bugs in `protein_blast()`, `read_gff()`, `read_bed()`,
+  `GC_legend()`, `GC_normalize()`, `GC_links()` and `GC_title()`.
+* The bundled third-party code is D3 (ISC), with its upstream license file,
+  and Font Awesome Free icons (CC BY 4.0) drawn as inline SVG in the
+  geneviewer library. Their authors are listed in Authors@R and the details
+  are in inst/COPYRIGHTS.
+* `mummer_alignment()` uses the external MUMmer programs, declared in
   SystemRequirements. Its examples stay in `\dontrun{}` because they need
-  MUMmer installed; all other examples now run on data bundled with the package.
+  MUMmer installed.
 
 ## Test environments
 
 * Local macOS 15 (arm64), R 4.4.0
-* win-builder, R-devel (2026-11-02 r90827, Windows Server 2022)
-* win-builder, R-release (R 4.6.2, Windows Server 2022)
 
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note
-
-* Possibly misspelled words in DESCRIPTION: Needleman, Wunsch.
-  These are the surnames of the authors of the cited alignment method
-  (Needleman and Wunsch, 1970) and are spelled correctly.
+0 errors | 0 warnings | 0 notes
 
 ## Reverse dependencies
 

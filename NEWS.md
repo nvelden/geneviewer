@@ -1,4 +1,4 @@
-# geneviewer (development version)
+# geneviewer 0.2.1
 
 ### Changes:
 - Charts are drawn by the geneviewer JavaScript library (<https://github.com/nvelden/geneviewer-js>), which the package ships in `inst/htmlwidgets/lib/`. The `GC_` functions describe the chart as a chart spec and the library draws it. Charts look and behave the same: the same functions, arguments, defaults, checks and messages, the same Shiny inputs, and the same drawing, checked against the charts of the examples, vignettes and tests of 0.2.0.
@@ -15,6 +15,14 @@
 - `read_bed()` reads BED12 files in which every row has one block; it stopped with "non-character argument".
 - `read_fasta()` skips an empty FASTA file with the warning of a file without keys, instead of an internal error message.
 - `protein_blast()` with only the query cluster (e.g. one GenBank file) gives each gene as its own hit; before, R crashed, because pwalign was given nothing to align.
+- `GC_legend(order = )` with one group name, e.g. `order = "B"`, orders the legend; before, the chart was blank.
+- `protein_blast()` can be run on its own result, e.g. again with another query cluster: the columns `BlastP`, `identity`, `similarity` and `score` of the data are replaced. Before, it stopped with "Column `score` not found".
+- `read_gff()` and `read_bed()` combine the files of a folder when a column holds numbers in one file and text in another, e.g. chromosomes named `1` and `X`. The text columns (`seqid`, `source`, `type`, `strand` and `phase` of GFF files; `chrom`, `name`, `strand` and `itemRgb` of BED files) are now always character, and `score` is always numeric, with `NA` for a score of `"."`. Before, the files could not be combined.
+- `GC_normalize()` keeps a column named `cluster` when the clusters of the chart are another column, e.g. `GC_chart(data, cluster = "operon")`; before, it was overwritten with the cluster names.
+- `GC_links()` without `group` or `data` stops with "Either 'group' or 'data' must be provided."; before, the error was "argument is of length zero".
+- `GC_title(show = FALSE)` hides a title set by an earlier `GC_title()` call; before, it changed nothing.
+- Options given as named vectors, e.g. `GC_pattern(color = c(A = "white"))`, are sent as named lists, so they no longer depend on a deprecated behaviour of jsonlite and its message.
+- `GC_zoom_to()` says that it needs shiny when shiny is not installed.
 
 # geneviewer 0.2.0
 

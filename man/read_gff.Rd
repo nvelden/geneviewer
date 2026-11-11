@@ -32,6 +32,11 @@ Each attribute becomes a character column. GFF3 attributes are read as
 \verb{key "value"} pairs, without the quotes. A key repeated in one row, such
 as \code{tag} in GTF files, keeps all its values joined with \code{","}, as GFF3
 writes several values of one key (\verb{Dbxref=GeneID:1,UniProt:P1}).
+
+The columns \code{seqid}, \code{source}, \code{type}, \code{strand} and \code{phase} are character,
+also when their values look like numbers (a chromosome named \code{1}), so that
+the files of a directory can be combined. \code{score} is numeric; a score of
+\code{"."} (no score) is \code{NA}.
 }
 \examples{
 gff_file <- system.file("extdata", "HQ113105.1.gff3", package = "geneviewer")

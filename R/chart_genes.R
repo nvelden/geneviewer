@@ -819,6 +819,10 @@ GC_legend <- function(
 
   check_align(align)
 
+  # An array also when one name is given: htmlwidgets sends a length-1 vector
+  # as a string
+  if (!is.null(spec$order)) spec$order <- as.list(spec$order)
+
   add_spec(GC_chart, "legend", spec_flag(spec, "group"), mode = "merge",
            rename = c(legendOptions = "markerStyle", legendTextOptions = "textStyle"))
 }

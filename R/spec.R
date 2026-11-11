@@ -408,11 +408,12 @@ state_clusters <- function(data, cluster) {
 }
 
 #' The genes of one cluster, as the library splits the data
+#'
+#' The rows only: a `cluster` column is not added, as it would replace a
+#' column of that name when the cluster field is another column.
 #' @noRd
 cluster_rows <- function(state, name) {
-  data <- if (is.null(state$cluster)) state$data else state$data[state$data[[state$cluster]] == name, ]
-  data$cluster <- name
-  data
+  if (is.null(state$cluster)) state$data else state$data[state$data[[state$cluster]] == name, ]
 }
 
 #' preRenderHook of GC_chart(): the spec as it is sent
@@ -421,8 +422,29 @@ cluster_rows <- function(state, name) {
 #' before the spec (decided 2026-11-05).
 #' @noRd
 send_spec <- function(widget) {
-  widget$x$spec <- drop_sequence_columns(widget$x$spec)
+  widget$x$spec <- named_vectors_as_lists(drop_sequence_columns(widget$x$spec))
   widget
+}
+
+#' Named vectors of options as named lists
+#'
+#' A named vector, e.g. `GC_pattern(color = c(A = "white"))`, becomes a JSON
+#' object as a named list does. jsonlite does this for named vectors only with
+#' a deprecation message (`keep_vec_names`), so they are sent as lists. Data
+#' frames are kept as they are.
+#' @noRd
+named_vectors_as_lists <- function(x) {
+  if (is.data.frame(x)) {
+    return(x)
+  }
+  if (is.list(x)) {
+    x[] <- lapply(x, named_vectors_as_lists)
+    return(x)
+  }
+  if (is.atomic(x) && !is.null(names(x))) {
+    return(as.list(x))
+  }
+  x
 }
 
 # Columns sent to the browser only when an option names them, as in a tooltip

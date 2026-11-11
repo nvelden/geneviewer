@@ -16,3 +16,9 @@ test_that("empty alignments leave charts and their existing links unchanged", {
   linked <- GC_links(GC_links(linked, data = empty), data = alignment)
   expect_identical(compile_chart(linked)$links[[2]]$data$linkID, "1-1")
 })
+
+test_that("GC_links without group or data says that one of them is needed", {
+  genes <- data.frame(start = c(1, 50), end = c(40, 90), cluster = c(1, 2))
+  expect_error(GC_links(GC_chart(genes, cluster = "cluster")),
+               "Either 'group' or 'data' must be provided.", fixed = TRUE)
+})

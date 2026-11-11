@@ -126,3 +126,18 @@ test_that("normalising each cluster keeps its original positions in the chart da
   }
   expect_false(anyNA(chart$x$spec$data$original_start))
 })
+
+test_that("GC_normalize keeps a column named cluster when the clusters are another column", {
+  genes <- data.frame(
+    start = c(100, 300, 100), end = c(200, 400, 250),
+    operon = c("o1", "o1", "o2"), cluster = c("keep1", "keep2", "keep3")
+  )
+  chart <- GC_chart(genes, cluster = "operon") %>% GC_normalize()
+  data <- chart$x$spec$data
+  expect_equal(data$cluster[order(data$rowID)], c("keep1", "keep2", "keep3"))
+
+  # Without a cluster field too
+  chart <- GC_chart(genes) %>% GC_normalize()
+  data <- chart$x$spec$data
+  expect_equal(data$cluster[order(data$rowID)], c("keep1", "keep2", "keep3"))
+})

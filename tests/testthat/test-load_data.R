@@ -431,3 +431,20 @@ test_that("read_gbk reads features of any key, flag qualifiers and features with
   genes <- gbk_features_to_df(read_gbk(gbk_file), feature = "gene")
   expect_equal(c(genes$start, genes$end), c(300, 500))
 })
+
+test_that("genbank_to_fasta names records without VERSION or DEFINITION (B74)", {
+  record <- function(...) c(..., "FEATURES             Location/Qualifiers", "ORIGIN",
+                            "        1 acgtacgtac", "//")
+  dir <- tempfile()
+  dir.create(dir)
+  gbk_file <- file.path(dir, "a.gbk")
+  writeLines(c(
+    record("LOCUS       LOC1   10 bp", "ACCESSION   ACC1 ACC2", "DEFINITION  Thing."),
+    record("LOCUS       LOC2   10 bp"),
+    record("VERSION     V.1", "DEFINITION  Other thing."),
+    record("VERSION", "ACCESSION")), gbk_file)
+
+  fasta <- readLines(genbank_to_fasta(gbk_file, output_dir = dir))
+  expect_equal(fasta, c(">ACC1 Thing", "ACGTACGTAC", ">LOC2", "ACGTACGTAC",
+                        ">V.1 Other thing", "ACGTACGTAC", ">a", "ACGTACGTAC"))
+})

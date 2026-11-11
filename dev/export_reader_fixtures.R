@@ -291,6 +291,14 @@ add("gbkdf-folder-missing", list(call("read_gbk"), call("gbk_features_to_df", fe
 add("gbkdf-nokeys", list(call("read_gbk"), call("gbk_features_to_df", keys = "nokey")), "inputs/B04.gbk")
 add("g2f-BGC0000001", list(call("genbank_to_fasta")), gbk1)
 add("g2f-multi", list(call("genbank_to_fasta")), "inputs/multi.gbk")
+# Records without VERSION or DEFINITION are named by ACCESSION, LOCUS or the file (B74)
+g2f_record <- function(...) c(..., "FEATURES             Location/Qualifiers", "ORIGIN",
+                              "        1 acgtacgtac", "//")
+add("g2f-B74", list(call("genbank_to_fasta")), put("B74.gbk", c(
+  g2f_record("LOCUS       LOC1   10 bp", "ACCESSION   ACC1 ACC2", "DEFINITION  Thing."),
+  g2f_record("LOCUS       LOC2   10 bp"),
+  g2f_record("VERSION     V.1", "DEFINITION  Other thing."),
+  g2f_record("VERSION", "ACCESSION"))))
 add("g2f-single", list(call("genbank_to_fasta")), put("single.gbk", gbk_record("AAA", "acgtacgtac gtacgtacgt")))
 
 gff1 <- extdata("HQ113105.1.gff3")

@@ -337,7 +337,8 @@ parse_procmer <- function(path, reference, query){
 #'
 #' This function reads a GenBank file, extracts the sequence and
 #' writes it to a new file in FASTA format. It parses the DEFINITION and VERSION
-#' for the header and sequences from the ORIGIN section.
+#' for the header and sequences from the ORIGIN section. A record without a
+#' VERSION is named by its ACCESSION, else its LOCUS name, else the file name.
 #'
 #' @param path Path to the GenBank file.
 #' @param output_dir Directory for the output FASTA file, which gets the base
@@ -384,12 +385,25 @@ genbank_to_fasta <- function(path, output_dir = tempdir()){
     record <- lines[record_starts[r]:record_ends[r]]
 
     # Extract the definition and version for the FASTA header
-    definition <- record[grep("^DEFINITION", record)]
-    definition <- sub("^DEFINITION\\s+", "", definition)
-    definition <- sub("[^a-zA-Z0-9]+$", "", definition)
-    version <- record[grep("^VERSION", record)]
-    version <- sub("^VERSION\\s+", "", version)
-    fasta_header <- sprintf(">%s %s", version, definition)
+    definition <- record[grep("^DEFINITION", record)][1]
+    definition <- sub("[^a-zA-Z0-9]+$", "", sub("^DEFINITION\\s*", "", definition))
+    # The name of the record: its VERSION, else its ACCESSION or LOCUS name,
+    # else the file name (B74)
+    first_word <- function(key) {
+      line <- record[grep(paste0("^", key, "(\\s|$)"), record)][1]
+      word <- sub("^\\S+\\s*(\\S*).*$", "\\1", line)
+      if (is.na(word) || !nzchar(word)) NULL else word
+    }
+    version <- record[grep("^VERSION", record)][1]
+    version <- if (!is.na(version)) trimws(sub("^VERSION\\s*", "", version))
+    if (!is.null(version) && !nzchar(version)) version <- NULL
+    id <- c(version, first_word("ACCESSION"), first_word("LOCUS"),
+            tools::file_path_sans_ext(basename(path)))[1]
+    fasta_header <- if (is.na(definition) || !nzchar(definition)) {
+      paste0(">", id)
+    } else {
+      sprintf(">%s %s", id, definition)
+    }
 
     # Identify the start of the sequence block
     origin_index <- grep("^ORIGIN", record)

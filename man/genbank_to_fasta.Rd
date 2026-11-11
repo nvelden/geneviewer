@@ -19,7 +19,8 @@ The path of the FASTA file, invisibly.
 \description{
 This function reads a GenBank file, extracts the sequence and
 writes it to a new file in FASTA format. It parses the DEFINITION and VERSION
-for the header and sequences from the ORIGIN section.
+for the header and sequences from the ORIGIN section. A record without a
+VERSION is named by its ACCESSION, else its LOCUS name, else the file name.
 }
 \examples{
 \donttest{

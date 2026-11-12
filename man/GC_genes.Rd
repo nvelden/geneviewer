@@ -96,8 +96,6 @@ GC_chart(genes_data, cluster = "cluster", group = "group", height = "200px") \%>
                         # (eg. "schemeCategory10",
                         # "schemeAccent", "schemeTableau10")
     customColors = NULL, # A vector of color names
-    prevent_overlap = FALSE,
-    gene_overlap_spacing = 40,
     cluster = 1, # Specify a specific cluster
     x = 1,
     y = 50,

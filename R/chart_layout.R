@@ -294,8 +294,9 @@ GC_sequence <- function(
 #'
 #' @param GC_chart A GC chart object.
 #' @param margin A list specifying top, right, bottom, and left margins.
-#' @param width Numeric or character. Width of the grid. If numeric, will be
-#' considered as percentage.
+#' @param width Numeric or character. Width of the chart, or with `cluster`
+#' of the selected clusters: a number of pixels, e.g. `600`, or a string such
+#' as `"80%"` or `"600px"`.
 #' @param height Numeric. Height of the grid.
 #' @param direction Character. Layout direction of the grid, either "column"
 #' (default) for vertical or "row" for horizontal.
@@ -995,7 +996,7 @@ GC_cluster <- function(
 
   if (isTRUE(separate_strands) && !is.null(prevent_gene_overlap) &&
       !isFALSE(prevent_gene_overlap)) {
-    warning("Setting both 'separate_strands' and 'prevent_gene_overlap' to TRUE is not supported. Resetting to NULL.")
+    warning("Setting both 'separate_strands' and 'prevent_gene_overlap' to TRUE is not supported. Neither is applied.")
   }
   check_clusters(GC_chart, cluster)
 

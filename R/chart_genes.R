@@ -240,8 +240,6 @@ check_group_style <- function(groupStyle) {
 #'                         # (eg. "schemeCategory10",
 #'                         # "schemeAccent", "schemeTableau10")
 #'     customColors = NULL, # A vector of color names
-#'     prevent_overlap = FALSE,
-#'     gene_overlap_spacing = 40,
 #'     cluster = 1, # Specify a specific cluster
 #'     x = 1,
 #'     y = 50,

@@ -18,8 +18,9 @@ GC_grid(
 
 \item{margin}{A list specifying top, right, bottom, and left margins.}
 
-\item{width}{Numeric or character. Width of the grid. If numeric, will be
-considered as percentage.}
+\item{width}{Numeric or character. Width of the chart, or with \code{cluster}
+of the selected clusters: a number of pixels, e.g. \code{600}, or a string such
+as \code{"80\%"} or \code{"600px"}.}
 
 \item{height}{Numeric. Height of the grid.}
 

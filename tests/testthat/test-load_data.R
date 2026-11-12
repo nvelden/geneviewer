@@ -448,3 +448,20 @@ test_that("genbank_to_fasta names records without VERSION or DEFINITION (B74)", 
   expect_equal(fasta, c(">ACC1 Thing", "ACGTACGTAC", ">LOC2", "ACGTACGTAC",
                         ">V.1 Other thing", "ACGTACGTAC", ">a", "ACGTACGTAC"))
 })
+
+test_that("mummer_alignment reads a folder whose path has a space (B78)", {
+  skip_if(Sys.which("nucmer") == "", "MUMmer is not installed")
+  set.seed(1)
+  seq1 <- paste(sample(c("A", "C", "G", "T"), 3000, TRUE), collapse = "")
+  dir <- file.path(tempfile("mummer"), "my sequences")
+  dir.create(dir, recursive = TRUE)
+  writeLines(c(">a", seq1), file.path(dir, "A.fasta"))
+  writeLines(c(">b", seq1), file.path(dir, "B.fasta"))
+
+  links <- suppressWarnings(mummer_alignment(dir, seqtype = "nucleotide"))
+  expect_true(is.data.frame(links) && nrow(links) > 0)
+  # The input folder is left as it was
+  expect_setequal(list.files(dir), c("A.fasta", "B.fasta"))
+  # The output folder still may not have spaces
+  expect_error(mummer_alignment(dir, output_dir = dir), "output directory path without spaces")
+})

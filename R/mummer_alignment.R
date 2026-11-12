@@ -5,7 +5,8 @@
 #' It can handle GenBank and FASTA file formats. and performs checks to ensure
 #' necessary files are present.
 #'
-#' @param path The directory containing the sequence files.
+#' @param path The directory containing the sequence files. Its path may
+#'   contain spaces; the names of the files may not.
 #' @param cluster Optional vector of cluster names to consider for alignment. If
 #'   NULL, clusters are inferred from file names. The order of names determines
 #'   the alignment sequence.
@@ -21,8 +22,9 @@
 #'   view all filtering options, run `delta-filter --help` in the terminal.
 #' @param remove_files Logical indicating whether to remove intermediate files
 #'   generated during the process, defaults to TRUE.
-#' @param output_dir Parent directory for a unique working subdirectory;
-#'   defaults to \code{tempdir()}. With \code{remove_files = FALSE}, copied
+#' @param output_dir Parent directory for a unique working subdirectory, without
+#'   spaces in its path (MUMmer cannot use it otherwise); defaults to
+#'   \code{tempdir()}. With \code{remove_files = FALSE}, copied
 #'   inputs and alignment files are retained in that subdirectory.
 #'
 #' @return A data frame combining all alignment results, or NULL if errors occur
@@ -73,10 +75,6 @@ mummer_alignment <- function(
   # Ensure the output directory exists
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
-  }
-
-  if (grepl(" ", path)) {
-    stop("MUMmer requires a directory path without spaces.")
   }
 
   if (grepl(" ", output_dir)) {

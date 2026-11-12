@@ -1701,3 +1701,23 @@ test_that("show = FALSE hides what an earlier call shows (B76)", {
   # With nothing shown before, nothing is recorded
   expect_identical(chart %>% GC_coordinates(show = FALSE), chart)
 })
+
+test_that("wrong arguments give a message that names them (B82)", {
+  genes <- data.frame(start = c(10, 50, 90, 130), end = c(40, 80, 120, 160),
+                      name = c("a", "b", "c", "d"), group = c("A", "B", "A", "B"),
+                      cluster = c(1, 1, 2, 2))
+  chart <- GC_chart(genes, cluster = "cluster", group = "group", height = "300px")
+  expect_error(chart %>% GC_grid(margin = list(top = "2em")), "Margins must be pixels")
+  expect_error(chart %>% GC_grid(margin = list(bottom = NA)), "Margins must be pixels")
+  expect_error(GC_chart(genes, height = "50vh") %>% GC_grid(margin = list(top = "10%")),
+               "pixel values")
+  expect_s3_class(GC_chart(genes, height = "50vh") %>% GC_grid(margin = list(top = 20)), "geneviewer")
+  expect_equal((chart %>% GC_grid(margin = list(top = "10%", bottom = "5px")))$x$spec$grid$margin,
+               list(top = "10%", bottom = "5px"))
+
+  expect_error(chart %>% GC_legend(group = c("group", "name")), "single column name")
+  expect_error(chart %>% GC_scale(scale_breaks = c(TRUE, FALSE)), "single TRUE or FALSE")
+  expect_error(chart %>% GC_links("group", measure = c("identity", "none")), "Invalid measure")
+  expect_error(chart %>% GC_links("group", value1 = c("A", "B"), value2 = "A"), "same length")
+  expect_error(chart %>% GC_links("group", value1 = "A"), "both 'value1' and 'value2'")
+})

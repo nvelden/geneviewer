@@ -343,6 +343,24 @@ GC_grid <- function(
   # Top and bottom margins are padding of the whole chart
   if(!is.null(margin) && is.null(cluster)){
 
+    # Pixels, or a percentage of a chart height in pixels (B82)
+    for (side in intersect(c("top", "bottom"), names(margin))) {
+      value <- margin[[side]]
+      pixels <- is.numeric(value) && length(value) == 1 && is.finite(value)
+      text <- is.character(value) && length(value) == 1 && !is.na(value) &&
+        grepl("^\\s*-?[0-9]*\\.?[0-9]+\\s*(px|%)?\\s*$", value)
+      if (!pixels && !text) {
+        stop("Margins must be pixels, e.g. 50 or \"50px\", or a percentage of the chart ",
+             "height, e.g. \"10%\".")
+      }
+      chart_pixels <- is.numeric(chart_height) ||
+        (is.character(chart_height) && grepl("^\\s*[0-9.]+\\s*(px)?\\s*$", chart_height))
+      if (text && grepl("%\\s*$", value) && !chart_pixels) {
+        stop("Use pixel values for the top and bottom margins when the chart height is not ",
+             "in pixels, e.g. a percentage.")
+      }
+    }
+
     paddingTop <- if (!is.null(margin[["top"]])) get_relative_height(chart_height, margin[["top"]]) else 0
     paddingBottom <- if (!is.null(margin[["bottom"]])) get_relative_height(chart_height, margin[["bottom"]]) else 0
 
@@ -484,6 +502,11 @@ GC_scale <- function(GC_chart,
                      lineStyle = list(),
                      ...) {
   spec <- spec_args(match.call(), environment())
+
+  # The library turns automatic breaks on or off for all selected clusters
+  if (!is.logical(scale_breaks) || length(scale_breaks) != 1 || is.na(scale_breaks)) {
+    stop("scale_breaks must be a single TRUE or FALSE")
+  }
 
   # Fail early on a padding that is no percentage or base pairs
   if (is.character(scale_break_padding)) break_padding_bp(scale_break_padding)

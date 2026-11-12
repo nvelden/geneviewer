@@ -811,6 +811,10 @@ GC_legend <- function(
     group <- NULL
   }
 
+  if (!is.null(group) && length(group) != 1) {
+    stop("group must be a single column name")
+  }
+
   if (isTRUE(show) && is.null(group) && is.null(state$group)){
     stop("Please define a group")
   }

@@ -6,8 +6,10 @@
 #'
 #' @param GC_chart Gene chart object.
 #' @param group The name of the column in the data to create value pairs from.
-#' @param value1 Optional vector of group values to generate links for.
-#' @param value2 Optional vector of group values to generate links for.
+#' @param value1,value2 Optional vectors of group values, of the same length:
+#'   each value of `value1` is linked to the value of `value2` in the same
+#'   place. Give both or neither; with neither, genes of the same group are
+#'   linked.
 #' @param cluster Numeric or character vector or NULL; specifies which clusters
 #' to generate links between.
 #' @return A data frame of links between clusters based on the group column.
@@ -141,8 +143,10 @@ get_links <-
 #' @param GC_chart Gene chart object.
 #' @param group The name of the column in the data to create value pairs from.
 #' @param data data.frame containing linking data.
-#' @param value1 Optional vector of group values to generate links for.
-#' @param value2 Optional vector of group values to generate links for.
+#' @param value1,value2 Optional vectors of group values, of the same length:
+#'   each value of `value1` is linked to the value of `value2` in the same
+#'   place. Give both or neither; with neither, genes of the same group are
+#'   linked.
 #' @param cluster Numeric or character vector or NULL; specifies which clusters.
 #' @param curve Logical; if `TRUE`, links are curved, otherwise straight.
 #'   Default is NULL: as set by the theme, otherwise `TRUE`.
@@ -329,7 +333,8 @@ GC_links <- function(
   spec <- spec_args(match.call(), environment())
 
   # Validate measure
-  if (!measure %in% c("identity", "similarity", "none")) {
+  if (!(is.character(measure) && length(measure) == 1 &&
+        measure %in% c("identity", "similarity", "none"))) {
     stop("Invalid measure specified. Choose 'identity', 'similarity', or 'none'.")
   }
 
@@ -368,6 +373,14 @@ GC_links <- function(
   # Check for required data
   if (is.null(data) && is.null(group)) {
     stop("Either 'group' or 'data' must be provided.")
+  }
+
+  # Pairs of groups to link: value1[i] with value2[i] (B82)
+  if (xor(is.null(value1), is.null(value2))) {
+    stop("Give both 'value1' and 'value2', the groups to link in pairs, or neither.")
+  }
+  if (!is.null(value1) && length(value1) != length(value2)) {
+    stop("'value1' and 'value2' must have the same length: one pair of groups each.")
   }
 
   # Retrieve links data or use the provided data

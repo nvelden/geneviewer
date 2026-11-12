@@ -37,9 +37,10 @@ GC_links(
 
 \item{data}{data.frame containing linking data.}
 
-\item{value1}{Optional vector of group values to generate links for.}
-
-\item{value2}{Optional vector of group values to generate links for.}
+\item{value1, value2}{Optional vectors of group values, of the same length:
+each value of \code{value1} is linked to the value of \code{value2} in the same
+place. Give both or neither; with neither, genes of the same group are
+linked.}
 
 \item{cluster}{Numeric or character vector or NULL; specifies which clusters.}
 

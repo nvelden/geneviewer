@@ -1663,6 +1663,8 @@ test_that("a chart of data without rows takes the GC_ functions (B75)", {
   expect_equal(nrow(chart_state(chart)$data), 0)
   expect_error(chart %>% GC_labels("nope"), "label column not found")
   expect_s3_class(GC_chart(genes, group = "group") %>% GC_transcript(transcript = "cluster"), "geneviewer")
+  # The library draws it without clusters
+  expect_length(compile_chart(chart)$series, 0)
 
   # Rows without a start or end only: the same chart, with the warning
   expect_warning(only_na <- GC_chart(data.frame(start = NA, end = 5, name = "a"), group = "name"),
@@ -1695,6 +1697,7 @@ test_that("show = FALSE hides what an earlier call shows (B76)", {
   # Hidden labels need no label column, also on a chart without a group
   plain <- GC_chart(genes, cluster = "cluster") %>% GC_labels("name") %>% GC_labels(show = FALSE)
   expect_identical(plain$x$spec$labels[[2]], list(show = FALSE))
+  expect_equal(shown(plain, "labels"), c(FALSE, FALSE))
   expect_error(GC_chart(genes) %>% GC_labels("name") %>% GC_labels(show = FALSE, label = "nope"),
                "label column not found")
 

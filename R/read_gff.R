@@ -97,8 +97,8 @@ process_gff <- function(path, fields = NULL){
 
     data$attributes <- gsub("\\t.*", "", data$attributes)
 
-    list_attributes <- lapply(data$attributes, parse_attributes)
-    df_attributes <- dplyr::bind_rows(list_attributes, .id = "id")
+    # All rows at once: one call per row was slow on large files (B83)
+    df_attributes <- parse_all_attributes(data$attributes)
 
     if (nrow(df_attributes) > 0) {
       metadata <- widen_attributes(df_attributes)
@@ -116,32 +116,48 @@ process_gff <- function(path, fields = NULL){
   return(data)
 }
 
+#' Parse the attributes column of all rows of a GFF file
+#'
+#' The pairs of each row, in one pass for all rows: of GFF3 (`key=value`)
+#' and of GTF and GFF2 (`key "value"`), by row.
+#'
+#' @param info Character vector, the attributes column.
+#' @return A data frame with columns `id` (the row number, as character),
+#'   `key` and `value`.
 #' @noRd
-parse_attributes <- function(info) {
+parse_all_attributes <- function(info) {
   # No attributes: missing column, empty or "."
-  if (is.na(info) || trimws(info) %in% c("", ".")) {
-    return(data.frame(key = character(0), value = character(0), stringsAsFactors = FALSE))
-  }
-
-  pairs <- trimws(strsplit(info, ";", fixed = TRUE)[[1]], which = "left")
-  pairs <- pairs[pairs != ""]
+  none <- is.na(info) | trimws(info) %in% c("", ".")
+  info[none] <- ""
+  pieces <- strsplit(info, ";", fixed = TRUE)
+  id <- rep(seq_along(info), lengths(pieces))
+  pairs <- trimws(unlist(pieces, use.names = FALSE), which = "left")
+  keep <- pairs != ""
+  id <- id[keep]
+  pairs <- pairs[keep]
 
   # GTF and GFF2: key "value" pairs, in rows without any '=' (B48)
-  if (!any(grepl("=", pairs, fixed = TRUE)) && any(grepl("\\s", pairs))) {
-    pairs <- trimws(pairs)
-    has_value <- grepl("\\s", pairs)
-    keys <- ifelse(has_value, sub("\\s.*$", "", pairs), pairs)
-    values <- ifelse(has_value, sub("^\\S+\\s+", "", pairs), NA_character_)
-    values <- sub('^"(.*)"$', "\\1", values)
-    return(data.frame(key = keys, value = values, stringsAsFactors = FALSE))
-  }
+  has_equals <- grepl("=", pairs, fixed = TRUE)
+  gtf <- !(id %in% id[has_equals]) & id %in% id[grepl("\\s", pairs)]
+
+  keys <- character(length(pairs))
+  values <- rep(NA_character_, length(pairs))
+
+  gtf_pairs <- trimws(pairs[gtf])
+  gtf_value <- grepl("\\s", gtf_pairs)
+  keys[gtf] <- ifelse(gtf_value, sub("\\s.*$", "", gtf_pairs), gtf_pairs)
+  values[gtf][gtf_value] <- sub('^"(.*)"$', "\\1", sub("^\\S+\\s+", "", gtf_pairs[gtf_value]))
 
   # GFF3: split each pair at the first '='; a key without '=' gets NA
-  has_value <- grepl("=", pairs, fixed = TRUE)
-  keys <- trimws(ifelse(has_value, sub("=.*$", "", pairs), pairs))
-  values <- ifelse(has_value, url_decode(sub("^[^=]*=", "", pairs)), NA_character_)
+  gff3 <- !gtf
+  gff3_value <- gff3 & has_equals
+  keys[gff3] <- trimws(ifelse(has_equals[gff3], sub("=.*$", "", pairs[gff3]), pairs[gff3]))
+  values[gff3_value] <- sub("^[^=]*=", "", pairs[gff3_value])
+  # Only values with %XX need decoding
+  encoded <- gff3_value & grepl("%[0-9A-Fa-f]{2}", values)
+  values[encoded] <- url_decode(values[encoded])
 
-  return(data.frame(key = keys, value = values, stringsAsFactors = FALSE))
+  data.frame(id = as.character(id), key = keys, value = values, stringsAsFactors = FALSE)
 }
 
 #' @noRd

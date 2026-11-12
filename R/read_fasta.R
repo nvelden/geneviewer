@@ -43,7 +43,8 @@ read_fasta <- function(fasta_path, sequence = TRUE, keys = NULL, file_extension 
   if (dir.exists(fasta_path)) {
     # It's a directory, get all FASTA files in the directory
     file_pattern <- paste0("\\.", file_extension, "$")
-    fasta_files <- list.files(fasta_path, pattern = file_pattern, full.names = TRUE)
+    # A folder without FASTA files is an error, as in the other readers (B83)
+    fasta_files <- dir_files(fasta_path, file_pattern, file_extension)
   } else if (file.exists(fasta_path)) {
     # It's a single file
     fasta_files <- list(fasta_path)

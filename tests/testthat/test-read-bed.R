@@ -31,3 +31,18 @@ test_that("BED12 files whose rows all have one block are read (B65)", {
   expect_equal(bed$blockStarts, list(1, 1))
   expect_equal(bed$chromStart, c(1, 201))
 })
+
+test_that("read_bed reads columns separated by spaces and names extra columns (B83)", {
+  bed <- tempfile(fileext = ".bed")
+  writeLines(c("chr1 100 200 a 0 +", "chr1   300 400 b 5 -"), bed)
+  data <- read_bed(bed)
+  expect_named(data, c("chrom", "chromStart", "chromEnd", "name", "score", "strand"))
+  expect_equal(data$chromStart, c(101, 301))
+  expect_equal(data$score, c(0, 5))
+
+  writeLines(paste(c("chr1", 100, 200, "a", 0, "+", 100, 200, "0", 1, "100,", "0,", "x", "y"),
+                   collapse = "\t"), bed)
+  data <- read_bed(bed)
+  expect_equal(names(data)[13:14], c("V13", "V14"))
+  expect_equal(data$V13, "x")
+})

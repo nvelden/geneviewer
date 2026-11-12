@@ -16,6 +16,9 @@
 #' @return A dataframe with the original exons and the calculated introns, sorted
 #'   by transcript and start position. Each row includes the `start`, `end`,
 #'   `type` (exon, UTR or intron), `transcript`, and `strand` for each segment.
+#'   An intron has the values of the columns that are the same for all exons
+#'   and UTRs of its transcript (e.g. its gene or group), and `NA` in the
+#'   columns that differ between them (e.g. the name of an exon).
 #'
 #' @examples
 #' exons <- data.frame(
@@ -71,7 +74,22 @@ get_introns <- function(data) {
       end = .data$next_start - 1,
       type = "intron"
     ) %>%
-    dplyr::select(-dplyr::all_of(c("next_start", "covered_end")))
+    dplyr::select(-dplyr::all_of(c("next_start", "covered_end"))) %>%
+    dplyr::ungroup()
+
+  # An intron belongs to its transcript, not to the exon before it: it keeps
+  # the columns that are the same for all exons and UTRs of the transcript
+  # (e.g. its gene, group or strand), the others are NA (B83)
+  parts <- data %>% dplyr::filter(grepl("exon|utr", .data$type, ignore.case = TRUE))
+  transcript_key <- as.character(intron_results$transcript)
+  # rowID is numbered again when the chart prepares its data
+  for (column in setdiff(names(intron_results),
+                         c("start", "end", "type", "transcript", "original_transcript_order",
+                           "rowID"))) {
+    varies <- tapply(parts[[column]], as.character(parts$transcript),
+                     function(values) length(unique(values)) > 1)
+    intron_results[[column]][varies[transcript_key] %in% TRUE] <- NA
+  }
 
   combined_results <- dplyr::bind_rows(data, intron_results) %>%
     dplyr::arrange(.data$original_transcript_order, .data$start) %>%

@@ -173,3 +173,10 @@ test_that("read_fasta gives every file of a folder a strand, also with only forw
   forward <- read_fasta(file.path(dir, "B.fasta"))
   expect_identical(forward$strand, c("forward", "forward", NA))
 })
+
+test_that("read_fasta stops on a folder without FASTA files (B83)", {
+  dir <- tempfile()
+  dir.create(dir)
+  writeLines("no FASTA files here", file.path(dir, "readme.txt"))
+  expect_error(read_fasta(dir), "No .fasta files found")
+})

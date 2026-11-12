@@ -369,9 +369,15 @@ add("fasta-B73", list(call("read_fasta")),
     put("fasta-B73/B.fasta", c(">a [protein_id=p3] [location=1..90]", "MKK",
                                ">c [protein_id=p5]", "MCC")) |> dirname())
 add("fasta-folder-fa", list(call("read_fasta", file_extension = "fa")), "inputs/fasta-folder")
+# A folder without FASTA files (B83)
+add("fasta-empty-folder", list(call("read_fasta")), put("no-fasta/readme.txt", "no FASTA files here") |> dirname())
 add("fasta-missing", list(call("read_fasta")), "inputs/does-not-exist.fasta")
 
 add("bed-B05", list(call("read_bed")), put("B05.bed", bed12))
+# Columns separated by spaces, and columns after the twelve of BED (B83)
+add("bed-spaces", list(call("read_bed")), put("spaces.bed", c("chr1 100 200 a 0 +", "chr1   300 400 b 5 -")))
+add("bed-extra-columns", list(call("read_bed")), put("extra.bed", paste(
+  c("chr1", 100, 200, "a", 0, "+", 100, 200, "0", 1, "100,", "0,", "x", "y"), collapse = "\t")))
 add("bed-score-text", list(call("read_bed")), put("score-text.bed", c(
   "1\t0\t100\ta\t.\t+", "1\t200\t300\tb\t500\t-", "X\t400\t500\tc\tlow\t+")))
 add("bed-B05-single", list(call("read_bed")), put("B05-single.bed", "chr1\t0\t100\ta\t0\t+\t0\t100\t0\t2\t10,20\t0,80"))

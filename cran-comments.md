@@ -3,7 +3,7 @@
 This is an update from 0.2.0 to 0.2.1. See NEWS.md for details.
 
 * Charts are now drawn by the geneviewer JavaScript library, which the package
-  ships in inst/htmlwidgets/lib/geneviewer-0.3.10/ (MIT, by the package
+  ships in inst/htmlwidgets/lib/geneviewer-0.3.11/ (MIT, by the package
   author). The R functions, their arguments and the charts they draw are
   unchanged.
 * The internals of a chart widget changed: `widget$x` is now `list(spec = )`,

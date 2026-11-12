@@ -16,7 +16,8 @@ mummer_alignment(
 )
 }
 \arguments{
-\item{path}{The directory containing the sequence files.}
+\item{path}{The directory containing the sequence files. Its path may
+contain spaces; the names of the files may not.}
 
 \item{cluster}{Optional vector of cluster names to consider for alignment. If
 NULL, clusters are inferred from file names. The order of names determines
@@ -39,8 +40,9 @@ view all filtering options, run \code{delta-filter --help} in the terminal.}
 \item{remove_files}{Logical indicating whether to remove intermediate files
 generated during the process, defaults to TRUE.}
 
-\item{output_dir}{Parent directory for a unique working subdirectory;
-defaults to \code{tempdir()}. With \code{remove_files = FALSE}, copied
+\item{output_dir}{Parent directory for a unique working subdirectory, without
+spaces in its path (MUMmer cannot use it otherwise); defaults to
+\code{tempdir()}. With \code{remove_files = FALSE}, copied
 inputs and alignment files are retained in that subdirectory.}
 }
 \value{

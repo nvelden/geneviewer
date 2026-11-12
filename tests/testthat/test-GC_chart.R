@@ -1648,3 +1648,79 @@ test_that("GC_events sets the click events and checks its arguments", {
   expect_error(GC_events(GC_chart(genes), click = "yes"), "TRUE or FALSE")
   expect_error(GC_events(GC_chart(genes), highlight = NA), "TRUE or FALSE")
 })
+
+test_that("a chart of data without rows takes the GC_ functions (B75)", {
+  genes <- data.frame(start = numeric(), end = numeric(), name = character(),
+                      group = character(), cluster = character(), strand = character())
+  chart <- GC_chart(genes, cluster = "cluster", group = "group", strand = "strand")
+  state <- chart_fields(chart)
+  expect_true(all(c("name", "rowID", "start", "end", "strand") %in% state$columns))
+  expect_length(state$clusters, 0)
+
+  chart <- chart %>% GC_labels("name") %>% GC_legend() %>% GC_title("Empty") %>%
+    GC_coordinates() %>% GC_tooltip("{name}") %>% GC_normalize()
+  expect_equal(chart$x$spec$labels$label, "name")
+  expect_equal(nrow(chart_state(chart)$data), 0)
+  expect_error(chart %>% GC_labels("nope"), "label column not found")
+  expect_s3_class(GC_chart(genes, group = "group") %>% GC_transcript(transcript = "cluster"), "geneviewer")
+  # The library draws it without clusters
+  expect_length(compile_chart(chart)$series, 0)
+
+  # Rows without a start or end only: the same chart, with the warning
+  expect_warning(only_na <- GC_chart(data.frame(start = NA, end = 5, name = "a"), group = "name"),
+                 "filtered out")
+  expect_s3_class(only_na %>% GC_labels("name"), "geneviewer")
+})
+
+test_that("show = FALSE hides what an earlier call shows (B76)", {
+  genes <- data.frame(start = c(10, 50, 90, 130), end = c(40, 80, 120, 160),
+                      name = c("a", "b", "c", "d"), group = c("A", "B", "A", "B"),
+                      cluster = c(1, 1, 2, 2))
+  chart <- GC_chart(genes, cluster = "cluster", group = "group")
+  shown <- function(chart, slot) {
+    vapply(compile_chart(chart)$series, function(s) isTRUE(s[[slot]]$show), logical(1),
+           USE.NAMES = FALSE)
+  }
+  hide2 <- function(chart, fun, ...) fun(chart, ..., show = FALSE, cluster = 2)
+
+  expect_equal(shown(chart %>% GC_labels("name") %>% hide2(GC_labels), "labels"), c(TRUE, FALSE))
+  expect_equal(shown(chart %>% GC_coordinates() %>% hide2(GC_coordinates), "coordinates"),
+               c(TRUE, FALSE))
+  expect_equal(shown(chart %>% GC_scaleBar() %>% hide2(GC_scaleBar), "scaleBar"), c(TRUE, FALSE))
+  expect_equal(shown(chart %>% GC_clusterTitle("t") %>% hide2(GC_clusterTitle), "clusterTitle"),
+               c(TRUE, FALSE))
+  expect_equal(shown(chart %>% GC_clusterLabel() %>% hide2(GC_clusterLabel), "clusterLabel"),
+               c(TRUE, FALSE))
+  expect_equal(shown(chart %>% GC_clusterFooter("f") %>% hide2(GC_clusterFooter), "footer"),
+               c(TRUE, FALSE))
+
+  # Hidden labels need no label column, also on a chart without a group
+  plain <- GC_chart(genes, cluster = "cluster") %>% GC_labels("name") %>% GC_labels(show = FALSE)
+  expect_identical(plain$x$spec$labels[[2]], list(show = FALSE))
+  expect_equal(shown(plain, "labels"), c(FALSE, FALSE))
+  expect_error(GC_chart(genes) %>% GC_labels("name") %>% GC_labels(show = FALSE, label = "nope"),
+               "label column not found")
+
+  # With nothing shown before, nothing is recorded
+  expect_identical(chart %>% GC_coordinates(show = FALSE), chart)
+})
+
+test_that("wrong arguments give a message that names them (B82)", {
+  genes <- data.frame(start = c(10, 50, 90, 130), end = c(40, 80, 120, 160),
+                      name = c("a", "b", "c", "d"), group = c("A", "B", "A", "B"),
+                      cluster = c(1, 1, 2, 2))
+  chart <- GC_chart(genes, cluster = "cluster", group = "group", height = "300px")
+  expect_error(chart %>% GC_grid(margin = list(top = "2em")), "Margins must be pixels")
+  expect_error(chart %>% GC_grid(margin = list(bottom = NA)), "Margins must be pixels")
+  expect_error(GC_chart(genes, height = "50vh") %>% GC_grid(margin = list(top = "10%")),
+               "pixel values")
+  expect_s3_class(GC_chart(genes, height = "50vh") %>% GC_grid(margin = list(top = 20)), "geneviewer")
+  expect_equal((chart %>% GC_grid(margin = list(top = "10%", bottom = "5px")))$x$spec$grid$margin,
+               list(top = "10%", bottom = "5px"))
+
+  expect_error(chart %>% GC_legend(group = c("group", "name")), "single column name")
+  expect_error(chart %>% GC_scale(scale_breaks = c(TRUE, FALSE)), "single TRUE or FALSE")
+  expect_error(chart %>% GC_links("group", measure = c("identity", "none")), "Invalid measure")
+  expect_error(chart %>% GC_links("group", value1 = c("A", "B"), value2 = "A"), "same length")
+  expect_error(chart %>% GC_links("group", value1 = "A"), "both 'value1' and 'value2'")
+})

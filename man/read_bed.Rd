@@ -27,6 +27,8 @@ and \code{blockSizes} are kept as they are. \code{blockStarts} become
 This function can read multiple BED files from a directory or a
 single BED file from a specified path. It adds a 'filename' column with the
 name of the file, and combines the data frames from all files into one.
+Columns are separated by tabs, or by spaces in a file without any tab.
+Columns after the twelve of BED are named \code{V13}, \code{V14}, and so on.
 
 The columns \code{chrom}, \code{name}, \code{strand} and \code{itemRgb} are character, also
 when their values look like numbers (a chromosome named \code{1}), so that the

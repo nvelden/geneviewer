@@ -203,7 +203,9 @@ GC_clusterTitle <- function(
     spacing = NULL,
     ...) {
   spec <- spec_args(match.call(), environment())
-  if (!any(show)) {
+  # show = FALSE hides what an earlier call shows (B76); with nothing shown
+  # before, the chart is unchanged
+  if (nothing_to_hide(GC_chart, "clusterTitle", show)) {
     return(GC_chart)
   }
   check_align(align, per_cluster = TRUE)
@@ -292,8 +294,9 @@ GC_sequence <- function(
 #'
 #' @param GC_chart A GC chart object.
 #' @param margin A list specifying top, right, bottom, and left margins.
-#' @param width Numeric or character. Width of the grid. If numeric, will be
-#' considered as percentage.
+#' @param width Numeric or character. Width of the chart, or with `cluster`
+#' of the selected clusters: a number of pixels, e.g. `600`, or a string such
+#' as `"80%"` or `"600px"`.
 #' @param height Numeric. Height of the grid.
 #' @param direction Character. Layout direction of the grid, either "column"
 #' (default) for vertical or "row" for horizontal.
@@ -339,6 +342,24 @@ GC_grid <- function(
 
   # Top and bottom margins are padding of the whole chart
   if(!is.null(margin) && is.null(cluster)){
+
+    # Pixels, or a percentage of a chart height in pixels (B82)
+    for (side in intersect(c("top", "bottom"), names(margin))) {
+      value <- margin[[side]]
+      pixels <- is.numeric(value) && length(value) == 1 && is.finite(value)
+      text <- is.character(value) && length(value) == 1 && !is.na(value) &&
+        grepl("^\\s*-?[0-9]*\\.?[0-9]+\\s*(px|%)?\\s*$", value)
+      if (!pixels && !text) {
+        stop("Margins must be pixels, e.g. 50 or \"50px\", or a percentage of the chart ",
+             "height, e.g. \"10%\".")
+      }
+      chart_pixels <- is.numeric(chart_height) ||
+        (is.character(chart_height) && grepl("^\\s*[0-9.]+\\s*(px)?\\s*$", chart_height))
+      if (text && grepl("%\\s*$", value) && !chart_pixels) {
+        stop("Use pixel values for the top and bottom margins when the chart height is not ",
+             "in pixels, e.g. a percentage.")
+      }
+    }
 
     paddingTop <- if (!is.null(margin[["top"]])) get_relative_height(chart_height, margin[["top"]]) else 0
     paddingBottom <- if (!is.null(margin[["bottom"]])) get_relative_height(chart_height, margin[["bottom"]]) else 0
@@ -482,6 +503,11 @@ GC_scale <- function(GC_chart,
                      ...) {
   spec <- spec_args(match.call(), environment())
 
+  # The library turns automatic breaks on or off for all selected clusters
+  if (!is.logical(scale_breaks) || length(scale_breaks) != 1 || is.na(scale_breaks)) {
+    stop("scale_breaks must be a single TRUE or FALSE")
+  }
+
   # Fail early on a padding that is no percentage or base pairs
   if (is.character(scale_break_padding)) break_padding_bp(scale_break_padding)
 
@@ -568,10 +594,12 @@ GC_scaleBar <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
-
-  if (!any(show)) {
+  # show = FALSE hides what an earlier call shows (B76); with nothing shown
+  # before, the chart is unchanged
+  if (nothing_to_hide(GC_chart, "scaleBar", show)) {
     return(GC_chart)
   }
+
   check_clusters(GC_chart, cluster)
 
   add_spec(GC_chart, "scaleBar", spec,
@@ -686,7 +714,9 @@ GC_clusterLabel <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
-  if (!any(show)) {
+  # show = FALSE hides what an earlier call shows (B76); with nothing shown
+  # before, the chart is unchanged
+  if (nothing_to_hide(GC_chart, "clusterLabel", show)) {
     return(GC_chart)
   }
   check_align(align, per_cluster = TRUE)
@@ -781,7 +811,9 @@ GC_clusterFooter <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
-  if (!any(show)) {
+  # show = FALSE hides what an earlier call shows (B76); with nothing shown
+  # before, the chart is unchanged
+  if (nothing_to_hide(GC_chart, "clusterFooter", show)) {
     return(GC_chart)
   }
   check_align(align, per_cluster = TRUE)
@@ -889,9 +921,12 @@ GC_coordinates <- function(
     stop("groupStyle needs a group in GC_chart() or a style_by column")
   }
 
-  if (!any(show)) {
+  # show = FALSE hides what an earlier call shows (B76); with nothing shown
+  # before, the chart is unchanged
+  if (nothing_to_hide(GC_chart, "coordinates", show)) {
     return(GC_chart)
   }
+
   getUpdatedClusters(state$clusters, cluster)
 
   add_spec(GC_chart, "coordinates", spec)
@@ -984,7 +1019,7 @@ GC_cluster <- function(
 
   if (isTRUE(separate_strands) && !is.null(prevent_gene_overlap) &&
       !isFALSE(prevent_gene_overlap)) {
-    warning("Setting both 'separate_strands' and 'prevent_gene_overlap' to TRUE is not supported. Resetting to NULL.")
+    warning("Setting both 'separate_strands' and 'prevent_gene_overlap' to TRUE is not supported. Neither is applied.")
   }
   check_clusters(GC_chart, cluster)
 

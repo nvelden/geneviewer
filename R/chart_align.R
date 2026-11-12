@@ -94,6 +94,10 @@ GC_align <- function(
 #' @param custom_gaps A named list where each name corresponds to a gene name and
 #'   each value is a numeric factor by which to adjust the gap after that gene.
 #'
+#' @details Links made before by [GC_links()]`(group = )` move with their
+#'   genes. Links given as `data` (e.g. from [mummer_alignment()]) keep their
+#'   positions, with a warning: add them after `GC_normalize()`.
+#'
 #' @return The modified `GC_chart` object with normalized gene coordinates for
 #'   the specified clusters.
 #'
@@ -187,6 +191,52 @@ GC_normalize <-
     data[[state[[field]]]] <- data[[field]]
   }
   GC_chart$x$spec$data <- data
+  if (!is.null(GC_chart$x$spec$links)) {
+    GC_chart$x$spec$links <- normalize_links(GC_chart$x$spec$links, data,
+                                             unique(c("start", "end", state$start, state$end)))
+  }
 
   return(GC_chart)
+}
+
+#' Links made before GC_normalize(), at the new positions of their genes
+#'
+#' Links made by `GC_links(group = )` name their genes in `rowID1` and
+#' `rowID2`: their positions are those of the genes (B69). Links given as
+#' data, e.g. alignments, have positions inside the genes; they keep them,
+#' with a warning.
+#'
+#' @param links The links of the spec: an entry, a list of entries or NULL.
+#' @param data The chart's data with the new positions and `rowID`.
+#' @param fields Character, the position columns (`start`, `end` and the
+#'   columns given as start and end).
+#' @return The links.
+#' @noRd
+normalize_links <- function(links, data, fields) {
+  single <- is_spec_entry(links)
+  entries <- if (single) list(links) else links
+  kept <- FALSE
+  for (i in seq_along(entries)) {
+    links_data <- entries[[i]]$data
+    if (!all(c("rowID1", "rowID2") %in% names(links_data))) {
+      kept <- TRUE
+      next
+    }
+    for (side in c("1", "2")) {
+      rows <- match(links_data[[paste0("rowID", side)]], data$rowID)
+      found <- !is.na(rows)
+      for (field in fields) {
+        column <- paste0(field, side)
+        if (column %in% names(links_data)) {
+          links_data[[column]][found] <- data[[field]][rows[found]]
+        }
+      }
+    }
+    entries[[i]]$data <- links_data
+  }
+  if (kept) {
+    warning("Links given as data keep their positions after GC_normalize(). ",
+            "Add them after GC_normalize() to place them on the new positions.", call. = FALSE)
+  }
+  if (single) entries[[1]] else entries
 }

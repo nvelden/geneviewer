@@ -174,6 +174,20 @@ start_spec <- function(data, args) {
   Filter(Negate(is.null), spec)
 }
 
+#' Whether a call with `show = FALSE` has nothing to hide
+#'
+#' `show = FALSE` hides what an earlier call of the function shows; on a chart
+#' without one it changes nothing and is not recorded.
+#' @param GC_chart The gene chart object.
+#' @param key Character, the key of the spec.
+#' @param show The `show` argument, or for GC_labels() the `label` argument
+#'   when it is a logical.
+#' @noRd
+nothing_to_hide <- function(GC_chart, key, show) {
+  is.logical(show) && length(show) > 0 && !any(show, na.rm = TRUE) &&
+    is.null(GC_chart$x$spec[[key]])
+}
+
 #' A logical given for a column argument, e.g. GC_labels(FALSE), is `show`
 #' @noRd
 spec_flag <- function(args, name) {
@@ -359,8 +373,8 @@ prepare_data <- function(data, start = "start", end = "end", cluster = NULL,
 #' @param GC_chart The gene chart object.
 #' @return A list: the column names `start`, `end`, `cluster`, `group` and
 #'   `strand` (NULL when not given), `columns`, the names of the columns of the
-#'   prepared data (NULL when it has no rows), and `clusters`, the names of the
-#'   clusters in order.
+#'   prepared data, and `clusters`, the names of the clusters in order (none
+#'   when the data has no rows).
 #' @noRd
 chart_fields <- function(GC_chart) {
   spec <- GC_chart$x$spec
@@ -380,8 +394,11 @@ chart_fields <- function(GC_chart) {
   data <- spec$data
   # prepare_data() leaves out the rows without a start or end
   kept <- !is.na(data[[state$start]]) & !is.na(data[[state$end]])
-  state$columns <- if (any(kept)) union(names(data), c("rowID", "start", "end", "strand"))
-  state$clusters <- if (is.null(state$cluster)) {
+  # Also for data without rows: its columns can still be named (B75)
+  state$columns <- union(names(data), c("rowID", "start", "end", "strand"))
+  state$clusters <- if (!any(kept)) {
+    character()
+  } else if (is.null(state$cluster)) {
     "cluster"
   } else {
     unique(as.character(data[[state$cluster]][kept]))
@@ -404,6 +421,7 @@ chart_state <- function(GC_chart) {
 #' The names of the clusters of prepared data
 #' @noRd
 state_clusters <- function(data, cluster) {
+  if (nrow(data) == 0) return(character())
   if (is.null(cluster)) "cluster" else unique(as.character(data[[cluster]]))
 }
 

@@ -17,6 +17,8 @@
 #' @details This function can read multiple BED files from a directory or a
 #'   single BED file from a specified path. It adds a 'filename' column with the
 #'   name of the file, and combines the data frames from all files into one.
+#'   Columns are separated by tabs, or by spaces in a file without any tab.
+#'   Columns after the twelve of BED are named `V13`, `V14`, and so on.
 #'
 #'   The columns `chrom`, `name`, `strand` and `itemRgb` are character, also
 #'   when their values look like numbers (a chromosome named `1`), so that the
@@ -69,10 +71,16 @@ process_bed <- function(path){
     header <- grepl("^[[:space:]]*(track|browser)([[:space:]]|$)|^[[:space:]]*(#|$)", lines)
     lines <- lines[!header]
 
-    # Determine the number of columns from the first data line
+    # Columns are separated by tabs; a file without any tab by spaces (B83)
+    tabs <- any(grepl("\t", lines, fixed = TRUE))
+    sep <- if (tabs) "\t" else ""
+
+    # Determine the number of columns from the first data line. Columns
+    # after the twelve of BED are V13, V14, ... (B83)
     if (length(lines) > 0) {
-      num_cols <- length(strsplit(lines[1], "\t")[[1]])
-      used_fields <- field_names[1:num_cols]
+      first <- if (tabs) strsplit(lines[1], "\t")[[1]] else strsplit(trimws(lines[1]), "[[:space:]]+")[[1]]
+      num_cols <- length(first)
+      used_fields <- c(field_names, paste0("V", seq_len(max(0, num_cols - 12)) + 12))[seq_len(num_cols)]
     } else {
       used_fields <- field_names
     }
@@ -81,7 +89,7 @@ process_bed <- function(path){
       text = lines,
       header = FALSE,
       quote = "",
-      sep = "\t",
+      sep = sep,
       comment.char = "",
       fill = TRUE,
       stringsAsFactors = FALSE,

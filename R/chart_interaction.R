@@ -516,13 +516,15 @@ GC_zoom <- function(GC_chart, show = TRUE, range = NULL, mode = NULL, min = NULL
     show = show, range = range, mode = mode, min = min, update = update,
     height = height, overview = overview, color = color, style = style,
     windowStyle = windowStyle, handleStyle = handleStyle))
-  check_zoom(options)
+  # range and min are in the units of the mode of an earlier call when this
+  # one gives none (B77)
+  check_zoom(options, mode = if (is.null(mode)) GC_chart$x$spec$zoom$mode else mode)
   GC_chart <- add_spec_zoom(GC_chart, spec)
   # Font Awesome for custom toolbar icons
   add_fontawesome(GC_chart)
 }
 
-check_zoom <- function(options) {
+check_zoom <- function(options, mode = options$mode) {
   flag <- function(name) {
     value <- options[[name]]
     if (!is.null(value) && !(is.logical(value) && length(value) == 1 && !is.na(value))) {
@@ -545,7 +547,7 @@ check_zoom <- function(options) {
         range[1] == range[2]) {
       stop("'range' must be two different numbers: c(start, end).")
     }
-    if (!identical(options$mode, "absolute") && (min(range) < 0 || max(range) > 1)) {
+    if (!identical(mode, "absolute") && (min(range) < 0 || max(range) > 1)) {
       stop("A relative 'range' is shares of the clusters, between 0 and 1, e.g. c(0.25, 0.5). ",
            "Use mode = \"absolute\" for base pairs.")
     }
@@ -556,7 +558,7 @@ check_zoom <- function(options) {
       stop("'", name, "' must be a single positive number.")
     }
   }
-  if (!is.null(options$min) && !identical(options$mode, "absolute") && options$min > 1) {
+  if (!is.null(options$min) && !identical(mode, "absolute") && options$min > 1) {
     stop("A relative 'min' is a share of the slider, between 0 and 1.")
   }
   color <- options$color

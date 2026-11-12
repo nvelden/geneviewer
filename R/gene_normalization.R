@@ -145,6 +145,8 @@ normalize_gc_positions <- function(data, gap = NULL, preserve_gene_length = TRUE
   }
 
   adjusted_total_length <- total_length - total_gap
+  # The gaps lie between the genes: one fewer than there are genes (B68)
+  gap_width <- if (num_genes > 1) total_gap / (num_genes - 1) else 0
 
   mean_gene_length <- adjusted_total_length / num_genes
   data <- data %>%
@@ -154,9 +156,9 @@ normalize_gc_positions <- function(data, gap = NULL, preserve_gene_length = TRUE
     dplyr::arrange(.data$actual_start) %>%
     dplyr::mutate(
       new_start = if (preserve_gene_length) {
-        min(.data$actual_start) + cumsum(c(0, utils::head(.data$gene_length + total_gap / nrow(data), -1)))
+        min(.data$actual_start) + cumsum(c(0, utils::head(.data$gene_length + gap_width, -1)))
       } else {
-        min(.data$actual_start) + (dplyr::row_number() - 1) * (mean_gene_length + total_gap / nrow(data))
+        min(.data$actual_start) + (dplyr::row_number() - 1) * (mean_gene_length + gap_width)
       },
       new_end = .data$new_start + .data$gene_length,
       start = dplyr::if_else(.data$is_reverse,

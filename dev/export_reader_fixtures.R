@@ -64,6 +64,40 @@ gbk_record <- function(id, seq) c(
   sprintf("        1 %s", seq),
   "//")
 
+# Sequence lines from base 1,000,001: two, one and no spaces before the position (B71)
+gbk_b71 <- c(
+  "LOCUS       LONG             100000080 bp    DNA     linear   BCT 01-JAN-2024",
+  "DEFINITION  Long record.",
+  "VERSION     LONG.1",
+  "FEATURES             Location/Qualifiers",
+  "ORIGIN",
+  "   999961 aaaaaaaaaa cccccccccc",
+  "  1000021 gggggggggg tttttttttt",
+  " 10000021 acacacacac gtgtgtgtgt",
+  "100000021 agagagagag ctctctctct",
+  "//")
+
+# Feature keys that do not start with a letter, a flag qualifier, a feature
+# without qualifiers and a location over two lines (B72)
+gbk_b72 <- c(
+  "LOCUS       B72                      600 bp    DNA     linear   BCT 01-JAN-2024",
+  "DEFINITION  B72.",
+  "FEATURES             Location/Qualifiers",
+  "     5'UTR           1..9",
+  "                     /gene=\"utr5\"",
+  "     CDS             10..200",
+  "                     /gene=\"abc\"",
+  "                     /pseudo",
+  "                     /note=\"see /x=1 here\"",
+  "                     /protein_id=\"P1\"",
+  "     gene            300..500",
+  "     -10_signal      590..595",
+  "     misc_feature    complement(join(510..520,",
+  "                     530..540))",
+  "ORIGIN",
+  "        1 acgtacgtac",
+  "//")
+
 gbk_b03 <- c(
   "LOCUS       DEMO01                   600 bp    DNA     linear   BCT 01-JAN-2024",
   "FEATURES             Location/Qualifiers",
@@ -241,6 +275,9 @@ add("gbk-BGC0000001-missing", list(call("read_gbk", sections = c("LOCUS", "NOPE"
 add("gbk-no-features", list(call("read_gbk", sections = "LOCUS", features = "CDS")), gbk1)
 add("gbk-B03", list(call("read_gbk")), put("B03.gbk", gbk_b03))
 add("gbk-B04", list(call("read_gbk")), put("B04.gbk", gbk_b04))
+add("gbk-B71", list(call("read_gbk")), put("B71.gbk", gbk_b71))
+add("gbk-B72", list(call("read_gbk")), put("B72.gbk", gbk_b72))
+add("gbkdf-B72", list(call("read_gbk"), call("gbk_features_to_df")), "inputs/B72.gbk")
 add("gbk-multi", list(call("read_gbk")), put("multi.gbk", c(gbk_record("AAA", "acgtacgtac gtacgtacgt"), gbk_record("BBB", "ttttgggggc ccccaaaaat"))))
 put("gbk-folder/B03.gbk", gbk_b03)
 add("gbk-folder", list(call("read_gbk")), put("gbk-folder/B04.gb", gbk_b04) |> dirname())
@@ -254,6 +291,14 @@ add("gbkdf-folder-missing", list(call("read_gbk"), call("gbk_features_to_df", fe
 add("gbkdf-nokeys", list(call("read_gbk"), call("gbk_features_to_df", keys = "nokey")), "inputs/B04.gbk")
 add("g2f-BGC0000001", list(call("genbank_to_fasta")), gbk1)
 add("g2f-multi", list(call("genbank_to_fasta")), "inputs/multi.gbk")
+# Records without VERSION or DEFINITION are named by ACCESSION, LOCUS or the file (B74)
+g2f_record <- function(...) c(..., "FEATURES             Location/Qualifiers", "ORIGIN",
+                              "        1 acgtacgtac", "//")
+add("g2f-B74", list(call("genbank_to_fasta")), put("B74.gbk", c(
+  g2f_record("LOCUS       LOC1   10 bp", "ACCESSION   ACC1 ACC2", "DEFINITION  Thing."),
+  g2f_record("LOCUS       LOC2   10 bp"),
+  g2f_record("VERSION     V.1", "DEFINITION  Other thing."),
+  g2f_record("VERSION", "ACCESSION"))))
 add("g2f-single", list(call("genbank_to_fasta")), put("single.gbk", gbk_record("AAA", "acgtacgtac gtacgtacgt")))
 
 gff1 <- extdata("HQ113105.1.gff3")
@@ -288,6 +333,13 @@ add("gff-numbers", list(call("read_gff")), put("numbers.gff3", c(
   gff_row("ID=b", 600, 900, score = "12", phase = "2"),
   "chr1\tdemo\tgene\t1000\t1200\t1e3\t-",
   "  ")))
+# Scores that are not numbers: NA, with one warning naming the first five
+add("gff-score-text", list(call("read_gff")), put("score-text.gff3", c(
+  gff_row("ID=a", score = "high"),
+  gff_row("ID=b", 600, 900, score = " 7 "),
+  gff_row("ID=c", 1000, 1200, score = "high"),
+  gff_row("ID=d", 1300, 1400, score = "NA"),
+  gff_row("ID=e", 1500, 1600, score = "0x1F"))))
 put("gff-folder/genes.gtf", gtf_lines)
 put("gff-folder/more.gff2", gtf_lines)
 add("gff-folder", list(call("read_gff")), put("gff-folder/B48.gff3", c("##gff-version 3", gff_row("ID=g1;Name=abcA"))) |> dirname())
@@ -310,10 +362,24 @@ add("fasta-empty", list(call("read_fasta")), put("empty.fasta", character()))
 put("fasta-folder/b.fasta", fasta$alignment)
 put("fasta-folder/c.fa", fasta$uniprot)
 add("fasta-folder", list(call("read_fasta", sequence = FALSE)), put("fasta-folder/a.fasta", fasta$ncbi_cds) |> dirname())
+# One file with a complement location, one with only forward ones (B73)
+put("fasta-B73/A.fasta", c(">a [protein_id=p1] [location=complement(1..90)]", "MKK",
+                            ">b [protein_id=p2] [location=100..190]", "MAA"))
+add("fasta-B73", list(call("read_fasta")),
+    put("fasta-B73/B.fasta", c(">a [protein_id=p3] [location=1..90]", "MKK",
+                               ">c [protein_id=p5]", "MCC")) |> dirname())
 add("fasta-folder-fa", list(call("read_fasta", file_extension = "fa")), "inputs/fasta-folder")
+# A folder without FASTA files (B83)
+add("fasta-empty-folder", list(call("read_fasta")), put("no-fasta/readme.txt", "no FASTA files here") |> dirname())
 add("fasta-missing", list(call("read_fasta")), "inputs/does-not-exist.fasta")
 
 add("bed-B05", list(call("read_bed")), put("B05.bed", bed12))
+# Columns separated by spaces, and columns after the twelve of BED (B83)
+add("bed-spaces", list(call("read_bed")), put("spaces.bed", c("chr1 100 200 a 0 +", "chr1   300 400 b 5 -")))
+add("bed-extra-columns", list(call("read_bed")), put("extra.bed", paste(
+  c("chr1", 100, 200, "a", 0, "+", 100, 200, "0", 1, "100,", "0,", "x", "y"), collapse = "\t")))
+add("bed-score-text", list(call("read_bed")), put("score-text.bed", c(
+  "1\t0\t100\ta\t.\t+", "1\t200\t300\tb\t500\t-", "X\t400\t500\tc\tlow\t+")))
 add("bed-B05-single", list(call("read_bed")), put("B05-single.bed", "chr1\t0\t100\ta\t0\t+\t0\t100\t0\t2\t10,20\t0,80"))
 add("bed-track-names", list(call("read_bed")), put("track-names.bed", c(
   "chr1\t0\t10\tfirst", "chr1\t20\t30\ttrack_gene",

@@ -86,3 +86,14 @@ test_that("GC_zoom_to() reaches the chart of its output, found with the real htm
   expect_identical(value$second, "25%")
   expect_identical(value$first, "0%")
 })
+
+test_that("range and min are in the mode of an earlier GC_zoom() call (B77)", {
+  genes <- data.frame(start = c(100, 5000), end = c(900, 9000))
+  chart <- GC_chart(genes) %>% GC_zoom(mode = "absolute") %>% GC_zoom(range = c(100, 2000), min = 50)
+  expect_identical(chart$x$spec$zoom, list(mode = "absolute", range = list(100, 2000), min = 50))
+  expect_error(GC_chart(genes) %>% GC_zoom(mode = "relative") %>% GC_zoom(range = c(100, 2000)),
+               "relative 'range'")
+  # A new mode in the same call is checked against itself
+  expect_error(GC_chart(genes) %>% GC_zoom(mode = "absolute") %>%
+                 GC_zoom(mode = "relative", range = c(100, 2000)), "relative 'range'")
+})

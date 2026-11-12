@@ -240,8 +240,10 @@ test_that("chart_fields() gives the columns and clusters of the prepared data", 
                                        "from", "to", "contig"))
   same_as_prepared(with_na)
   expect_identical(chart_fields(with_na)$clusters, c(NA, "b", "a"))
-  # No rows left: as GC_chart() allows it, without columns or clusters
-  expect_null(chart_fields(suppressWarnings(GC_chart(genes[3, ], "from", "to", "contig")))$columns)
+  # No rows left: as GC_chart() allows it, with the columns and no clusters (B75)
+  empty <- chart_fields(suppressWarnings(GC_chart(genes[3, ], "from", "to", "contig")))
+  expect_identical(empty$columns, c(names(genes), "rowID", "start", "end", "strand"))
+  expect_length(empty$clusters, 0)
   same_as_prepared(suppressWarnings(GC_chart(genes[3, ], "from", "to", "contig")))
   same_as_prepared(suppressWarnings(GC_chart(genes[3, ], "from", "to")))
 

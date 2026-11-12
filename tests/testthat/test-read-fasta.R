@@ -153,3 +153,30 @@ test_that("read_fasta skips an empty file with the warning of a file without key
   expect_warning(result <- read_fasta(file), "No keys found in")
   expect_identical(nrow(result), 0L)
 })
+
+test_that("read_fasta gives every file of a folder a strand, also with only forward genes (B73)", {
+  dir <- tempfile()
+  dir.create(dir)
+  writeLines(c(">a [protein_id=p1] [location=complement(1..90)]", "MKK",
+               ">b [protein_id=p2] [location=100..190]", "MAA"), file.path(dir, "A.fasta"))
+  writeLines(c(">a [protein_id=p3] [location=1..90]", "MKK",
+               ">b [protein_id=p4] [location=100..190]", "MAA",
+               ">c [protein_id=p5]", "MCC"), file.path(dir, "B.fasta"))
+
+  genes <- read_fasta(dir)
+  expect_identical(genes$strand, c("complement", "forward", "forward", "forward", NA))
+  # A row without a location has no start, end or strand; GC_chart() leaves it out
+  expect_warning(chart <- GC_chart(genes, cluster = "cluster", strand = "strand"), "filtered out")
+  expect_s3_class(chart, "geneviewer")
+
+  # One file with only forward genes
+  forward <- read_fasta(file.path(dir, "B.fasta"))
+  expect_identical(forward$strand, c("forward", "forward", NA))
+})
+
+test_that("read_fasta stops on a folder without FASTA files (B83)", {
+  dir <- tempfile()
+  dir.create(dir)
+  writeLines("no FASTA files here", file.path(dir, "readme.txt"))
+  expect_error(read_fasta(dir), "No .fasta files found")
+})

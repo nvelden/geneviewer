@@ -122,23 +122,31 @@ GC_labels <- function(
     stop("'leaderLine$length' must be a single number of pixels, e.g. 30.")
   }
 
-  if (!any(show)) {
+  # show = FALSE hides what an earlier call shows (B76); with nothing shown
+  # before, the chart is unchanged
+  if (nothing_to_hide(GC_chart, "labels", show)) {
     return(GC_chart)
   }
 
+  # GC_labels(FALSE) is show = FALSE, as the spec records it
   if (is.logical(label) && length(label) == 1) {
+    show <- label
     label <- NULL
   }
 
-  if (is.null(label) && is.null(state$group)){
-    stop("Please define labels")
+  # Hidden labels need no column: show = FALSE hides the labels of an earlier
+  # call (B76)
+  if (any(show)) {
+    if (is.null(label) && is.null(state$group)){
+      stop("Please define labels")
+    }
+
+    if (is.null(label) && !is.null(state$group)) {
+      label <- state$group
+    }
   }
 
-  if (is.null(label) && !is.null(state$group)) {
-    label <- state$group
-  }
-
-  if (!all(label %in% state$columns)) {
+  if (!is.null(label) && !all(label %in% state$columns)) {
     stop("label column not found in data")
   }
 
@@ -232,8 +240,6 @@ check_group_style <- function(groupStyle) {
 #'                         # (eg. "schemeCategory10",
 #'                         # "schemeAccent", "schemeTableau10")
 #'     customColors = NULL, # A vector of color names
-#'     prevent_overlap = FALSE,
-#'     gene_overlap_spacing = 40,
 #'     cluster = 1, # Specify a specific cluster
 #'     x = 1,
 #'     y = 50,
@@ -803,6 +809,10 @@ GC_legend <- function(
   if (is.logical(group) && length(group) == 1) {
     show <- group
     group <- NULL
+  }
+
+  if (!is.null(group) && length(group) != 1) {
+    stop("group must be a single column name")
   }
 
   if (isTRUE(show) && is.null(group) && is.null(state$group)){

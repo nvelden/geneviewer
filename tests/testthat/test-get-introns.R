@@ -39,3 +39,16 @@ test_that("a one-base gap is retained and a single exon has no intron", {
   expect_equal(result$end[result$type == "intron"], 11)
   expect_false(any(get_introns(data.frame(start = 1, end = 10))$type == "intron"))
 })
+
+test_that("introns keep only the columns that are the same for their transcript (B83)", {
+  exons <- data.frame(transcript = rep(c("t1", "t2"), c(3, 2)), type = "exon",
+                      start = c(100, 400, 900, 100, 500), end = c(250, 600, 1100, 300, 700),
+                      strand = "forward", gene = rep(c("g1", "g2"), c(3, 2)),
+                      exon_id = paste0("e", 1:5))
+  introns <- get_introns(exons)
+  introns <- introns[introns$type == "intron", ]
+  expect_equal(introns$gene, c("g1", "g1", "g2"))
+  expect_equal(introns$strand, rep("forward", 3))
+  expect_true(all(is.na(introns$exon_id)))
+  expect_equal(introns$start, c(251, 601, 301))
+})

@@ -5,7 +5,8 @@
 #' It can handle GenBank and FASTA file formats. and performs checks to ensure
 #' necessary files are present.
 #'
-#' @param path The directory containing the sequence files.
+#' @param path The directory containing the sequence files. Its path may
+#'   contain spaces; the names of the files may not.
 #' @param cluster Optional vector of cluster names to consider for alignment. If
 #'   NULL, clusters are inferred from file names. The order of names determines
 #'   the alignment sequence.
@@ -21,8 +22,9 @@
 #'   view all filtering options, run `delta-filter --help` in the terminal.
 #' @param remove_files Logical indicating whether to remove intermediate files
 #'   generated during the process, defaults to TRUE.
-#' @param output_dir Parent directory for a unique working subdirectory;
-#'   defaults to \code{tempdir()}. With \code{remove_files = FALSE}, copied
+#' @param output_dir Parent directory for a unique working subdirectory, without
+#'   spaces in its path (MUMmer cannot use it otherwise); defaults to
+#'   \code{tempdir()}. With \code{remove_files = FALSE}, copied
 #'   inputs and alignment files are retained in that subdirectory.
 #'
 #' @return A data frame combining all alignment results, or NULL if errors occur
@@ -73,10 +75,6 @@ mummer_alignment <- function(
   # Ensure the output directory exists
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
-  }
-
-  if (grepl(" ", path)) {
-    stop("MUMmer requires a directory path without spaces.")
   }
 
   if (grepl(" ", output_dir)) {
@@ -337,7 +335,8 @@ parse_procmer <- function(path, reference, query){
 #'
 #' This function reads a GenBank file, extracts the sequence and
 #' writes it to a new file in FASTA format. It parses the DEFINITION and VERSION
-#' for the header and sequences from the ORIGIN section.
+#' for the header and sequences from the ORIGIN section. A record without a
+#' VERSION is named by its ACCESSION, else its LOCUS name, else the file name.
 #'
 #' @param path Path to the GenBank file.
 #' @param output_dir Directory for the output FASTA file, which gets the base
@@ -384,12 +383,25 @@ genbank_to_fasta <- function(path, output_dir = tempdir()){
     record <- lines[record_starts[r]:record_ends[r]]
 
     # Extract the definition and version for the FASTA header
-    definition <- record[grep("^DEFINITION", record)]
-    definition <- sub("^DEFINITION\\s+", "", definition)
-    definition <- sub("[^a-zA-Z0-9]+$", "", definition)
-    version <- record[grep("^VERSION", record)]
-    version <- sub("^VERSION\\s+", "", version)
-    fasta_header <- sprintf(">%s %s", version, definition)
+    definition <- record[grep("^DEFINITION", record)][1]
+    definition <- sub("[^a-zA-Z0-9]+$", "", sub("^DEFINITION\\s*", "", definition))
+    # The name of the record: its VERSION, else its ACCESSION or LOCUS name,
+    # else the file name (B74)
+    first_word <- function(key) {
+      line <- record[grep(paste0("^", key, "(\\s|$)"), record)][1]
+      word <- sub("^\\S+\\s*(\\S*).*$", "\\1", line)
+      if (is.na(word) || !nzchar(word)) NULL else word
+    }
+    version <- record[grep("^VERSION", record)][1]
+    version <- if (!is.na(version)) trimws(sub("^VERSION\\s*", "", version))
+    if (!is.null(version) && !nzchar(version)) version <- NULL
+    id <- c(version, first_word("ACCESSION"), first_word("LOCUS"),
+            tools::file_path_sans_ext(basename(path)))[1]
+    fasta_header <- if (is.na(definition) || !nzchar(definition)) {
+      paste0(">", id)
+    } else {
+      sprintf(">%s %s", id, definition)
+    }
 
     # Identify the start of the sequence block
     origin_index <- grep("^ORIGIN", record)

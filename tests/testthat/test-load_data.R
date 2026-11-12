@@ -360,3 +360,108 @@ test_that("a score that is not a number becomes NA with a warning", {
   expect_warning(gff <- read_gff(gff_file), "not numbers")
   expect_true(is.na(gff$score))
 })
+
+test_that("read_gbk reads the whole ORIGIN of records over a million bases (B71)", {
+  # From base 1,000,001 a sequence line has two, one or no spaces before its
+  # position, as the lines that start a section have
+  gbk_file <- tempfile(fileext = ".gbk")
+  writeLines(c(
+    "LOCUS       LONG             100000080 bp    DNA     linear   BCT 01-JAN-2024",
+    "DEFINITION  Long record.",
+    "FEATURES             Location/Qualifiers",
+    "     CDS             1..30",
+    "                     /protein_id=\"P1\"",
+    "ORIGIN",
+    "   999961 aaaaaaaaaa cccccccccc",
+    "  1000021 gggggggggg tttttttttt",
+    " 10000021 acacacacac gtgtgtgtgt",
+    "100000021 agagagagag ctctctctct",
+    "//"), gbk_file)
+
+  gbk <- read_gbk(gbk_file)[[1]]
+  expect_equal(gbk$ORIGIN, paste0("aaaaaaaaaacccccccccc", "ggggggggggtttttttttt",
+                                  "acacacacacgtgtgtgtgt", "agagagagagctctctctct"))
+  expect_equal(gbk$DEFINITION, "Long record.")
+  expect_equal(unname(gbk$FEATURES$CDS[[1]]["protein_id"]), "P1")
+})
+
+test_that("scores that are not numbers become NA with one warning", {
+  dir <- tempfile()
+  dir.create(dir)
+  gff <- file.path(dir, "a.gff3")
+  writeLines(c("chr1\tdemo\tgene\t100\t500\thigh\t+\t.\tID=a",
+               "chr1\tdemo\tgene\t600\t900\t 7 \t+\t.\tID=b",
+               "chr1\tdemo\tgene\t1000\t1200\thigh\t-\t.\tID=c"), gff)
+  expect_warning(scores <- read_gff(gff)$score, "Scores that are not numbers were set to NA: high$")
+  expect_equal(scores, c(NA, 7, NA))
+
+  bed <- file.path(dir, "a.bed")
+  writeLines(c("1\t0\t100\ta\t.\t+", "X\t400\t500\tc\tlow\t+"), bed)
+  expect_warning(data <- read_bed(bed), "set to NA: low$")
+  expect_equal(data$score, c(NA_real_, NA_real_))
+  expect_identical(data$chrom, c("1", "X"))
+})
+
+test_that("read_gbk reads features of any key, flag qualifiers and features without qualifiers (B72)", {
+  gbk_file <- tempfile(fileext = ".gbk")
+  writeLines(c(
+    "LOCUS       B72                      600 bp    DNA     linear   BCT 01-JAN-2024",
+    "FEATURES             Location/Qualifiers",
+    "     5'UTR           1..9",
+    "                     /gene=\"utr5\"",
+    "     CDS             10..200",
+    "                     /gene=\"abc\"",
+    "                     /pseudo",
+    "                     /note=\"see /x=1 here\"",
+    "     gene            300..500",
+    "     -10_signal      590..595",
+    "ORIGIN",
+    "        1 acgtacgtac",
+    "//"), gbk_file)
+
+  features <- read_gbk(gbk_file)[[1]]$FEATURES
+  expect_named(features, c("5'UTR", "CDS", "gene", "-10_signal"))
+  # The 5'UTR is its own feature, not part of the gene before it
+  expect_equal(features$`5'UTR`[[1]], c(gene = "utr5", region = "1..9"))
+  expect_equal(features$CDS[[1]],
+               c(gene = "abc", pseudo = "", note = "see /x=1 here", region = "10..200"))
+  expect_equal(features$gene[[1]], c(region = "300..500"))
+  expect_equal(features$`-10_signal`[[1]], c(region = "590..595"))
+
+  genes <- gbk_features_to_df(read_gbk(gbk_file), feature = "gene")
+  expect_equal(c(genes$start, genes$end), c(300, 500))
+})
+
+test_that("genbank_to_fasta names records without VERSION or DEFINITION (B74)", {
+  record <- function(...) c(..., "FEATURES             Location/Qualifiers", "ORIGIN",
+                            "        1 acgtacgtac", "//")
+  dir <- tempfile()
+  dir.create(dir)
+  gbk_file <- file.path(dir, "a.gbk")
+  writeLines(c(
+    record("LOCUS       LOC1   10 bp", "ACCESSION   ACC1 ACC2", "DEFINITION  Thing."),
+    record("LOCUS       LOC2   10 bp"),
+    record("VERSION     V.1", "DEFINITION  Other thing."),
+    record("VERSION", "ACCESSION")), gbk_file)
+
+  fasta <- readLines(genbank_to_fasta(gbk_file, output_dir = dir))
+  expect_equal(fasta, c(">ACC1 Thing", "ACGTACGTAC", ">LOC2", "ACGTACGTAC",
+                        ">V.1 Other thing", "ACGTACGTAC", ">a", "ACGTACGTAC"))
+})
+
+test_that("mummer_alignment reads a folder whose path has a space (B78)", {
+  skip_if(Sys.which("nucmer") == "", "MUMmer is not installed")
+  set.seed(1)
+  seq1 <- paste(sample(c("A", "C", "G", "T"), 3000, TRUE), collapse = "")
+  dir <- file.path(tempfile("mummer"), "my sequences")
+  dir.create(dir, recursive = TRUE)
+  writeLines(c(">a", seq1), file.path(dir, "A.fasta"))
+  writeLines(c(">b", seq1), file.path(dir, "B.fasta"))
+
+  links <- suppressWarnings(mummer_alignment(dir, seqtype = "nucleotide"))
+  expect_true(is.data.frame(links) && nrow(links) > 0)
+  # The input folder is left as it was
+  expect_setequal(list.files(dir), c("A.fasta", "B.fasta"))
+  # The output folder still may not have spaces
+  expect_error(mummer_alignment(dir, output_dir = dir), "output directory path without spaces")
+})

@@ -16,6 +16,9 @@ of each transcript).}
 A dataframe with the original exons and the calculated introns, sorted
 by transcript and start position. Each row includes the \code{start}, \code{end},
 \code{type} (exon, UTR or intron), \code{transcript}, and \code{strand} for each segment.
+An intron has the values of the columns that are the same for all exons
+and UTRs of its transcript (e.g. its gene or group), and \code{NA} in the
+columns that differ between them (e.g. the name of an exon).
 }
 \description{
 This function takes a dataset containing transcript information and calculates

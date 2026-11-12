@@ -1641,7 +1641,7 @@ var geneviewer = (() => {
         if (typeof d[p1] === "number") {
           return d3Format(d[p1]);
         }
-        return d[p1] || "";
+        return escapeHtml(d[p1] || "");
       });
     };
     combinedOptions.triggers.forEach((trigger) => {
@@ -1669,6 +1669,9 @@ var geneviewer = (() => {
     });
     return this;
   };
+  function escapeHtml(value) {
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
 
   // src/lib/color.js
   function getColorScale(colorScheme, customColors, uniqueGroups) {
@@ -2623,7 +2626,9 @@ var geneviewer = (() => {
       uniqueGroups = order2.filter((item) => uniqueGroups.includes(item)).concat(uniqueGroups.filter((item) => !order2.includes(item)));
     }
     if (!uniqueGroups.length) {
-      console.error(`Error: No labels provided and the group "${group}" does not exist in the data.`);
+      if (this.data.length) {
+        console.error(`Error: No labels provided and the group "${group}" does not exist in the data.`);
+      }
       return;
     }
     const legendSize = parseFloat(legendTextOptions.fontSize);
@@ -3635,7 +3640,8 @@ var geneviewer = (() => {
     data.set("start", original.get(start).slice());
     data.set("end", original.get(end).slice());
     if (cluster2 !== null) data.set(cluster2, data.get(cluster2).map(asCharacter));
-    data = addStrand(data, strand);
+    if (data.nrow === 0) data.set("strand", []);
+    else data = addStrand(data, strand);
     x.data = data;
     if (group !== null) x.group = group;
     if (cluster2 !== null) x.cluster = cluster2;
@@ -3653,7 +3659,7 @@ var geneviewer = (() => {
         else clusterRows.set(name, [i]);
       });
     }
-    const clusters = cluster2 === null ? ["cluster"] : [...clusterRows.keys()];
+    const clusters = data.nrow === 0 ? [] : cluster2 === null ? ["cluster"] : [...clusterRows.keys()];
     const blast = columnNames.includes("BlastP") && columnNames.includes("protein_id");
     const series = /* @__PURE__ */ new Map();
     for (const name of clusters) {
@@ -5309,9 +5315,12 @@ var geneviewer = (() => {
   function labels(state, entry) {
     let label = entry.label ?? null;
     const show = entry.show ?? true;
-    if (label === null && state.x.group === void 0) throw new Error("Please define labels");
-    if (label === null) label = state.x.group;
-    checkColumns(state, label, "label column not found in data");
+    const hidden = ![show].flat().some(Boolean);
+    if (label === null && !hidden) {
+      if (state.x.group === void 0) throw new Error("Please define labels");
+      label = state.x.group;
+    }
+    if (label !== null) checkColumns(state, label, "label column not found in data");
     const extra = dots(entry, LABELS);
     getUpdatedClusters(state, entry.clusters).forEach((name, i) => {
       const series = state.x.series.get(name);
@@ -7281,7 +7290,7 @@ var geneviewer = (() => {
   }
 
   // src/lib/chart.js
-  var version = "0.3.10";
+  var version = "0.3.11";
   var renderSequence = 0;
   var chartCount = 0;
   var activeShortcuts = null;

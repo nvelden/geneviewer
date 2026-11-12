@@ -1669,3 +1669,35 @@ test_that("a chart of data without rows takes the GC_ functions (B75)", {
                  "filtered out")
   expect_s3_class(only_na %>% GC_labels("name"), "geneviewer")
 })
+
+test_that("show = FALSE hides what an earlier call shows (B76)", {
+  genes <- data.frame(start = c(10, 50, 90, 130), end = c(40, 80, 120, 160),
+                      name = c("a", "b", "c", "d"), group = c("A", "B", "A", "B"),
+                      cluster = c(1, 1, 2, 2))
+  chart <- GC_chart(genes, cluster = "cluster", group = "group")
+  shown <- function(chart, slot) {
+    vapply(compile_chart(chart)$series, function(s) isTRUE(s[[slot]]$show), logical(1),
+           USE.NAMES = FALSE)
+  }
+  hide2 <- function(chart, fun, ...) fun(chart, ..., show = FALSE, cluster = 2)
+
+  expect_equal(shown(chart %>% GC_labels("name") %>% hide2(GC_labels), "labels"), c(TRUE, FALSE))
+  expect_equal(shown(chart %>% GC_coordinates() %>% hide2(GC_coordinates), "coordinates"),
+               c(TRUE, FALSE))
+  expect_equal(shown(chart %>% GC_scaleBar() %>% hide2(GC_scaleBar), "scaleBar"), c(TRUE, FALSE))
+  expect_equal(shown(chart %>% GC_clusterTitle("t") %>% hide2(GC_clusterTitle), "clusterTitle"),
+               c(TRUE, FALSE))
+  expect_equal(shown(chart %>% GC_clusterLabel() %>% hide2(GC_clusterLabel), "clusterLabel"),
+               c(TRUE, FALSE))
+  expect_equal(shown(chart %>% GC_clusterFooter("f") %>% hide2(GC_clusterFooter), "footer"),
+               c(TRUE, FALSE))
+
+  # Hidden labels need no label column, also on a chart without a group
+  plain <- GC_chart(genes, cluster = "cluster") %>% GC_labels("name") %>% GC_labels(show = FALSE)
+  expect_identical(plain$x$spec$labels[[2]], list(show = FALSE))
+  expect_error(GC_chart(genes) %>% GC_labels("name") %>% GC_labels(show = FALSE, label = "nope"),
+               "label column not found")
+
+  # With nothing shown before, nothing is recorded
+  expect_identical(chart %>% GC_coordinates(show = FALSE), chart)
+})

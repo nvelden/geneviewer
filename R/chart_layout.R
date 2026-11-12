@@ -203,7 +203,9 @@ GC_clusterTitle <- function(
     spacing = NULL,
     ...) {
   spec <- spec_args(match.call(), environment())
-  if (!any(show)) {
+  # show = FALSE hides what an earlier call shows (B76); with nothing shown
+  # before, the chart is unchanged
+  if (nothing_to_hide(GC_chart, "clusterTitle", show)) {
     return(GC_chart)
   }
   check_align(align, per_cluster = TRUE)
@@ -568,10 +570,12 @@ GC_scaleBar <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
-
-  if (!any(show)) {
+  # show = FALSE hides what an earlier call shows (B76); with nothing shown
+  # before, the chart is unchanged
+  if (nothing_to_hide(GC_chart, "scaleBar", show)) {
     return(GC_chart)
   }
+
   check_clusters(GC_chart, cluster)
 
   add_spec(GC_chart, "scaleBar", spec,
@@ -686,7 +690,9 @@ GC_clusterLabel <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
-  if (!any(show)) {
+  # show = FALSE hides what an earlier call shows (B76); with nothing shown
+  # before, the chart is unchanged
+  if (nothing_to_hide(GC_chart, "clusterLabel", show)) {
     return(GC_chart)
   }
   check_align(align, per_cluster = TRUE)
@@ -781,7 +787,9 @@ GC_clusterFooter <- function(
 ) {
 
   spec <- spec_args(match.call(), environment())
-  if (!any(show)) {
+  # show = FALSE hides what an earlier call shows (B76); with nothing shown
+  # before, the chart is unchanged
+  if (nothing_to_hide(GC_chart, "clusterFooter", show)) {
     return(GC_chart)
   }
   check_align(align, per_cluster = TRUE)
@@ -889,9 +897,12 @@ GC_coordinates <- function(
     stop("groupStyle needs a group in GC_chart() or a style_by column")
   }
 
-  if (!any(show)) {
+  # show = FALSE hides what an earlier call shows (B76); with nothing shown
+  # before, the chart is unchanged
+  if (nothing_to_hide(GC_chart, "coordinates", show)) {
     return(GC_chart)
   }
+
   getUpdatedClusters(state$clusters, cluster)
 
   add_spec(GC_chart, "coordinates", spec)

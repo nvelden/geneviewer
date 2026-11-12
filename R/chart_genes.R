@@ -122,23 +122,31 @@ GC_labels <- function(
     stop("'leaderLine$length' must be a single number of pixels, e.g. 30.")
   }
 
-  if (!any(show)) {
+  # show = FALSE hides what an earlier call shows (B76); with nothing shown
+  # before, the chart is unchanged
+  if (nothing_to_hide(GC_chart, "labels", show)) {
     return(GC_chart)
   }
 
+  # GC_labels(FALSE) is show = FALSE, as the spec records it
   if (is.logical(label) && length(label) == 1) {
+    show <- label
     label <- NULL
   }
 
-  if (is.null(label) && is.null(state$group)){
-    stop("Please define labels")
+  # Hidden labels need no column: show = FALSE hides the labels of an earlier
+  # call (B76)
+  if (any(show)) {
+    if (is.null(label) && is.null(state$group)){
+      stop("Please define labels")
+    }
+
+    if (is.null(label) && !is.null(state$group)) {
+      label <- state$group
+    }
   }
 
-  if (is.null(label) && !is.null(state$group)) {
-    label <- state$group
-  }
-
-  if (!all(label %in% state$columns)) {
+  if (!is.null(label) && !all(label %in% state$columns)) {
     stop("label column not found in data")
   }
 

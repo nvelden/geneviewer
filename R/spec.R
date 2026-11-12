@@ -174,6 +174,20 @@ start_spec <- function(data, args) {
   Filter(Negate(is.null), spec)
 }
 
+#' Whether a call with `show = FALSE` has nothing to hide
+#'
+#' `show = FALSE` hides what an earlier call of the function shows; on a chart
+#' without one it changes nothing and is not recorded.
+#' @param GC_chart The gene chart object.
+#' @param key Character, the key of the spec.
+#' @param show The `show` argument, or for GC_labels() the `label` argument
+#'   when it is a logical.
+#' @noRd
+nothing_to_hide <- function(GC_chart, key, show) {
+  is.logical(show) && length(show) > 0 && !any(show, na.rm = TRUE) &&
+    is.null(GC_chart$x$spec[[key]])
+}
+
 #' A logical given for a column argument, e.g. GC_labels(FALSE), is `show`
 #' @noRd
 spec_flag <- function(args, name) {
